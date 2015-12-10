@@ -1,0 +1,15 @@
+resolver: nightly-2015-12-03
+packages:
+- '.'
+- ../gl-pal
+- ../udp-pal
+- ../bullet-mini
+- ../vr-pal
+- ../glfw-pal
+- ../pd-haskell
+- ../halive
+- ../animation-pal
+- ../linear-extra
+- ../lens-extra
+- ../openvr-hs
+- ../bindings-GLFW
