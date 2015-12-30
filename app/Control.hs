@@ -17,8 +17,8 @@ processControls = do
         closeOnEscape gpWindow e
         -- onMouseDown e $ \_ -> raycastCursorHits gpWindow dynamicsWorld projMat
         
-    applyMouseLook gpWindow wldPlayer
-    applyWASD gpWindow wldPlayer
+    -- applyMouseLook gpWindow wldPlayer
+    -- applyWASD gpWindow wldPlayer
 
 
 -- raycastCursorHits :: (MonadIO m, MonadState World m) 

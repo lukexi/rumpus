@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE RankNTypes #-}
+
 module Entity where
 import Control.Lens.Extra
 import Linear.Extra
@@ -12,6 +14,7 @@ import GHC.Word
 import Control.Monad.State
 import System.Random
 import Control.Monad.Reader
+import Data.Maybe
 
 data Uniforms = Uniforms
     { uModelViewProjection :: UniformLocation (M44 GLfloat)
@@ -25,36 +28,68 @@ data Uniforms = Uniforms
 type EntityID = Word32
 type EntityMap a = Map EntityID a
 
-data Entity = Entity
-  { _entColor     :: !(V4 GLfloat)
-  , _entSize      :: !(V3 GLfloat)
-  , _entPose      :: !(Pose GLfloat)
-  , _entScale     :: !(V3 GLfloat)
-  , _entRigidBody :: !(Maybe RigidBody)
-  , _entUpdate    :: !(Maybe (Entity -> IO Entity))
-  }
-makeLenses ''Entity
 
+data Components = Components
+    { _cmpPose        :: EntityMap (Pose GLfloat)
+    , _cmpSize        :: EntityMap (V3 GLfloat)
+    , _cmpScale       :: EntityMap (V3 GLfloat)
+    , _cmpColor       :: EntityMap (V4 GLfloat)
+    , _cmpShape       :: EntityMap ShapeType
+    , _cmpRigidBody   :: EntityMap RigidBody
+    , _cmpGhostObject :: EntityMap GhostObject
+    , _cmpUpdate      :: EntityMap (EntityID -> WorldMonad ())
+    }
+
+newComponents :: Components
+newComponents = Components
+    { _cmpPose        = mempty
+    , _cmpSize        = mempty
+    , _cmpScale       = mempty
+    , _cmpColor       = mempty
+    , _cmpRigidBody   = mempty
+    , _cmpUpdate      = mempty
+    , _cmpGhostObject = mempty
+    , _cmpShape       = mempty
+    }
+
+data Entity = Entity
+    { _entColor     :: !(V4 GLfloat)
+    , _entSize      :: !(V3 GLfloat)
+    , _entPose      :: !(Pose GLfloat)
+    , _entScale     :: !(V3 GLfloat)
+    , _entRigidBody :: !(Maybe RigidBody)
+    , _entUpdate    :: !(Maybe (EntityID -> WorldMonad ()))
+    , _entPhysProps :: [PhysicsProperties]
+    , _entShape     :: ShapeType
+    }
+
+data ShapeType = None | Cube | Sphere
+
+data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show)
 
 data WorldStatic = WorldStatic
     { _wlsDynamicsWorld :: !DynamicsWorld
     , _wlsCubeShape     :: !(Shape Uniforms)
     , _wlsVRPal         :: !VRPal
     }
-makeLenses ''WorldStatic
 
 data World = World
-    { _wldPlayer    :: !(Pose GLfloat)
-    , _wldEntities  :: !(EntityMap Entity)
+    { _wldPlayer     :: !(Pose GLfloat)
+    , _wldComponents :: !Components
     }
+
+type WorldMonad = StateT World (ReaderT WorldStatic IO)
+
+makeLenses ''WorldStatic
 makeLenses ''World
+makeLenses ''Entity
+makeLenses ''Components
 
 newWorld :: World
 newWorld = World
-    { _wldPlayer = Pose (V3 0 20 60) (axisAngle (V3 0 1 0) 0)
-    , _wldEntities = mempty
+    { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
+    , _wldComponents = newComponents
     }
-
 
 newEntity :: Entity
 newEntity = Entity
@@ -64,46 +99,78 @@ newEntity = Entity
     , _entScale     = V3 1 1 1
     , _entRigidBody = Nothing
     , _entUpdate    = Nothing
+    , _entPhysProps = []
+    , _entShape     = None
     }
 
+createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
+createEntity entity = do
+    entityID <- liftIO randomIO
 
+    wldComponents . cmpPose   . at entityID ?= entity ^. entPose
+    wldComponents . cmpSize   . at entityID ?= entity ^. entSize
+    wldComponents . cmpColor  . at entityID ?= entity ^. entColor
+    wldComponents . cmpScale  . at entityID ?= entity ^. entScale
+    wldComponents . cmpShape  . at entityID ?= entity ^. entShape
+    wldComponents . cmpUpdate . at entityID .= entity ^. entUpdate
+
+    addEntityRigidBodyComponent entityID (entity ^. entPhysProps)
+    
+    return entityID
 
 setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> V3 GLfloat -> m ()
 setEntitySize entityID newSize = do
-    use (wldEntities . at entityID) >>= mapM_ (\entity -> do
-        forM_ (entity ^. entRigidBody) $ \rigidBody -> do
-            dynamicsWorld <- view wlsDynamicsWorld
-            setRigidBodyScale dynamicsWorld rigidBody newSize
-        return (entity & entSize .~ newSize)
-        )
+    wldComponents . cmpSize . ix entityID .= newSize
+
+    useMaybeM_ (wldComponents . cmpRigidBody . at entityID) $ \rigidBody -> do 
+        dynamicsWorld <- view wlsDynamicsWorld
+        setRigidBodyScale dynamicsWorld rigidBody newSize
+
+useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
+useMaybeM_ aLens f = do
+    current <- use aLens
+    mapM_ f current
 
 
-data IsKinematic = IsKinematic | IsNotKinematic deriving (Eq, Show)
+setEntityPose :: (MonadState World m, MonadIO m) => EntityID -> Pose GLfloat -> m ()
+setEntityPose entityID newPose_ = do
+
+    wldComponents . cmpPose . ix entityID .= newPose_
+
+    useMaybeM_ (wldComponents . cmpRigidBody . at entityID) $ \rigidBody -> 
+        setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
 
 
-
-createEntity :: (MonadIO m, MonadState World m) => Entity -> m EntityID
-createEntity entity = do
-    entityID <- liftIO randomIO
-    wldEntities . at entityID ?= entity
-    return entityID
 
 addEntityRigidBodyComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
-                            => EntityID -> IsKinematic -> m ()
-addEntityRigidBodyComponent entityID isKinematic = do
+                            => EntityID -> [PhysicsProperties] -> m ()
+addEntityRigidBodyComponent entityID physProperties = do
 
     dynamicsWorld <- view wlsDynamicsWorld
 
+    pose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+    size <- fromMaybe 1       <$> use (wldComponents . cmpSize . at entityID)
 
-    use (wldEntities . at entityID) >>= mapM_ (\entity -> do
-        boxShape <- createBoxShape (entity ^. entSize)
-        rigidBody <- addRigidBody dynamicsWorld (CollisionObjectID entityID) boxShape
-            mempty { rbPosition = entity ^. entPose . posPosition
-                   , rbRotation = entity ^. entPose . posOrientation
-                   }
-        when (isKinematic == IsKinematic) 
-            (setRigidBodyKinematic rigidBody)
-        wldEntities . at entityID . traverse . entRigidBody ?= rigidBody
-        )
+    boxShape <- createBoxShape size
+
+    let collisionID = CollisionObjectID entityID
+        bodyInfo = mempty { rbPosition = pose ^. posPosition
+                          , rbRotation = pose ^. posOrientation
+                          }
+
+    if IsGhost `elem` physProperties 
+        then do
+            ghostObject <- addGhostObject dynamicsWorld collisionID boxShape bodyInfo
+
+            wldComponents . cmpGhostObject . at entityID ?= ghostObject
+
+            return ()
+        else do
+            rigidBody <- addRigidBody dynamicsWorld collisionID boxShape bodyInfo
+            
+            when (IsKinematic `elem` physProperties) 
+                (setRigidBodyKinematic rigidBody)
+
+            wldComponents . cmpRigidBody . at entityID ?= rigidBody
 
 

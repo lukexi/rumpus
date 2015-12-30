@@ -8,6 +8,8 @@ import Graphics.VR.Pal
 import Control.Monad
 import Control.Monad.State
 import Control.Lens.Extra
+import qualified Data.Map as Map
+
 
 import Physics.Bullet
 
@@ -39,17 +41,16 @@ main = do
             , _wlsVRPal = vrPal
             }
 
-    void . flip runStateT newWorld . flip runReaderT worldStatic $ do 
+    void . flip runReaderT worldStatic . flip runStateT newWorld $ do 
 
-        createPlaneMess
-        createSpatula
+        mapM_ createEntity =<< initScene
 
         whileVR vrPal $ \headM44 _hands -> do
             
             processControls
 
-            ents <- use wldEntities
-            liftIO $ forM_ ents $ \entity -> forM_ (entity ^. entUpdate) ($ entity)
+            updates <- Map.toList <$> use (wldComponents . cmpUpdate)
+            forM_ updates $ \(entityID, update) -> update entityID
     
             stepSimulation dynamicsWorld 90
 
