@@ -73,7 +73,7 @@ setEntitySize entityID newSize = do
     use (wldEntities . at entityID) >>= mapM_ (\entity -> do
         forM_ (entity ^. entRigidBody) $ \rigidBody -> do
             dynamicsWorld <- view wlsDynamicsWorld
-            setCubeScale dynamicsWorld rigidBody newSize
+            setRigidBodyScale dynamicsWorld rigidBody newSize
         return (entity & entSize .~ newSize)
         )
 
@@ -94,11 +94,12 @@ addEntityRigidBodyComponent entityID isKinematic = do
 
     dynamicsWorld <- view wlsDynamicsWorld
 
+
     use (wldEntities . at entityID) >>= mapM_ (\entity -> do
-        rigidBody <- addCube dynamicsWorld (RigidBodyID entityID) 
-            mempty { pcPosition = entity ^. entPose . posPosition
-                   , pcRotation = entity ^. entPose . posOrientation
-                   , pcScale    = entity ^. entSize
+        boxShape <- createBoxShape (entity ^. entSize)
+        rigidBody <- addRigidBody dynamicsWorld (CollisionObjectID entityID) boxShape
+            mempty { rbPosition = entity ^. entPose . posPosition
+                   , rbRotation = entity ^. entPose . posOrientation
                    }
         when (isKinematic == IsKinematic) 
             (setRigidBodyKinematic rigidBody)
