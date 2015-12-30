@@ -7,9 +7,10 @@ import Control.Monad
 import Control.Monad.State
 import Control.Monad.Reader
 import Physics.Bullet
-import Entity
 import qualified Data.Map as Map
 import Data.Maybe
+
+import Types
 
 renderSimulation :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
                  => M44 GLfloat -> M44 GLfloat -> m ()
@@ -22,7 +23,7 @@ renderSimulation projMat viewMat = do
     let viewProj = projMat !*! viewMat
 
     shapes <- Map.toList <$> use (wldComponents . cmpShape)
-    withVAO (sVAO cubeShape) $ do
+    withShape cubeShape $ do
         
         forM_ shapes $ \(entityID, _shape) -> do
 
@@ -45,4 +46,4 @@ renderSimulation projMat viewMat = do
             uniformM44 uModel               model
             uniformV4  uDiffuse             color
 
-            glDrawElements GL_TRIANGLES (geoVertCount (sGeometry cubeShape)) GL_UNSIGNED_INT nullPtr
+            drawShape

@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
+import Graphics.UI.GLFW.Pal
 import Graphics.GL.Pal
 import Graphics.VR.Pal
 
@@ -15,7 +16,7 @@ import Physics.Bullet
 
 import Render
 import Entity
-import Control
+import Types
 import Control.Monad.Reader
 import Spatula
 
@@ -45,9 +46,13 @@ main = do
 
         mapM_ createEntity =<< initScene
 
-        whileVR vrPal $ \headM44 _hands -> do
+        whileVR vrPal $ \headM44 hands -> do
             
-            processControls
+            wldEvents .= map VREvent ( HeadEvent headM44 : zipWith ($) [LeftHandEvent, RightHandEvent] hands )
+            processEvents gpEvents $ \e -> do
+                closeOnEscape gpWindow e
+                wldEvents %= (GLFWEvent e:)
+            wldEvents %= reverse
 
             updates <- Map.toList <$> use (wldComponents . cmpUpdate)
             forM_ updates $ \(entityID, update) -> update entityID

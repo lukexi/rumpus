@@ -17,7 +17,7 @@ cabal-version:       >=1.10
 executable rumpus
   hs-source-dirs:      app
   main-is:             Main.hs
-  other-modules:       Control
+  other-modules:       Types
                        Entity
                        Render
                        Spatula

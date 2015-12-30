@@ -1,13 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LambdaCase #-}
 module Spatula where
 
 import Control.Lens.Extra
 import Linear.Extra
 import Graphics.GL.Pal
+import Graphics.VR.Pal
 import Control.Monad.State
 import Control.Monad.Random
+import Types
 import Entity
 
 -- import System.Random
@@ -24,15 +27,32 @@ initScene = do
     -- stdgen <- liftIO getStdGen
 
     planes <- createPlaneMess
-    return (aHand:aSpatula:planes)
+    return (leftHand:rightHand:aSpatula:planes)
 
-aHand :: Entity
-aHand = newEntity 
-        { _entColor       = V4 1 0.9 0.8 1 
+leftHand :: Entity
+leftHand = newEntity 
+        { _entColor       = V4 1 0.8 0.7 1 
         , _entSize        = V3 0.1 0.1 0.4
         , _entPhysProps   = [IsKinematic, IsGhost]
         , _entUpdate      = Just $ \entityID -> do
-            setEntityPose entityID newPose
+            events <- use wldEvents
+            forM_ events $ \case
+                VREvent (LeftHandEvent hand) -> 
+                    setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
+                _ -> return ()
+        }
+
+rightHand :: Entity
+rightHand = newEntity 
+        { _entColor       = V4 0.7 1 0.8 1 
+        , _entSize        = V3 0.1 0.1 0.4
+        , _entPhysProps   = [IsKinematic, IsGhost]
+        , _entUpdate      = Just $ \entityID -> do
+            events <- use wldEvents
+            forM_ events $ \case
+                VREvent (RightHandEvent hand) -> 
+                    setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
+                _ -> return ()
         }
 
 createPlaneMess :: MonadIO m => m [Entity]

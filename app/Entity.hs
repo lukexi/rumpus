@@ -7,88 +7,18 @@ module Entity where
 import Control.Lens.Extra
 import Linear.Extra
 import Graphics.GL.Pal
-import Graphics.VR.Pal
 import Physics.Bullet
-import Data.Map (Map)
-import GHC.Word
 import Control.Monad.State
 import System.Random
 import Control.Monad.Reader
 import Data.Maybe
-
-data Uniforms = Uniforms
-    { uModelViewProjection :: UniformLocation (M44 GLfloat)
-    , uInverseModel        :: UniformLocation (M44 GLfloat)
-    , uModel               :: UniformLocation (M44 GLfloat)
-    , uCamera              :: UniformLocation (V3  GLfloat)
-    , uDiffuse             :: UniformLocation (V4  GLfloat)
-    , uCubeHit             :: UniformLocation (V3  GLfloat)
-    } deriving (Data)
-
-type EntityID = Word32
-type EntityMap a = Map EntityID a
-
-
-data Components = Components
-    { _cmpPose        :: EntityMap (Pose GLfloat)
-    , _cmpSize        :: EntityMap (V3 GLfloat)
-    , _cmpScale       :: EntityMap (V3 GLfloat)
-    , _cmpColor       :: EntityMap (V4 GLfloat)
-    , _cmpShape       :: EntityMap ShapeType
-    , _cmpRigidBody   :: EntityMap RigidBody
-    , _cmpGhostObject :: EntityMap GhostObject
-    , _cmpUpdate      :: EntityMap (EntityID -> WorldMonad ())
-    }
-
-newComponents :: Components
-newComponents = Components
-    { _cmpPose        = mempty
-    , _cmpSize        = mempty
-    , _cmpScale       = mempty
-    , _cmpColor       = mempty
-    , _cmpRigidBody   = mempty
-    , _cmpUpdate      = mempty
-    , _cmpGhostObject = mempty
-    , _cmpShape       = mempty
-    }
-
-data Entity = Entity
-    { _entColor     :: !(V4 GLfloat)
-    , _entSize      :: !(V3 GLfloat)
-    , _entPose      :: !(Pose GLfloat)
-    , _entScale     :: !(V3 GLfloat)
-    , _entRigidBody :: !(Maybe RigidBody)
-    , _entUpdate    :: !(Maybe (EntityID -> WorldMonad ()))
-    , _entPhysProps :: [PhysicsProperties]
-    , _entShape     :: ShapeType
-    }
-
-data ShapeType = None | Cube | Sphere
-
-data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show)
-
-data WorldStatic = WorldStatic
-    { _wlsDynamicsWorld :: !DynamicsWorld
-    , _wlsCubeShape     :: !(Shape Uniforms)
-    , _wlsVRPal         :: !VRPal
-    }
-
-data World = World
-    { _wldPlayer     :: !(Pose GLfloat)
-    , _wldComponents :: !Components
-    }
-
-type WorldMonad = StateT World (ReaderT WorldStatic IO)
-
-makeLenses ''WorldStatic
-makeLenses ''World
-makeLenses ''Entity
-makeLenses ''Components
+import Types
 
 newWorld :: World
 newWorld = World
     { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
     , _wldComponents = newComponents
+    , _wldEvents = []
     }
 
 newEntity :: Entity
@@ -102,6 +32,7 @@ newEntity = Entity
     , _entPhysProps = []
     , _entShape     = None
     }
+
 
 createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
 createEntity entity = do
@@ -118,6 +49,7 @@ createEntity entity = do
     
     return entityID
 
+
 setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> V3 GLfloat -> m ()
 setEntitySize entityID newSize = do
     wldComponents . cmpSize . ix entityID .= newSize
@@ -125,6 +57,7 @@ setEntitySize entityID newSize = do
     useMaybeM_ (wldComponents . cmpRigidBody . at entityID) $ \rigidBody -> do 
         dynamicsWorld <- view wlsDynamicsWorld
         setRigidBodyScale dynamicsWorld rigidBody newSize
+
 
 useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
 useMaybeM_ aLens f = do
