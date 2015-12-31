@@ -1,0 +1,55 @@
+#N canvas 0 31 672 619 10;
+#X obj 188 357 hradio 15 1 0 2 empty empty empty 0 -8 0 10 -262144
+-1 -1 0;
+#X msg 232 357 asc;
+#X msg 270 357 desc;
+#X obj 93 205 list-random 100 10;
+#X obj 125 256 prepent set;
+#X msg 93 179 bang;
+#X obj 93 230 t b a;
+#X msg 93 291 91 35 78 70 85 46 64 10 93 83;
+#X text 279 324 non-floats are removed with a warning.;
+#X msg 135 324 100 2 wrong type 3;
+#X obj 93 441 prepent set;
+#X obj 93 396 list-sort desc;
+#X text 66 80 Inlets: 1) list to sort;
+#X text 66 134 Argument:;
+#X text 121 98 2) direction: 0 or asc for ascending \, 1 or desc for
+descending;
+#X text 137 134 <direction: 0/asc for ascending \, 1/desc for descending>
+;
+#X text 65 40 Sort an incoming list of values in ascending or descending
+order. Non-numbers are dropped.;
+#N canvas 506 181 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 45 DESCRIPTION sort an incoming list of values in ascending
+or descending order;
+#X text 12 75 INLET_0 list;
+#X text 12 95 INLET_1 float asc desc;
+#X text 12 115 OUTLET_0 list;
+#X text 12 165 HELP_PATCH_AUTHORS Michal Seta (orig. version) \, Frank
+Barknecht. "pd meta" information added by Jonathan Wilkes for Pd version
+0.42.;
+#X text 12 135 AUTHOR Frank Barknecht (DS version) \, Michal Seta (orig.
+version);
+#X restore 571 544 pd META;
+#X msg 93 470;
+#X text 311 452 Alternative implementations available in:;
+#X obj 435 482 list-shellsort;
+#X obj 321 482 list-quicksort;
+#X text 75 529 2011 Frank Barknecht;
+#X obj 35 11 list-sort;
+#X text 298 510 [list-sort] currently is the fastest version.;
+#X connect 0 0 11 1;
+#X connect 1 0 11 1;
+#X connect 2 0 11 1;
+#X connect 3 0 6 0;
+#X connect 4 0 7 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 6 1 4 0;
+#X connect 7 0 11 0;
+#X connect 9 0 11 0;
+#X connect 10 0 18 0;
+#X connect 11 0 10 0;

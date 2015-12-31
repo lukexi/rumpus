@@ -15,30 +15,25 @@ import Types
 renderSimulation :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
                  => M44 GLfloat -> M44 GLfloat -> m ()
 renderSimulation projMat viewMat = do
-    cubeShape <- view wlsCubeShape
-    let Uniforms{..} = sUniforms cubeShape
     
-    uniformV3 uCamera (inv44 viewMat ^. translation)
-
     let viewProj = projMat !*! viewMat
 
-    shapes <- Map.toList <$> use (wldComponents . cmpShape)
-    withShape cubeShape $ do
-        
-        forM_ shapes $ \(entityID, _shape) -> do
+    shapes <- view wlsShapes
+    forM_ shapes $ \(shapeType, shape) -> withShape shape $ do
+
+        Uniforms{..} <- asks sUniforms
+        uniformV3 uCamera (inv44 viewMat ^. translation)
+        entityIDsForShape <- Map.keys . Map.filter (== shapeType) <$> use (wldComponents . cmpShape)
+        forM_ entityIDsForShape $ \entityID -> do
+
+            pose       <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+            size       <- fromMaybe 1       <$> use (wldComponents . cmpSize . at entityID)
+            color      <- fromMaybe 1       <$> use (wldComponents . cmpColor . at entityID)
 
             mRigidBody <- use (wldComponents . cmpRigidBody . at entityID)
-            pose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-            size <- fromMaybe 1 <$> use (wldComponents . cmpSize . at entityID)
-            color <- fromMaybe 1 <$> use (wldComponents . cmpColor . at entityID)
-
             modelMatrix <- transformationFromPose <$> case mRigidBody of
                 Just rigidBody -> uncurry Pose <$> getBodyState rigidBody
                 Nothing        -> return pose
-            
-            -- mCubeHit <- use (wldCubeHits . at cubeID)
-            -- forM_ mCubeHit $ \cubeHit ->
-            --     uniformV3 uCubeHit cubeHit
 
             let model = modelMatrix !*! scaleMatrix size
             uniformM44 uModelViewProjection (viewProj !*! model)

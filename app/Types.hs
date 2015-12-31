@@ -19,7 +19,7 @@ type EntityID = Word32
 
 type EntityMap a = Map EntityID a
 
-data ShapeType = None | Cube | Sphere
+data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape deriving (Eq, Show, Ord, Enum)
 
 data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show)
 
@@ -28,10 +28,10 @@ type WorldMonad = StateT World (ReaderT WorldStatic IO)
 
 
 data WorldStatic = WorldStatic
-    { _wlsDynamicsWorld :: !DynamicsWorld
-    , _wlsCubeShape     :: !(Shape Uniforms)
-    , _wlsVRPal         :: !VRPal
+    { _wlsVRPal         :: !VRPal
+    , _wlsDynamicsWorld :: !DynamicsWorld
     , _wlsPd            :: !PureData
+    , _wlsShapes        :: ![(ShapeType, Shape Uniforms)]
     }
 
 data World = World
@@ -70,6 +70,7 @@ data Components = Components
     , _cmpRigidBody   :: EntityMap RigidBody
     , _cmpGhostObject :: EntityMap GhostObject
     , _cmpUpdate      :: EntityMap (EntityID -> WorldMonad ())
+    , _cmpParents     :: EntityMap EntityID
     }
 
 newComponents :: Components
@@ -82,6 +83,29 @@ newComponents = Components
     , _cmpUpdate      = mempty
     , _cmpGhostObject = mempty
     , _cmpShape       = mempty
+    , _cmpParents     = mempty
+    }
+
+newWorld :: World
+newWorld = World
+    { _wldPlayer = Pose (V3 0 1 5) (axisAngle (V3 0 1 0) 0)
+    , _wldComponents = newComponents
+    , _wldEvents = []
+    }
+
+newEntity :: Entity
+newEntity = Entity
+    { _entColor     = V4 1 1 1 1
+    , _entSize      = V3 1 1 1
+    , _entPose      = newPose
+    , _entScale     = V3 1 1 1
+    , _entRigidBody = Nothing
+    , _entUpdate    = Nothing
+    , _entPhysProps = []
+    , _entShape     = NoShape
+    , _entChildren  = []
+    , _entMass      = 1
+    , _entPdPatch   = Nothing
     }
 
 data Entity = Entity
@@ -91,8 +115,11 @@ data Entity = Entity
     , _entScale     :: !(V3 GLfloat)
     , _entRigidBody :: !(Maybe RigidBody)
     , _entUpdate    :: !(Maybe (EntityID -> WorldMonad ()))
-    , _entPhysProps :: [PhysicsProperties]
-    , _entShape     :: ShapeType
+    , _entPhysProps :: ![PhysicsProperties]
+    , _entShape     :: !(ShapeType)
+    , _entChildren  :: ![Entity]
+    , _entMass      :: !Float
+    , _entPdPatch   :: !(Maybe FilePath)
     }
 
 
@@ -114,27 +141,19 @@ makeLenses ''Entity
 makeLenses ''Components
 
 
+raycastCursorHits :: (MonadIO m, MonadState World m) 
+                  => Window -> DynamicsWorld -> M44 GLfloat -> m ()
+raycastCursorHits window dynamicsWorld projMat = do
+    playerPose <- use wldPlayer
+    cursorRay  <- cursorPosToWorldRay window projMat playerPose
 
--- raycastCursorHits :: (MonadIO m, MonadState World m) 
---                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
--- raycastCursorHits window dynamicsWorld projMat = do
---     playerPose <- use wldPlayer
---     cursorRay  <- cursorPosToWorldRay window projMat playerPose
-
---     mRayResult <- rayTestClosest dynamicsWorld cursorRay
---     forM_ mRayResult $ \rayResult -> do
---         bodyID <- getRigidBodyID (rrRigidBody rayResult)
---         mCube <- use (wldCubes . at (fromIntegral (unRigidBodyID bodyID)))
---         forM_ mCube $ \_cube -> do          
-            
---             -- Convert the hit location into model space
---             -- (position, orientation) <- getBodyState (cube ^. cubBody)
---             -- let model = mkTransformation orientation position
---             --     pointOnModel = worldPointToModelPoint model (rrLocation rayResult)
---             let worldHit = rrLocation rayResult
-                      
---             let cubeID = fromIntegral (unRigidBodyID bodyID)
---             [r,g,b] <- liftIO (replicateM 3 randomIO)
---             wldCubes . at cubeID . traverse . cubColor .= V4 r g b 1
-
---             wldCubeHits . at cubeID ?= worldHit
+    mRayResult <- rayTestClosest dynamicsWorld cursorRay
+    forM_ mRayResult $ \rayResult -> do
+        bodyID <- getCollisionObjectID (rrCollisionObject rayResult)
+        -- Convert the hit location into model space
+        -- (position, orientation) <- getBodyState (cube ^. cubBody)
+        -- let model = mkTransformation orientation position
+        --     pointOnModel = worldPointToModelPoint model (rrLocation rayResult)
+        let _hitInWorld = rrLocation rayResult
+            entityID = fromIntegral (unCollisionObjectID bodyID) :: EntityID
+        return entityID

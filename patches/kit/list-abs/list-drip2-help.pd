@@ -1,0 +1,37 @@
+#N canvas 0 26 588 432 10;
+#X obj 146 235 list-drip2;
+#X text 72 58 Drips two lists in sync \, as long as the first list
+lasts.;
+#X text 42 25 list-drip2;
+#X msg 213 208 a b c d;
+#X obj 213 258 bng 15 250 50 0 empty empty End_of_1st_list 17 7 1 10
+-262144 -1 -1;
+#X obj 179 306 print 2nd;
+#X obj 146 334 print 1st;
+#X msg 146 122 1 2 3 4;
+#X msg 146 100 1 2 3;
+#X msg 146 145 1 2 3 4 5;
+#X obj 146 199 t a b;
+#N canvas 436 26 494 396 META 0;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 175 AUTHOR Frank Barknecht;
+#X text 12 195 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 45 DESCRIPTION drip two lists in sync \, as long as the
+first list lasts;
+#X text 12 95 INLET_1 anything;
+#X text 12 75 INLET_0 anything;
+#X text 12 135 OUTLET_1 float symbol;
+#X text 12 115 OUTLET_0 float symbol;
+#X text 12 155 OUTLET_2 bang;
+#X restore 517 397 pd META;
+#X connect 0 0 6 0;
+#X connect 0 1 5 0;
+#X connect 0 2 4 0;
+#X connect 3 0 0 1;
+#X connect 7 0 10 0;
+#X connect 8 0 10 0;
+#X connect 9 0 10 0;
+#X connect 10 0 0 0;
+#X connect 10 1 3 0;

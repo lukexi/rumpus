@@ -1,0 +1,33 @@
+#N canvas 0 22 549 407 10;
+#X obj 288 319 * 12;
+#X obj 167 351 +;
+#X obj 288 203 div;
+#X text 314 207 find what octave we're in;
+#X obj 167 200 mod;
+#X obj 167 317 list-nth;
+#X obj 167 292 list;
+#X obj 167 239 t b a;
+#X obj 167 131 t a a;
+#X obj 238 91 inlet scale;
+#X obj 262 127 list length;
+#X obj 167 68 inlet;
+#X obj 167 373 outlet;
+#X text 38 202 index into the scale;
+#X text 96 13 turns a scale-degree from the given scale into a note
+number - scale degree can exceed the end of the scale \, which will
+be interpreted as the next octave of that scale;
+#X connect 0 0 1 1;
+#X connect 1 0 12 0;
+#X connect 2 0 0 0;
+#X connect 4 0 7 0;
+#X connect 5 0 1 0;
+#X connect 6 0 5 0;
+#X connect 7 0 6 0;
+#X connect 7 1 5 1;
+#X connect 8 0 4 0;
+#X connect 8 1 2 0;
+#X connect 9 0 10 0;
+#X connect 9 0 6 1;
+#X connect 10 0 2 1;
+#X connect 10 0 4 1;
+#X connect 11 0 8 0;

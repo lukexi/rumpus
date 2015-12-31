@@ -1,0 +1,12 @@
+#N canvas 0 50 456 214 10;
+#X msg 225 128 set dac\$1;
+#X obj 225 87 random 2;
+#X obj 225 108 + 1;
+#X obj 225 63 r test-mode;
+#X obj 213 149 throw~ dac\$1;
+#X obj 213 26 inlet~;
+#X connect 0 0 4 0;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 3 0 1 0;
+#X connect 5 0 4 0;

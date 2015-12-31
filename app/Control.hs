@@ -37,9 +37,11 @@ collectControlEvents VRPal{..} headM44 hands = do
                     _             -> Nothing
             forM_ maybeEvent $ \buttonDownUp -> 
                 wldEvents %= (VREvent (HandEvent whichHand (HandButtonEvent whichButton buttonDownUp)) :)
-
-
-    wldEvents <>= map VREvent ( HeadEvent headM44 : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands) )
+    
+    wldEvents <>= map VREvent
+        ( HeadEvent headM44
+        : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands)
+        )
     -- Gather GLFW Pal events
     processEvents gpEvents $ \e -> do
         closeOnEscape gpWindow e

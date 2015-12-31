@@ -11,28 +11,8 @@ import Physics.Bullet
 import Control.Monad.State
 import System.Random
 import Control.Monad.Reader
-import Data.Maybe
+-- import Data.Maybe
 import Types
-
-newWorld :: World
-newWorld = World
-    { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
-    , _wldComponents = newComponents
-    , _wldEvents = []
-    }
-
-newEntity :: Entity
-newEntity = Entity
-    { _entColor     = V4 1 1 1 1
-    , _entSize      = V3 1 1 1
-    , _entPose      = newPose
-    , _entScale     = V3 1 1 1
-    , _entRigidBody = Nothing
-    , _entUpdate    = Nothing
-    , _entPhysProps = []
-    , _entShape     = None
-    }
-
 
 createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
 createEntity entity = do
@@ -45,7 +25,11 @@ createEntity entity = do
     wldComponents . cmpShape  . at entityID ?= entity ^. entShape
     wldComponents . cmpUpdate . at entityID .= entity ^. entUpdate
 
-    addEntityRigidBodyComponent entityID (entity ^. entPhysProps)
+    addEntityRigidBodyComponent entityID entity
+
+    forM_ (entity ^. entChildren) $ \child -> do
+        childID <- createEntity child
+        wldComponents . cmpParents . at childID ?= entityID
     
     return entityID
 
@@ -77,36 +61,45 @@ setEntityPose entityID newPose_ = do
         setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
 
 
-
 addEntityRigidBodyComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
-                            => EntityID -> [PhysicsProperties] -> m ()
-addEntityRigidBodyComponent entityID physProperties = do
+                            => EntityID -> Entity -> m ()
+addEntityRigidBodyComponent entityID entity = do
 
-    dynamicsWorld <- view wlsDynamicsWorld
+    
+    let size           = entity ^. entSize
+        shapeType      = entity ^. entShape
+        physProperties = entity ^. entPhysProps
+        mass           = entity ^. entMass
 
-    pose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-    size <- fromMaybe 1       <$> use (wldComponents . cmpSize . at entityID)
+    maybeShape <- case shapeType of
+        NoShape          -> return Nothing
+        CubeShape        -> Just <$> createBoxShape size
+        SphereShape      -> Just <$> createSphereShape (size ^. _x)
+        StaticPlaneShape -> Just <$> createStaticPlaneShape (0 :: Int)
+    forM_ maybeShape $ \shape -> do
+        
+        let pose = entity ^. entPose
 
-    boxShape <- createBoxShape size
+        let collisionID = CollisionObjectID entityID
+            bodyInfo = mempty { rbPosition = pose ^. posPosition
+                              , rbRotation = pose ^. posOrientation
+                              , rbMass     = mass
+                              }
 
-    let collisionID = CollisionObjectID entityID
-        bodyInfo = mempty { rbPosition = pose ^. posPosition
-                          , rbRotation = pose ^. posOrientation
-                          }
+        dynamicsWorld <- view wlsDynamicsWorld
+        if IsGhost `elem` physProperties 
+            then do
+                ghostObject <- addGhostObject dynamicsWorld collisionID shape bodyInfo
 
-    if IsGhost `elem` physProperties 
-        then do
-            ghostObject <- addGhostObject dynamicsWorld collisionID boxShape bodyInfo
+                wldComponents . cmpGhostObject . at entityID ?= ghostObject
 
-            wldComponents . cmpGhostObject . at entityID ?= ghostObject
+                return ()
+            else do
+                rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+                
+                when (IsKinematic `elem` physProperties) 
+                    (setRigidBodyKinematic rigidBody)
 
-            return ()
-        else do
-            rigidBody <- addRigidBody dynamicsWorld collisionID boxShape bodyInfo
-            
-            when (IsKinematic `elem` physProperties) 
-                (setRigidBodyKinematic rigidBody)
-
-            wldComponents . cmpRigidBody . at entityID ?= rigidBody
+                wldComponents . cmpRigidBody . at entityID ?= rigidBody
 
 

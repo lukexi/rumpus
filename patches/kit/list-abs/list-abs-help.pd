@@ -1,0 +1,18 @@
+#N canvas 1 88 475 311 10;
+#X obj 147 204 print;
+#X msg 147 109 1 2 -3 -4 5 and -6;
+#X text 55 66 list-abs: apply abs() on float elements of a list.;
+#X obj 147 158 list-abs;
+#N canvas 414 178 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 115 AUTHOR Frank Barknecht;
+#X text 12 45 DESCRIPTION list-abs: apply abs() on float elements of
+a list.;
+#X text 12 75 INLET_0 list;
+#X text 12 95 OUTLET_0 list;
+#X text 12 135 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 5 KEYWORDS control list_op;
+#X restore 397 277 pd META;
+#X connect 1 0 3 0;
+#X connect 3 0 0 0;

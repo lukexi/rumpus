@@ -1,0 +1,33 @@
+#N canvas 0 26 540 454 10;
+#X obj 152 196 list-enumerate;
+#X obj 152 274 list trim;
+#X obj 152 254 list prepend add;
+#X text 41 39 [list-enumerate];
+#X text 57 73 serialize a list and put numbers in front of every element
+;
+#X msg 225 275 set;
+#X obj 152 158 t a b;
+#X msg 152 137 a b c d 0 1 2 3;
+#X obj 243 216 bng 15 250 50 0 empty empty EOL 17 7 1 10 -262144 -1
+-1;
+#N canvas 416 170 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 135 AUTHOR Frank Barknecht;
+#X text 12 95 OUTLET_0 list;
+#X text 12 155 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 45 DESCRIPTION serialize a list and put numbers in front
+of every element;
+#X text 12 75 INLET_0 anything;
+#X text 12 115 OUTLET_1 bang;
+#X restore 477 417 pd META;
+#X msg 152 303;
+#X connect 0 0 2 0;
+#X connect 0 1 8 0;
+#X connect 1 0 10 0;
+#X connect 2 0 1 0;
+#X connect 5 0 10 0;
+#X connect 6 0 0 0;
+#X connect 6 1 5 0;
+#X connect 7 0 6 0;

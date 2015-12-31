@@ -1,0 +1,10 @@
+#N canvas 0 50 614 412 10;
+#X obj 414 99 osc~ 440;
+#X obj 414 30 osc~ 0.1;
+#X obj 414 75 +~ 5;
+#X obj 414 55 *~ 10;
+#X obj 414 184 scope~;
+#X connect 0 0 4 0;
+#X connect 1 0 3 0;
+#X connect 2 0 0 0;
+#X connect 3 0 2 0;

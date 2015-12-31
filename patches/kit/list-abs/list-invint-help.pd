@@ -1,0 +1,18 @@
+#N canvas 121 115 518 278 10;
+#N canvas 510 66 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 105 AUTHOR Frank Barknecht;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 45 DESCRIPTION Inverse (musical) intervals of a float list
+;
+#X text 12 65 INLET_0 list;
+#X text 12 85 OUTLET_0 list;
+#X text 12 125 HELP_PATCH_AUTHORS Frank Barknecht;
+#X restore 443 251 pd META;
+#X obj 52 127 list-invint;
+#X msg 52 81 10 11 13 20;
+#X obj 52 164 print;
+#X text 38 26 list-invint: Inverse (musical) intervals of a float list
+;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;

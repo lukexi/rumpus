@@ -1,0 +1,20 @@
+#N canvas 0 31 450 300 10;
+#X msg 145 116 5 5 5 NOPE 5;
+#X obj 145 217 print;
+#X msg 203 139 1 2 3 0 -1;
+#X text 108 67 Substract two lists element by element;
+#X obj 145 177 list-mult;
+#N canvas 460 31 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 125 AUTHOR Frank Barknecht;
+#X text 12 145 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 105 OUTLET_0 list;
+#X text 12 45 DESCRIPTION substract two lists element by element;
+#X text 12 65 INLET_0 anything;
+#X text 12 85 INLET_1 anything;
+#X restore 386 271 pd META;
+#X connect 0 0 4 0;
+#X connect 2 0 4 1;
+#X connect 4 0 1 0;

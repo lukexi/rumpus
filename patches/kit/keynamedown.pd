@@ -1,0 +1,10 @@
+#N canvas 0 22 270 183 10;
+#X obj 38 31 keyname, f 15;
+#X obj 38 102 symbol;
+#X obj 38 61 sel 1;
+#X obj 38 128 outlet;
+#X text 30 6 outputs the key name only on key down;
+#X connect 0 0 2 0;
+#X connect 0 1 1 1;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;

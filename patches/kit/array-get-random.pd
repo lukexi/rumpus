@@ -1,0 +1,17 @@
+#N canvas 124 111 450 300 10;
+#X obj 177 232 array get \$1;
+#X msg 211 194 1;
+#X obj 177 140 random;
+#X obj 212 109 array size \$1;
+#X obj 177 82 t b b;
+#X obj 177 44 inlet;
+#X obj 177 266 outlet;
+#X obj 211 170 loadbang;
+#X connect 0 0 6 0;
+#X connect 1 0 0 1;
+#X connect 2 0 0 0;
+#X connect 3 0 2 1;
+#X connect 4 0 2 0;
+#X connect 4 1 3 0;
+#X connect 5 0 4 0;
+#X connect 7 0 1 0;

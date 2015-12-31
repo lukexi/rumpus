@@ -1,0 +1,41 @@
+#N canvas 0 31 605 472 10;
+#X obj 83 371 print M;
+#X obj 82 33 cnv 15 220 30 empty empty list-makefilename-a 20 12 0
+14 -233017 -66577 0;
+#X msg 283 219 xyz-%s-abc;
+#X msg 283 199 /help/%s;
+#X msg 83 200 1 2 3 4 SYMBOL;
+#X msg 83 222 list FREQ 440 AMP 1;
+#X msg 283 286 const;
+#X msg 330 285 You-probably-%don't-want-this;
+#X text 317 249 pass unchanged;
+#X msg 283 248 %s;
+#N canvas 460 31 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 125 AUTHOR Frank Barknecht;
+#X text 12 145 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 105 OUTLET_0 list;
+#X text 12 65 INLET_0 anything;
+#X text 12 85 INLET_1 anything;
+#X text 12 45 DESCRIPTION apply makefilename on list items.;
+#X restore 476 411 pd META;
+#X obj 83 334 list-makefilename-a %s-blabla;
+#X text 80 76 Apply makefilename on list items.;
+#X text 78 111 Use as "list-makefilename-a makefilename-arg". Right
+inlet can be used to change the arg to makefilename. You can use any
+makefilename format placeholders \, but have to take care on your own
+\, if your incoming lists have the correct item types.;
+#X msg 100 249 1 2 3 4;
+#X msg 104 274 a b c;
+#X connect 2 0 11 1;
+#X connect 3 0 11 1;
+#X connect 4 0 11 0;
+#X connect 5 0 11 0;
+#X connect 6 0 11 1;
+#X connect 7 0 11 1;
+#X connect 9 0 11 1;
+#X connect 11 0 0 0;
+#X connect 14 0 11 0;
+#X connect 15 0 11 0;

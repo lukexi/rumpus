@@ -24,24 +24,28 @@ import Spatula
 
 main :: IO ()
 main = withPd $ \pd -> do
-    vrPal@VRPal{..} <- initVRPal "Rumpus" [UseOpenVR]
+    vrPal       <- initVRPal "Rumpus" [UseOpenVR]
 
+    basicProg   <- createShaderProgram "spatula/cube.vert" "spatula/cube.frag"
+
+    cubeGeo     <- cubeGeometry (V3 1 1 1) 1
+    sphereGeo   <- icosahedronGeometry 1 5 -- radius subdivisions
+    planeGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     
-    cubeProg  <- createShaderProgram "spatula/cube.vert" "spatula/cube.frag"
-    cubeGeo   <- cubeGeometry (V3 1 1 1) 1
-    cubeShape <- makeShape cubeGeo cubeProg
+    planeShape  <- makeShape planeGeo  basicProg
+    cubeShape   <- makeShape cubeGeo   basicProg
+    sphereShape <- makeShape sphereGeo basicProg
 
-    useProgram (sProgram cubeShape)
+    dynamicsWorld <- createDynamicsWorld mempty
 
-    dynamicsWorld  <- createDynamicsWorld mempty
-    _              <- addGroundPlane dynamicsWorld (CollisionObjectID 0) 0
+    let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
 
     glEnable GL_DEPTH_TEST
     glClearColor 0 0 0.1 1
 
     let worldStatic = WorldStatic
             { _wlsDynamicsWorld = dynamicsWorld
-            , _wlsCubeShape     = cubeShape
+            , _wlsShapes        = shapes
             , _wlsVRPal         = vrPal
             , _wlsPd            = pd
             }

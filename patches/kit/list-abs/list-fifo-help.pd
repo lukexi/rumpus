@@ -1,0 +1,53 @@
+#N canvas 0 26 587 530 10;
+#X msg 247 186 1 2 3 4 5;
+#X symbolatom 260 207 10 0 0 0 - - -;
+#X floatatom 273 224 5 0 0 0 - - -;
+#X obj 198 339 bng 15 250 50 0 empty empty EOL 17 7 1 10 -262144 -1
+-1;
+#X text 59 38 [list-fifo];
+#X text 97 64 [list-fifo] stores incoming (list-)messages and outputs
+them one by one on incoming bangs in the order they arrive like a FIFO:
+first in \, first out.;
+#X msg 295 274 bang;
+#X obj 140 305 list-fifo;
+#X text 82 439 2007 Frank Barknecht;
+#X msg 238 166 a b c;
+#X msg 140 149 bang;
+#X text 230 147 store lists or elements ("push");
+#X text 111 125 trigger output ("pop");
+#X text 277 255 clear stored list ("reset");
+#N canvas 0 0 450 300 show 0;
+#X obj 60 48 inlet;
+#X obj 60 72 list prepend set;
+#X obj 60 97 list trim;
+#X obj 60 126 outlet;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 3 0;
+#X restore 140 364 pd show;
+#X msg 74 262 clear;
+#X msg 140 390 1 2 3 4 5;
+#N canvas 491 26 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 175 AUTHOR Frank Barknecht;
+#X text 12 195 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 135 OUTLET_0 list;
+#X text 12 95 INLET_1 anything;
+#X text 12 155 OUTLET_1 bang;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 45 DESCRIPTION store incoming (list-)messages and output
+them one by one on incoming bangs in the order they arrive;
+#X text 12 75 INLET_0 bang;
+#X text 12 115 INLET_2 bang;
+#X restore 528 500 pd META;
+#X connect 0 0 7 1;
+#X connect 1 0 7 1;
+#X connect 2 0 7 1;
+#X connect 6 0 7 2;
+#X connect 7 0 14 0;
+#X connect 7 1 3 0;
+#X connect 9 0 7 1;
+#X connect 10 0 7 0;
+#X connect 14 0 16 0;
+#X connect 15 0 7 0;

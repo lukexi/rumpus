@@ -1,0 +1,22 @@
+#N canvas 0 31 565 316 10;
+#X msg 100 79 1 2 3 a b c;
+#X obj 100 137 print;
+#X obj 181 133 bng 15 250 50 0 empty empty end 0 -6 0 8 -262144 -1
+-1;
+#X text 70 18 list-rdrip: drips or serializes a list in reverse.;
+#X obj 100 106 list-rdrip;
+#X text 141 44 Last element will be first to output.;
+#N canvas 506 181 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 145 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 65 INLET_0 anything;
+#X text 12 45 DESCRIPTION drips or serializes a list in reverse;
+#X text 12 105 OUTLET_1 bang;
+#X text 12 85 OUTLET_0 float symbol pointer;
+#X text 12 5 KEYWORDS control list_op conversion;
+#X text 12 125 AUTHOR Frank Barknecht \, Mathieu Bouchard;
+#X restore 455 266 pd META;
+#X connect 0 0 4 0;
+#X connect 4 0 1 0;
+#X connect 4 1 2 0;

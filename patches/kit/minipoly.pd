@@ -1,0 +1,18 @@
+#N canvas 0 50 258 187 10;
+#X obj 38 166 outlet;
+#X obj 38 97 f;
+#X obj 62 97 + 1;
+#X obj 86 97 mod \$1;
+#X obj 38 59 t b a;
+#X obj 38 139 list append;
+#X obj 38 24 inlet;
+#X obj 38 117 + 1;
+#X connect 1 0 2 0;
+#X connect 1 0 7 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 1;
+#X connect 4 0 1 0;
+#X connect 4 1 5 1;
+#X connect 5 0 0 0;
+#X connect 6 0 4 0;
+#X connect 7 0 5 0;

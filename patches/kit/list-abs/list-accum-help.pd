@@ -1,0 +1,21 @@
+#N canvas 0 26 470 313 10;
+#X obj 164 160 list-accum;
+#X floatatom 164 199 5 0 0 0 - - -;
+#X msg 164 119 1 2 3;
+#X obj 120 197 print;
+#X msg 217 120 1 2 3 and 4;
+#X text 94 61 list-accum: add all floats in a list;
+#N canvas 466 163 494 396 META 0;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 105 AUTHOR Frank Barknecht;
+#X text 12 85 OUTLET_0 list;
+#X text 12 125 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 65 INLET_0 anything;
+#X text 12 45 DESCRIPTION add all floats in a list;
+#X restore 397 277 pd META;
+#X connect 0 0 1 0;
+#X connect 0 0 3 0;
+#X connect 2 0 0 0;
+#X connect 4 0 0 0;

@@ -1,0 +1,23 @@
+#N canvas 0 31 464 309 10;
+#X msg 156 76 1 2 3 4;
+#X obj 184 109 print Original;
+#X obj 156 199 list-rev;
+#X obj 184 164 print Reversed;
+#X obj 183 230 print Rev_again;
+#X text 127 35 list-rev: reverse a list's order.;
+#X obj 156 131 list-rev;
+#N canvas 472 161 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 105 AUTHOR Frank Barknecht;
+#X text 12 125 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 65 INLET_0 anything;
+#X text 12 85 OUTLET_0 list;
+#X text 12 45 DESCRIPTION reverse a list's order;
+#X restore 393 268 pd META;
+#X connect 0 0 1 0;
+#X connect 0 0 6 0;
+#X connect 2 0 4 0;
+#X connect 6 0 2 0;
+#X connect 6 0 3 0;

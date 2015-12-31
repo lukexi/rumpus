@@ -1,0 +1,23 @@
+#N canvas 0 31 498 331 10;
+#X floatatom 168 128 5 0 0 0 - - -;
+#X obj 168 184 print last_x;
+#X floatatom 247 129 5 0 0 2 change-size - -;
+#X text 104 62 list-lastx: make a list of the last x floats.;
+#X obj 168 153 list-lastx 4;
+#X msg 266 153 bang;
+#X text 308 152 reset stored list;
+#N canvas 460 31 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 125 AUTHOR Frank Barknecht;
+#X text 12 145 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 45 DESCRIPTION make a list of the last x floats;
+#X text 12 65 INLET_0 float;
+#X text 12 85 INLET_1 float bang;
+#X text 12 105 OUTLET_0 list;
+#X restore 425 291 pd META;
+#X connect 0 0 4 0;
+#X connect 2 0 4 1;
+#X connect 4 0 1 0;
+#X connect 5 0 4 1;

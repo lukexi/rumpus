@@ -1,0 +1,17 @@
+#N canvas 0 22 668 426 10;
+#X obj 124 64 bl-init.mmb \$0;
+#X text 53 90 WAVETABLE INITIALIZATION FOR BL.MMB OBJECTS;
+#X text 41 116 This objects generates the wavetables used by the bl.mmb
+bandlimited oscillators. It takes as its argument a name that the other
+objects can associate with it. The argument is not required \, however
+\, and multiple oscillators can read from the same instance of [bl-init.mmb].
+So if you have one in the parent patch \, all bl.mmb oscillators with
+the same argument can use it. If no argument is provided \, it defaults
+to the name 0 \, which is usually fine. The argument is really only
+there for use in reusable abstractions to avoid potential "multiply
+defined table" errors.;
+#X obj 292 304 bl-saw.mmb~-help;
+#X obj 292 331 bl-tri.mmb~-help;
+#X obj 293 360 bl-pulse.mmb~-help;
+#X obj 293 388 bl-asymtri.mmb~-help;
+#X text 255 280 click these to learn about the oscillators;

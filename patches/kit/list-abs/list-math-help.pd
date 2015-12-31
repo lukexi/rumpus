@@ -1,0 +1,57 @@
+#N canvas 0 31 618 551 10;
+#X obj 100 259 print L;
+#X msg 100 194 1 2 3 4 a b c;
+#X floatatom 210 193 5 0 0 0 - - -;
+#X obj 344 263 print L;
+#X msg 344 198 1 2 3 4 a b c;
+#X floatatom 454 197 5 0 0 0 - - -;
+#X obj 104 365 print L;
+#X msg 104 300 1 2 3 4 a b c;
+#X floatatom 214 299 5 0 0 0 - - -;
+#X obj 100 226 list-math *;
+#X msg 99 167 1 2 3 4 a b c \, 10 20 30 x y z;
+#X text 72 87 Use as "list-math operator" where operator is some binary
+operator \, that expr can understand \, like + \, - \, * or /;
+#X obj 346 373 print L;
+#X msg 346 308 1 2 3 4 a b c;
+#X floatatom 456 307 5 0 0 0 - - -;
+#X obj 72 31 cnv 15 140 30 empty empty list-math 20 12 0 14 -233017
+-66577 0;
+#X text 232 40 simple mathematical operations on lists.;
+#X obj 344 230 list-math +;
+#X obj 104 332 list-math /;
+#X obj 346 340 list-math -;
+#X msg 346 416 1 2 3 4 a b c;
+#X floatatom 456 415 5 0 0 0 - - -;
+#X obj 346 448 list-math - 2;
+#X obj 346 481 print L-with-arg;
+#X text 189 448 Using a default arg:;
+#X text 71 125 A second argument is accepted to set a default scalar
+to use.;
+#N canvas 510 66 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 125 AUTHOR Frank Barknecht;
+#X text 12 145 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 65 INLET_0 anything;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 105 OUTLET_0 list;
+#X text 12 45 DESCRIPTION simple mathematical operations on lists;
+#X text 12 85 INLET_1 float;
+#X restore 556 521 pd META;
+#X connect 1 0 9 0;
+#X connect 2 0 9 1;
+#X connect 4 0 17 0;
+#X connect 5 0 17 1;
+#X connect 7 0 18 0;
+#X connect 8 0 18 1;
+#X connect 9 0 0 0;
+#X connect 10 0 9 0;
+#X connect 13 0 19 0;
+#X connect 14 0 19 1;
+#X connect 17 0 3 0;
+#X connect 18 0 6 0;
+#X connect 19 0 12 0;
+#X connect 20 0 22 0;
+#X connect 21 0 22 1;
+#X connect 22 0 23 0;

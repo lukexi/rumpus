@@ -1,0 +1,21 @@
+#N canvas 0 31 578 344 10;
+#X obj 68 133 take-two;
+#X obj 68 176 print;
+#X msg 68 77 1 2 3 4;
+#X msg 130 76 list a b c d e f g h;
+#X text 146 126 take a list as input and print all combinations of
+length two without repetition.;
+#N canvas 520 226 494 396 META 0;
+#X text 12 25 LICENSE SIBSD;
+#X text 12 115 AUTHOR Frank Barknecht;
+#X text 12 135 HELP_PATCH_AUTHORS Frank Barknecht. "pd meta" information
+added by Jonathan Wilkes for Pd version 0.42.;
+#X text 12 5 KEYWORDS control list_op;
+#X text 12 45 DESCRIPTION take a list as input and print all combinations
+of length two without repetition;
+#X text 12 75 INLET_0 list;
+#X text 12 95 OUTLET_0 list;
+#X restore 494 302 pd META;
+#X connect 0 0 1 0;
+#X connect 2 0 0 0;
+#X connect 3 0 0 0;

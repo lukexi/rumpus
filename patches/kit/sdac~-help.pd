@@ -1,0 +1,36 @@
+#N canvas 861 376 386 404 10;
+#X obj 129 260 sdac~;
+#X obj 49 51 noise~;
+#X obj 49 73 lop~ 1000;
+#X obj 123 136 vline~;
+#X obj 49 161 *~;
+#X obj 123 161 *~;
+#X obj 246 197 hradio 15 1 0 2 empty empty empty 0 -8 0 10 -262144
+-1 -1 0;
+#X obj 246 221 + 1;
+#X obj 123 92 metro 500;
+#X obj 167 22 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 246 92 metro 2000;
+#X obj 246 114 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 190 22 Enable demo;
+#X text 18 304 sdac~: settable dac;
+#X text 18 324 send a number (1 based \, just like regular dac) into
+the right inlet to choose which dac channel the left inlet should feed
+into.;
+#X msg 123 114 0.5 10 \, 0 1000 10;
+#X connect 1 0 2 0;
+#X connect 2 0 4 0;
+#X connect 3 0 5 0;
+#X connect 3 0 5 1;
+#X connect 4 0 0 0;
+#X connect 5 0 4 1;
+#X connect 6 0 7 0;
+#X connect 7 0 0 1;
+#X connect 8 0 15 0;
+#X connect 9 0 8 0;
+#X connect 9 0 10 0;
+#X connect 10 0 11 0;
+#X connect 11 0 6 0;
+#X connect 15 0 3 0;
