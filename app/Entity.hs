@@ -63,8 +63,10 @@ setEntityPose entityID newPose_ = do
 
     wldComponents . cmpPose . ix entityID .= newPose_
 
-    useMaybeM_ (wldComponents . cmpRigidBody . at entityID) $ \rigidBody -> 
+    withEntityRigidBody entityID $ \rigidBody -> 
         setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
+    withEntityGhostObject entityID $ \ghostObject -> 
+        setCollisionObjectWorldTransform ghostObject (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
 
 
 addEntityRigidBodyComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 

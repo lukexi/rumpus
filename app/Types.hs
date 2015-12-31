@@ -95,6 +95,7 @@ newComponents = Components
 newWorld :: World
 newWorld = World
     { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
+    -- { _wldPlayer = Pose (V3 0 1 5) (axisAngle (V3 0 1 0) 0)
     , _wldComponents = newComponents
     , _wldEvents = []
     }

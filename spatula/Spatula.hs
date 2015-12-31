@@ -25,32 +25,34 @@ initScene = do
     someBalls  <- liftIO (evalRandIO createBallMess)
     somePlanes <- liftIO (evalRandIO createPlaneMess)
     -- return (leftHand:rightHand:aFloor:aSpatula:somePlanes ++ someBalls)
-    return (leftHand:rightHand:aFloor:somePlanes ++ someBalls)
+    -- return (leftHand:rightHand:aFloor:somePlanes ++ someBalls)
+    return (leftHand:aFloor:somePlanes ++ someBalls)
 
 leftHand :: Entity
 leftHand = newEntity 
         { _entColor       = V4 1 0.8 0.7 1 
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = CubeShape
+        , _entPose        = newPose & posPosition .~ (V3 0 0.1 0)
         , _entPhysProps   = [IsGhost]
         , _entName        = "Left Hand"
         -- , _entPhysProps   = [IsKinematic]
-        , _entUpdate      = Just $ \entityID -> 
+        , _entUpdate      = Just $ \entityID -> do
+            now <- getNow
+            setEntityPose entityID (newPose & posPosition .~ V3 (sin now) 0.1 0)
+            withEntityGhostObject entityID $ \ghostObject -> do
+                overlapping    <- getGhostObjectOverlapping ghostObject
+                overlappingIDs <- mapM getCollisionObjectID overlapping
+                -- printIO overlappingIDs
+                forM_ (map unCollisionObjectID overlappingIDs) $ \touchedID -> do
+                    printIO =<< fromMaybe "NoName" <$> use (wldComponents . cmpName . at touchedID)
+                    randomColor <- (_w .~ 1) <$> liftIO (randomRIO (0,1))
+                    setEntityColor touchedID randomColor
             withLeftHandEvents $ \case
                 HandStateEvent hand -> 
                     setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
                     setEntityColor entityID (V4 1 0 1 1)
-
-                    withEntityGhostObject entityID $ \ghostObject -> do
-                        overlapping    <- getGhostObjectOverlapping ghostObject
-                        overlappingIDs <- mapM getCollisionObjectID overlapping
-
-                        forM_ (map unCollisionObjectID overlappingIDs) $ \touchedID -> do
-                            printIO =<< fromMaybe "NoName" <$> use (wldComponents . cmpName . at touchedID)
-                            randomColor <- (_w .~ 1) <$> liftIO (randomRIO (0,1))
-                            setEntityColor touchedID randomColor
-                        printIO overlappingIDs
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     setEntityColor entityID (V4 0 0 1 1)
                 _ -> return ()
@@ -64,24 +66,12 @@ rightHand = newEntity
         , _entPhysProps   = [IsGhost]
         , _entName        = "Right Hand"
         -- , _entPhysProps   = [IsKinematic]
-        , _entUpdate      = Just $ \entityID -> 
+        , _entUpdate      = Just $ \entityID -> do
             withRightHandEvents $ \case
                 HandStateEvent hand -> do
-                    withEntityGhostObject entityID $ \ghostObject -> do
-                        overlapping    <- getGhostObjectOverlapping ghostObject
-                        overlappingIDs <- mapM getCollisionObjectID overlapping
-
-                        forM_ (map unCollisionObjectID overlappingIDs) $ \touchedID -> do
-                            printIO =<< fromMaybe "NoName" <$> use (wldComponents . cmpName . at touchedID)
-                            randomColor <- (_w .~ 1) <$> liftIO (randomRIO (0,1))
-                            setEntityColor touchedID randomColor
-
                     setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
-                        -- printIO overlappingIDs
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
                     setEntityColor entityID (V4 1 1 1 1)
-
-                    
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     setEntityColor entityID (V4 0 1 0 1)
                 _ -> return ()
