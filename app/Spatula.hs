@@ -12,6 +12,7 @@ import Control.Monad.State
 import Control.Monad.Random
 import Types
 import Entity
+import Control
 
 -- import System.Random
 -- instance Random r => Random (V3 r) where
@@ -33,12 +34,16 @@ leftHand :: Entity
 leftHand = newEntity 
         { _entColor       = V4 1 0.8 0.7 1 
         , _entSize        = V3 0.1 0.1 0.4
-        , _entPhysProps   = [IsKinematic, IsGhost]
-        , _entUpdate      = Just $ \entityID -> do
-            events <- use wldEvents
-            forM_ events $ \case
-                VREvent (LeftHandEvent hand) -> 
+        -- , _entPhysProps   = [IsKinematic, IsGhost]
+        , _entPhysProps   = [IsKinematic]
+        , _entUpdate      = Just $ \entityID -> 
+            withLeftHandEvents $ \case
+                HandEvent hand -> 
                     setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
+                ButtonTrigger ButtonDown -> do
+                    setEntityColor entityID (V4 1 0 1 1)
+                ButtonTrigger ButtonUp -> do
+                    setEntityColor entityID (V4 0 0 1 1)
                 _ -> return ()
         }
 
@@ -46,12 +51,16 @@ rightHand :: Entity
 rightHand = newEntity 
         { _entColor       = V4 0.7 1 0.8 1 
         , _entSize        = V3 0.1 0.1 0.4
-        , _entPhysProps   = [IsKinematic, IsGhost]
-        , _entUpdate      = Just $ \entityID -> do
-            events <- use wldEvents
-            forM_ events $ \case
-                VREvent (RightHandEvent hand) -> 
+        -- , _entPhysProps   = [IsKinematic, IsGhost]
+        , _entPhysProps   = [IsKinematic]
+        , _entUpdate      = Just $ \entityID -> 
+            withRightHandEvents $ \case
+                HandEvent hand -> 
                     setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
+                ButtonTrigger ButtonDown -> do
+                    setEntityColor entityID (V4 1 1 1 1)
+                ButtonTrigger ButtonUp -> do
+                    setEntityColor entityID (V4 0 1 0 1)
                 _ -> return ()
         }
 
@@ -73,6 +82,8 @@ aSpatula = newEntity
         { _entSize        = V3 0.2 0.1 0.1
         , _entPose        = newPose & posPosition .~ V3 0 0.5 0
         , _entColor       = V4 0 1 1 1
+        , _entPhysProps   = [IsKinematic]
+        , _entShape       = Cube
         , _entUpdate      = Just $ \entityID -> do
             now <- getNow
             let a     = (*20) . sin . (/10) $ now
@@ -80,6 +91,4 @@ aSpatula = newEntity
                 spatZ = (*a) . cos  $ now
                 newPose_ = Pose (V3 spatX 0.1 spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
             setEntityPose entityID newPose_
-        , _entPhysProps = [IsKinematic]
-        , _entShape = Cube
         }

@@ -18,7 +18,7 @@ renderSimulation projMat viewMat = do
     cubeShape <- view wlsCubeShape
     let Uniforms{..} = sUniforms cubeShape
     
-    uniformV3 uCamera =<< use (wldPlayer . posPosition)
+    uniformV3 uCamera (inv44 viewMat ^. translation)
 
     let viewProj = projMat !*! viewMat
 

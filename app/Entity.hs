@@ -58,6 +58,9 @@ setEntitySize entityID newSize = do
         dynamicsWorld <- view wlsDynamicsWorld
         setRigidBodyScale dynamicsWorld rigidBody newSize
 
+setEntityColor :: (MonadState World m, MonadReader WorldStatic m) => EntityID -> V4 GLfloat -> m ()
+setEntityColor entityID newColor = do
+    wldComponents . cmpColor . ix entityID .= newColor
 
 useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
 useMaybeM_ aLens f = do

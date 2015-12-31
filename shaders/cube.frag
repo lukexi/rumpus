@@ -37,6 +37,6 @@ void main() {
 
     fragColor = vec4(diffuseLit, uDiffuse.a);
 
-    float hitDist = distance(vPosition, uCubeHit);
-    fragColor.r += hitDist;
+    // float hitDist = distance(vPosition, uCubeHit);
+    // fragColor.r += hitDist;
 }

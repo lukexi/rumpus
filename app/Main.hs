@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleContexts, LambdaCase, RecordWildCards #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-import Graphics.UI.GLFW.Pal
 import Graphics.GL.Pal
 import Graphics.VR.Pal
 
@@ -11,12 +12,12 @@ import Control.Monad.State
 import Control.Lens.Extra
 import qualified Data.Map as Map
 
-
 import Physics.Bullet
 
 import Render
 import Entity
 import Types
+import Control
 import Control.Monad.Reader
 import Spatula
 
@@ -48,12 +49,9 @@ main = do
 
         whileVR vrPal $ \headM44 hands -> do
             
-            wldEvents .= map VREvent ( HeadEvent headM44 : zipWith ($) [LeftHandEvent, RightHandEvent] hands )
-            processEvents gpEvents $ \e -> do
-                closeOnEscape gpWindow e
-                wldEvents %= (GLFWEvent e:)
-            wldEvents %= reverse
+            collectControlEvents vrPal headM44 hands
 
+            -- Process the update functions of each entity
             updates <- Map.toList <$> use (wldComponents . cmpUpdate)
             forM_ updates $ \(entityID, update) -> update entityID
     
