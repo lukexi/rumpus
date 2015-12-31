@@ -23,6 +23,8 @@ renderSimulation projMat viewMat = do
 
         Uniforms{..} <- asks sUniforms
         uniformV3 uCamera (inv44 viewMat ^. translation)
+
+        -- Batch by entities sharing the same shape type
         entityIDsForShape <- Map.keys . Map.filter (== shapeType) <$> use (wldComponents . cmpShape)
         forM_ entityIDsForShape $ \entityID -> do
 
@@ -42,3 +44,20 @@ renderSimulation projMat viewMat = do
             uniformV4  uDiffuse             color
 
             drawShape
+
+-- | Accumulate a matrix stack by walking up to the parent
+getModelMatrix :: MonadState World m => EntityID -> m (M44 GLfloat)
+getModelMatrix startEntityID = do
+    
+    let go Nothing = return identity
+        go (Just entityID) = do
+            pose   <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+            parent <- use (wldComponents . cmpParent . at entityID)
+            (transformationFromPose pose !*!) <$> go parent
+    
+
+    go (Just startEntityID)
+
+
+
+    

@@ -23,13 +23,14 @@ createEntity entity = do
     wldComponents . cmpColor  . at entityID ?= entity ^. entColor
     wldComponents . cmpScale  . at entityID ?= entity ^. entScale
     wldComponents . cmpShape  . at entityID ?= entity ^. entShape
+    wldComponents . cmpName   . at entityID ?= entity ^. entName
     wldComponents . cmpUpdate . at entityID .= entity ^. entUpdate
 
     addEntityRigidBodyComponent entityID entity
 
     forM_ (entity ^. entChildren) $ \child -> do
         childID <- createEntity child
-        wldComponents . cmpParents . at childID ?= entityID
+        wldComponents . cmpParent . at childID ?= entityID
     
     return entityID
 
@@ -38,7 +39,7 @@ setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => E
 setEntitySize entityID newSize = do
     wldComponents . cmpSize . ix entityID .= newSize
 
-    useMaybeM_ (wldComponents . cmpRigidBody . at entityID) $ \rigidBody -> do 
+    withEntityRigidBody entityID $ \rigidBody -> do 
         dynamicsWorld <- view wlsDynamicsWorld
         setRigidBodyScale dynamicsWorld rigidBody newSize
 
@@ -51,6 +52,11 @@ useMaybeM_ aLens f = do
     current <- use aLens
     mapM_ f current
 
+withEntityRigidBody :: MonadState World m => EntityID -> (RigidBody -> m b) -> m ()
+withEntityRigidBody entityID = useMaybeM_ (wldComponents . cmpRigidBody . at entityID)
+
+withEntityGhostObject :: MonadState World m => EntityID -> (GhostObject -> m b) -> m ()
+withEntityGhostObject entityID = useMaybeM_ (wldComponents . cmpGhostObject . at entityID)
 
 setEntityPose :: (MonadState World m, MonadIO m) => EntityID -> Pose GLfloat -> m ()
 setEntityPose entityID newPose_ = do

@@ -40,7 +40,7 @@ data World = World
     , _wldEvents     :: ![WorldEvent]
     }
 
-data ButtonState = ButtonDown | ButtonUp
+data ButtonState = ButtonDown | ButtonUp deriving Show
 
 data HandButton = HandButtonA
                 | HandButtonB
@@ -49,17 +49,21 @@ data HandButton = HandButtonA
                 | HandButtonStart
                 | HandButtonGrip
                 | HandButtonTrigger
+                deriving Show
 
-data WhichHand = LeftHand | RightHand
+data WhichHand = LeftHand | RightHand deriving Show
 
 data HandEvent = HandStateEvent  Hand
                | HandButtonEvent HandButton ButtonState
+               deriving Show
 
 data VREvent = HeadEvent (M44 GLfloat)
              | HandEvent WhichHand HandEvent
+             deriving Show
 
 data WorldEvent = GLFWEvent Event
-                | VREvent VREvent
+                | VREvent VREvent 
+                deriving Show
 
 data Components = Components
     { _cmpPose        :: EntityMap (Pose GLfloat)
@@ -70,7 +74,8 @@ data Components = Components
     , _cmpRigidBody   :: EntityMap RigidBody
     , _cmpGhostObject :: EntityMap GhostObject
     , _cmpUpdate      :: EntityMap (EntityID -> WorldMonad ())
-    , _cmpParents     :: EntityMap EntityID
+    , _cmpParent      :: EntityMap EntityID
+    , _cmpName        :: EntityMap String
     }
 
 newComponents :: Components
@@ -83,12 +88,13 @@ newComponents = Components
     , _cmpUpdate      = mempty
     , _cmpGhostObject = mempty
     , _cmpShape       = mempty
-    , _cmpParents     = mempty
+    , _cmpParent      = mempty
+    , _cmpName        = mempty
     }
 
 newWorld :: World
 newWorld = World
-    { _wldPlayer = Pose (V3 0 1 5) (axisAngle (V3 0 1 0) 0)
+    { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
     , _wldComponents = newComponents
     , _wldEvents = []
     }
@@ -106,6 +112,7 @@ newEntity = Entity
     , _entChildren  = []
     , _entMass      = 1
     , _entPdPatch   = Nothing
+    , _entName      = "Entity"
     }
 
 data Entity = Entity
@@ -120,6 +127,7 @@ data Entity = Entity
     , _entChildren  :: ![Entity]
     , _entMass      :: !Float
     , _entPdPatch   :: !(Maybe FilePath)
+    , _entName      :: !String
     }
 
 

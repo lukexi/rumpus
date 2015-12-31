@@ -20,7 +20,8 @@ import Entity
 import Types
 import Control
 import Control.Monad.Reader
-import Spatula
+
+import qualified Spatula
 
 main :: IO ()
 main = withPd $ \pd -> do
@@ -52,16 +53,16 @@ main = withPd $ \pd -> do
 
     void . flip runReaderT worldStatic . flip runStateT newWorld $ do 
 
-        mapM_ createEntity =<< initScene
+        mapM_ createEntity =<< Spatula.initScene
 
         whileVR vrPal $ \headM44 hands -> do
             
             collectControlEvents vrPal headM44 hands
 
             -- Process the update functions of each entity
-            updates <- Map.toList <$> use (wldComponents . cmpUpdate)
-            forM_ updates $ \(entityID, update) -> update entityID
-    
+            mapM_ (\(entityID, update) -> update entityID) 
+                =<< Map.toList <$> use (wldComponents . cmpUpdate) 
+            
             stepSimulation dynamicsWorld 90
 
             player <- use wldPlayer
