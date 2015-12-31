@@ -38,11 +38,11 @@ leftHand = newEntity
         , _entPhysProps   = [IsKinematic]
         , _entUpdate      = Just $ \entityID -> 
             withLeftHandEvents $ \case
-                HandEvent hand -> 
+                HandStateEvent hand -> 
                     setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
-                ButtonTrigger ButtonDown -> do
+                HandButtonEvent HandButtonTrigger ButtonDown -> do
                     setEntityColor entityID (V4 1 0 1 1)
-                ButtonTrigger ButtonUp -> do
+                HandButtonEvent HandButtonTrigger ButtonUp -> do
                     setEntityColor entityID (V4 0 0 1 1)
                 _ -> return ()
         }
@@ -55,11 +55,11 @@ rightHand = newEntity
         , _entPhysProps   = [IsKinematic]
         , _entUpdate      = Just $ \entityID -> 
             withRightHandEvents $ \case
-                HandEvent hand -> 
+                HandStateEvent hand -> 
                     setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
-                ButtonTrigger ButtonDown -> do
+                HandButtonEvent HandButtonTrigger ButtonDown -> do
                     setEntityColor entityID (V4 1 1 1 1)
-                ButtonTrigger ButtonUp -> do
+                HandButtonEvent HandButtonTrigger ButtonUp -> do
                     setEntityColor entityID (V4 0 1 0 1)
                 _ -> return ()
         }

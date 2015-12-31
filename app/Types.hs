@@ -9,6 +9,7 @@ import Graphics.UI.GLFW.Pal
 import Graphics.GL.Pal
 import Graphics.VR.Pal
 import Physics.Bullet
+import Sound.Pd
 import Data.Map (Map)
 import GHC.Word
 import Control.Monad.State
@@ -30,6 +31,7 @@ data WorldStatic = WorldStatic
     { _wlsDynamicsWorld :: !DynamicsWorld
     , _wlsCubeShape     :: !(Shape Uniforms)
     , _wlsVRPal         :: !VRPal
+    , _wlsPd            :: !PureData
     }
 
 data World = World
@@ -38,20 +40,23 @@ data World = World
     , _wldEvents     :: ![WorldEvent]
     }
 
-data ButtonDown = ButtonDown | ButtonUp
+data ButtonState = ButtonDown | ButtonUp
 
-data HandEvent = HandEvent Hand
-               | ButtonA       ButtonDown
-               | ButtonB       ButtonDown
-               | ButtonC       ButtonDown
-               | ButtonD       ButtonDown
-               | ButtonGrip    ButtonDown
-               | ButtonStart   ButtonDown
-               | ButtonTrigger ButtonDown
+data HandButton = HandButtonA
+                | HandButtonB
+                | HandButtonC
+                | HandButtonD
+                | HandButtonStart
+                | HandButtonGrip
+                | HandButtonTrigger
+
+data WhichHand = LeftHand | RightHand
+
+data HandEvent = HandStateEvent  Hand
+               | HandButtonEvent HandButton ButtonState
 
 data VREvent = HeadEvent (M44 GLfloat)
-             | LeftHandEvent HandEvent
-             | RightHandEvent HandEvent
+             | HandEvent WhichHand HandEvent
 
 data WorldEvent = GLFWEvent Event
                 | VREvent VREvent

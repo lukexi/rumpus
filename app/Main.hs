@@ -13,6 +13,7 @@ import Control.Lens.Extra
 import qualified Data.Map as Map
 
 import Physics.Bullet
+import Sound.Pd
 
 import Render
 import Entity
@@ -22,10 +23,11 @@ import Control.Monad.Reader
 import Spatula
 
 main :: IO ()
-main = do
+main = withPd $ \pd -> do
     vrPal@VRPal{..} <- initVRPal "Rumpus" [UseOpenVR]
 
-    cubeProg  <- createShaderProgram "shaders/cube.vert" "shaders/cube.frag"
+    
+    cubeProg  <- createShaderProgram "spatula/cube.vert" "spatula/cube.frag"
     cubeGeo   <- cubeGeometry (V3 1 1 1) 1
     cubeShape <- makeShape cubeGeo cubeProg
 
@@ -39,8 +41,9 @@ main = do
 
     let worldStatic = WorldStatic
             { _wlsDynamicsWorld = dynamicsWorld
-            , _wlsCubeShape = cubeShape
-            , _wlsVRPal = vrPal
+            , _wlsCubeShape     = cubeShape
+            , _wlsVRPal         = vrPal
+            , _wlsPd            = pd
             }
 
     void . flip runReaderT worldStatic . flip runStateT newWorld $ do 
