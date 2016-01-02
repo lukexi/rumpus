@@ -15,18 +15,20 @@ import Types
 import Entity
 import Control
 import Physics.Bullet
+import Sound.Pd
 -- import qualified Data.Set as Set
 import Data.Maybe
-
+-- import Control.Concurrent
 
 initScene :: (MonadIO m) => m [Entity]
 initScene = do
 
+    soundBlocks  <- liftIO (evalRandIO createSoundBlocks)
     someBalls  <- liftIO (evalRandIO createBallMess)
     somePlanes <- liftIO (evalRandIO createPlaneMess)
     -- return (leftHand:rightHand:aFloor:aSpatula:somePlanes ++ someBalls)
-    -- return (leftHand:rightHand:aFloor:somePlanes ++ someBalls)
-    return (leftHand:aFloor:somePlanes ++ someBalls)
+    -- return (leftHand:rightHand:aFloor:soundBlocks ++ somePlanes ++ someBalls)
+    return (leftHand:rightHand:aFloor:soundBlocks)
 
 leftHand :: Entity
 leftHand = newEntity 
@@ -45,9 +47,10 @@ leftHand = newEntity
                 overlappingIDs <- mapM getCollisionObjectID overlapping
                 -- printIO overlappingIDs
                 forM_ (map unCollisionObjectID overlappingIDs) $ \touchedID -> do
-                    printIO =<< fromMaybe "NoName" <$> use (wldComponents . cmpName . at touchedID)
-                    randomColor <- (_w .~ 1) <$> liftIO (randomRIO (0,1))
-                    setEntityColor touchedID randomColor
+                    name <- fromMaybe "Entity" <$> use (wldComponents . cmpName . at touchedID)
+                    when (name /= "Floor") $ do
+                        randomColor <- (_w .~ 1) <$> liftIO (randomRIO (0,1))
+                        setEntityColor touchedID randomColor
             withLeftHandEvents $ \case
                 HandStateEvent hand -> 
                     setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
@@ -90,6 +93,28 @@ createPlaneMess = do
             , _entSize = planeSize
             , _entShape = CubeShape
             , _entName  = "MessyCube"
+            }
+
+createSoundBlocks :: MonadRandom m => m [Entity]
+createSoundBlocks = do
+    -- Create a mess of planes
+    -- let planeSize = V3 0.2 0.2 0.1
+    let planeSize = 0.5
+    forM [1..8::Int] $ \i -> do
+        color <- getRandomR (0,1)
+        return $ newEntity
+            { _entColor = color & _w .~ 1
+            , _entPose = newPose & posPosition .~ V3 0 20 0
+            , _entSize = planeSize
+            , _entShape = CubeShape
+            , _entName  = "SoundBlock"
+            , _entPdPatch = Just "spatula/spatula1"
+            , _entCollision = Just $ \entityID _collidedWithID impulse -> when (impulse > 0.1) $ do
+                pd <- view wlsPd
+                
+                useMaybeM_ (wldComponents . cmpPdPatch . at entityID) $ \patch -> do
+                    send pd patch "note" (Atom (Float (48 + fromIntegral i * 2)))
+                    send pd patch "trigger" (Atom (Float impulse))
             }
 
 createBallMess :: MonadRandom m => m [Entity]

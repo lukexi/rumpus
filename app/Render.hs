@@ -25,17 +25,14 @@ renderSimulation projMat viewMat = do
         uniformV3 uCamera (inv44 viewMat ^. translation)
 
         -- Batch by entities sharing the same shape type
-        entityIDsForShape <- Map.keys . Map.filter (== shapeType) <$> use (wldComponents . cmpShape)
+        entityIDsForShape <- getEntityIDsForShapeType shapeType
         forM_ entityIDsForShape $ \entityID -> do
 
-            pose       <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+            
             size       <- fromMaybe 1       <$> use (wldComponents . cmpSize . at entityID)
             color      <- fromMaybe 1       <$> use (wldComponents . cmpColor . at entityID)
-
-            mRigidBody <- use (wldComponents . cmpRigidBody . at entityID)
-            modelMatrix <- transformationFromPose <$> case mRigidBody of
-                Just rigidBody -> uncurry Pose <$> getBodyState rigidBody
-                Nothing        -> return pose
+            
+            modelMatrix <- transformationFromPose <$> getEntityPose entityID
 
             let model = modelMatrix !*! scaleMatrix size
             uniformM44 uModelViewProjection (viewProj !*! model)
@@ -46,8 +43,8 @@ renderSimulation projMat viewMat = do
             drawShape
 
 -- | Accumulate a matrix stack by walking up to the parent
-getModelMatrix :: MonadState World m => EntityID -> m (M44 GLfloat)
-getModelMatrix startEntityID = do
+getEntityTotalModelMatrix :: MonadState World m => EntityID -> m (M44 GLfloat)
+getEntityTotalModelMatrix startEntityID = do
     
     let go Nothing = return identity
         go (Just entityID) = do
@@ -58,6 +55,13 @@ getModelMatrix startEntityID = do
 
     go (Just startEntityID)
 
+getEntityPose :: (MonadState World m, MonadIO m) => EntityID -> m (Pose GLfloat)
+getEntityPose entityID = do
+    pose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+    mRigidBody <- use (wldComponents . cmpRigidBody . at entityID)
+    case mRigidBody of
+        Just rigidBody -> uncurry Pose <$> getBodyState rigidBody
+        Nothing        -> return pose
 
-
-    
+getEntityIDsForShapeType :: MonadState World f => ShapeType -> f [EntityID]
+getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> use (wldComponents . cmpShape)
