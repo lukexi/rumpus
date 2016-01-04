@@ -49,3 +49,4 @@ Drum machine
 http://bulletphysics.org/Bullet/BulletFull/classbtConeTwistConstraint.html
 http://www.vrinflux.com/newton-vr-physics-based-interaction-on-the-vive/
 http://pomax.github.io/bezierjs/
+http://www.continuousphysics.com/Bullet/BulletFull/classbtIDebugDraw.html

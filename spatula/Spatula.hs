@@ -24,8 +24,8 @@ initScene :: (MonadIO m) => m [Entity]
 initScene = do
 
     soundBlocks  <- liftIO (evalRandIO createSoundBlocks)
-    someBalls  <- liftIO (evalRandIO createBallMess)
-    somePlanes <- liftIO (evalRandIO createPlaneMess)
+    -- someBalls  <- liftIO (evalRandIO createBallMess)
+    -- somePlanes <- liftIO (evalRandIO createPlaneMess)
     -- return (leftHand:rightHand:aFloor:aSpatula:somePlanes ++ someBalls)
     -- return (leftHand:rightHand:aFloor:soundBlocks ++ somePlanes ++ someBalls)
     return (leftHand:rightHand:aFloor:soundBlocks)
@@ -90,16 +90,16 @@ rightHand = newEntity
                             spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
                             wldComponents . cmpSpring . at entityID ?= spring
 
-                            setSpringLinearLowerLimit spring (-5)
-                            setSpringLinearUpperLimit spring 5
-                            setSpringAngularLowerLimit spring (-1)
-                            setSpringAngularUpperLimit spring 1
-                            setSpringAngularStiffness spring 100
-                            setSpringLinearStiffness spring 100
-                            setSpringLinearDamping spring 0.9
-                            setSpringAngularDamping spring 0.9
-                            setSpringLinearBounce spring 10
-                            setSpringAngularBounce spring 10
+                            setSpringLinearLowerLimit  spring (-5  :: V3 Float)
+                            setSpringLinearUpperLimit  spring (5   :: V3 Float)
+                            setSpringAngularLowerLimit spring (-1  :: V3 Float)
+                            setSpringAngularUpperLimit spring (1   :: V3 Float)
+                            setSpringAngularStiffness  spring (100 :: V3 Float)
+                            setSpringLinearStiffness   spring (100 :: V3 Float)
+                            setSpringLinearDamping     spring (0.9 :: V3 Float)
+                            setSpringAngularDamping    spring (0.9 :: V3 Float)
+                            setSpringLinearBounce      spring (10  :: V3 Float)
+                            setSpringAngularBounce     spring (10  :: V3 Float)
                             -- setSpringLinearEquilibrium spring 0
                             -- setSpringAngularEquilibrium spring 0
                             setLinearSpringEnabled spring (V3 True True True)
