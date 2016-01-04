@@ -55,7 +55,7 @@ main = withPd $ \pd -> do
             }
         world = newWorld & wldOpenALSourcePool .~ zip [1..] (pdSources pd)
                          & wldPlayer .~ if gpRoomScale vrPal == RoomScale 
-                                        then newPose 
+                                        then newPose
                                         else newPose & posPosition .~ V3 0 1 5 
 
     void . flip runReaderT worldStatic . flip runStateT world $ do 

@@ -24,11 +24,11 @@ initScene :: (MonadIO m) => m [Entity]
 initScene = do
 
     soundBlocks  <- liftIO (evalRandIO createSoundBlocks)
-    -- someBalls  <- liftIO (evalRandIO createBallMess)
-    -- somePlanes <- liftIO (evalRandIO createPlaneMess)
+    someBalls  <- liftIO (evalRandIO createBallMess)
+    somePlanes <- liftIO (evalRandIO createPlaneMess)
     -- return (leftHand:rightHand:aFloor:aSpatula:somePlanes ++ someBalls)
-    -- return (leftHand:rightHand:aFloor:soundBlocks ++ somePlanes ++ someBalls)
-    return (leftHand:rightHand:aFloor:soundBlocks)
+    return (leftHand:rightHand:aFloor:soundBlocks ++ somePlanes ++ someBalls)
+    -- return (leftHand:rightHand:aFloor:soundBlocks)
 
 leftHand :: Entity
 leftHand = newEntity 
@@ -85,6 +85,9 @@ rightHand = newEntity
                             overlapperEntityID <- unCollisionObjectID <$> getCollisionObjectID overlapper
                             (/= Just "Floor") <$> use (wldComponents . cmpName . at overlapperEntityID)
                         forM_ (listToMaybe nonFloorOverlapping) $ \oneNonFloor -> do
+                            do
+                                anEntityID <- unCollisionObjectID <$> getCollisionObjectID oneNonFloor
+                                printIO =<< use (wldComponents . cmpName . at anEntityID)
                             dynamicsWorld <- view wlsDynamicsWorld
 
                             spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
