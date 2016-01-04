@@ -72,11 +72,47 @@ rightHand = newEntity
         , _entUpdate      = Just $ \entityID -> do
             withRightHandEvents $ \case
                 HandStateEvent hand -> do
-                    setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
+                    let pose = poseFromMatrix (hand ^. hndMatrix)
+                    setEntityPose entityID pose
+
+                    useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring ->
+                        setSpringWorldPose spring (pose ^. posPosition) (pose ^. posOrientation)
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
+
+                    withEntityGhostObject entityID $ \ghostObject -> do
+                        overlapping    <- getGhostObjectOverlapping ghostObject
+                        nonFloorOverlapping <- flip filterM overlapping $ \overlapper -> do
+                            overlapperEntityID <- unCollisionObjectID <$> getCollisionObjectID overlapper
+                            (/= Just "Floor") <$> use (wldComponents . cmpName . at overlapperEntityID)
+                        forM_ (listToMaybe nonFloorOverlapping) $ \oneNonFloor -> do
+                            dynamicsWorld <- view wlsDynamicsWorld
+
+                            spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
+                            wldComponents . cmpSpring . at entityID ?= spring
+
+                            setSpringLinearLowerLimit spring (-5)
+                            setSpringLinearUpperLimit spring 5
+                            setSpringAngularLowerLimit spring (-1)
+                            setSpringAngularUpperLimit spring 1
+                            setSpringAngularStiffness spring 100
+                            setSpringLinearStiffness spring 100
+                            setSpringLinearDamping spring 0.9
+                            setSpringAngularDamping spring 0.9
+                            setSpringLinearBounce spring 10
+                            setSpringAngularBounce spring 10
+                            -- setSpringLinearEquilibrium spring 0
+                            -- setSpringAngularEquilibrium spring 0
+                            setLinearSpringEnabled spring (V3 True True True)
+                            setAngularSpringEnabled spring (V3 True True True)
+                            return ()
                     setEntityColor entityID (V4 1 1 1 1)
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     setEntityColor entityID (V4 0 1 0 1)
+
+                    useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring -> do
+                        dynamicsWorld <- view wlsDynamicsWorld
+                        removeSpringConstraint dynamicsWorld spring
+                        wldComponents . cmpSpring . at entityID .= Nothing
                 _ -> return ()
         }
 
@@ -130,6 +166,8 @@ createBallMess = do
             , _entShape = SphereShape
             , _entName  = "MessyBall"
             }
+
+
 
 aSpatula :: Entity
 aSpatula = newEntity

@@ -35,7 +35,8 @@ createEntity entity = do
         pd <- view wlsPd
         patch <- makePatch pd patchPath
         wldComponents . cmpPdPatch . at entityID ?= patch
-        dequeueOpenALSource >>= mapM_ (\(sourceChannel, sourceID) -> do
+        -- Assign the patch's output DAC index to route it to the the SourceID
+        dequeueOpenALSource >>= mapM_ (\(sourceChannel, _sourceID) -> do
             send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
             )
 
