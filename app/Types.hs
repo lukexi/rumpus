@@ -25,7 +25,15 @@ data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show)
 
 type WorldMonad = StateT World (ReaderT WorldStatic IO)
 
+data WorldEvent = GLFWEvent Event
+                | VREvent VREvent 
+                deriving Show
 
+type OnUpdate = EntityID -> WorldMonad ()
+
+type CollidedWithID = EntityID
+type CollisionImpulse = GLfloat
+type OnCollision = EntityID -> CollidedWithID -> CollisionImpulse -> WorldMonad ()
 
 data WorldStatic = WorldStatic
     { _wlsVRPal         :: !VRPal
@@ -35,11 +43,105 @@ data WorldStatic = WorldStatic
     }
 
 data World = World
-    { _wldPlayer     :: !(Pose GLfloat)
-    , _wldComponents :: !Components
-    , _wldEvents     :: ![WorldEvent]
+    { _wldPlayer           :: !(Pose GLfloat)
+    , _wldComponents       :: !Components
+    , _wldEvents           :: ![WorldEvent]
+    , _wldOpenALSourcePool :: ![(Int, OpenALSource)]
     }
 
+newWorld :: World
+newWorld = World
+    { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
+    -- { _wldPlayer = Pose (V3 0 1 5) (axisAngle (V3 0 1 0) 0)
+    , _wldComponents = newComponents
+    , _wldEvents = []
+    , _wldOpenALSourcePool = []
+    }
+
+data Components = Components
+    { _cmpName        :: EntityMap String
+    , _cmpPose        :: EntityMap (Pose GLfloat)
+    , _cmpSize        :: EntityMap (V3 GLfloat)
+    , _cmpShape       :: EntityMap ShapeType
+    , _cmpScale       :: EntityMap (V3 GLfloat)
+    , _cmpColor       :: EntityMap (V4 GLfloat)
+    , _cmpUpdate      :: EntityMap OnUpdate
+    , _cmpCollision   :: EntityMap OnCollision
+    , _cmpParent      :: EntityMap EntityID
+    , _cmpRigidBody   :: EntityMap RigidBody
+    , _cmpGhostObject :: EntityMap GhostObject
+    , _cmpSpring      :: EntityMap SpringConstraint
+    , _cmpPdPatch     :: EntityMap Patch
+    , _cmpSoundSource :: EntityMap OpenALSource
+    }
+
+newComponents :: Components
+newComponents = Components
+    { _cmpName        = mempty
+    , _cmpPose        = mempty
+    , _cmpSize        = mempty
+    , _cmpShape       = mempty
+    , _cmpScale       = mempty
+    , _cmpColor       = mempty
+    , _cmpUpdate      = mempty
+    , _cmpCollision   = mempty
+    , _cmpParent      = mempty
+    , _cmpRigidBody   = mempty
+    , _cmpGhostObject = mempty
+    , _cmpSpring      = mempty
+    , _cmpPdPatch     = mempty
+    , _cmpSoundSource = mempty
+    }
+
+data Entity = Entity
+    { _entColor     :: !(V4 GLfloat)
+    , _entSize      :: !(V3 GLfloat)
+    , _entPose      :: !(Pose GLfloat)
+    , _entScale     :: !(V3 GLfloat)
+    , _entRigidBody :: !(Maybe RigidBody)
+    , _entSpring    :: !(Maybe SpringConstraint)
+    , _entUpdate    :: !(Maybe OnUpdate)
+    , _entCollision :: !(Maybe OnCollision)
+    , _entPhysProps :: ![PhysicsProperties]
+    , _entShape     :: !(ShapeType)
+    , _entChildren  :: ![Entity]
+    , _entMass      :: !Float
+    , _entPdPatch   :: !(Maybe FilePath)
+    , _entName      :: !String
+    }
+
+newEntity :: Entity
+newEntity = Entity
+    { _entColor     = V4 1 1 1 1
+    , _entSize      = V3 1 1 1
+    , _entPose      = newPose
+    , _entScale     = V3 1 1 1
+    , _entRigidBody = Nothing
+    , _entUpdate    = Nothing
+    , _entCollision = Nothing
+    , _entSpring    = Nothing
+    , _entPhysProps = []
+    , _entShape     = NoShape
+    , _entChildren  = []
+    , _entMass      = 1
+    , _entPdPatch   = Nothing
+    , _entName      = "Entity"
+    }
+
+
+data Uniforms = Uniforms
+    { uModelViewProjection :: UniformLocation (M44 GLfloat)
+    , uInverseModel        :: UniformLocation (M44 GLfloat)
+    , uModel               :: UniformLocation (M44 GLfloat)
+    , uCamera              :: UniformLocation (V3  GLfloat)
+    , uDiffuse             :: UniformLocation (V4  GLfloat)
+    , uCubeHit             :: UniformLocation (V3  GLfloat)
+    } deriving (Data)
+
+
+
+
+-- TODO move to vr-pal
 data ButtonState = ButtonDown | ButtonUp deriving Show
 
 data HandButton = HandButtonA
@@ -61,94 +163,11 @@ data VREvent = HeadEvent (M44 GLfloat)
              | HandEvent WhichHand HandEvent
              deriving Show
 
-data WorldEvent = GLFWEvent Event
-                | VREvent VREvent 
-                deriving Show
-
-data Components = Components
-    { _cmpPose        :: EntityMap (Pose GLfloat)
-    , _cmpSize        :: EntityMap (V3 GLfloat)
-    , _cmpScale       :: EntityMap (V3 GLfloat)
-    , _cmpColor       :: EntityMap (V4 GLfloat)
-    , _cmpShape       :: EntityMap ShapeType
-    , _cmpRigidBody   :: EntityMap RigidBody
-    , _cmpGhostObject :: EntityMap GhostObject
-    , _cmpUpdate      :: EntityMap (EntityID -> WorldMonad ())
-    , _cmpParent      :: EntityMap EntityID
-    , _cmpName        :: EntityMap String
-    }
-
-newComponents :: Components
-newComponents = Components
-    { _cmpPose        = mempty
-    , _cmpSize        = mempty
-    , _cmpScale       = mempty
-    , _cmpColor       = mempty
-    , _cmpRigidBody   = mempty
-    , _cmpUpdate      = mempty
-    , _cmpGhostObject = mempty
-    , _cmpShape       = mempty
-    , _cmpParent      = mempty
-    , _cmpName        = mempty
-    }
-
-newWorld :: World
-newWorld = World
-    { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
-    -- { _wldPlayer = Pose (V3 0 1 5) (axisAngle (V3 0 1 0) 0)
-    , _wldComponents = newComponents
-    , _wldEvents = []
-    }
-
-newEntity :: Entity
-newEntity = Entity
-    { _entColor     = V4 1 1 1 1
-    , _entSize      = V3 1 1 1
-    , _entPose      = newPose
-    , _entScale     = V3 1 1 1
-    , _entRigidBody = Nothing
-    , _entUpdate    = Nothing
-    , _entPhysProps = []
-    , _entShape     = NoShape
-    , _entChildren  = []
-    , _entMass      = 1
-    , _entPdPatch   = Nothing
-    , _entName      = "Entity"
-    }
-
-data Entity = Entity
-    { _entColor     :: !(V4 GLfloat)
-    , _entSize      :: !(V3 GLfloat)
-    , _entPose      :: !(Pose GLfloat)
-    , _entScale     :: !(V3 GLfloat)
-    , _entRigidBody :: !(Maybe RigidBody)
-    , _entUpdate    :: !(Maybe (EntityID -> WorldMonad ()))
-    , _entPhysProps :: ![PhysicsProperties]
-    , _entShape     :: !(ShapeType)
-    , _entChildren  :: ![Entity]
-    , _entMass      :: !Float
-    , _entPdPatch   :: !(Maybe FilePath)
-    , _entName      :: !String
-    }
-
-
-
-
-data Uniforms = Uniforms
-    { uModelViewProjection :: UniformLocation (M44 GLfloat)
-    , uInverseModel        :: UniformLocation (M44 GLfloat)
-    , uModel               :: UniformLocation (M44 GLfloat)
-    , uCamera              :: UniformLocation (V3  GLfloat)
-    , uDiffuse             :: UniformLocation (V4  GLfloat)
-    , uCubeHit             :: UniformLocation (V3  GLfloat)
-    } deriving (Data)
-
 
 makeLenses ''WorldStatic
 makeLenses ''World
 makeLenses ''Entity
 makeLenses ''Components
-
 
 raycastCursorHits :: (MonadIO m, MonadState World m) 
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()

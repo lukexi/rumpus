@@ -14,19 +14,31 @@ import Control.Monad.Reader
 -- import Data.Maybe
 import Types
 
+import Sound.Pd
+
 createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
 createEntity entity = do
     entityID <- liftIO randomIO
 
-    wldComponents . cmpPose   . at entityID ?= entity ^. entPose
-    wldComponents . cmpSize   . at entityID ?= entity ^. entSize
-    wldComponents . cmpColor  . at entityID ?= entity ^. entColor
-    wldComponents . cmpScale  . at entityID ?= entity ^. entScale
-    wldComponents . cmpShape  . at entityID ?= entity ^. entShape
-    wldComponents . cmpName   . at entityID ?= entity ^. entName
-    wldComponents . cmpUpdate . at entityID .= entity ^. entUpdate
+    wldComponents . cmpPose      . at entityID ?= entity ^. entPose
+    wldComponents . cmpSize      . at entityID ?= entity ^. entSize
+    wldComponents . cmpColor     . at entityID ?= entity ^. entColor
+    wldComponents . cmpScale     . at entityID ?= entity ^. entScale
+    wldComponents . cmpShape     . at entityID ?= entity ^. entShape
+    wldComponents . cmpName      . at entityID ?= entity ^. entName
+    wldComponents . cmpUpdate    . at entityID .= entity ^. entUpdate
+    wldComponents . cmpCollision . at entityID .= entity ^. entCollision
 
     addEntityRigidBodyComponent entityID entity
+
+    forM_ (entity ^. entPdPatch) $ \patchPath -> do
+        pd <- view wlsPd
+        patch <- makePatch pd patchPath
+        wldComponents . cmpPdPatch . at entityID ?= patch
+        -- Assign the patch's output DAC index to route it to the the SourceID
+        dequeueOpenALSource >>= mapM_ (\(sourceChannel, _sourceID) -> do
+            send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
+            )
 
     forM_ (entity ^. entChildren) $ \child -> do
         childID <- createEntity child
@@ -34,6 +46,14 @@ createEntity entity = do
     
     return entityID
 
+dequeueOpenALSource :: MonadState World m => m (Maybe (Int, OpenALSource))
+dequeueOpenALSource = do
+    sources <- use wldOpenALSourcePool
+    case sources of
+        [] -> return Nothing
+        (x:xs) -> do
+            wldOpenALSourcePool .= xs ++ [x]
+            return (Just x)
 
 setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> V3 GLfloat -> m ()
 setEntitySize entityID newSize = do
