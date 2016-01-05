@@ -1,6 +1,9 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE RankNTypes #-}
 module Types where
 import Control.Lens.Extra
@@ -14,14 +17,28 @@ import Data.Map (Map)
 import GHC.Word
 import Control.Monad.State
 import Control.Monad.Reader
+import Data.Yaml
+import Data.Aeson.Types
+import GHC.Generics
+
+instance FromJSON a => FromJSON (V4 a)
+instance FromJSON a => FromJSON (V3 a)
+instance FromJSON a => FromJSON (V2 a)
+instance FromJSON a => FromJSON (Quaternion a)
+instance FromJSON a => FromJSON (Pose a)
+instance ToJSON a => ToJSON (V4 a)
+instance ToJSON a => ToJSON (V3 a)
+instance ToJSON a => ToJSON (V2 a)
+instance ToJSON a => ToJSON (Quaternion a)
+instance ToJSON a => ToJSON (Pose a)
 
 type EntityID = Word32
 
 type EntityMap a = Map EntityID a
 
-data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape deriving (Eq, Show, Ord, Enum)
+data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
-data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show)
+data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type WorldMonad = StateT World (ReaderT WorldStatic IO)
 
@@ -75,6 +92,13 @@ data Components = Components
     , _cmpSoundSource :: EntityMap OpenALSource
     }
 
+data PhysicsComponents = PhysicsComponents
+    { _pcRigidBody   :: EntityMap RigidBody
+    , _pcGhostObject :: EntityMap GhostObject
+    , _pcSpring      :: EntityMap SpringConstraint
+    , _pcCollision   :: EntityMap OnCollision
+    }
+
 newComponents :: Components
 newComponents = Components
     { _cmpName        = mempty
@@ -98,17 +122,24 @@ data Entity = Entity
     , _entSize      :: !(V3 GLfloat)
     , _entPose      :: !(Pose GLfloat)
     , _entScale     :: !(V3 GLfloat)
-    , _entRigidBody :: !(Maybe RigidBody)
-    , _entSpring    :: !(Maybe SpringConstraint)
-    , _entUpdate    :: !(Maybe OnUpdate)
-    , _entCollision :: !(Maybe OnCollision)
+    -- , _entUpdate    :: !(Maybe OnUpdate)
+    -- , _entCollision :: !(Maybe OnCollision)
     , _entPhysProps :: ![PhysicsProperties]
     , _entShape     :: !(ShapeType)
     , _entChildren  :: ![Entity]
     , _entMass      :: !Float
     , _entPdPatch   :: !(Maybe FilePath)
     , _entName      :: !String
-    }
+    } deriving (Show, Generic)
+
+entityJSONOptions :: Options
+entityJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
+
+instance FromJSON Entity where
+    parseJSON = genericParseJSON entityJSONOptions
+instance ToJSON Entity where
+    toJSON     = genericToJSON entityJSONOptions
+    -- toEncoding = genericToEncoding entityJSONOptions
 
 newEntity :: Entity
 newEntity = Entity
@@ -116,10 +147,8 @@ newEntity = Entity
     , _entSize      = V3 1 1 1
     , _entPose      = newPose
     , _entScale     = V3 1 1 1
-    , _entRigidBody = Nothing
-    , _entUpdate    = Nothing
-    , _entCollision = Nothing
-    , _entSpring    = Nothing
+    -- , _entUpdate    = Nothing
+    -- , _entCollision = Nothing
     , _entPhysProps = []
     , _entShape     = NoShape
     , _entChildren  = []
@@ -135,33 +164,8 @@ data Uniforms = Uniforms
     , uModel               :: UniformLocation (M44 GLfloat)
     , uCamera              :: UniformLocation (V3  GLfloat)
     , uDiffuse             :: UniformLocation (V4  GLfloat)
-    , uCubeHit             :: UniformLocation (V3  GLfloat)
     } deriving (Data)
 
-
-
-
--- TODO move to vr-pal
-data ButtonState = ButtonDown | ButtonUp deriving Show
-
-data HandButton = HandButtonA
-                | HandButtonB
-                | HandButtonC
-                | HandButtonD
-                | HandButtonStart
-                | HandButtonGrip
-                | HandButtonTrigger
-                deriving Show
-
-data WhichHand = LeftHand | RightHand deriving Show
-
-data HandEvent = HandStateEvent  Hand
-               | HandButtonEvent HandButton ButtonState
-               deriving Show
-
-data VREvent = HeadEvent (M44 GLfloat)
-             | HandEvent WhichHand HandEvent
-             deriving Show
 
 
 makeLenses ''WorldStatic

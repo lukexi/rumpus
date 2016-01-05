@@ -15,8 +15,8 @@ import Data.Maybe
 
 import Types
 
-collectControlEvents :: (MonadState World m, MonadIO m) => VRPal -> M44 GLfloat -> [Hand] -> m ()
-collectControlEvents VRPal{..} headM44 hands = do
+controlEventsSystem :: (MonadState World m, MonadIO m) => VRPal -> M44 GLfloat -> [Hand] -> m ()
+controlEventsSystem VRPal{..} headM44 hands = do
 
     -- Grab the old events for comparison
     lastEvents <- use wldEvents

@@ -2,7 +2,6 @@
 
 uniform vec3 uCamera;
 uniform vec4 uDiffuse;
-uniform vec3 uCubeHit;
 
 in      vec3 vPosition;
 in      vec3 vNormal;
@@ -36,7 +35,4 @@ void main() {
 
 
     fragColor = vec4(diffuseLit, uDiffuse.a);
-
-    // float hitDist = distance(vPosition, uCubeHit);
-    // fragColor.r += hitDist;
 }

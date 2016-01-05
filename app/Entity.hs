@@ -26,8 +26,8 @@ createEntity entity = do
     wldComponents . cmpScale     . at entityID ?= entity ^. entScale
     wldComponents . cmpShape     . at entityID ?= entity ^. entShape
     wldComponents . cmpName      . at entityID ?= entity ^. entName
-    wldComponents . cmpUpdate    . at entityID .= entity ^. entUpdate
-    wldComponents . cmpCollision . at entityID .= entity ^. entCollision
+    -- wldComponents . cmpUpdate    . at entityID .= entity ^. entUpdate
+    -- wldComponents . cmpCollision . at entityID .= entity ^. entCollision
 
     addEntityRigidBodyComponent entityID entity
 
@@ -126,7 +126,7 @@ addEntityRigidBodyComponent entityID entity = do
                 rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
                 
                 when (IsKinematic `elem` physProperties) 
-                    (setRigidBodyKinematic rigidBody)
+                    (setRigidBodyKinematic rigidBody True)
 
                 wldComponents . cmpRigidBody . at entityID ?= rigidBody
 

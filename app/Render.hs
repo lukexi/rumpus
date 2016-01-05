@@ -6,7 +6,6 @@ import Control.Lens.Extra
 import Control.Monad
 import Control.Monad.State
 import Control.Monad.Reader
-import Physics.Bullet
 import qualified Data.Map as Map
 import Data.Maybe
 
@@ -29,12 +28,11 @@ renderSimulation projMat viewMat = do
         forM_ entityIDsForShape $ \entityID -> do
 
             
-            size       <- fromMaybe 1       <$> use (wldComponents . cmpSize . at entityID)
-            color      <- fromMaybe 1       <$> use (wldComponents . cmpColor . at entityID)
-            
-            modelMatrix <- transformationFromPose <$> getEntityPose entityID
+            size       <- fromMaybe 1 <$> use (wldComponents . cmpSize . at entityID)
+            color      <- fromMaybe 1 <$> use (wldComponents . cmpColor . at entityID)
+            pose       <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
 
-            let model = modelMatrix !*! scaleMatrix size
+            let model = transformationFromPose pose !*! scaleMatrix size
             uniformM44 uModelViewProjection (viewProj !*! model)
             uniformM44 uInverseModel        (inv44 model)
             uniformM44 uModel               model
@@ -52,16 +50,7 @@ getEntityTotalModelMatrix startEntityID = do
             parent <- use (wldComponents . cmpParent . at entityID)
             (transformationFromPose pose !*!) <$> go parent
     
-
     go (Just startEntityID)
-
-getEntityPose :: (MonadState World m, MonadIO m) => EntityID -> m (Pose GLfloat)
-getEntityPose entityID = do
-    pose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-    mRigidBody <- use (wldComponents . cmpRigidBody . at entityID)
-    case mRigidBody of
-        Just rigidBody -> uncurry Pose <$> getBodyState rigidBody
-        Nothing        -> return pose
 
 getEntityIDsForShapeType :: MonadState World f => ShapeType -> f [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> use (wldComponents . cmpShape)
