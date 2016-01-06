@@ -82,7 +82,7 @@ newWorld = World
     , _wldComponents = newComponents
     , _wldEvents = []
     , _wldOpenALSourcePool = []
-    , _wldPlaying = False
+    , _wldPlaying = True
     , _wldEntityLibrary = mempty
     , _wldScene = mempty
     }

@@ -7,17 +7,17 @@ module Spatula where
 
 import Control.Lens.Extra
 import Linear.Extra
-import Graphics.GL.Pal
-import Graphics.VR.Pal
+-- import Graphics.GL.Pal
+-- import Graphics.VR.Pal
 import Control.Monad.State
 import Control.Monad.Random
 import Types
-import Entity
-import Control
-import Physics.Bullet
-import Sound.Pd
+-- import Entity
+-- import Control
+-- import Physics.Bullet
+-- import Sound.Pd
 -- import qualified Data.Set as Set
-import Data.Maybe
+-- import Data.Maybe
 -- import Control.Concurrent
 
 initScene :: (MonadIO m) => m [Entity]
@@ -128,7 +128,7 @@ createPlaneMess = do
         color <- getRandomR (0,1)
         return $ newEntity
             { _entColor = color & _w .~ 1
-            , _entPose = newPose & posPosition .~ V3 0 20 0
+            , _entPose = newPose & posPosition .~ V3 0 4 0
             , _entSize = planeSize
             , _entShape = CubeShape
             , _entName  = "MessyCube"
@@ -139,11 +139,11 @@ createSoundBlocks = do
     -- Create a mess of planes
     -- let planeSize = V3 0.2 0.2 0.1
     let planeSize = 0.5
-    forM [1..8::Int] $ \i -> do
+    forM [1..8::Int] $ \_i -> do
         color <- getRandomR (0,1)
         return $ newEntity
             { _entColor = color & _w .~ 1
-            , _entPose = newPose & posPosition .~ V3 0 20 0
+            , _entPose = newPose & posPosition .~ V3 0 4 0
             , _entSize = planeSize
             , _entShape = CubeShape
             , _entName  = "SoundBlock"
@@ -164,7 +164,7 @@ createBallMess = do
         color <- getRandomR (0,1)
         return $ newEntity
             { _entColor = color & _w .~ 1
-            , _entPose = newPose & posPosition .~ V3 1 20 0
+            , _entPose = newPose & posPosition .~ V3 1 4 0
             , _entSize = ballSize
             , _entShape = SphereShape
             , _entName  = "MessyBall"
