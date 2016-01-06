@@ -21,9 +21,14 @@ import Entity
 import Types
 import Control
 import Control.Monad.Reader
-import Data.Yaml
+import Data.Yaml hiding ((.=))
+import Data.Traversable
+import Data.Foldable
 
 import qualified Spatula
+
+traverseM f x = f >>= traverse x
+traverseM_ f x = f >>= traverse_ x
 
 createRenderSystem = do
     glEnable GL_DEPTH_TEST
@@ -47,7 +52,7 @@ createPhysicsSystem = createDynamicsWorld mempty
 main :: IO ()
 main = withPd $ \pd -> do
     mapM_ (addToLibPdSearchPath pd)
-        ["patches", "patches/kit", "patches/kit/list-abs"]
+        ["resources/pd-kit", "resources/pd-kit/list-abs"]
 
     vrPal  <- initVRPal "Rumpus" [UseOpenVR]
 
@@ -79,23 +84,74 @@ main = withPd $ \pd -> do
             -- Collect control events into the events channel to be read by entities during update
             controlEventsSystem vrPal headM44 hands
 
-            scriptingSystem
-            
-            physicsSystem
-            
-            syncPhysicsPosesSystem
+            isPlaying <- use wldPlaying
+            if isPlaying  
+                then do
+                    scriptingSystem
+                    
+                    physicsSystem
+                    
+                    syncPhysicsPosesSystem
 
-            collisionsSystem
+                    collisionsSystem
+                else do
+                    editingSystem
 
             openALSystem headM44
 
             renderSystem headM44
 
+editingSystem = do
+
+
+    let f handName event = do
+            mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
+            forM_ mHandEntityID $ \handEntityID -> case event of
+                HandButtonEvent HandButtonTrigger ButtonDown -> do
+
+                    overlappingCollisionObjects <- getEntityGhostOverlapping handEntityID
+                    overlappingEntityIDs <- map unCollisionObjectID <$> mapM getCollisionObjectID overlappingCollisionObjects
+                    forM_ overlappingEntityIDs $ \touchedID -> do
+                        name <- fromMaybe "Entity" <$> use (wldComponents . cmpName . at touchedID)
+                        when (name /= "Floor") $ 
+                            attachEntity handEntityID touchedID
+                HandButtonEvent HandButtonTrigger ButtonUp -> do
+                    -- Copy the current pose to the scene file and save it
+                    mAttachedEntityID <- use (wldComponents . cmpAttachment . at handEntityID)
+                    forM_ mAttachedEntityID $ \(Attachment attachedEntityID _offset) -> do
+                        currentPose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at attachedEntityID)
+                        wldScene . at attachedEntityID . traverse . entPose .= currentPose
+                        scene <- use wldScene
+                        liftIO $ encodeFile "spatula/spatula.yaml" (Map.toList scene)
+                _ -> return ()
+
+    withLeftHandEvents (f "Left Hand")
+    withRightHandEvents (f "Right Hand")
+
+getEntityIDsWithName name = 
+    Map.keys . Map.filter (== name) <$> use (wldComponents . cmpName)
+
+attachEntity :: (MonadIO m, MonadState World m) => EntityID -> EntityID -> m ()
+attachEntity entityID toEntityID = do
+    entityPose   <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+    toEntityPose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+    let offset = subtractPoses toEntityPose entityPose
+    wldComponents . cmpAttachment . at entityID ?= Attachment toEntityID offset
+
+attachmentsSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
+attachmentsSystem = do
+    attachments <- Map.toList <$> use (wldComponents . cmpAttachment)
+    forM_ attachments $ \(entityID, Attachment toEntityID offset) -> do
+        pose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+        wldComponents . cmpPose . at toEntityID ?= addPoses pose offset
+
+scriptingSystem :: WorldMonad ()
 scriptingSystem = do
     -- Process the update functions of each entity
     mapM_ (\(entityID, update) -> update entityID) 
         =<< Map.toList <$> use (wldComponents . cmpUpdate) 
 
+renderSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => M44 GLfloat -> m ()
 renderSystem headM44 = do
     vrPal <- view wlsVRPal
     -- Render the scene
@@ -104,17 +160,22 @@ renderSystem headM44 = do
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         renderSimulation
 
+physicsSystem :: (MonadIO m, MonadReader WorldStatic m) => m ()
 physicsSystem = do
     dynamicsWorld <- view wlsDynamicsWorld
     stepSimulation dynamicsWorld 90
 
+syncPhysicsPosesSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 syncPhysicsPosesSystem = do
     -- Sync rigid bodies with entity poses
-    mapM_ (\(entityID, rigidBody) -> do
-        pose <- uncurry Pose <$> getBodyState rigidBody
-        wldComponents . cmpPose . at entityID ?= pose)
-        =<< Map.toList <$> use (wldComponents . cmpRigidBody)
+    traverseM_ (Map.toList <$> use (wldComponents . cmpRigidBody)) $ 
+        \(entityID, rigidBody) -> do
+            pose <- uncurry Pose <$> getBodyState rigidBody
+            wldComponents . cmpPose . at entityID ?= pose
 
+
+
+collisionsSystem :: WorldMonad ()
 collisionsSystem = do
     dynamicsWorld <- view wlsDynamicsWorld
     -- Tell objects about any collisions
@@ -129,6 +190,7 @@ collisionsSystem = do
         mapM_ (\onCollision -> onCollision bodyBID bodyAID appliedImpulse)
             =<< use (wldComponents . cmpCollision . at bodyBID)
 
+openALSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => M44 GLfloat -> m ()
 openALSystem headM44 = do
     -- Update souce and listener poitions
     alListenerPose (poseFromMatrix headM44)

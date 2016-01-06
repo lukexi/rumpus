@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RankNTypes #-}
-
+{-# LANGUAGE LambdaCase #-}
 module Entity where
 import Control.Lens.Extra
 import Linear.Extra
@@ -19,6 +19,9 @@ import Sound.Pd
 createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
 createEntity entity = do
     entityID <- liftIO randomIO
+
+    wldScene . at entityID ?= entity
+    wldEntityLibrary . at (entity ^. entName) ?= entity
 
     wldComponents . cmpPose      . at entityID ?= entity ^. entPose
     wldComponents . cmpSize      . at entityID ?= entity ^. entSize
@@ -77,6 +80,11 @@ withEntityRigidBody entityID = useMaybeM_ (wldComponents . cmpRigidBody . at ent
 
 withEntityGhostObject :: MonadState World m => EntityID -> (GhostObject -> m b) -> m ()
 withEntityGhostObject entityID = useMaybeM_ (wldComponents . cmpGhostObject . at entityID)
+
+getEntityGhostOverlapping :: (MonadState World m, MonadIO m) => EntityID -> m [CollisionObject]
+getEntityGhostOverlapping entityID = use (wldComponents . cmpGhostObject . at entityID) >>= \case
+    Nothing          -> return []
+    Just ghostObject -> getGhostObjectOverlapping ghostObject
 
 setEntityPose :: (MonadState World m, MonadIO m) => EntityID -> Pose GLfloat -> m ()
 setEntityPose entityID newPose_ = do

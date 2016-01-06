@@ -42,10 +42,16 @@ controlEventsSystem VRPal{..} headM44 hands = do
         ( HeadEvent headM44
         : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands)
         )
+
     -- Gather GLFW Pal events
     processEvents gpEvents $ \e -> do
         closeOnEscape gpWindow e
+        onKeyDown e Key'Space $ toggleWorldPlaying
+
         wldEvents %= (GLFWEvent e:)
+
+toggleWorldPlaying :: (MonadState World m) => m ()
+toggleWorldPlaying = wldPlaying %= not
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip, view hndGrip)

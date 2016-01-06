@@ -64,6 +64,15 @@ data World = World
     , _wldComponents       :: !Components
     , _wldEvents           :: ![WorldEvent]
     , _wldOpenALSourcePool :: ![(Int, OpenALSource)]
+    , _wldPlaying          :: !Bool
+    , _wldEntityLibrary    :: !(Map String Entity)
+    , _wldScene            :: !(Map EntityID Entity)
+    }
+
+-- not yet used
+data Scene = Scene
+    { _scnName :: String
+    , _scnEntities :: !(Map EntityID Entity)
     }
 
 newWorld :: World
@@ -73,7 +82,12 @@ newWorld = World
     , _wldComponents = newComponents
     , _wldEvents = []
     , _wldOpenALSourcePool = []
+    , _wldPlaying = False
+    , _wldEntityLibrary = mempty
+    , _wldScene = mempty
     }
+
+data Attachment = Attachment EntityID (Pose GLfloat)
 
 data Components = Components
     { _cmpName        :: EntityMap String
@@ -90,8 +104,10 @@ data Components = Components
     , _cmpSpring      :: EntityMap SpringConstraint
     , _cmpPdPatch     :: EntityMap Patch
     , _cmpSoundSource :: EntityMap OpenALSource
+    , _cmpAttachment  :: EntityMap Attachment
     }
 
+-- not yet used
 data PhysicsComponents = PhysicsComponents
     { _pcRigidBody   :: EntityMap RigidBody
     , _pcGhostObject :: EntityMap GhostObject
@@ -115,6 +131,7 @@ newComponents = Components
     , _cmpSpring      = mempty
     , _cmpPdPatch     = mempty
     , _cmpSoundSource = mempty
+    , _cmpAttachment  = mempty
     }
 
 data Entity = Entity
@@ -139,7 +156,6 @@ instance FromJSON Entity where
     parseJSON = genericParseJSON entityJSONOptions
 instance ToJSON Entity where
     toJSON     = genericToJSON entityJSONOptions
-    -- toEncoding = genericToEncoding entityJSONOptions
 
 newEntity :: Entity
 newEntity = Entity

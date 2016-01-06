@@ -27,9 +27,8 @@ renderSimulation projMat viewMat = do
         entityIDsForShape <- getEntityIDsForShapeType shapeType
         forM_ entityIDsForShape $ \entityID -> do
 
-            
-            size       <- fromMaybe 1 <$> use (wldComponents . cmpSize . at entityID)
-            color      <- fromMaybe 1 <$> use (wldComponents . cmpColor . at entityID)
+            size       <- fromMaybe 1       <$> use (wldComponents . cmpSize . at entityID)
+            color      <- fromMaybe 1       <$> use (wldComponents . cmpColor . at entityID)
             pose       <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
 
             let model = transformationFromPose pose !*! scaleMatrix size

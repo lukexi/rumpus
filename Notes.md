@@ -7,12 +7,12 @@ Core
     - Add a second channel or reuse the control events list with a 3rd Entity Event type
     - How to make this extensible?
 - [ ] Component files
-    - [ ] YAML file for scene definition, scripts in .hs files.
+    - [x] YAML file for scene definition, scripts in .hs files.
 
 
 Features
 - [ ] Instanced rendering
-- [ ] Switch between edit and play modes (edit = no physics, reset initial positions)
+- [x] Switch between edit and play modes (edit = no physics, reset initial positions)
         Would be fun to pause physics to inspect too.
 - [ ] Entity property-editor sliders for anything not easily directly-manipulable
 
@@ -26,6 +26,9 @@ Modules
 
 - [x] Music component
 - [x] Key handling
+
+
+- [ ] Build Pd patches physically. Remote control Pd in the same way as metapatching.
 
 Need a better way to define component-systems.
 E.g, would like a "Lifetime" component-system that makes a thing automatically expire.
