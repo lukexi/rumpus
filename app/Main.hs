@@ -26,10 +26,7 @@ import Data.Foldable
 
 import qualified Spatula
 
-traverseM :: (Monad m, Traversable t) => m (t a) -> (a -> m b) -> m (t b)
-traverseM f x = f >>= traverse x
-traverseM_ :: (Monad m, Foldable t) => m (t a) -> (a -> m b) -> m ()
-traverseM_ f x = f >>= traverse_ x
+
 
 createRenderSystem :: IO [(ShapeType, Shape Uniforms)]
 createRenderSystem = do
@@ -80,12 +77,12 @@ main = withPd $ \pd -> do
 
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
-        mapM_ createEntity =<< Spatula.initScene
+        Spatula.initScene
 
         whileVR vrPal $ \headM44 hands -> do
             
             -- Collect control events into the events channel to be read by entities during update
-            controlEventsSystem vrPal headM44 hands
+            controlEventsSystem headM44 hands
 
             attachmentsSystem
 
@@ -102,7 +99,9 @@ main = withPd $ \pd -> do
 
                     editingSystem
                 else do
-                    return ()
+                    performDiscreteCollisionDetection dynamicsWorld
+
+                    editingSystem
 
             openALSystem headM44
 
@@ -116,28 +115,30 @@ editingSystem = do
                 HandStateEvent hand -> 
                     setEntityPose handEntityID (poseFromMatrix (hand ^. hndMatrix))
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
-                    putStrLnIO "ButtonDown!"
-                    overlappingEntityIDs <- getEntityGhostOverlappingEntityIDs handEntityID
-                    forM_ overlappingEntityIDs $ \touchedID -> do
+                    -- Find the entities overlapping the hand, and attach them to it
+                    overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
+                                            =<< getEntityGhostOverlappingEntityIDs handEntityID
+                    forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
                         name <- getEntityName touchedID
                         when (name /= "Floor") $ 
                             attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     -- Copy the current pose to the scene file and save it
-                    mAttachedEntityID <- use (wldComponents . cmpAttachment . at handEntityID)
-                    forM_ mAttachedEntityID $ \(Attachment attachedEntityID _offset) -> do
-                        wldComponents . cmpAttachment . at handEntityID .= Nothing
-                        withEntityRigidBody attachedEntityID $ \rigidBody ->
-                            setRigidBodyKinematic rigidBody False
-
-                        currentPose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at attachedEntityID)
+                    detachEntity handEntityID
+                    withAttachment handEntityID $ \(Attachment attachedEntityID _offset) -> do
+                        currentPose <- getEntityPose attachedEntityID
                         wldScene . at attachedEntityID . traverse . entPose .= currentPose
-                        scene <- use wldScene
-                        liftIO $ encodeFile "spatula/spatula.yaml" (Map.toList scene)
+                        saveScene
                 _ -> return ()
 
     withLeftHandEvents (f "Left Hand")
     withRightHandEvents (f "Right Hand")
+
+saveScene = do
+    scene <- use wldScene
+    liftIO $ encodeFile "spatula/spatula.yaml" (Map.toList scene)
+
+withAttachment entityID = useMaybeM_ (wldComponents . cmpAttachment . at entityID)
 
 getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
 getEntityIDsWithName name = 
@@ -151,12 +152,23 @@ getEntityGhostOverlappingEntityIDs entityID = do
 getEntityName :: MonadState World m => EntityID -> m String
 getEntityName entityID = fromMaybe "No Name" <$> use (wldComponents . cmpName . at entityID)
 
+getEntityPose entityID = fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+
+detachEntity entityID = 
+    withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
+        wldComponents . cmpAttachment . at entityID .= Nothing
+        withEntityRigidBody attachedEntityID $ \rigidBody ->
+            setRigidBodyKinematic rigidBody False
+
+
 attachEntity :: (MonadIO m, MonadState World m) => EntityID -> EntityID -> m ()
 attachEntity entityID toEntityID = do
 
-    putStrLnIO ("Attaching " ++ show entityID ++ " to " ++ show toEntityID)
-    entityPose   <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-    toEntityPose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+    -- Detach any current attachments
+    detachEntity entityID
+
+    entityPose   <- getEntityPose entityID
+    toEntityPose <- getEntityPose toEntityID
     let offset = subtractPoses toEntityPose entityPose
     wldComponents . cmpAttachment . at entityID ?= Attachment toEntityID offset
     withEntityRigidBody toEntityID $ \rigidBody ->
@@ -166,10 +178,8 @@ attachmentsSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
 attachmentsSystem = do
     attachments <- Map.toList <$> use (wldComponents . cmpAttachment)
     forM_ attachments $ \(entityID, Attachment toEntityID offset) -> do
-        pose <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-        putStrLnIO ("Moving " ++ show toEntityID ++ " to " ++ show pose)
+        pose <- getEntityPose entityID
         setEntityPose toEntityID (addPoses pose offset)
-        -- wldComponents . cmpPose . at toEntityID ?= addPoses pose offset
 
 scriptingSystem :: WorldMonad ()
 scriptingSystem = do
@@ -221,6 +231,6 @@ openALSystem headM44 = do
     -- Update souce and listener poitions
     alListenerPose (poseFromMatrix headM44)
     mapM_ (\(entityID, sourceID) -> do
-        position <- view posPosition . fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+        position <- view posPosition <$> getEntityPose entityID
         alSourcePosition sourceID position)
         =<< Map.toList <$> use (wldComponents . cmpSoundSource)

@@ -91,6 +91,9 @@ How would the system dynamically modify the Component DB with the new rows it ne
 
 IntMap ComponentID Component?
 
+myComponentID <- registerComponent myComponent
+^ rather than string lookups...
+
 Punt on extensible systems and just use scripts? 
 Scripts still need state data... 
 but the dynamic approach is OK there...

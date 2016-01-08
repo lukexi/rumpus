@@ -10,9 +10,10 @@ import Linear.Extra
 -- import Graphics.GL.Pal
 -- import Graphics.VR.Pal
 import Control.Monad.State
+import Control.Monad.Reader
 import Control.Monad.Random
 import Types
--- import Entity
+import Entity
 -- import Control
 -- import Physics.Bullet
 -- import Sound.Pd
@@ -20,15 +21,38 @@ import Types
 -- import Data.Maybe
 -- import Control.Concurrent
 
-initScene :: (MonadIO m) => m [Entity]
+initScene :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 initScene = do
+    defineEntity leftHand
+    defineEntity rightHand
+    defineEntity soundCube
+    defineEntity messyCube
+    defineEntity messyBall
+    defineEntity spatula
+    defineEntity theFloor
 
-    soundBlocks <- liftIO (evalRandIO createSoundBlocks)
-    someBalls   <- liftIO (evalRandIO createBallMess)
-    somePlanes  <- liftIO (evalRandIO createPlaneMess)
-    -- return (leftHand:rightHand:aFloor:aSpatula:somePlanes ++ someBalls)
-    return (leftHand:rightHand:aFloor:soundBlocks ++ somePlanes ++ someBalls)
-    -- return (leftHand:rightHand:aFloor:soundBlocks)
+    spawnEntity "Left Hand"
+    spawnEntity "Right Hand"
+    spawnEntity "Floor"
+    spawnEntity "Spatula"
+
+    stdgen <- liftIO getStdGen
+    _ <- flip runRandT stdgen $ do
+        forM [1..100::Int] $ \_ -> do
+            color <- getRandomR (0,1)
+            traverseM_ (spawnEntity "MessyBall") $ \entityID ->
+                setEntityColor entityID (color & _w .~ 1)
+
+        forM [1..100::Int] $ \_ -> do
+            color <- getRandomR (0,1)
+            traverseM_ (spawnEntity "MessyCube") $ \entityID ->
+                setEntityColor entityID (color & _w .~ 1)
+
+        forM [1..8::Int] $ \_i -> do
+            color <- getRandomR (0,1)
+            traverseM_ (spawnEntity "SoundCube") $ \entityID ->
+                setEntityColor entityID (color & _w .~ 1)
+    return ()
 
 leftHand :: Entity
 leftHand = newEntity 
@@ -118,35 +142,20 @@ rightHand = newEntity
         --                 wldComponents . cmpSpring . at entityID .= Nothing
         --         _ -> return ()
         }
+    
 
-createPlaneMess :: MonadRandom m => m [Entity]
-createPlaneMess = do
-    -- Create a mess of planes
-    -- let planeSize = V3 0.2 0.2 0.1
-    let planeSize = 0.3
-    forM [1..100::Int] $ \_ -> do
-        color <- getRandomR (0,1)
-        return $ newEntity
-            { _entColor = color & _w .~ 1
-            , _entPose = newPose & posPosition .~ V3 0 4 0
-            , _entSize = planeSize
+messyCube = newEntity
+            { _entPose = newPose & posPosition .~ V3 0 4 0
+            , _entSize = 0.3
             , _entShape = CubeShape
             , _entName  = "MessyCube"
             }
 
-createSoundBlocks :: MonadRandom m => m [Entity]
-createSoundBlocks = do
-    -- Create a mess of planes
-    -- let planeSize = V3 0.2 0.2 0.1
-    let planeSize = 0.5
-    forM [1..8::Int] $ \_i -> do
-        color <- getRandomR (0,1)
-        return $ newEntity
-            { _entColor = color & _w .~ 1
-            , _entPose = newPose & posPosition .~ V3 0 4 0
-            , _entSize = planeSize
+soundCube = newEntity
+            { _entPose = newPose & posPosition .~ V3 0 4 0
+            , _entSize = 0.5
             , _entShape = CubeShape
-            , _entName  = "SoundBlock"
+            , _entName  = "SoundCube"
             , _entPdPatch = Just "spatula/spatula1"
             -- , _entCollision = Just $ \entityID _collidedWithID impulse -> when (impulse > 0.1) $ do
             --     pd <- view wlsPd
@@ -156,24 +165,19 @@ createSoundBlocks = do
             --         send pd patch "trigger" (Atom (Float impulse))
             }
 
-createBallMess :: MonadRandom m => m [Entity]
-createBallMess = do
-    -- Create a mess of planes
-    let ballSize = 0.3
-    forM [1..100::Int] $ \_ -> do
-        color <- getRandomR (0,1)
-        return $ newEntity
-            { _entColor = color & _w .~ 1
-            , _entPose = newPose & posPosition .~ V3 1 4 0
-            , _entSize = ballSize
+
+    
+messyBall = newEntity
+            { _entPose = newPose & posPosition .~ V3 1 4 0
+            , _entSize = 0.3
             , _entShape = SphereShape
             , _entName  = "MessyBall"
             }
 
 
 
-aSpatula :: Entity
-aSpatula = newEntity
+spatula :: Entity
+spatula = newEntity
         { _entSize        = V3 0.2 0.1 0.1
         , _entPose        = newPose & posPosition .~ V3 0 0.5 0
         , _entColor       = V4 0 1 1 1
@@ -189,8 +193,8 @@ aSpatula = newEntity
         --     setEntityPose entityID newPose_
         }
 
-aFloor :: Entity
-aFloor = newEntity
+theFloor :: Entity
+theFloor = newEntity
         { _entPose = newPose & posOrientation .~ axisAngle (V3 1 0 0) ((-pi)/2)
         , _entMass = 0
         , _entShape = StaticPlaneShape

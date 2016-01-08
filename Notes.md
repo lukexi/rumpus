@@ -1,8 +1,9 @@
 
 
 Core
-- [ ] Direct manipulation to create (initially) boxes and spheres
-- [ ] Spawning instances
+- [x] Direct manipulation to create (initially) boxes and spheres
+    - Use a retargetable animation to pull the object to the hand
+- [x] Spawning instances
 - [ ] Broadcasting events
     - Add a second channel or reuse the control events list with a 3rd Entity Event type
     - How to make this extensible?

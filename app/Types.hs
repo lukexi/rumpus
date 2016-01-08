@@ -20,6 +20,12 @@ import Control.Monad.Reader
 import Data.Yaml
 import Data.Aeson.Types
 import GHC.Generics
+import Data.Foldable
+
+traverseM :: (Monad m, Traversable t) => m (t a) -> (a -> m b) -> m (t b)
+traverseM f x = f >>= traverse x
+traverseM_ :: (Monad m, Foldable t) => m (t a) -> (a -> m b) -> m ()
+traverseM_ f x = f >>= traverse_ x
 
 instance FromJSON a => FromJSON (V4 a)
 instance FromJSON a => FromJSON (V3 a)
@@ -61,6 +67,7 @@ data WorldStatic = WorldStatic
 
 data World = World
     { _wldPlayer           :: !(Pose GLfloat)
+    , _wldPlayerHeadM44    :: !(M44 GLfloat)
     , _wldComponents       :: !Components
     , _wldEvents           :: ![WorldEvent]
     , _wldOpenALSourcePool :: ![(Int, OpenALSource)]
@@ -78,6 +85,7 @@ data Scene = Scene
 newWorld :: World
 newWorld = World
     { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
+    , _wldPlayerHeadM44 = identity
     -- { _wldPlayer = Pose (V3 0 1 5) (axisAngle (V3 0 1 0) 0)
     , _wldComponents = newComponents
     , _wldEvents = []
@@ -96,6 +104,7 @@ data Components = Components
     , _cmpShape       :: EntityMap ShapeType
     , _cmpScale       :: EntityMap (V3 GLfloat)
     , _cmpColor       :: EntityMap (V4 GLfloat)
+    , _cmpScript      :: EntityMap OnUpdate
     , _cmpUpdate      :: EntityMap OnUpdate
     , _cmpCollision   :: EntityMap OnCollision
     , _cmpParent      :: EntityMap EntityID
@@ -125,6 +134,7 @@ newComponents = Components
     , _cmpColor       = mempty
     , _cmpUpdate      = mempty
     , _cmpCollision   = mempty
+    , _cmpScript      = mempty
     , _cmpParent      = mempty
     , _cmpRigidBody   = mempty
     , _cmpGhostObject = mempty
@@ -146,6 +156,7 @@ data Entity = Entity
     , _entChildren  :: ![Entity]
     , _entMass      :: !Float
     , _entPdPatch   :: !(Maybe FilePath)
+    , _entScript    :: !(Maybe FilePath)
     , _entName      :: !String
     } deriving (Show, Generic)
 
@@ -170,6 +181,7 @@ newEntity = Entity
     , _entChildren  = []
     , _entMass      = 1
     , _entPdPatch   = Nothing
+    , _entScript    = Nothing
     , _entName      = "Entity"
     }
 

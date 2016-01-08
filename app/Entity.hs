@@ -16,12 +16,17 @@ import Types
 
 import Sound.Pd
 
+spawnEntity entityName = 
+    traverseM (use (wldEntityLibrary . at entityName)) createEntity
+
+defineEntity entity = wldEntityLibrary . at (entity ^. entName) ?= entity
+
 createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
 createEntity entity = do
     entityID <- liftIO randomIO
 
     wldScene . at entityID ?= entity
-    wldEntityLibrary . at (entity ^. entName) ?= entity
+    
 
     wldComponents . cmpPose      . at entityID ?= entity ^. entPose
     wldComponents . cmpSize      . at entityID ?= entity ^. entSize
