@@ -124,11 +124,11 @@ editingSystem = do
                             attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     -- Copy the current pose to the scene file and save it
-                    detachEntity handEntityID
                     withAttachment handEntityID $ \(Attachment attachedEntityID _offset) -> do
                         currentPose <- getEntityPose attachedEntityID
                         wldScene . at attachedEntityID . traverse . entPose .= currentPose
                         saveScene
+                    detachEntity handEntityID
                 _ -> return ()
 
     withLeftHandEvents (f "Left Hand")
