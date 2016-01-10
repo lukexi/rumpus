@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-module Control where
+module Rumpus.Control where
 import Graphics.UI.GLFW.Pal
 import Graphics.GL.Pal
 import Graphics.VR.Pal
@@ -14,7 +14,7 @@ import Control.Monad.Reader
 import Control.Lens.Extra
 import Data.Maybe
 
-import Types
+import Rumpus.Types
 
 controlEventsSystem :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => M44 GLfloat -> [Hand] -> m ()
 controlEventsSystem headM44 hands = do

@@ -5,7 +5,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE RankNTypes #-}
-module Types where
+module Rumpus.Types where
 import Control.Lens.Extra
 import Linear.Extra
 import Graphics.UI.GLFW.Pal
@@ -17,10 +17,12 @@ import Data.Map (Map)
 import GHC.Word
 import Control.Monad.State
 import Control.Monad.Reader
+import Control.Concurrent
 import Data.Yaml
 import Data.Aeson.Types
 import GHC.Generics
 import Data.Foldable
+import TinyRick
 
 traverseM :: (Monad m, Traversable t) => m (t a) -> (a -> m b) -> m (t b)
 traverseM f x = f >>= traverse x
@@ -63,6 +65,8 @@ data WorldStatic = WorldStatic
     , _wlsDynamicsWorld :: !DynamicsWorld
     , _wlsPd            :: !PureData
     , _wlsShapes        :: ![(ShapeType, Shape Uniforms)]
+    , _wlsFont          :: !Font
+    , _wlsGHCChan       :: !(Chan (CompilationRequest (EntityID -> WorldMonad ())))
     }
 
 data World = World
@@ -104,9 +108,7 @@ data Components = Components
     , _cmpShape       :: EntityMap ShapeType
     , _cmpScale       :: EntityMap (V3 GLfloat)
     , _cmpColor       :: EntityMap (V4 GLfloat)
-    , _cmpScript      :: EntityMap OnUpdate
-    , _cmpUpdate      :: EntityMap OnUpdate
-    , _cmpCollision   :: EntityMap OnCollision
+    , _cmpScript      :: EntityMap (Editor OnUpdate)
     , _cmpParent      :: EntityMap EntityID
     , _cmpRigidBody   :: EntityMap RigidBody
     , _cmpGhostObject :: EntityMap GhostObject
@@ -132,8 +134,6 @@ newComponents = Components
     , _cmpShape       = mempty
     , _cmpScale       = mempty
     , _cmpColor       = mempty
-    , _cmpUpdate      = mempty
-    , _cmpCollision   = mempty
     , _cmpScript      = mempty
     , _cmpParent      = mempty
     , _cmpRigidBody   = mempty

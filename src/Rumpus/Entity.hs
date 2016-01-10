@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE LambdaCase #-}
-module Entity where
+module Rumpus.Entity where
 import Control.Lens.Extra
 import Linear.Extra
 import Graphics.GL.Pal
@@ -12,9 +12,11 @@ import Control.Monad.State
 import System.Random
 import Control.Monad.Reader
 -- import Data.Maybe
-import Types
 
 import Sound.Pd
+import TinyRick
+
+import Rumpus.Types
 
 spawnEntity entityName = 
     traverseM (use (wldEntityLibrary . at entityName)) createEntity
@@ -34,25 +36,37 @@ createEntity entity = do
     wldComponents . cmpScale     . at entityID ?= entity ^. entScale
     wldComponents . cmpShape     . at entityID ?= entity ^. entShape
     wldComponents . cmpName      . at entityID ?= entity ^. entName
-    -- wldComponents . cmpUpdate    . at entityID .= entity ^. entUpdate
-    -- wldComponents . cmpCollision . at entityID .= entity ^. entCollision
 
-    addEntityRigidBodyComponent entityID entity
+    addScriptComponent  entityID entity
 
-    forM_ (entity ^. entPdPatch) $ \patchPath -> do
-        pd <- view wlsPd
-        patch <- makePatch pd patchPath
-        wldComponents . cmpPdPatch . at entityID ?= patch
-        -- Assign the patch's output DAC index to route it to the the SourceID
-        dequeueOpenALSource >>= mapM_ (\(sourceChannel, _sourceID) -> do
-            send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
-            )
+    addPhysicsComponent entityID entity
+    
+    addPdPatchComponent entityID entity
 
     forM_ (entity ^. entChildren) $ \child -> do
         childID <- createEntity child
         wldComponents . cmpParent . at childID ?= entityID
     
     return entityID
+
+addPdPatchComponent entityID entity = forM_ (entity ^. entPdPatch) $ \patchPath -> do
+    pd <- view wlsPd
+    patch <- makePatch pd patchPath
+    wldComponents . cmpPdPatch . at entityID ?= patch
+    -- Assign the patch's output DAC index to route it to the the SourceID
+    dequeueOpenALSource >>= mapM_ (\(sourceChannel, _sourceID) -> do
+        send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
+        )
+
+addScriptComponent entityID entity = forM_ (entity ^. entScript) $ \scriptPath -> do
+    ghcChan <- view wlsGHCChan
+    font    <- view wlsFont
+    editor  <- liftIO $ 
+        makeExpressionEditor ghcChan font scriptPath "update" 
+            (return . const ()) 
+            (identity & translation .~ V3 0 0 0)
+    
+    wldComponents . cmpScript . at entityID ?= editor
 
 dequeueOpenALSource :: MonadState World m => m (Maybe (Int, OpenALSource))
 dequeueOpenALSource = do
@@ -102,9 +116,9 @@ setEntityPose entityID newPose_ = do
         setCollisionObjectWorldTransform ghostObject (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
 
 
-addEntityRigidBodyComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
-                            => EntityID -> Entity -> m ()
-addEntityRigidBodyComponent entityID entity = do
+addPhysicsComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
+                    => EntityID -> Entity -> m ()
+addPhysicsComponent entityID entity = do
 
     
     let size           = entity ^. entSize
@@ -120,8 +134,7 @@ addEntityRigidBodyComponent entityID entity = do
     forM_ maybeShape $ \shape -> do
         
         let pose = entity ^. entPose
-
-        let collisionID = CollisionObjectID entityID
+            collisionID = CollisionObjectID entityID
             bodyInfo = mempty { rbPosition = pose ^. posPosition
                               , rbRotation = pose ^. posOrientation
                               , rbMass     = mass
