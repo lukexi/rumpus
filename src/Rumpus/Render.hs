@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
-module Render where
+module Rumpus.Render where
 import Graphics.GL.Pal
 import Control.Lens.Extra
 import Control.Monad
@@ -9,7 +9,7 @@ import Control.Monad.Reader
 import qualified Data.Map as Map
 import Data.Maybe
 
-import Types
+import Rumpus.Types
 
 renderSimulation :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
                  => M44 GLfloat -> M44 GLfloat -> m ()

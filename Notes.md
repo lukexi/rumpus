@@ -54,3 +54,11 @@ http://bulletphysics.org/Bullet/BulletFull/classbtConeTwistConstraint.html
 http://www.vrinflux.com/newton-vr-physics-based-interaction-on-the-vive/
 http://pomax.github.io/bezierjs/
 http://www.continuousphysics.com/Bullet/BulletFull/classbtIDebugDraw.html
+
+
+GetTrackedDeviceIndexForControllerRole
+http://steamcommunity.com/app/358720/discussions/0/451848855009182860/
+
+
+Keyboard API
+http://steamcommunity.com/app/358720/discussions/0/481115363863637539/

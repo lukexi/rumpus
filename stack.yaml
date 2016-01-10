@@ -13,3 +13,5 @@ packages:
 - ../lens-extra
 - ../openvr-hs
 - ../bindings-GLFW
+- ../freetype-gl-mini
+- ../tinyrick

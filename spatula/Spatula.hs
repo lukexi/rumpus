@@ -12,8 +12,8 @@ import Linear.Extra
 import Control.Monad.State
 import Control.Monad.Reader
 import Control.Monad.Random
-import Types
-import Entity
+import Rumpus.Types
+import Rumpus.Entity
 -- import Control
 -- import Physics.Bullet
 -- import Sound.Pd
@@ -184,13 +184,7 @@ spatula = newEntity
         , _entPhysProps   = [IsKinematic]
         , _entShape       = CubeShape
         , _entName        = "Spatula"
-        -- , _entUpdate      = Just $ \entityID -> do
-        --     now <- getNow
-        --     let a     = (*20) . sin . (/10) $ now
-        --         spatX = (*a) . sin  $ now
-        --         spatZ = (*a) . cos  $ now
-        --         newPose_ = Pose (V3 spatX 0.1 spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
-        --     setEntityPose entityID newPose_
+        , _entScript      = Just "spatula/Wobble.hs"
         }
 
 theFloor :: Entity
