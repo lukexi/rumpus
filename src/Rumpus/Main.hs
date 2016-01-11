@@ -31,9 +31,9 @@ import Rumpus.Types
 import Rumpus.Control
 
 createCodeEditorSystem = do
-    ghcChan <- startGHC ["app"]
-    glyphProg     <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
-    font          <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
+    ghcChan   <- startGHC ["app"]
+    glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
+    font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
 
     return (font, ghcChan)
 
@@ -85,7 +85,7 @@ main = withPd $ \pd -> do
 
     encodeFile "testScene.yaml" [newEntity]
     entities <- decodeFileEither "testScene.yaml"
-    print (entities :: Either ParseException [Entity])
+    putStrLn ("Loaded testScene.yaml: " ++ show (entities :: Either ParseException [Entity]))
 
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
@@ -121,7 +121,7 @@ main = withPd $ \pd -> do
 
 editingSystem :: WorldMonad ()
 editingSystem = do
-    let f handName event = do
+    let editSceneWithHand handName event = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
             forM_ mHandEntityID $ \handEntityID -> case event of
                 HandStateEvent hand -> 
@@ -143,8 +143,8 @@ editingSystem = do
                     detachEntity handEntityID
                 _ -> return ()
 
-    withLeftHandEvents (f "Left Hand")
-    withRightHandEvents (f "Right Hand")
+    withLeftHandEvents (editSceneWithHand "Left Hand")
+    withRightHandEvents (editSceneWithHand "Right Hand")
 
 saveScene = do
     scene <- use wldScene

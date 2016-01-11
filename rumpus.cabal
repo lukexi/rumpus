@@ -23,7 +23,7 @@ library
                        Rumpus.Render
                        Rumpus.Main
                        Spatula
-  ghc-options:         -O2 -Wall -dynamic 
+  ghc-options:         -O2 -Wall
   build-depends:       base
                      , bullet-mini
                      , gl-pal

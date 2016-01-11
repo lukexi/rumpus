@@ -18,9 +18,11 @@ import TinyRick
 
 import Rumpus.Types
 
+spawnEntity :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => String -> m (Maybe EntityID)
 spawnEntity entityName = 
     traverseM (use (wldEntityLibrary . at entityName)) createEntity
 
+defineEntity :: MonadState World m => Entity -> m ()
 defineEntity entity = wldEntityLibrary . at (entity ^. entName) ?= entity
 
 createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
@@ -49,6 +51,7 @@ createEntity entity = do
     
     return entityID
 
+addPdPatchComponent :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> Entity -> m ()
 addPdPatchComponent entityID entity = forM_ (entity ^. entPdPatch) $ \patchPath -> do
     pd <- view wlsPd
     patch <- makePatch pd patchPath
@@ -58,6 +61,7 @@ addPdPatchComponent entityID entity = forM_ (entity ^. entPdPatch) $ \patchPath 
         send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
         )
 
+addScriptComponent :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> Entity -> m ()
 addScriptComponent entityID entity = forM_ (entity ^. entScript) $ \scriptPath -> do
     ghcChan <- view wlsGHCChan
     font    <- view wlsFont

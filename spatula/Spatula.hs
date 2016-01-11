@@ -31,24 +31,24 @@ initScene = do
     defineEntity spatula
     defineEntity theFloor
 
-    spawnEntity "Left Hand"
-    spawnEntity "Right Hand"
-    spawnEntity "Floor"
-    spawnEntity "Spatula"
+    _ <- spawnEntity "Left Hand"
+    _ <- spawnEntity "Right Hand"
+    _ <- spawnEntity "Floor"
+    _ <- spawnEntity "Spatula"
 
     stdgen <- liftIO getStdGen
     _ <- flip runRandT stdgen $ do
-        forM [1..100::Int] $ \_ -> do
+        forM_ [1..100::Int] $ \_ -> do
             color <- getRandomR (0,1)
             traverseM_ (spawnEntity "MessyBall") $ \entityID ->
                 setEntityColor entityID (color & _w .~ 1)
 
-        forM [1..100::Int] $ \_ -> do
+        forM_ [1..100::Int] $ \_ -> do
             color <- getRandomR (0,1)
             traverseM_ (spawnEntity "MessyCube") $ \entityID ->
                 setEntityColor entityID (color & _w .~ 1)
 
-        forM [1..8::Int] $ \_i -> do
+        forM_ [1..8::Int] $ \_i -> do
             color <- getRandomR (0,1)
             traverseM_ (spawnEntity "SoundCube") $ \entityID ->
                 setEntityColor entityID (color & _w .~ 1)
@@ -143,7 +143,7 @@ rightHand = newEntity
         --         _ -> return ()
         }
     
-
+messyCube :: Entity
 messyCube = newEntity
             { _entPose = newPose & posPosition .~ V3 0 4 0
             , _entSize = 0.3
@@ -151,6 +151,7 @@ messyCube = newEntity
             , _entName  = "MessyCube"
             }
 
+soundCube :: Entity
 soundCube = newEntity
             { _entPose = newPose & posPosition .~ V3 0 4 0
             , _entSize = 0.5
@@ -166,7 +167,7 @@ soundCube = newEntity
             }
 
 
-    
+messyBall :: Entity
 messyBall = newEntity
             { _entPose = newPose & posPosition .~ V3 1 4 0
             , _entSize = 0.3
