@@ -47,6 +47,11 @@ executable rumpus
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -O2 -Wall -threaded -rtsopts -with-rtsopts=-N
+  -- Fixes unknown ___dso_handle symbol
+  -- A different bug than what halive was hitting (https://ghc.haskell.org/trac/ghc/ticket/9278)
+  -- but maybe just masking it and that one would pop up later.
+  if os(osx)
+    ghc-options: -dynamic
   build-depends:       base, rumpus
   default-language:    Haskell2010
 
