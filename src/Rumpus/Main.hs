@@ -13,7 +13,7 @@ import Control.Monad.State
 import Control.Lens.Extra
 import Data.Maybe
 import Control.Monad.Reader
-import Data.Foldable
+import Control.Concurrent
 import Control.Concurrent.STM
 import Data.Yaml hiding ((.=))
 
@@ -23,13 +23,12 @@ import Physics.Bullet
 import Sound.Pd
 import TinyRick
 
-import qualified Spatula
-
 import Rumpus.Render
 import Rumpus.Entity
 import Rumpus.Types
 import Rumpus.Control
 
+createCodeEditorSystem :: IO (Font, Chan (CompilationRequest r))
 createCodeEditorSystem = do
     ghcChan   <- startGHC ["app"]
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
@@ -142,6 +141,7 @@ editingSystem = do
     withLeftHandEvents (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
+loadScene :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => FilePath -> m ()
 loadScene sceneFile =     
     liftIO (decodeFileEither sceneFile) >>= \case
         Left parseException -> putStrLnIO ("Error loading " ++ sceneFile ++ ": " ++ show parseException)
@@ -149,6 +149,7 @@ loadScene sceneFile =
             forM_ (entities :: [(EntityID, Entity)]) $ \(entityID, entity) -> 
                 createEntityWithID Persistent entityID entity
 
+saveScene :: (MonadState World m, MonadIO m) => m ()
 saveScene = do
     let sceneFile = "spatula/spatula.yaml"
     scene <- use wldScene
@@ -166,8 +167,9 @@ scriptingSystem :: WorldMonad ()
 scriptingSystem = do
     traverseM_ (Map.toList <$> use (wldComponents . cmpScript)) $ 
         \(entityID, editor) -> do
-            updateFunc <- liftIO $ getEditorValue editor (\eid -> return ()) id
-            errors <- liftIO . atomically $ readTVar (edErrors editor)
+            let emptyUpdateFunc _entityID = return ()
+            updateFunc <- liftIO $ getEditorValue editor emptyUpdateFunc id
+            _errors <- liftIO . atomically $ readTVar (edErrors editor)
             -- printIO errors
             updateFunc entityID
 

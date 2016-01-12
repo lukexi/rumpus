@@ -30,30 +30,13 @@ traverseM f x = f >>= traverse x
 traverseM_ :: (Monad m, Foldable t) => m (t a) -> (a -> m b) -> m ()
 traverseM_ f x = f >>= traverse_ x
 
-instance FromJSON a => FromJSON (V4 a)
-instance FromJSON a => FromJSON (V3 a)
-instance FromJSON a => FromJSON (V2 a)
-instance FromJSON a => FromJSON (Quaternion a)
-instance ToJSON a => ToJSON (V4 a)
-instance ToJSON a => ToJSON (V3 a)
-instance ToJSON a => ToJSON (V2 a)
-instance ToJSON a => ToJSON (Quaternion a)
-
-poseJSONOptions :: Options
-poseJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
-
-instance FromJSON a => FromJSON (Pose a) where
-    parseJSON = genericParseJSON poseJSONOptions
-instance ToJSON a => ToJSON (Pose a) where
-    toJSON     = genericToJSON poseJSONOptions
-
 type EntityID = Word32
 
 type EntityMap a = Map EntityID a
 
-data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
+data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape deriving (Eq, Show, Ord, Enum, Generic, FromJSON)
 
-data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show, Generic, FromJSON, ToJSON)
+data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show, Generic, FromJSON)
 
 type WorldMonad = StateT World (ReaderT WorldStatic IO)
 
@@ -61,7 +44,7 @@ data WorldEvent = GLFWEvent Event
                 | VREvent VREvent 
                 deriving Show
 
-data Persistence = Transient | Persistent deriving (Eq, Show, Generic, FromJSON, ToJSON)
+data Persistence = Transient | Persistent deriving (Eq, Show, Generic, FromJSON)
 
 type OnUpdate = EntityID -> WorldMonad ()
 
@@ -166,14 +149,6 @@ data Entity = Entity
     , _entName      :: !String
     } deriving (Show, Generic)
 
-entityJSONOptions :: Options
-entityJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
-
-instance FromJSON Entity where
-    parseJSON = genericParseJSON entityJSONOptions
-instance ToJSON Entity where
-    toJSON     = genericToJSON entityJSONOptions
-
 newEntity :: Entity
 newEntity = Entity
     { _entColor     = V4 1 1 1 1
@@ -197,8 +172,50 @@ data Uniforms = Uniforms
     , uCamera              :: UniformLocation (V3  GLfloat)
     , uDiffuse             :: UniformLocation (V4  GLfloat)
     } deriving (Data)
+-----------------
+-- JSON instances
+-----------------
+-- NOTE: we're using 
+-- toJSON = genericToJSON defaultOptions
+-- to work around "No explicit implementation" bug in the current
+-- version of Aeson caused by an errant minimal definition pragma
+instance FromJSON a => FromJSON (V4 a)
+instance FromJSON a => FromJSON (V3 a)
+instance FromJSON a => FromJSON (V2 a)
+instance FromJSON a => FromJSON (Quaternion a)
+instance ToJSON a => ToJSON (V4 a) where
+    toJSON = genericToJSON defaultOptions
+instance ToJSON a => ToJSON (V3 a) where
+    toJSON = genericToJSON defaultOptions
+instance ToJSON a => ToJSON (V2 a) where
+    toJSON = genericToJSON defaultOptions
+instance ToJSON a => ToJSON (Quaternion a) where
+    toJSON = genericToJSON defaultOptions
+
+poseJSONOptions :: Options
+poseJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
+
+instance FromJSON a => FromJSON (Pose a) where
+    parseJSON = genericParseJSON poseJSONOptions
+instance ToJSON a => ToJSON (Pose a) where
+    toJSON     = genericToJSON poseJSONOptions
 
 
+entityJSONOptions :: Options
+entityJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
+
+instance FromJSON Entity where
+    parseJSON = genericParseJSON entityJSONOptions
+instance ToJSON Entity where
+    toJSON     = genericToJSON entityJSONOptions
+
+-- These can be put back in the deriving clause once the aforementioned Aeson bug is fixed
+instance ToJSON ShapeType where
+    toJSON = genericToJSON defaultOptions
+instance ToJSON PhysicsProperties where
+    toJSON = genericToJSON defaultOptions
+instance ToJSON Persistence where
+    toJSON = genericToJSON defaultOptions
 
 makeLenses ''WorldStatic
 makeLenses ''World
