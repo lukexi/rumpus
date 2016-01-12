@@ -12,4 +12,4 @@ update entityID = do
         spatX = (*a) . sin  $ now
         spatZ = (*a) . cos  $ now
         newPose_ = Pose (V3 spatX 0.1 spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
-    setEntityPose entityID newPose_
+    setEntityPose newPose_ entityID

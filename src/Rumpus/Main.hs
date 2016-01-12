@@ -179,7 +179,10 @@ renderSystem headM44 = do
     player <- use wldPlayer
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
-        renderSimulation
+        (\projM44 viewM44 -> do
+            renderSimulation projM44 viewM44
+            renderEditors projM44 viewM44
+            )
 
 physicsSystem :: (MonadIO m, MonadReader WorldStatic m) => m ()
 physicsSystem = do

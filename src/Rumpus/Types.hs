@@ -26,6 +26,7 @@ import TinyRick
 
 traverseM :: (Monad m, Traversable t) => m (t a) -> (a -> m b) -> m (t b)
 traverseM f x = f >>= traverse x
+
 traverseM_ :: (Monad m, Foldable t) => m (t a) -> (a -> m b) -> m ()
 traverseM_ f x = f >>= traverse_ x
 

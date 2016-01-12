@@ -7,7 +7,7 @@ Core
 - [ ] Broadcasting events
     - Add a second channel or reuse the control events list with a 3rd Entity Event type
     - How to make this extensible?
-- [ ] Component files
+- [x] Component files
     - [x] YAML file for scene definition, scripts in .hs files.
 
 

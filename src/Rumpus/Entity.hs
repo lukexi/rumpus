@@ -27,6 +27,8 @@ spawnEntity persistence entityName =
 defineEntity :: MonadState World m => Entity -> m ()
 defineEntity entity = wldEntityLibrary . at (entity ^. entName) ?= entity
 
+createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
+             => Persistence -> Entity -> m EntityID
 createEntity persistence entity = do
     entityID <- liftIO randomIO
     createEntityWithID persistence entityID entity
