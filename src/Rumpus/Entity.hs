@@ -8,10 +8,12 @@ import Control.Lens.Extra
 import Linear.Extra
 import Graphics.GL.Pal
 import Physics.Bullet
+
 import Control.Monad.State
 import System.Random
 import Control.Monad.Reader
--- import Data.Maybe
+import Data.Maybe
+import qualified Data.Map as Map
 
 import Sound.Pd
 import TinyRick
@@ -32,12 +34,12 @@ createEntity entity = do
     wldScene . at entityID ?= entity
     
 
-    wldComponents . cmpPose      . at entityID ?= entity ^. entPose
-    wldComponents . cmpSize      . at entityID ?= entity ^. entSize
-    wldComponents . cmpColor     . at entityID ?= entity ^. entColor
-    wldComponents . cmpScale     . at entityID ?= entity ^. entScale
-    wldComponents . cmpShape     . at entityID ?= entity ^. entShape
-    wldComponents . cmpName      . at entityID ?= entity ^. entName
+    wldComponents . cmpPose  . at entityID ?= entity ^. entPose
+    wldComponents . cmpSize  . at entityID ?= entity ^. entSize
+    wldComponents . cmpColor . at entityID ?= entity ^. entColor
+    wldComponents . cmpScale . at entityID ?= entity ^. entScale
+    wldComponents . cmpShape . at entityID ?= entity ^. entShape
+    wldComponents . cmpName  . at entityID ?= entity ^. entName
 
     addScriptComponent  entityID entity
 
@@ -90,8 +92,7 @@ setEntitySize entityID newSize = do
         setRigidBodyScale dynamicsWorld rigidBody newSize
 
 setEntityColor :: (MonadState World m, MonadReader WorldStatic m) => EntityID -> V4 GLfloat -> m ()
-setEntityColor entityID newColor = do
-    wldComponents . cmpColor . ix entityID .= newColor
+setEntityColor entityID newColor = wldComponents . cmpColor . ix entityID .= newColor
 
 useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
 useMaybeM_ aLens f = do
@@ -160,4 +161,41 @@ addPhysicsComponent entityID entity = do
 
                 wldComponents . cmpRigidBody . at entityID ?= rigidBody
 
+withAttachment :: MonadState World m => EntityID -> (Attachment -> m b) -> m ()
+withAttachment entityID = useMaybeM_ (wldComponents . cmpAttachment . at entityID)
 
+getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
+getEntityIDsWithName name = 
+    Map.keys . Map.filter (== name) <$> use (wldComponents . cmpName)
+
+getEntityGhostOverlappingEntityIDs :: (MonadState World m, MonadIO m) => EntityID -> m [EntityID]
+getEntityGhostOverlappingEntityIDs entityID = do
+    overlappingCollisionObjects <- getEntityGhostOverlapping entityID
+    map unCollisionObjectID <$> mapM getCollisionObjectID overlappingCollisionObjects
+
+getEntityName :: MonadState World m => EntityID -> m String
+getEntityName entityID = fromMaybe "No Name" <$> use (wldComponents . cmpName . at entityID)
+
+getEntityPose :: MonadState World m => EntityID -> m (Pose GLfloat)
+getEntityPose entityID = fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+
+detachEntity :: (MonadState World m, MonadIO m) => EntityID -> m ()
+detachEntity entityID = 
+    withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
+        wldComponents . cmpAttachment . at entityID .= Nothing
+        withEntityRigidBody attachedEntityID $ \rigidBody ->
+            setRigidBodyKinematic rigidBody False
+
+
+attachEntity :: (MonadIO m, MonadState World m) => EntityID -> EntityID -> m ()
+attachEntity entityID toEntityID = do
+
+    -- Detach any current attachments
+    detachEntity entityID
+
+    entityPose   <- getEntityPose entityID
+    toEntityPose <- getEntityPose toEntityID
+    let offset = subtractPoses toEntityPose entityPose
+    wldComponents . cmpAttachment . at entityID ?= Attachment toEntityID offset
+    withEntityRigidBody toEntityID $ \rigidBody ->
+        setRigidBodyKinematic rigidBody True

@@ -150,41 +150,6 @@ saveScene = do
     scene <- use wldScene
     liftIO $ encodeFile "spatula/spatula.yaml" (Map.toList scene)
 
-withAttachment entityID = useMaybeM_ (wldComponents . cmpAttachment . at entityID)
-
-getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
-getEntityIDsWithName name = 
-    Map.keys . Map.filter (== name) <$> use (wldComponents . cmpName)
-
-getEntityGhostOverlappingEntityIDs :: (MonadState World m, MonadIO m) => EntityID -> m [EntityID]
-getEntityGhostOverlappingEntityIDs entityID = do
-    overlappingCollisionObjects <- getEntityGhostOverlapping entityID
-    map unCollisionObjectID <$> mapM getCollisionObjectID overlappingCollisionObjects
-
-getEntityName :: MonadState World m => EntityID -> m String
-getEntityName entityID = fromMaybe "No Name" <$> use (wldComponents . cmpName . at entityID)
-
-getEntityPose entityID = fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-
-detachEntity entityID = 
-    withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
-        wldComponents . cmpAttachment . at entityID .= Nothing
-        withEntityRigidBody attachedEntityID $ \rigidBody ->
-            setRigidBodyKinematic rigidBody False
-
-
-attachEntity :: (MonadIO m, MonadState World m) => EntityID -> EntityID -> m ()
-attachEntity entityID toEntityID = do
-
-    -- Detach any current attachments
-    detachEntity entityID
-
-    entityPose   <- getEntityPose entityID
-    toEntityPose <- getEntityPose toEntityID
-    let offset = subtractPoses toEntityPose entityPose
-    wldComponents . cmpAttachment . at entityID ?= Attachment toEntityID offset
-    withEntityRigidBody toEntityID $ \rigidBody ->
-        setRigidBodyKinematic rigidBody True
 
 attachmentsSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 attachmentsSystem = do

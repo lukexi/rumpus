@@ -98,3 +98,44 @@ Punt on extensible systems and just use scripts?
 Scripts still need state data... 
 but the dynamic approach is OK there...
 -}
+
+
+registerSystem :: (Dynamic a) => 
+registerSystem "fftSystem" (Dynamic )
+
+
+data System = System { _sysState :: Dynamic, sysUpdate :: Dynamic -> WorldMonad () }
+
+type SystemsStates = Map SystemName System
+
+tickSystems = do
+    systemStates <- Map.toList use wldSystemStates
+    forM_ systemStates \(systemName, System{..}) -> do
+        newState <- (system ^. sysUpdate) (system ^. sysState)
+        wldSystemState . at systemName . sysState ?= newState
+
+{- ^^^^^^
+Sketch of a dynamic systems system.
+sysUpdate functions could reference the state of other systems by just querying e.g.
+physicsSystemState <- fromDyn (use (wldSystemState . at "physicsSystem"))
+
+Maybe we can get stable Integer ComponentIDs by doing some kind of...
+{-# NOINLINE physicsSystemID #-}
+physicsSystemID = unsafePerformIO getNextSystemID
+
+http://apfelmus.nfshost.com/blog/2011/09/04-vault.html
+(also see comments for lots of ideas on alternative implementations!)
+Ooh, this might be great.
+
+
+Can provide the keys of the default system like 
+BuiltinKeys { bikPhysicsKey :: Key PhysicsComponents, bikPdKey :: Key PdComponents, etc. }
+
+or, maybe better, use the trick above to say:
+{-# NOINLINE physicsSystemID #-}
+physicsSystemID :: Key PhysicsComponents
+physicsSystemID = unsafePerformIO newKey
+
+We can store the systems' static data in the same way (e.g. dynamicsWorld, shapes, etc.)
+And then hopefully we can separate everything out into modules...
+-}
