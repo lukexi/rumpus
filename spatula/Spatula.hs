@@ -7,19 +7,17 @@ module Spatula where
 
 import Control.Lens.Extra
 import Linear.Extra
--- import Graphics.GL.Pal
--- import Graphics.VR.Pal
+import Graphics.GL.Pal
+import Graphics.VR.Pal
 import Control.Monad.State
 import Control.Monad.Reader
 import Control.Monad.Random
 import Rumpus.Types
 import Rumpus.Entity
--- import Control
--- import Physics.Bullet
--- import Sound.Pd
--- import qualified Data.Set as Set
--- import Data.Maybe
--- import Control.Concurrent
+import Rumpus.Control
+import Physics.Bullet
+import Sound.Pd
+import Data.Maybe
 
 initScene :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 initScene = do
@@ -31,24 +29,24 @@ initScene = do
     defineEntity spatula
     defineEntity theFloor
 
-    spawnEntity "Left Hand"
-    spawnEntity "Right Hand"
-    spawnEntity "Floor"
-    spawnEntity "Spatula"
+    _ <- spawnEntity "Left Hand"
+    _ <- spawnEntity "Right Hand"
+    _ <- spawnEntity "Floor"
+    _ <- spawnEntity "Spatula"
 
     stdgen <- liftIO getStdGen
     _ <- flip runRandT stdgen $ do
-        forM [1..100::Int] $ \_ -> do
+        forM_ [1..100::Int] $ \_ -> do
             color <- getRandomR (0,1)
             traverseM_ (spawnEntity "MessyBall") $ \entityID ->
                 setEntityColor entityID (color & _w .~ 1)
 
-        forM [1..100::Int] $ \_ -> do
+        forM_ [1..100::Int] $ \_ -> do
             color <- getRandomR (0,1)
             traverseM_ (spawnEntity "MessyCube") $ \entityID ->
                 setEntityColor entityID (color & _w .~ 1)
 
-        forM [1..8::Int] $ \_i -> do
+        forM_ [1..8::Int] $ \_i -> do
             color <- getRandomR (0,1)
             traverseM_ (spawnEntity "SoundCube") $ \entityID ->
                 setEntityColor entityID (color & _w .~ 1)
@@ -62,27 +60,6 @@ leftHand = newEntity
         , _entPose        = newPose & posPosition .~ (V3 0 0.1 0)
         , _entPhysProps   = [IsGhost]
         , _entName        = "Left Hand"
-        -- , _entPhysProps   = [IsKinematic]
-        -- , _entUpdate      = Just $ \entityID -> do
-        --     now <- getNow
-        --     setEntityPose entityID (newPose & posPosition .~ V3 (sin now) 0.1 0)
-        --     withEntityGhostObject entityID $ \ghostObject -> do
-        --         overlapping    <- getGhostObjectOverlapping ghostObject
-        --         overlappingIDs <- mapM getCollisionObjectID overlapping
-        --         -- printIO overlappingIDs
-        --         forM_ (map unCollisionObjectID overlappingIDs) $ \touchedID -> do
-        --             name <- fromMaybe "Entity" <$> use (wldComponents . cmpName . at touchedID)
-        --             when (name /= "Floor") $ do
-        --                 randomColor <- (_w .~ 1) <$> liftIO (randomRIO (0,1))
-        --                 setEntityColor touchedID randomColor
-        --     withLeftHandEvents $ \case
-        --         HandStateEvent hand -> 
-        --             setEntityPose entityID (poseFromMatrix (hand ^. hndMatrix))
-        --         HandButtonEvent HandButtonTrigger ButtonDown -> do
-        --             setEntityColor entityID (V4 1 0 1 1)
-        --         HandButtonEvent HandButtonTrigger ButtonUp -> do
-        --             setEntityColor entityID (V4 0 0 1 1)
-        --         _ -> return ()
         }
 
 rightHand :: Entity
@@ -91,59 +68,10 @@ rightHand = newEntity
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = CubeShape
         , _entPhysProps   = [IsGhost]
-        -- , _entPhysProps   = [IsKinematic]
         , _entName        = "Right Hand"
-        -- , _entUpdate      = Just $ \entityID -> do
-        --     withRightHandEvents $ \case
-        --         HandStateEvent hand -> do
-        --             let pose = poseFromMatrix (hand ^. hndMatrix)
-        --             setEntityPose entityID pose
-
-        --             useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring ->
-        --                 setSpringWorldPose spring (pose ^. posPosition) (pose ^. posOrientation)
-        --         HandButtonEvent HandButtonTrigger ButtonDown -> do
-
-        --             withEntityGhostObject entityID $ \ghostObject -> do
-        --                 overlapping    <- getGhostObjectOverlapping ghostObject
-        --                 nonFloorOverlapping <- flip filterM overlapping $ \overlapper -> do
-        --                     overlapperEntityID <- unCollisionObjectID <$> getCollisionObjectID overlapper
-        --                     (/= Just "Floor") <$> use (wldComponents . cmpName . at overlapperEntityID)
-        --                 forM_ (listToMaybe nonFloorOverlapping) $ \oneNonFloor -> do
-        --                     do
-        --                         anEntityID <- unCollisionObjectID <$> getCollisionObjectID oneNonFloor
-        --                         printIO =<< use (wldComponents . cmpName . at anEntityID)
-        --                     dynamicsWorld <- view wlsDynamicsWorld
-
-        --                     spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
-        --                     wldComponents . cmpSpring . at entityID ?= spring
-
-        --                     setSpringLinearLowerLimit  spring (-5  :: V3 Float)
-        --                     setSpringLinearUpperLimit  spring (5   :: V3 Float)
-        --                     setSpringAngularLowerLimit spring (-1  :: V3 Float)
-        --                     setSpringAngularUpperLimit spring (1   :: V3 Float)
-        --                     setSpringAngularStiffness  spring (100 :: V3 Float)
-        --                     setSpringLinearStiffness   spring (100 :: V3 Float)
-        --                     setSpringLinearDamping     spring (0.9 :: V3 Float)
-        --                     setSpringAngularDamping    spring (0.9 :: V3 Float)
-        --                     setSpringLinearBounce      spring (10  :: V3 Float)
-        --                     setSpringAngularBounce     spring (10  :: V3 Float)
-        --                     -- setSpringLinearEquilibrium spring 0
-        --                     -- setSpringAngularEquilibrium spring 0
-        --                     setLinearSpringEnabled spring (V3 True True True)
-        --                     setAngularSpringEnabled spring (V3 True True True)
-        --                     return ()
-        --             setEntityColor entityID (V4 1 1 1 1)
-        --         HandButtonEvent HandButtonTrigger ButtonUp -> do
-        --             setEntityColor entityID (V4 0 1 0 1)
-
-        --             useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring -> do
-        --                 dynamicsWorld <- view wlsDynamicsWorld
-        --                 removeSpringConstraint dynamicsWorld spring
-        --                 wldComponents . cmpSpring . at entityID .= Nothing
-        --         _ -> return ()
         }
     
-
+messyCube :: Entity
 messyCube = newEntity
             { _entPose = newPose & posPosition .~ V3 0 4 0
             , _entSize = 0.3
@@ -151,6 +79,7 @@ messyCube = newEntity
             , _entName  = "MessyCube"
             }
 
+soundCube :: Entity
 soundCube = newEntity
             { _entPose = newPose & posPosition .~ V3 0 4 0
             , _entSize = 0.5
@@ -166,7 +95,7 @@ soundCube = newEntity
             }
 
 
-
+messyBall :: Entity
 messyBall = newEntity
             { _entPose = newPose & posPosition .~ V3 1 4 0
             , _entSize = 0.3
@@ -196,3 +125,56 @@ theFloor = newEntity
         , _entSize = V3 1000 1000 1
         , _entName = "Floor"
         }
+
+
+
+
+
+attachWithSpring entityID = do
+    withRightHandEvents $ \case
+        HandStateEvent hand -> do
+            let pose = poseFromMatrix (hand ^. hndMatrix)
+            setEntityPose entityID pose
+
+            useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring ->
+                setSpringWorldPose spring (pose ^. posPosition) (pose ^. posOrientation)
+        HandButtonEvent HandButtonTrigger ButtonDown -> do
+
+            withEntityGhostObject entityID $ \ghostObject -> do
+                overlapping         <- getGhostObjectOverlapping ghostObject
+                nonFloorOverlapping <- flip filterM overlapping $ \overlapper -> do
+                    overlapperEntityID <- unCollisionObjectID <$> getCollisionObjectID overlapper
+                    (/= Just "Floor") <$> use (wldComponents . cmpName . at overlapperEntityID)
+                forM_ (listToMaybe nonFloorOverlapping) $ \oneNonFloor -> do
+                    do
+                        anEntityID <- unCollisionObjectID <$> getCollisionObjectID oneNonFloor
+                        printIO =<< use (wldComponents . cmpName . at anEntityID)
+                    dynamicsWorld <- view wlsDynamicsWorld
+
+                    spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
+                    wldComponents . cmpSpring . at entityID ?= spring
+
+                    setSpringLinearLowerLimit  spring (-5  :: V3 Float)
+                    setSpringLinearUpperLimit  spring (5   :: V3 Float)
+                    setSpringAngularLowerLimit spring (-1  :: V3 Float)
+                    setSpringAngularUpperLimit spring (1   :: V3 Float)
+                    setSpringAngularStiffness  spring (100 :: V3 Float)
+                    setSpringLinearStiffness   spring (100 :: V3 Float)
+                    setSpringLinearDamping     spring (0.9 :: V3 Float)
+                    setSpringAngularDamping    spring (0.9 :: V3 Float)
+                    setSpringLinearBounce      spring (10  :: V3 Float)
+                    setSpringAngularBounce     spring (10  :: V3 Float)
+                    -- setSpringLinearEquilibrium spring 0
+                    -- setSpringAngularEquilibrium spring 0
+                    setLinearSpringEnabled spring (V3 True True True)
+                    setAngularSpringEnabled spring (V3 True True True)
+                    return ()
+            setEntityColor entityID (V4 1 1 1 1)
+        HandButtonEvent HandButtonTrigger ButtonUp -> do
+            setEntityColor entityID (V4 0 1 0 1)
+
+            useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring -> do
+                dynamicsWorld <- view wlsDynamicsWorld
+                removeSpringConstraint dynamicsWorld spring
+                wldComponents . cmpSpring . at entityID .= Nothing
+        _ -> return ()

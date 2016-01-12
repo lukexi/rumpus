@@ -31,9 +31,9 @@ import Rumpus.Types
 import Rumpus.Control
 
 createCodeEditorSystem = do
-    ghcChan <- startGHC ["app"]
-    glyphProg     <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
-    font          <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
+    ghcChan   <- startGHC ["app"]
+    glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
+    font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
 
     return (font, ghcChan)
 
@@ -85,7 +85,7 @@ main = withPd $ \pd -> do
 
     encodeFile "testScene.yaml" [newEntity]
     entities <- decodeFileEither "testScene.yaml"
-    print (entities :: Either ParseException [Entity])
+    putStrLn ("Loaded testScene.yaml: " ++ show (entities :: Either ParseException [Entity]))
 
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
@@ -121,7 +121,7 @@ main = withPd $ \pd -> do
 
 editingSystem :: WorldMonad ()
 editingSystem = do
-    let f handName event = do
+    let editSceneWithHand handName event = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
             forM_ mHandEntityID $ \handEntityID -> case event of
                 HandStateEvent hand -> 
@@ -143,48 +143,13 @@ editingSystem = do
                     detachEntity handEntityID
                 _ -> return ()
 
-    withLeftHandEvents (f "Left Hand")
-    withRightHandEvents (f "Right Hand")
+    withLeftHandEvents (editSceneWithHand "Left Hand")
+    withRightHandEvents (editSceneWithHand "Right Hand")
 
 saveScene = do
     scene <- use wldScene
     liftIO $ encodeFile "spatula/spatula.yaml" (Map.toList scene)
 
-withAttachment entityID = useMaybeM_ (wldComponents . cmpAttachment . at entityID)
-
-getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
-getEntityIDsWithName name = 
-    Map.keys . Map.filter (== name) <$> use (wldComponents . cmpName)
-
-getEntityGhostOverlappingEntityIDs :: (MonadState World m, MonadIO m) => EntityID -> m [EntityID]
-getEntityGhostOverlappingEntityIDs entityID = do
-    overlappingCollisionObjects <- getEntityGhostOverlapping entityID
-    map unCollisionObjectID <$> mapM getCollisionObjectID overlappingCollisionObjects
-
-getEntityName :: MonadState World m => EntityID -> m String
-getEntityName entityID = fromMaybe "No Name" <$> use (wldComponents . cmpName . at entityID)
-
-getEntityPose entityID = fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-
-detachEntity entityID = 
-    withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
-        wldComponents . cmpAttachment . at entityID .= Nothing
-        withEntityRigidBody attachedEntityID $ \rigidBody ->
-            setRigidBodyKinematic rigidBody False
-
-
-attachEntity :: (MonadIO m, MonadState World m) => EntityID -> EntityID -> m ()
-attachEntity entityID toEntityID = do
-
-    -- Detach any current attachments
-    detachEntity entityID
-
-    entityPose   <- getEntityPose entityID
-    toEntityPose <- getEntityPose toEntityID
-    let offset = subtractPoses toEntityPose entityPose
-    wldComponents . cmpAttachment . at entityID ?= Attachment toEntityID offset
-    withEntityRigidBody toEntityID $ \rigidBody ->
-        setRigidBodyKinematic rigidBody True
 
 attachmentsSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 attachmentsSystem = do

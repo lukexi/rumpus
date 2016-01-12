@@ -90,7 +90,6 @@ newWorld :: World
 newWorld = World
     { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
     , _wldPlayerHeadM44 = identity
-    -- { _wldPlayer = Pose (V3 0 1 5) (axisAngle (V3 0 1 0) 0)
     , _wldComponents = newComponents
     , _wldEvents = []
     , _wldOpenALSourcePool = []
@@ -149,8 +148,6 @@ data Entity = Entity
     , _entSize      :: !(V3 GLfloat)
     , _entPose      :: !(Pose GLfloat)
     , _entScale     :: !(V3 GLfloat)
-    -- , _entUpdate    :: !(Maybe OnUpdate)
-    -- , _entCollision :: !(Maybe OnCollision)
     , _entPhysProps :: ![PhysicsProperties]
     , _entShape     :: !(ShapeType)
     , _entChildren  :: ![Entity]
@@ -174,8 +171,6 @@ newEntity = Entity
     , _entSize      = V3 1 1 1
     , _entPose      = newPose
     , _entScale     = V3 1 1 1
-    -- , _entUpdate    = Nothing
-    -- , _entCollision = Nothing
     , _entPhysProps = []
     , _entShape     = NoShape
     , _entChildren  = []
