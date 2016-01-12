@@ -1,0 +1,220 @@
+- - 355696329
+  - Mass: 1
+    Script: null
+    PdPatch: spatula/spatula1
+    Size:
+    - 0.5
+    - 0.5
+    - 0.5
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - -0.7641964
+      - 2.7601395
+      - 0.12631512
+    PhysProps: []
+    Name: SoundCube
+    Shape: CubeShape
+- - 694474371
+  - Mass: 1
+    Script: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 0.1
+    - 0.4
+    Color:
+    - 1
+    - 0.8
+    - 0.7
+    - 1
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.1
+      - 0.0
+    PhysProps:
+    - IsGhost
+    Name: Left Hand
+    Shape: CubeShape
+- - 1801803679
+  - Mass: 1
+    Script: null
+    PdPatch: null
+    Size:
+    - 0.3
+    - 0.3
+    - 0.3
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 2
+      - 0.0
+    PhysProps: []
+    Name: MessyCube
+    Shape: CubeShape
+- - 2978547395
+  - Mass: 0.0
+    Script: null
+    PdPatch: null
+    Size:
+    - 1000
+    - 1000
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.70710677
+      - - -0.70710677
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.0
+      - 0.0
+    PhysProps: []
+    Name: Floor
+    Shape: StaticPlaneShape
+- - 3215898416
+  - Mass: 1
+    Script: spatula/Wobble.hs
+    PdPatch: spatula/spatula2
+    Size:
+    - 0.2
+    - 0.1
+    - 0.1
+    Color:
+    - 0.0
+    - 1
+    - 1
+    - 1
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.5
+      - 0.0
+    PhysProps:
+    - IsKinematic
+    Name: Spatula
+    Shape: CubeShape
+- - 3216010645
+  - Mass: 1
+    Script: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 0.1
+    - 0.4
+    Color:
+    - 0.7
+    - 1
+    - 0.8
+    - 1
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.0
+      - 0.0
+    PhysProps:
+    - IsGhost
+    Name: Right Hand
+    Shape: CubeShape
+- - 3839326967
+  - Mass: 1
+    Script: null
+    PdPatch: null
+    Size:
+    - 0.3
+    - 0.3
+    - 0.3
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - -0.7497905
+      - 1.512239
+      - -0.15738583
+    PhysProps: []
+    Name: MessyBall
+    Shape: SphereShape

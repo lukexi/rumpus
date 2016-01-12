@@ -83,13 +83,9 @@ main = withPd $ \pd -> do
                                         then newPose
                                         else newPose & posPosition .~ V3 0 1 5
 
-    encodeFile "testScene.yaml" [newEntity]
-    entities <- decodeFileEither "testScene.yaml"
-    putStrLn ("Loaded testScene.yaml: " ++ show (entities :: Either ParseException [Entity]))
-
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
-        Spatula.initScene
+        loadScene "spatula/spatula.yaml"
 
         whileVR vrPal $ \headM44 hands -> do
             
@@ -125,7 +121,7 @@ editingSystem = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
             forM_ mHandEntityID $ \handEntityID -> case event of
                 HandStateEvent hand -> 
-                    setEntityPose handEntityID (poseFromMatrix (hand ^. hndMatrix))
+                    setEntityPose (poseFromMatrix (hand ^. hndMatrix)) handEntityID
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
                     -- Find the entities overlapping the hand, and attach them to it
                     overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
@@ -146,9 +142,17 @@ editingSystem = do
     withLeftHandEvents (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
+loadScene sceneFile =     
+    liftIO (decodeFileEither sceneFile) >>= \case
+        Left parseException -> putStrLnIO ("Error loading " ++ sceneFile ++ ": " ++ show parseException)
+        Right entities -> do
+            forM_ (entities :: [(EntityID, Entity)]) $ \(entityID, entity) -> 
+                createEntityWithID Persistent entityID entity
+
 saveScene = do
+    let sceneFile = "spatula/spatula.yaml"
     scene <- use wldScene
-    liftIO $ encodeFile "spatula/spatula.yaml" (Map.toList scene)
+    liftIO $ encodeFile sceneFile (Map.toList scene)
 
 
 attachmentsSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
@@ -156,7 +160,7 @@ attachmentsSystem = do
     attachments <- Map.toList <$> use (wldComponents . cmpAttachment)
     forM_ attachments $ \(entityID, Attachment toEntityID offset) -> do
         pose <- getEntityPose entityID
-        setEntityPose toEntityID (addPoses pose offset)
+        setEntityPose (addPoses pose offset) toEntityID
 
 scriptingSystem :: WorldMonad ()
 scriptingSystem = do
@@ -164,7 +168,7 @@ scriptingSystem = do
         \(entityID, editor) -> do
             updateFunc <- liftIO $ getEditorValue editor (\eid -> return ()) id
             errors <- liftIO . atomically $ readTVar (edErrors editor)
-            printIO errors
+            -- printIO errors
             updateFunc entityID
 
 

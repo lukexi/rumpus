@@ -20,19 +20,23 @@ import TinyRick
 
 import Rumpus.Types
 
-spawnEntity :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => String -> m (Maybe EntityID)
-spawnEntity entityName = 
-    traverseM (use (wldEntityLibrary . at entityName)) createEntity
+spawnEntity :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => Persistence -> String -> m (Maybe EntityID)
+spawnEntity persistence entityName = 
+    traverseM (use (wldEntityLibrary . at entityName)) (createEntity persistence)
 
 defineEntity :: MonadState World m => Entity -> m ()
 defineEntity entity = wldEntityLibrary . at (entity ^. entName) ?= entity
 
-createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => Entity -> m EntityID
-createEntity entity = do
+createEntity persistence entity = do
     entityID <- liftIO randomIO
+    createEntityWithID persistence entityID entity
 
-    wldScene . at entityID ?= entity
-    
+createEntityWithID :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
+                   => Persistence -> EntityID -> Entity -> m EntityID
+createEntityWithID persistence entityID entity = do
+
+    when (persistence == Persistent) $
+        wldScene . at entityID ?= entity
 
     wldComponents . cmpPose  . at entityID ?= entity ^. entPose
     wldComponents . cmpSize  . at entityID ?= entity ^. entSize
@@ -48,7 +52,7 @@ createEntity entity = do
     addPdPatchComponent entityID entity
 
     forM_ (entity ^. entChildren) $ \child -> do
-        childID <- createEntity child
+        childID <- createEntity persistence child
         wldComponents . cmpParent . at childID ?= entityID
     
     return entityID
@@ -83,16 +87,16 @@ dequeueOpenALSource = do
             wldOpenALSourcePool .= xs ++ [x]
             return (Just x)
 
-setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> V3 GLfloat -> m ()
-setEntitySize entityID newSize = do
+setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => V3 GLfloat -> EntityID -> m ()
+setEntitySize newSize entityID = do
     wldComponents . cmpSize . ix entityID .= newSize
 
     withEntityRigidBody entityID $ \rigidBody -> do 
         dynamicsWorld <- view wlsDynamicsWorld
         setRigidBodyScale dynamicsWorld rigidBody newSize
 
-setEntityColor :: (MonadState World m, MonadReader WorldStatic m) => EntityID -> V4 GLfloat -> m ()
-setEntityColor entityID newColor = wldComponents . cmpColor . ix entityID .= newColor
+setEntityColor :: (MonadState World m, MonadReader WorldStatic m) => V4 GLfloat -> EntityID -> m ()
+setEntityColor newColor entityID = wldComponents . cmpColor . ix entityID .= newColor
 
 useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
 useMaybeM_ aLens f = do
@@ -110,8 +114,8 @@ getEntityGhostOverlapping entityID = use (wldComponents . cmpGhostObject . at en
     Nothing          -> return []
     Just ghostObject -> getGhostObjectOverlapping ghostObject
 
-setEntityPose :: (MonadState World m, MonadIO m) => EntityID -> Pose GLfloat -> m ()
-setEntityPose entityID newPose_ = do
+setEntityPose :: (MonadState World m, MonadIO m) => Pose GLfloat -> EntityID -> m ()
+setEntityPose newPose_ entityID = do
 
     wldComponents . cmpPose . ix entityID .= newPose_
 

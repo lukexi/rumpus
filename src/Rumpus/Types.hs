@@ -33,12 +33,18 @@ instance FromJSON a => FromJSON (V4 a)
 instance FromJSON a => FromJSON (V3 a)
 instance FromJSON a => FromJSON (V2 a)
 instance FromJSON a => FromJSON (Quaternion a)
-instance FromJSON a => FromJSON (Pose a)
 instance ToJSON a => ToJSON (V4 a)
 instance ToJSON a => ToJSON (V3 a)
 instance ToJSON a => ToJSON (V2 a)
 instance ToJSON a => ToJSON (Quaternion a)
-instance ToJSON a => ToJSON (Pose a)
+
+poseJSONOptions :: Options
+poseJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
+
+instance FromJSON a => FromJSON (Pose a) where
+    parseJSON = genericParseJSON poseJSONOptions
+instance ToJSON a => ToJSON (Pose a) where
+    toJSON     = genericToJSON poseJSONOptions
 
 type EntityID = Word32
 
@@ -53,6 +59,8 @@ type WorldMonad = StateT World (ReaderT WorldStatic IO)
 data WorldEvent = GLFWEvent Event
                 | VREvent VREvent 
                 deriving Show
+
+data Persistence = Transient | Persistent deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type OnUpdate = EntityID -> WorldMonad ()
 
@@ -93,7 +101,7 @@ newWorld = World
     , _wldComponents = newComponents
     , _wldEvents = []
     , _wldOpenALSourcePool = []
-    , _wldPlaying = True
+    , _wldPlaying = False
     , _wldEntityLibrary = mempty
     , _wldScene = mempty
     }

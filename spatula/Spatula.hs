@@ -11,12 +11,10 @@ import Graphics.GL.Pal
 import Graphics.VR.Pal
 import Control.Monad.State
 import Control.Monad.Reader
-import Control.Monad.Random
 import Rumpus.Types
 import Rumpus.Entity
 import Rumpus.Control
 import Physics.Bullet
-import Sound.Pd
 import Data.Maybe
 
 initScene :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
@@ -29,27 +27,15 @@ initScene = do
     defineEntity spatula
     defineEntity theFloor
 
-    _ <- spawnEntity "Left Hand"
-    _ <- spawnEntity "Right Hand"
-    _ <- spawnEntity "Floor"
-    _ <- spawnEntity "Spatula"
+    _ <- spawnEntity Persistent "Left Hand"
+    _ <- spawnEntity Persistent "Right Hand"
+    _ <- spawnEntity Persistent "Floor"
+    _ <- spawnEntity Persistent "Spatula"
+    _ <- spawnEntity Persistent "MessyCube"
+    _ <- spawnEntity Persistent "MessyBall"
+    _ <- spawnEntity Persistent "SoundCube"
 
-    stdgen <- liftIO getStdGen
-    _ <- flip runRandT stdgen $ do
-        forM_ [1..100::Int] $ \_ -> do
-            color <- getRandomR (0,1)
-            traverseM_ (spawnEntity "MessyBall") $ \entityID ->
-                setEntityColor entityID (color & _w .~ 1)
-
-        forM_ [1..100::Int] $ \_ -> do
-            color <- getRandomR (0,1)
-            traverseM_ (spawnEntity "MessyCube") $ \entityID ->
-                setEntityColor entityID (color & _w .~ 1)
-
-        forM_ [1..8::Int] $ \_i -> do
-            color <- getRandomR (0,1)
-            traverseM_ (spawnEntity "SoundCube") $ \entityID ->
-                setEntityColor entityID (color & _w .~ 1)
+    
     return ()
 
 leftHand :: Entity
@@ -70,10 +56,10 @@ rightHand = newEntity
         , _entPhysProps   = [IsGhost]
         , _entName        = "Right Hand"
         }
-    
+
 messyCube :: Entity
 messyCube = newEntity
-            { _entPose = newPose & posPosition .~ V3 0 4 0
+            { _entPose = newPose & posPosition .~ V3 0 2 0
             , _entSize = 0.3
             , _entShape = CubeShape
             , _entName  = "MessyCube"
@@ -81,7 +67,7 @@ messyCube = newEntity
 
 soundCube :: Entity
 soundCube = newEntity
-            { _entPose = newPose & posPosition .~ V3 0 4 0
+            { _entPose = newPose & posPosition .~ V3 0 2 0
             , _entSize = 0.5
             , _entShape = CubeShape
             , _entName  = "SoundCube"
@@ -97,7 +83,7 @@ soundCube = newEntity
 
 messyBall :: Entity
 messyBall = newEntity
-            { _entPose = newPose & posPosition .~ V3 1 4 0
+            { _entPose = newPose & posPosition .~ V3 1 2 0
             , _entSize = 0.3
             , _entShape = SphereShape
             , _entName  = "MessyBall"
@@ -129,12 +115,12 @@ theFloor = newEntity
 
 
 
-
+attachWithSpring :: (MonadState World m, MonadIO m, MonadReader WorldStatic m) => EntityID -> m ()
 attachWithSpring entityID = do
     withRightHandEvents $ \case
         HandStateEvent hand -> do
             let pose = poseFromMatrix (hand ^. hndMatrix)
-            setEntityPose entityID pose
+            setEntityPose pose entityID
 
             useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring ->
                 setSpringWorldPose spring (pose ^. posPosition) (pose ^. posOrientation)
@@ -169,9 +155,9 @@ attachWithSpring entityID = do
                     setLinearSpringEnabled spring (V3 True True True)
                     setAngularSpringEnabled spring (V3 True True True)
                     return ()
-            setEntityColor entityID (V4 1 1 1 1)
+            setEntityColor (V4 1 1 1 1) entityID
         HandButtonEvent HandButtonTrigger ButtonUp -> do
-            setEntityColor entityID (V4 0 1 0 1)
+            setEntityColor (V4 0 1 0 1) entityID
 
             useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring -> do
                 dynamicsWorld <- view wlsDynamicsWorld
