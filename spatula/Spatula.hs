@@ -166,7 +166,7 @@ soundCube = newEntity
             }
 
 
-    
+
 messyBall = newEntity
             { _entPose = newPose & posPosition .~ V3 1 4 0
             , _entSize = 0.3
@@ -185,6 +185,7 @@ spatula = newEntity
         , _entShape       = CubeShape
         , _entName        = "Spatula"
         , _entScript      = Just "spatula/Wobble.hs"
+        , _entPdPatch     = Just "spatula/spatula2"
         }
 
 theFloor :: Entity

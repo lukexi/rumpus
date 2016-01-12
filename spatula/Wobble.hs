@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+module Wobble where
 import Rumpus.Entity
 import Rumpus.Types
 import Linear.Extra
