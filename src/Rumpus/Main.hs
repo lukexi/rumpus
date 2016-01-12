@@ -91,6 +91,8 @@ main = withPd $ \pd -> do
             -- Collect control events into the events channel to be read by entities during update
             controlEventsSystem headM44 hands
 
+            textEditorSystem
+
             attachmentsSystem
 
             isPlaying <- use wldPlaying
@@ -163,8 +165,21 @@ attachmentsSystem = do
         pose <- getEntityPose entityID
         setEntityPose (addPoses pose offset) toEntityID
 
+textEditorSystem :: WorldMonad ()
+textEditorSystem = do
+    events <- use wldEvents
+    window <- gpWindow <$> view wlsVRPal
+    traverseM_ (use wldSelectedEntityID) $ \selectedEntityID ->
+        traverseM_ (use (wldComponents . cmpScript . at selectedEntityID)) $ \editor -> 
+            liftIO . editEditorText editor . execStateT $ 
+                forM_ events $ \case
+                    GLFWEvent e -> handleTextBufferEvent window e id
+                    _ -> return ()
+
 scriptingSystem :: WorldMonad ()
 scriptingSystem = do
+    
+
     traverseM_ (Map.toList <$> use (wldComponents . cmpScript)) $ 
         \(entityID, editor) -> do
             let emptyUpdateFunc _entityID = return ()

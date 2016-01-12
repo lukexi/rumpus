@@ -13,6 +13,7 @@ import Rumpus.Types
 
 import TinyRick
 
+renderEditors :: (MonadState World m, MonadIO m) => M44 GLfloat -> M44 GLfloat -> m ()
 renderEditors projM44 viewM44 = do
     let projViewM44 = projM44 !*! viewM44
     editors <- Map.toList <$> use (wldComponents . cmpScript)

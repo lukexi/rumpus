@@ -1,5 +1,14 @@
 
 
+Init functions
+Make cmpUpdate just refer to code.
+Editor should have a channel that it places new functions into to be consumed by rumpus.
+Likewise for initialize function.
+should have cmpInitialize that is run at beginning of frame when present, then deleted.
+    (make sure initialize is called on the children before they're instantiated too!
+    probably need to not spawn the entity til its code is ready)
+
+
 Core
 - [x] Direct manipulation to create (initially) boxes and spheres
     - Use a retargetable animation to pull the object to the hand
@@ -29,17 +38,22 @@ Modules
 - [x] Key handling
 
 
-- [ ] Build Pd patches physically. Remote control Pd in the same way as metapatching.
+- Build Pd patches physically. Remote control Pd in the same way as metapatching.
+    UPDATE: I've got this working in pd-haskell/test/test-meta
 
+- Extensible 
 Need a better way to define component-systems.
 E.g, would like a "Lifetime" component-system that makes a thing automatically expire.
 
 No need to make these fully runtime, I guess, thanks to halive?
 
+UPDATE: ok, I've got a sketch of this in Projects/extensible-systems/
 
+- Script systems
 "Script" system as parallel path. Component holds init func, which returns a state, and an update func which can update the state. Hold state in a Dynamic.
 
 
+- Touchable audio
 Route touchable audio through the vive touchpad such that it's audible from the outside!!
 Build a pair of threads that just listen for a frequency + envelope + duty cycle message and transform it to pulses for the controller.
 

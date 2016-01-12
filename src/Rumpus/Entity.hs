@@ -80,6 +80,9 @@ addScriptComponent entityID entity = forM_ (entity ^. entScript) $ \scriptPath -
     
     wldComponents . cmpScript . at entityID ?= editor
 
+    -- FIXME: Just for testing til we get a proper selection system
+    wldSelectedEntityID ?= entityID
+
 dequeueOpenALSource :: MonadState World m => m (Maybe (Int, OpenALSource))
 dequeueOpenALSource = do
     sources <- use wldOpenALSourcePool

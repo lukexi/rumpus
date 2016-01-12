@@ -61,6 +61,12 @@ data WorldStatic = WorldStatic
     , _wlsGHCChan       :: !(Chan (CompilationRequest (EntityID -> WorldMonad ())))
     }
 
+-- not yet used
+data Scene = Scene
+    { _scnName     :: String
+    , _scnEntities :: !(Map EntityID Entity)
+    }
+
 data World = World
     { _wldPlayer           :: !(Pose GLfloat)
     , _wldPlayerHeadM44    :: !(M44 GLfloat)
@@ -70,13 +76,10 @@ data World = World
     , _wldPlaying          :: !Bool
     , _wldEntityLibrary    :: !(Map String Entity)
     , _wldScene            :: !(Map EntityID Entity)
+    , _wldSelectedEntityID :: !(Maybe EntityID)
     }
 
--- not yet used
-data Scene = Scene
-    { _scnName :: String
-    , _scnEntities :: !(Map EntityID Entity)
-    }
+
 
 newWorld :: World
 newWorld = World
@@ -88,6 +91,7 @@ newWorld = World
     , _wldPlaying = False
     , _wldEntityLibrary = mempty
     , _wldScene = mempty
+    , _wldSelectedEntityID = Nothing
     }
 
 data Attachment = Attachment EntityID (Pose GLfloat)
