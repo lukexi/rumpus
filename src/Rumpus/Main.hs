@@ -1,9 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE RankNTypes #-}
+
 module Rumpus.Main where
 import Graphics.VR.Pal
 import Graphics.GL.Pal
@@ -60,13 +58,13 @@ main = withPd $ \pd -> do
             controlEventsSystem headM44 hands
 
             codeEditorSystem
+            
             syncCodeEditorSystem
 
             attachmentsSystem
 
-            isPlaying <- use wldPlaying
-            if isPlaying  
-                then do
+            use wldPlaying >>= \case
+                True -> do
                     scriptingSystem
                                         
                     physicsSystem
@@ -76,7 +74,7 @@ main = withPd $ \pd -> do
                     collisionsSystem
 
                     sceneEditorSystem
-                else do
+                False -> do
                     performDiscreteCollisionDetection dynamicsWorld
 
                     sceneEditorSystem
@@ -84,9 +82,6 @@ main = withPd $ \pd -> do
             openALSystem headM44
 
             renderSystem headM44
-
-
-
 
 
 

@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Wobble where
-import Rumpus.Entity
+import Rumpus.Systems.Physics
 import Rumpus.Types
 import Linear.Extra
 import Graphics.GL.Pal
