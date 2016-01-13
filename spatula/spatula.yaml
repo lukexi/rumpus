@@ -160,7 +160,7 @@
       - 0.8460811
       - 1.6334165
       - 8.472204e-2
-    OnStart: null
+    OnStart: spatula/SpatulaStart.hs
     PhysProps:
     - IsKinematic
     Name: Spatula

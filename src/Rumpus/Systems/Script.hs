@@ -13,7 +13,8 @@ scriptingSystem :: WorldMonad ()
 scriptingSystem = do
     traverseM_ (Map.toList <$> use (wldComponents . cmpOnStart)) $ 
         \(entityID, onStart) -> do
-            onStart entityID
+            scriptData <- onStart entityID
+            wldComponents . cmpScriptData . at entityID .= scriptData
             -- Only call OnStart once
             wldComponents . cmpOnStart . at entityID .= Nothing
 
@@ -25,21 +26,29 @@ scriptingSystem = do
 
 addScriptComponent :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> Entity -> m ()
 addScriptComponent entityID entity = do
-    ghcChan <- view wlsGHCChan
-    font    <- view wlsFont
+
+    forM_ (entity ^. entOnStart) $ \scriptPath -> do
+        editor <- createCodeEditor scriptPath "start"
+        
+        wldComponents . cmpOnStartEditor . at entityID ?= editor
 
     forM_ (entity ^. entOnUpdate) $ \scriptPath -> do
-        resultTChan   <- recompilerForExpression ghcChan scriptPath "update"
-        codeRenderer  <- textRendererFromFile font scriptPath
-        errorRenderer <- createTextRenderer font (textBufferFromString "noFile" [])
-        let editor = CodeEditor 
-                { _cedCodeRenderer = codeRenderer
-                , _cedErrorRenderer = errorRenderer
-                , _cedResultTChan = resultTChan }
-        
+        editor <- createCodeEditor scriptPath "update"
         
         wldComponents . cmpOnUpdateEditor . at entityID ?= editor
 
         -- FIXME: Just for testing til we get a proper selection system
         wldSelectedEntityID ?= entityID
 
+createCodeEditor :: (MonadReader WorldStatic m, MonadIO m) => FilePath -> String -> m CodeEditor
+createCodeEditor scriptPath exprString = do
+    ghcChan <- view wlsGHCChan
+    font    <- view wlsFont
+
+    resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
+    codeRenderer  <- textRendererFromFile font scriptPath
+    errorRenderer <- createTextRenderer font (textBufferFromString "noFile" [])
+    return CodeEditor 
+            { _cedCodeRenderer = codeRenderer
+            , _cedErrorRenderer = errorRenderer
+            , _cedResultTChan = resultTChan }

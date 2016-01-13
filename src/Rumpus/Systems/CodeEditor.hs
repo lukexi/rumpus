@@ -14,7 +14,7 @@ import Graphics.VR.Pal
 import Rumpus.Systems.Shared
 import qualified Data.Map as Map
 
-createCodeEditorSystem :: IO (Font, TChan (CompilationRequest r))
+createCodeEditorSystem :: IO (Font, TChan CompilationRequest)
 createCodeEditorSystem = do
     ghcChan   <- startGHC ["app"]
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
@@ -40,11 +40,11 @@ syncCodeEditorSystem = do
     font <- view wlsFont
 
 
-    let updateFromEditor :: Lens' Components (EntityMap (CodeEditor r)) -> Lens' Components (EntityMap r) -> WorldMonad ()
+    let updateFromEditor :: Lens' Components (EntityMap CodeEditor) -> Lens' Components (EntityMap r) -> WorldMonad ()
         updateFromEditor editorLens valueLens =
             traverseM_ (Map.toList <$> use (wldComponents . editorLens)) $
                 \(entityID, editor) -> 
-                    tryReadTChanIO (editor ^. cedResultTChan) >>= \case
+                    fmap getCompilationResult <$> tryReadTChanIO (editor ^. cedResultTChan) >>= \case
                         Just (Left errors) -> do
                             errorRenderer <- createTextRenderer font (textBufferFromString "noFile" (unlines errors))
                             wldComponents . editorLens . ix entityID . cedErrorRenderer .= errorRenderer

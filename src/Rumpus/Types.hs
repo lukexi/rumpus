@@ -23,8 +23,7 @@ import GHC.Generics
 import TinyRick
 import TinyRick.Recompiler2
 import Control.Concurrent.STM
-
-
+import Data.Dynamic
 
 type EntityID = Word32
 
@@ -46,9 +45,9 @@ type OnUpdate = EntityID -> WorldMonad ()
 nullOnUpdate :: OnUpdate
 nullOnUpdate _entityID = return ()
 
-type OnStart = EntityID -> WorldMonad ()
+type OnStart = EntityID -> WorldMonad (Maybe Dynamic)
 nullOnStart :: OnStart
-nullOnStart _entityID = return ()
+nullOnStart _entityID = return Nothing
 
 type CollidedWithID = EntityID
 type CollisionImpulse = GLfloat
@@ -62,7 +61,7 @@ data WorldStatic = WorldStatic
     , _wlsPd            :: !PureData
     , _wlsShapes        :: ![(ShapeType, Shape Uniforms)]
     , _wlsFont          :: !Font
-    , _wlsGHCChan       :: !(TChan (CompilationRequest (EntityID -> WorldMonad ())))
+    , _wlsGHCChan       :: !(TChan CompilationRequest)
     }
 
 data Scene = Scene
@@ -111,9 +110,10 @@ data Components = Components
     , _cmpOnStart           :: EntityMap OnStart
     , _cmpOnUpdate          :: EntityMap OnUpdate
     , _cmpOnCollision       :: EntityMap OnCollision
-    , _cmpOnStartEditor     :: EntityMap (CodeEditor OnStart)
-    , _cmpOnUpdateEditor    :: EntityMap (CodeEditor OnUpdate)
-    , _cmpOnCollisionEditor :: EntityMap (CodeEditor OnCollision)
+    , _cmpOnStartEditor     :: EntityMap CodeEditor
+    , _cmpOnUpdateEditor    :: EntityMap CodeEditor
+    , _cmpOnCollisionEditor :: EntityMap CodeEditor
+    , _cmpScriptData        :: EntityMap Dynamic
     , _cmpParent            :: EntityMap EntityID
     , _cmpRigidBody         :: EntityMap RigidBody
     , _cmpGhostObject       :: EntityMap GhostObject
@@ -145,6 +145,7 @@ newComponents = Components
     , _cmpOnStartEditor     = mempty
     , _cmpOnUpdateEditor    = mempty
     , _cmpOnCollisionEditor = mempty
+    , _cmpScriptData        = mempty
     , _cmpParent            = mempty
     , _cmpRigidBody         = mempty
     , _cmpGhostObject       = mempty
@@ -188,8 +189,8 @@ newEntity = Entity
     }
 
 
-data CodeEditor r = CodeEditor
-    { _cedResultTChan   :: TChan (Either [String] r)
+data CodeEditor = CodeEditor
+    { _cedResultTChan   :: TChan CompilationResult
     , _cedCodeRenderer  :: TextRenderer
     , _cedErrorRenderer :: TextRenderer
     }
