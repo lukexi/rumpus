@@ -138,4 +138,23 @@ physicsSystemID = unsafePerformIO newKey
 
 We can store the systems' static data in the same way (e.g. dynamicsWorld, shapes, etc.)
 And then hopefully we can separate everything out into modules...
+
+
+Is this any improvement over just using a ton of global IORefs??
+I guess one thing Heinrich had in mind with Vault is that it's immutable, 
+and can thus be captured as an atomic whole, so that's something...
+
+
+
+
+
+
+More thoughts.
+Can replace current Entity struct with just a Map Text Value
+We'll make this a lazy Map such that the actual values are (encodeJSON value),
+thus deferring the serialization overhead until we actually write the thing to disk
+
+Systems will then have an "addComponent entityID componentName" call that gets triggered when deserializing an entity, 
+which they can match on to add a component if it matches their own componentName.
+
 -}

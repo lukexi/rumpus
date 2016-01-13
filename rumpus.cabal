@@ -19,9 +19,15 @@ library
   
   exposed-modules:     Rumpus.Types
                        Rumpus.Control
-                       Rumpus.Entity
-                       Rumpus.Render
                        Rumpus.Main
+                       Rumpus.Systems.Attachment
+                       Rumpus.Systems.CodeEditor
+                       Rumpus.Systems.SceneEditor
+                       Rumpus.Systems.Physics
+                       Rumpus.Systems.Render
+                       Rumpus.Systems.Script
+                       Rumpus.Systems.Shared
+                       Rumpus.Systems.Sound
                        Spatula
   ghc-options:         -O2 -Wall 
   build-depends:       base

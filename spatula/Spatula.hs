@@ -12,7 +12,9 @@ import Graphics.VR.Pal
 import Control.Monad.State
 import Control.Monad.Reader
 import Rumpus.Types
-import Rumpus.Entity
+import Rumpus.Systems.Shared
+import Rumpus.Systems.Physics
+import Rumpus.Systems.SceneEditor
 import Rumpus.Control
 import Physics.Bullet
 import Data.Maybe
@@ -99,7 +101,7 @@ spatula = newEntity
         , _entPhysProps   = [IsKinematic]
         , _entShape       = CubeShape
         , _entName        = "Spatula"
-        , _entScript      = Just "spatula/Wobble.hs"
+        , _entOnUpdate    = Just "spatula/Wobble.hs"
         , _entPdPatch     = Just "spatula/spatula2"
         }
 

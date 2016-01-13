@@ -1,12 +1,12 @@
 
 
-Init functions
-Make cmpUpdate just refer to code.
-Editor should have a channel that it places new functions into to be consumed by rumpus.
-Likewise for initialize function.
-should have cmpInitialize that is run at beginning of frame when present, then deleted.
-    (make sure initialize is called on the children before they're instantiated too!
-    probably need to not spawn the entity til its code is ready)
+[x] Start functions
+    Make cmpUpdate just refer to code.
+    Editor should have a channel that it places new functions into to be consumed by rumpus.
+    Likewise for start function.
+    [ ] should have cmpStart that is run at beginning of frame when present, then deleted.
+        (make sure start is called on the children before they're instantiated too!
+        probably need to not spawn the entity til its code is ready)
 
 
 Core
@@ -14,17 +14,29 @@ Core
     - Use a retargetable animation to pull the object to the hand
 - [x] Spawning instances
 - [ ] Broadcasting events
-    - Add a second channel or reuse the control events list with a 3rd Entity Event type
+    - Add a second channel or reuse the control events list with a 3rd Dynamic Entity Event type
     - How to make this extensible?
+        - Dynamic is a good fit here, I think;
+            use similar mailbox idea from cloudhaskell,
+            onEvent events $ \MyEventType x -> frobWith x
+            where onEvent does
+            onEvent f = do
+                events <- use wldEvents
+                forM_ events $ \e ->
+                    case fromDyn e of
+                        Just r  -> f r
+                        Nothing -> return ()
+            This uses the cool trick where type inference flows backwards from the "f r" application
+            to the fromDyn application.
 - [x] Component files
     - [x] YAML file for scene definition, scripts in .hs files.
 
 
 Features
 - [ ] Instanced rendering
+- [ ] Entity property-editor sliders for anything not easily directly-manipulable
 - [x] Switch between edit and play modes (edit = no physics, reset initial positions)
         Would be fun to pause physics to inspect too.
-- [ ] Entity property-editor sliders for anything not easily directly-manipulable
 
 Modules
 - [ ] Animation component

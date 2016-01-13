@@ -1,6 +1,12 @@
+{-# LANGUAGE FlexibleContexts #-}
+module Mess where
+import Rumpus.Entity
+import Rumpus.Types
+import Linear.Extra
+import Graphics.GL.Pal
 import Control.Monad.Random
 
-initialize = do
+start = do
     stdgen <- liftIO getStdGen
     _ <- flip runRandT stdgen $ do
         forM_ [1..100::Int] $ \_ -> do

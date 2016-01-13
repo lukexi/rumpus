@@ -56,21 +56,24 @@ controlEventsSystem headM44 hands = do
         : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands')
         )
 
-    
+
 emulateRightHand :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => m [Hand]
 emulateRightHand = do
-    VRPal{..}  <- view wlsVRPal
-    player     <- use wldPlayer
-    projM44    <- getWindowProjection gpWindow 45 0.1 1000
-    mouseRay   <- cursorPosToWorldRay gpWindow projM44 player
-    mouseState <- getMouseButton gpWindow MouseButton'1
-    let handZ = 5 -- TODO: control with scroll/pinch?
+    VRPal{..}   <- view wlsVRPal
+    player      <- use wldPlayer
+    projM44     <- getWindowProjection gpWindow 45 0.1 1000
+    mouseRay    <- cursorPosToWorldRay gpWindow projM44 player
+    mouseState1 <- getMouseButton gpWindow MouseButton'1
+    mouseState2 <- getMouseButton gpWindow MouseButton'2
+    let handZ        = 5 -- TODO: control with scroll/pinch?
         handPosition = projectRay mouseRay handZ
-        trigger = if mouseState == MouseButtonState'Pressed then 1 else 0
-        handMatrix = identity & translation .~ handPosition
+        trigger      = if mouseState1 == MouseButtonState'Pressed then 1 else 0
+        grip         = mouseState2 == MouseButtonState'Pressed
+        handMatrix   = identity & translation .~ handPosition
         hand = emptyHand 
                 & hndMatrix  .~ handMatrix
                 & hndTrigger .~ trigger
+                & hndGrip    .~ grip
     return [hand]
 
 
@@ -78,12 +81,12 @@ toggleWorldPlaying :: (MonadState World m) => m ()
 toggleWorldPlaying = wldPlaying %= not
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
-buttonPairs = [ (HandButtonGrip, view hndGrip)
+buttonPairs = [ (HandButtonGrip,    view hndGrip)
               , (HandButtonTrigger, view (hndTrigger . to (> 0.5)))
-              , (HandButtonA, view hndButtonA)
-              , (HandButtonB, view hndButtonB)
-              , (HandButtonC, view hndButtonC)
-              , (HandButtonD, view hndButtonD)
+              , (HandButtonA,       view hndButtonA)
+              , (HandButtonB,       view hndButtonB)
+              , (HandButtonC,       view hndButtonC)
+              , (HandButtonD,       view hndButtonD)
               ]
 
 withLeftHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()

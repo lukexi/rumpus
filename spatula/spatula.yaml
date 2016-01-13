@@ -1,16 +1,17 @@
-- - 355696329
+- - 328565613
   - Mass: 1
-    Script: null
-    PdPatch: spatula/spatula1
+    OnCollision: null
+    PdPatch: null
     Size:
-    - 0.5
-    - 0.5
-    - 0.5
+    - 1
+    - 1
+    - 1
     Color:
     - 1
     - 1
     - 1
     - 1
+    OnUpdate: null
     Scale:
     - 1
     - 1
@@ -23,15 +24,82 @@
         - 0.0
         - 0.0
       Position:
-      - -0.7641964
-      - 2.7601395
-      - 0.12631512
+      - -1.4007388
+      - 1.7522999
+      - 0.20401049
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
+- - 355696329
+  - Mass: 1
+    OnCollision: null
+    PdPatch: spatula/spatula1
+    Size:
+    - 0.5
+    - 0.5
+    - 0.5
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.64338684
+      - - 0.29334962
+        - -0.2933492
+        - -0.64338607
+      Position:
+      - -0.61874306
+      - 2.7690928
+      - 0.82642466
+    OnStart: null
     PhysProps: []
     Name: SoundCube
     Shape: CubeShape
+- - 484069477
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 3.572922
+      - 1.1116388
+      - 0.9236493
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
 - - 694474371
   - Mass: 1
-    Script: null
+    OnCollision: null
     PdPatch: null
     Size:
     - 0.1
@@ -42,6 +110,7 @@
     - 0.8
     - 0.7
     - 1
+    OnUpdate: null
     Scale:
     - 1
     - 1
@@ -57,23 +126,25 @@
       - 0.0
       - 0.1
       - 0.0
+    OnStart: null
     PhysProps:
     - IsGhost
     Name: Left Hand
     Shape: CubeShape
-- - 1801803679
+- - 710728279
   - Mass: 1
-    Script: null
+    OnCollision: null
     PdPatch: null
     Size:
-    - 0.3
-    - 0.3
-    - 0.3
+    - 1
+    - 1
+    - 1
     Color:
     - 1
     - 1
     - 1
     - 1
+    OnUpdate: null
     Scale:
     - 1
     - 1
@@ -86,15 +157,181 @@
         - 0.0
         - 0.0
       Position:
-      - 0.0
-      - 2
-      - 0.0
+      - -2.1253738
+      - 2.676004
+      - 0.5083823
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
+- - 944436442
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - -0.7410268
+      - 0.73655605
+      - -5.974722e-2
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
+- - 1527171685
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 2.6321747
+      - 2.148869
+      - 0.6618328
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
+- - 1527567801
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.99982363
+      - - 5.1123783e-7
+        - -1.8781379e-2
+        - 2.104322e-7
+      Position:
+      - 0.8464886
+      - 2.721042
+      - 0.5473711
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
+- - 1801803679
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.3
+    - 0.3
+    - 0.3
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - -1.0788016
+      - 1.7907791
+      - 6.731081e-2
+    OnStart: null
     PhysProps: []
     Name: MessyCube
     Shape: CubeShape
+- - 2776030384
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.6926867
+      - - 0.6926868
+        - -0.14207412
+        - 0.14207451
+      Position:
+      - -0.5089402
+      - 2.9482398
+      - 1.1439193
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
 - - 2978547395
   - Mass: 0.0
-    Script: null
+    OnCollision: null
     PdPatch: null
     Size:
     - 1000
@@ -105,6 +342,7 @@
     - 1
     - 1
     - 1
+    OnUpdate: null
     Scale:
     - 1
     - 1
@@ -120,12 +358,46 @@
       - 0.0
       - 0.0
       - 0.0
+    OnStart: null
     PhysProps: []
     Name: Floor
     Shape: StaticPlaneShape
+- - 3033533918
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.99989754
+      - - 3.6500643e-7
+        - 1.4317499e-2
+        - 5.836365e-6
+      Position:
+      - -3.2412157
+      - 0.5609561
+      - 0.28825712
+    OnStart: null
+    PhysProps: []
+    Name: Entity
+    Shape: CubeShape
 - - 3215898416
   - Mass: 1
-    Script: spatula/Wobble.hs
+    OnCollision: null
     PdPatch: spatula/spatula2
     Size:
     - 0.2
@@ -136,6 +408,7 @@
     - 1
     - 1
     - 1
+    OnUpdate: spatula/SpatulaUpdate.hs
     Scale:
     - 1
     - 1
@@ -148,16 +421,17 @@
         - 0.0
         - 0.0
       Position:
-      - 0.0
-      - 0.5
-      - 0.0
+      - 0.8460811
+      - 1.6334165
+      - 8.472204e-2
+    OnStart: null
     PhysProps:
     - IsKinematic
     Name: Spatula
     Shape: CubeShape
 - - 3216010645
   - Mass: 1
-    Script: null
+    OnCollision: null
     PdPatch: null
     Size:
     - 0.1
@@ -168,6 +442,7 @@
     - 1
     - 0.8
     - 1
+    OnUpdate: null
     Scale:
     - 1
     - 1
@@ -183,13 +458,14 @@
       - 0.0
       - 0.0
       - 0.0
+    OnStart: null
     PhysProps:
     - IsGhost
     Name: Right Hand
     Shape: CubeShape
 - - 3839326967
   - Mass: 1
-    Script: null
+    OnCollision: null
     PdPatch: null
     Size:
     - 0.3
@@ -200,6 +476,7 @@
     - 1
     - 1
     - 1
+    OnUpdate: null
     Scale:
     - 1
     - 1
@@ -212,9 +489,10 @@
         - 0.0
         - 0.0
       Position:
-      - -0.7497905
-      - 1.512239
-      - -0.15738583
+      - -0.7482303
+      - 2.6355174
+      - 9.153843e-3
+    OnStart: null
     PhysProps: []
     Name: MessyBall
     Shape: SphereShape
