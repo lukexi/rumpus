@@ -1,14 +1,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Sound where
+import PreludeExtra
+
 import Rumpus.Types
-import Sound.Pd
-import Control.Monad.State
-import Control.Monad.Reader
-import qualified Data.Map as Map
-import Linear.Extra
-import Control.Lens.Extra
-import Graphics.GL.Pal
 import Rumpus.Systems.Shared
+
+import qualified Data.Map as Map
 
 createSoundSystem :: MonadIO m => PureData -> m ()
 createSoundSystem pd = do

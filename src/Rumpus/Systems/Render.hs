@@ -1,15 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.Render where
-import Graphics.GL.Pal
-import Graphics.VR.Pal
-import Control.Lens.Extra
-import Control.Monad
-import Control.Monad.State
-import Control.Monad.Reader
-import qualified Data.Map as Map
-import Data.Maybe
+import PreludeExtra
 
+import qualified Data.Map as Map
 import Rumpus.Types
 
 import TinyRick

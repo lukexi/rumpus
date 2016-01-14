@@ -28,6 +28,7 @@ library
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound
+                       PreludeExtra
                        Spatula
   ghc-options:         -O2 -Wall 
   build-depends:       base

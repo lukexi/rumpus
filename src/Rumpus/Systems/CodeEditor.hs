@@ -39,7 +39,8 @@ syncCodeEditorSystem :: WorldMonad ()
 syncCodeEditorSystem = do
     font <- view wlsFont
 
-
+    -- Update the world state with the result of the editor upon successful compilations
+    -- or update the error renderers for each code editor on failures
     let updateFromEditor :: Lens' Components (EntityMap CodeEditor) -> Lens' Components (EntityMap r) -> WorldMonad ()
         updateFromEditor editorLens valueLens =
             traverseM_ (Map.toList <$> use (wldComponents . editorLens)) $

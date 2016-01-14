@@ -3,16 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Rumpus.Main where
-import Graphics.VR.Pal
-import Graphics.GL.Pal
-
-import Control.Monad
-import Control.Monad.State
-import Control.Lens.Extra
-import Control.Monad.Reader
-
-import Physics.Bullet
-import Sound.Pd
+import PreludeExtra
 
 import Rumpus.Types
 import Rumpus.Control

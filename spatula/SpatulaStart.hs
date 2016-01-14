@@ -1,8 +1,4 @@
-import Rumpus.Systems.Shared
-import Control.Lens.Extra
-import Rumpus.Types
-import Sound.Pd
-import Data.Dynamic
+import Rumpus
 
 start :: OnStart
 start entityID = do

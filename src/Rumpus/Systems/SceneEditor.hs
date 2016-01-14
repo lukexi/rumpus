@@ -1,24 +1,19 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 module Rumpus.Systems.SceneEditor where
+import PreludeExtra
+
 import Rumpus.Types
-import Data.Maybe
-import Rumpus.Systems.Shared
 import Rumpus.Control
-import Control.Monad
-import Control.Monad.State
-import Control.Monad.Reader
-import Graphics.VR.Pal
+import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.Script
 import Rumpus.Systems.Sound
-import Linear.Extra
-import Control.Lens.Extra
-import Graphics.GL.Pal
+
 import Data.Yaml hiding ((.=))
 import qualified Data.Map as Map
-import System.Random
+
 
 sceneEditorSystem :: WorldMonad ()
 sceneEditorSystem = do
@@ -37,6 +32,9 @@ sceneEditorSystem = do
                     overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
                                             =<< getEntityGhostOverlappingEntityIDs handEntityID
                     forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
+                        -- Select the entity (it's ok to select the floor, just not move it)
+                        wldSelectedEntityID ?= touchedID
+
                         name <- getEntityName touchedID
                         when (name /= "Floor") $ 
                             attachEntity handEntityID touchedID

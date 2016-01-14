@@ -6,24 +6,17 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE RankNTypes #-}
 module Rumpus.Types where
-import Control.Lens.Extra
-import Linear.Extra
-import Graphics.UI.GLFW.Pal
-import Graphics.GL.Pal
-import Graphics.VR.Pal
-import Physics.Bullet
-import Sound.Pd
-import Data.Map (Map)
+import PreludeExtra
+
 import GHC.Word
-import Control.Monad.State
-import Control.Monad.Reader
+import GHC.Generics
+
 import Data.Yaml
 import Data.Aeson.Types
-import GHC.Generics
+
 import TinyRick
 import TinyRick.Recompiler2
-import Control.Concurrent.STM
-import Data.Dynamic
+
 
 type EntityID = Word32
 

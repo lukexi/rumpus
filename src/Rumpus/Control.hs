@@ -4,16 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 module Rumpus.Control where
-import Graphics.UI.GLFW.Pal
-import Graphics.GL.Pal
-import Graphics.VR.Pal
-
-import Control.Monad
-import Control.Monad.State
-import Control.Monad.Reader
-import Control.Lens.Extra
-import Data.Maybe
-
+import PreludeExtra
 import Rumpus.Types
 
 controlEventsSystem :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => M44 GLfloat -> [Hand] -> m ()

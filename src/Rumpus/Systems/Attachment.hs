@@ -1,15 +1,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Attachment where
-import Control.Monad.State
-import Control.Monad.Reader
+import PreludeExtra
+
 import qualified Data.Map as Map
-import Control.Lens.Extra
-import Linear.Extra
 
 import Rumpus.Types
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import Physics.Bullet
 
 attachmentsSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 attachmentsSystem = do

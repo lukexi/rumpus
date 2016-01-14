@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Script where
-import Rumpus.Types
+import PreludeExtra
+
 import qualified Data.Map as Map
-import Control.Lens.Extra
-import Control.Monad.State
-import Control.Monad.Reader
+
+import Rumpus.Types
+import Rumpus.Systems.Shared
 import TinyRick.Recompiler2
 import TinyRick
-import Rumpus.Systems.Shared
 
 scriptingSystem :: WorldMonad ()
 scriptingSystem = do
@@ -37,8 +37,6 @@ addScriptComponent entityID entity = do
         
         wldComponents . cmpOnUpdateEditor . at entityID ?= editor
 
-        -- FIXME: Just for testing til we get a proper selection system
-        wldSelectedEntityID ?= entityID
 
 createCodeEditor :: (MonadReader WorldStatic m, MonadIO m) => FilePath -> String -> m CodeEditor
 createCodeEditor scriptPath exprString = do

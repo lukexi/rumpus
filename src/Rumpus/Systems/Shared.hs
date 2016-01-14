@@ -1,23 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 module Rumpus.Systems.Shared where
-import Control.Monad.State
-import Control.Monad.Reader
+import PreludeExtra
+
 import Rumpus.Types
-import Linear.Extra
-import Control.Lens.Extra
 import qualified Data.Map as Map
-import Data.Maybe
-import Graphics.GL.Pal
-import Data.Foldable
+
 setEntityColor :: (MonadState World m, MonadReader WorldStatic m) => V4 GLfloat -> EntityID -> m ()
 setEntityColor newColor entityID = wldComponents . cmpColor . ix entityID .= newColor
-
-useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
-useMaybeM_ aLens f = do
-    current <- use aLens
-    mapM_ f current
-
 
 
 getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
@@ -35,3 +25,8 @@ traverseM f x = f >>= traverse x
 
 traverseM_ :: (Monad m, Foldable t) => m (t a) -> (a -> m b) -> m ()
 traverseM_ f x = f >>= traverse_ x
+
+useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
+useMaybeM_ aLens f = do
+    current <- use aLens
+    mapM_ f current
