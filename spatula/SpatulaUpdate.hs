@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
-module Wobble where
+module SpatulaUpdate where
 import Rumpus
 
 update :: OnUpdate
@@ -12,7 +12,7 @@ update entityID = do
         newPose_ = Pose (V3 spatX 0.1   spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
     setEntityPose newPose_ entityID
 
-    withScriptData entityID $ \channel -> 
+    withScriptData entityID $ \channel -> do
         (liftIO . atomically . readTChan) channel >>= \case
             Atom (Float freq) -> setEntityColor (hslColor (freq/1000) 0.9 0.8 1) entityID
             _ -> return ()

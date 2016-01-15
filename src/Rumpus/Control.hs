@@ -56,11 +56,14 @@ emulateRightHand = do
     mouseRay    <- cursorPosToWorldRay gpWindow projM44 player
     mouseState1 <- getMouseButton gpWindow MouseButton'1
     mouseState2 <- getMouseButton gpWindow MouseButton'2
+    a <- getNow
     let handZ        = 5 -- TODO: control with scroll/pinch?
         handPosition = projectRay mouseRay handZ
         trigger      = if mouseState1 == MouseButtonState'Pressed then 1 else 0
         grip         = mouseState2 == MouseButtonState'Pressed
-        handMatrix   = identity & translation .~ handPosition
+        handMatrix   = transformationFromPose $ newPose 
+                                              & posPosition .~ handPosition 
+                                              & posOrientation .~ axisAngle (V3 0 1 0) a
         hand = emptyHand 
                 & hndMatrix  .~ handMatrix
                 & hndTrigger .~ trigger

@@ -15,11 +15,12 @@ import Rumpus.Systems.Render
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Script
 import Rumpus.Systems.Sound
-
+import Halive.Utils
 main :: IO ()
-main = withPd $ \pd -> do
-
-    vrPal  <- initVRPal "Rumpus" [UseOpenVR]
+-- main = withPd $ \pd -> do
+main = do
+    pd    <- reacquire 0 $ initLibPd
+    vrPal <- reacquire 1 $ initVRPal "Rumpus" [UseOpenVR]
 
     _               <- createSoundSystem pd
     shapes          <- createRenderSystem

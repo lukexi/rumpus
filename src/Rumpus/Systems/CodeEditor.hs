@@ -16,7 +16,7 @@ import qualified Data.Map as Map
 
 createCodeEditorSystem :: IO (Font, TChan CompilationRequest)
 createCodeEditorSystem = do
-    ghcChan   <- startGHC ["app"]
+    ghcChan   <- startGHC []
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
     font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
 

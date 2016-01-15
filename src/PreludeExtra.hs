@@ -4,7 +4,6 @@ import Control.Monad.State as Exports
 import Control.Monad.Reader as Exports hiding (local)
 import Data.Maybe as Exports
 import Data.Foldable as Exports
-import Control.Monad as Exports
 import Control.Concurrent as Exports
 import Control.Concurrent.STM as Exports
 import Data.Map as Exports (Map)
