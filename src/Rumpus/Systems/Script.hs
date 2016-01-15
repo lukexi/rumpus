@@ -50,3 +50,28 @@ createCodeEditor scriptPath exprString = do
             { _cedCodeRenderer = codeRenderer
             , _cedErrorRenderer = errorRenderer
             , _cedResultTChan = resultTChan }
+
+withScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
+                    EntityID -> (a -> m ()) -> m ()
+withScriptData entityID f = 
+    traverseM_ (use (wldComponents . cmpScriptData . at entityID)) $ \dynScriptData -> do
+        case fromDynamic dynScriptData of
+            Just scriptData -> f scriptData
+            Nothing -> putStrLnIO 
+                ("withScriptData: Attempted to use entityID " ++ show entityID 
+                    ++ "'s script data of type " ++ show dynScriptData 
+                    ++ " with a function that accepts a different type.")
+
+editScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
+                    EntityID -> (a -> m a) -> m ()
+editScriptData entityID f = 
+    traverseM_ (use (wldComponents . cmpScriptData . at entityID)) $ \dynScriptData -> do
+        case fromDynamic dynScriptData of
+            Just scriptData -> do
+                newScriptData <- f scriptData
+                wldComponents . cmpScriptData . at entityID ?= toDyn newScriptData
+            Nothing -> do
+                putStrLnIO 
+                    ("editScriptData: Attempted to use entityID " ++ show entityID 
+                        ++ "'s script data of type " ++ show dynScriptData 
+                        ++ " with a function that accepts a different type.")

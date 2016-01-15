@@ -37,6 +37,8 @@ Features
 - [ ] Entity property-editor sliders for anything not easily directly-manipulable
 - [x] Switch between edit and play modes (edit = no physics, reset initial positions)
         Would be fun to pause physics to inspect too.
+- [ ] Resource pooling - rather than deleting resources, return them to a pool to be pulled out by new entities.
+        Allocate a big chunk of these at startup.
 
 Modules
 - [ ] Animation component
