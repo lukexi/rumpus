@@ -11,6 +11,7 @@ in      vec3 aTangent;
 
 out     vec3 vPosition;
 out     vec3 vNormal;
+out     vec2 vUV;
 
 void main() {
     // Apply all matrix transformations to vert
@@ -19,4 +20,5 @@ void main() {
     // Pass some variables to the fragment shader
     vPosition = vec3(uModel * vec4(aPosition, 1.0));
     vNormal   = vec3(uModel * vec4(aNormal, 0.0));
+    vUV       = aUV;
 }

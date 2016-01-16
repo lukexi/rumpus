@@ -178,7 +178,7 @@
     - 1
     - 0.8
     - 1
-    OnUpdate: null
+    OnUpdate: spatula/HandFireUpdate.hs
     Scale:
     - 1
     - 1

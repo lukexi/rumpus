@@ -64,11 +64,11 @@ emulateRightHand = do
         handMatrix   = transformationFromPose $ newPose 
                                               & posPosition .~ handPosition 
                                               & posOrientation .~ axisAngle (V3 0 1 0) a
-        hand = emptyHand 
+        rightHand = emptyHand 
                 & hndMatrix  .~ handMatrix
                 & hndTrigger .~ trigger
                 & hndGrip    .~ grip
-    return [hand]
+    return [emptyHand, rightHand]
 
 
 toggleWorldPlaying :: (MonadState World m) => m ()

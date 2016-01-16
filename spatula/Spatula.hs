@@ -74,12 +74,6 @@ soundCube = newEntity
             , _entShape = CubeShape
             , _entName  = "SoundCube"
             , _entPdPatch = Just "spatula/spatula1"
-            -- , _entCollision = Just $ \entityID _collidedWithID impulse -> when (impulse > 0.1) $ do
-            --     pd <- view wlsPd
-                
-            --     useMaybeM_ (wldComponents . cmpPdPatch . at entityID) $ \patch -> do
-            --         send pd patch "note" (Atom (Float (48 + fromIntegral i * 2)))
-            --         send pd patch "trigger" (Atom (Float impulse))
             }
 
 

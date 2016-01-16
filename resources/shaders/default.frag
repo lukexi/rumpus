@@ -5,6 +5,7 @@ uniform vec4 uDiffuse;
 
 in      vec3 vPosition;
 in      vec3 vNormal;
+in      vec2 vUV;
 
 out     vec4 fragColor;
 
@@ -12,6 +13,13 @@ const   vec3 lightColor = vec3(1);
 const   float ambient = 0.2;
 
 void main() {
+
+    vec4 color = uDiffuse;
+
+    // color.r += sin(vUV.x*30)*0.1;
+    // color.g += sin(vUV.y*40)*0.1;
+
+    // Lighting
 
     vec3 lightPosition = uCamera;
     
@@ -22,7 +30,7 @@ void main() {
     vec3 surfacePos = vPosition;
     
     // vec4 surfaceColor = texture(materialTex, fragTexCoord);
-    vec4 surfaceColor = uDiffuse;
+    vec4 surfaceColor = color;
     vec3 surfaceToLight = normalize(lightPosition - surfacePos);
 
     // Calculate final color of the pixel, based on:
