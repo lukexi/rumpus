@@ -10,6 +10,8 @@ import Data.Map as Exports (Map)
 import System.Random as Exports
 import Data.Dynamic as Exports
 import Debug.Trace as Exports
+import Data.Fixed as Exports
+
 
 import Control.Lens.Extra as Exports hiding (List)
 import Linear.Extra as Exports hiding (trace)

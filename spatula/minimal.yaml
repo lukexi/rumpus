@@ -232,3 +232,37 @@
     PhysProps: []
     Name: MessyBall
     Shape: SphereShape
+- - 3839326968
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 0.0
+    - 1
+    OnUpdate: spatula/PlayHeadUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.95823014
+      - - 0.0
+        - 0.2859982
+        - 0.0
+      Position:
+      - -0.29861173
+      - 1.9871751
+      - 7.083609e-2
+    OnStart: null
+    PhysProps:
+    - IsGhost
+    Name: PlayHead
+    Shape: CubeShape
