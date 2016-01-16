@@ -37,6 +37,11 @@ addScriptComponent entityID entity = do
         
         wldComponents . cmpOnUpdateEditor . at entityID ?= editor
 
+    forM_ (entity ^. entOnCollision) $ \scriptPath -> do
+        editor <- createCodeEditor scriptPath "collision"
+        
+        wldComponents . cmpOnCollisionEditor . at entityID ?= editor
+
 
 createCodeEditor :: (MonadReader WorldStatic m, MonadIO m) => FilePath -> String -> m CodeEditor
 createCodeEditor scriptPath exprString = do

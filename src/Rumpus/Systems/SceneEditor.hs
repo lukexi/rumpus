@@ -57,7 +57,8 @@ loadSceneFile sceneFile =
         Left parseException -> putStrLnIO ("Error loading " ++ sceneFile ++ ": " ++ show parseException)
         Right entities -> do
             wldScene .= Scene { _scnName = sceneFile, _scnEntities = Map.fromList entities }
-            forM_ (entities :: [(EntityID, Entity)]) $ \(entityID, entity) -> 
+            forM_ (entities :: [(EntityID, Entity)]) $ \(entityID, entity) -> do
+                defineEntity entity
                 createEntityWithID Persistent entityID entity
 
 saveScene :: (MonadState World m, MonadIO m) => m ()
@@ -84,7 +85,6 @@ createEntity persistence entity = do
 createEntityWithID :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
                    => Persistence -> EntityID -> Entity -> m EntityID
 createEntityWithID persistence entityID entity = do
-
     when (persistence == Persistent) $
         wldScene . scnEntities . at entityID ?= entity
 

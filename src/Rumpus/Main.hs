@@ -42,7 +42,7 @@ main = do
 
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
-        loadSceneFile "spatula/spatula.yaml"
+        loadSceneFile "spatula/minimal.yaml"
 
         whileVR vrPal $ \headM44 hands -> do
             

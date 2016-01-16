@@ -4,7 +4,7 @@
     Make cmpUpdate just refer to code.
     Editor should have a channel that it places new functions into to be consumed by rumpus.
     Likewise for start function.
-    [ ] should have cmpStart that is run at beginning of frame when present, then deleted.
+    [x] should have cmpStart that is run at beginning of frame when present, then deleted.
         (make sure start is called on the children before they're instantiated too!
         probably need to not spawn the entity til its code is ready)
 

@@ -39,3 +39,11 @@ addPdPatchComponent entityID entity = forM_ (entity ^. entPdPatch) $ \patchPath 
     dequeueOpenALSource >>= mapM_ (\(sourceChannel, _sourceID) -> do
         send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
         )
+
+withPdPatch :: MonadState World m => EntityID -> (Patch -> m b) -> m ()
+withPdPatch entityID = useMaybeM_ (wldComponents . cmpPdPatch . at entityID)
+
+sendPd :: (MonadIO m, MonadReader WorldStatic m) => Patch -> Receiver -> Message -> m ()
+sendPd patch receiver message = do
+    pd <- view wlsPd
+    send pd patch receiver message

@@ -1,6 +1,6 @@
 - - 355696329
   - Mass: 1
-    OnCollision: null
+    OnCollision: spatula/SoundCubeCollision.hs
     PdPatch: spatula/spatula1
     Size:
     - 0.5
@@ -127,7 +127,7 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: null
+    OnStart: spatula/MessStart.hs
     PhysProps: []
     Name: Floor
     Shape: StaticPlaneShape
@@ -186,14 +186,14 @@
     Children: []
     Pose:
       Orientation:
-      - 1
+      - 0.9596177
       - - 0.0
-        - 0.0
+        - 0.28130743
         - 0.0
       Position:
-      - 0.0
-      - 0.0
-      - 0.0
+      - 1.3076365e-3
+      - 0.8562407
+      - -6.86041e-2
     OnStart: null
     PhysProps:
     - IsGhost
@@ -202,15 +202,15 @@
 - - 3839326967
   - Mass: 1
     OnCollision: null
-    PdPatch: null
+    PdPatch: spatula/flutter
     Size:
     - 0.3
     - 0.3
     - 0.3
     Color:
+    - 0.0
     - 1
-    - 1
-    - 1
+    - 0.0
     - 1
     OnUpdate: null
     Scale:
@@ -220,14 +220,14 @@
     Children: []
     Pose:
       Orientation:
-      - 0.2667387
-      - - 0.5628246
-        - 0.75256044
-        - 0.21384938
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
       Position:
-      - -2.1510026
-      - 2.1954386
-      - 0.32507098
+      - 0.0
+      - 0.0
+      - 0.0
     OnStart: null
     PhysProps: []
     Name: MessyBall

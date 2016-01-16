@@ -47,7 +47,9 @@ syncCodeEditorSystem = do
                 \(entityID, editor) -> 
                     fmap getCompilationResult <$> tryReadTChanIO (editor ^. cedResultTChan) >>= \case
                         Just (Left errors) -> do
-                            errorRenderer <- createTextRenderer font (textBufferFromString "noFile" (unlines errors))
+                            let allErrors = unlines errors
+                            putStrLnIO allErrors
+                            errorRenderer <- createTextRenderer font (textBufferFromString "noFile" allErrors)
                             wldComponents . editorLens . ix entityID . cedErrorRenderer .= errorRenderer
                         Just (Right value) ->
                             wldComponents . valueLens . at entityID ?= value
