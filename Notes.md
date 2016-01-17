@@ -1,6 +1,12 @@
 
 
-[x] Start functions
+
+
+
+Core
+- [ ] Load scenes from folders, add them to the path
+
+- [x] Start functions
     Make cmpUpdate just refer to code.
     Editor should have a channel that it places new functions into to be consumed by rumpus.
     Likewise for start function.
@@ -8,8 +14,6 @@
         (make sure start is called on the children before they're instantiated too!
         probably need to not spawn the entity til its code is ready)
 
-
-Core
 - [x] Direct manipulation to create (initially) boxes and spheres
     - Use a retargetable animation to pull the object to the hand
 - [x] Spawning instances
@@ -30,7 +34,7 @@ Core
             to the fromDyn application.
 - [x] Component files
     - [x] YAML file for scene definition, scripts in .hs files.
-
+- [x] Destroying entities
 
 Features
 - [ ] Instanced rendering

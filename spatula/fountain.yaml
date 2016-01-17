@@ -1,0 +1,170 @@
+- - 355696329
+  - Mass: 1
+    OnCollision: spatula/SoundCubeCollision.hs
+    PdPatch: spatula/spatula1
+    Size:
+    - 0.5
+    - 0.5
+    - 0.5
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - -0.9939828
+      - - 0.10954782
+        - 0.0
+        - 0.0
+      Position:
+      - -0.28256136
+      - 1.5246012
+      - 0.17519844
+    OnStart: null
+    PhysProps: []
+    Name: SoundCube
+    Shape: CubeShape
+    Lifetime: 2
+- - 694474371
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 0.1
+    - 0.4
+    Color:
+    - 1
+    - 0.8
+    - 0.7
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.1
+      - 0.0
+    OnStart: null
+    PhysProps:
+    - IsGhost
+    Name: Left Hand
+    Shape: CubeShape
+- - 2978547395
+  - Mass: 0.0
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1000
+    - 1000
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.70710677
+      - - -0.70710677
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.0
+      - 0.0
+    OnStart: spatula/MessStart.hs
+    PhysProps: []
+    Name: Floor
+    Shape: StaticPlaneShape
+- - 3216010645
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 0.1
+    - 0.4
+    Color:
+    - 0.7
+    - 1
+    - 0.8
+    - 1
+    OnUpdate: spatula/HandFireUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 0.9596177
+      - - 0.0
+        - 0.28130743
+        - 0.0
+      Position:
+      - 1.3076365e-3
+      - 0.8562407
+      - -6.86041e-2
+    OnStart: null
+    PhysProps:
+    - IsGhost
+    Name: Right Hand
+    Shape: CubeShape
+- - 3839326967
+  - Mass: 1
+    OnCollision: null
+    PdPatch: spatula/flutter
+    Size:
+    - 0.3
+    - 0.3
+    - 0.3
+    Color:
+    - 0.0
+    - 1
+    - 0.0
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.0
+      - 0.0
+    OnStart: null
+    PhysProps: []
+    Name: MessyBall
+    Shape: SphereShape
+    Lifetime: 2
+

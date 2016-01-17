@@ -22,9 +22,10 @@ library
                        Rumpus.Main
                        Rumpus.Systems.Attachment
                        Rumpus.Systems.CodeEditor
-                       Rumpus.Systems.SceneEditor
-                       Rumpus.Systems.Physics
+                       Rumpus.Systems.Lifetime
                        Rumpus.Systems.Render
+                       Rumpus.Systems.Physics
+                       Rumpus.Systems.SceneEditor
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound
@@ -50,6 +51,7 @@ library
                      , freetype-gl-mini
                      , stm
                      , halive
+                     , time
   default-language:    Haskell2010
 
 executable rumpus

@@ -42,6 +42,15 @@ addScriptComponent entityID entity = do
         
         wldComponents . cmpOnCollisionEditor . at entityID ?= editor
 
+removeScriptComponent :: MonadState World m => EntityID -> m ()
+removeScriptComponent entityID = do
+    wldComponents . cmpOnStartEditor . at entityID .= Nothing
+    wldComponents . cmpOnUpdateEditor . at entityID .= Nothing
+    wldComponents . cmpOnCollisionEditor . at entityID .= Nothing
+    wldComponents . cmpOnStart . at entityID .= Nothing
+    wldComponents . cmpOnUpdate . at entityID .= Nothing
+    wldComponents . cmpOnCollision . at entityID .= Nothing
+    wldComponents . cmpScriptData . at entityID .= Nothing
 
 createCodeEditor :: (MonadReader WorldStatic m, MonadIO m) => FilePath -> String -> m CodeEditor
 createCodeEditor scriptPath exprString = do

@@ -93,6 +93,8 @@ newWorld = World
 
 data Attachment = Attachment EntityID (Pose GLfloat)
 
+data Lifetime = Lifetime UTCTime NominalDiffTime
+
 data Components = Components
     { _cmpName              :: EntityMap String
     , _cmpPose              :: EntityMap (Pose GLfloat)
@@ -114,6 +116,7 @@ data Components = Components
     , _cmpPdPatch           :: EntityMap Patch
     , _cmpSoundSource       :: EntityMap OpenALSource
     , _cmpAttachment        :: EntityMap Attachment
+    , _cmpLifetime          :: EntityMap Lifetime
     }
 
 -- not yet used
@@ -146,6 +149,7 @@ newComponents = Components
     , _cmpPdPatch           = mempty
     , _cmpSoundSource       = mempty
     , _cmpAttachment        = mempty
+    , _cmpLifetime          = mempty
     }
 
 data Entity = Entity
@@ -158,6 +162,7 @@ data Entity = Entity
     , _entPhysProps   :: ![PhysicsProperties]
     , _entChildren    :: ![Entity]
     , _entMass        :: !Float
+    , _entLifetime    :: !(Maybe Float)
     , _entPdPatch     :: !(Maybe FilePath)
     , _entOnStart     :: !(Maybe FilePath)
     , _entOnUpdate    :: !(Maybe FilePath)
@@ -175,6 +180,7 @@ newEntity = Entity
     , _entPhysProps   = []
     , _entChildren    = []
     , _entMass        = 1
+    , _entLifetime    = Nothing
     , _entPdPatch     = Nothing
     , _entOnStart     = Nothing
     , _entOnUpdate    = Nothing

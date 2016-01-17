@@ -10,17 +10,19 @@ import Rumpus.Control
 
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Render
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Script
 import Rumpus.Systems.Sound
 import Halive.Utils
+
 main :: IO ()
--- main = withPd $ \pd -> do
-main = do
-    pd    <- reacquire 0 $ initLibPd
-    vrPal <- reacquire 1 $ initVRPal "Rumpus" [UseOpenVR]
+main = withPd $ \pd -> do
+-- main = do
+    vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
+    -- pd    <- reacquire 1 $ initLibPd
 
     _               <- createSoundSystem pd
     shapes          <- createRenderSystem
@@ -42,7 +44,8 @@ main = do
 
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
-        loadSceneFile "spatula/minimal.yaml"
+        -- loadSceneFile "spatula/minimal.yaml"
+        loadSceneFile "spatula/fountain.yaml"
 
         whileVR vrPal $ \headM44 hands -> do
             
@@ -66,6 +69,8 @@ main = do
                     collisionsSystem
 
                     sceneEditorSystem
+
+                    lifetimeSystem
                 False -> do
                     performDiscreteCollisionDetection dynamicsWorld
 

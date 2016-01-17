@@ -1,15 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 module Rumpus.Systems.Physics where
-import Physics.Bullet
+import PreludeExtra
 import Rumpus.Types
-import Control.Monad.Reader
-import Control.Monad.State
-import Control.Lens.Extra
-import qualified Data.Map as Map
-import Linear.Extra
 import Rumpus.Systems.Shared
-import Graphics.GL.Pal
+import qualified Data.Map as Map
 
 createPhysicsSystem :: IO DynamicsWorld
 createPhysicsSystem = createDynamicsWorld mempty
@@ -87,6 +82,18 @@ addPhysicsComponent entityID entity = do
 
                 wldComponents . cmpRigidBody . at entityID ?= rigidBody
 
+removePhysicsComponents :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
+removePhysicsComponents entityID = do
+    dynamicsWorld <- view wlsDynamicsWorld
+    withEntityRigidBody entityID $ \rigidBody -> do
+        removeRigidBody dynamicsWorld rigidBody
+    wldComponents . cmpRigidBody . at entityID .= Nothing
+
+    -- withEntityGhostObject entityID $ \ghostObject -> do
+    --     removeGhostObject dynamicsWorld ghostObject
+    wldComponents . cmpGhostObject . at entityID .= Nothing
+
+
 withEntityRigidBody :: MonadState World m => EntityID -> (RigidBody -> m b) -> m ()
 withEntityRigidBody entityID = useMaybeM_ (wldComponents . cmpRigidBody . at entityID)
 
@@ -108,6 +115,7 @@ setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => V
 setEntitySize newSize entityID = do
     wldComponents . cmpSize . ix entityID .= newSize
 
+    -- FIXME need to do this for ghost objects too
     withEntityRigidBody entityID $ \rigidBody -> do 
         dynamicsWorld <- view wlsDynamicsWorld
         setRigidBodyScale dynamicsWorld rigidBody newSize

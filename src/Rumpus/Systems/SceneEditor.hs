@@ -10,6 +10,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.Script
 import Rumpus.Systems.Sound
+import Rumpus.Systems.Lifetime
 
 import Data.Yaml hiding ((.=))
 import qualified Data.Map as Map
@@ -98,9 +99,32 @@ createEntityWithID persistence entityID entity = do
     addScriptComponent  entityID entity
     addPhysicsComponent entityID entity
     addPdPatchComponent entityID entity
+    addLifetimeComponent entityID entity
 
     forM_ (entity ^. entChildren) $ \child -> do
         childID <- createEntity persistence child
         wldComponents . cmpParent . at childID ?= entityID
     
     return entityID
+
+removeEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
+removeEntity entityID = do
+    removePhysicsComponents entityID
+    removeScriptComponent entityID
+    removePdPatchComponent entityID
+    removeLifetimeComponent entityID
+
+    wldComponents . cmpParent . at entityID .= Nothing
+    -- TODO remove this object from any objects claiming it as a parent.
+    -- Or delete them too.
+    -- (if we don't delete them, have them inherit their position from this object first)
+
+    wldComponents . cmpPose  . at entityID .= Nothing
+    wldComponents . cmpSize  . at entityID .= Nothing
+    wldComponents . cmpColor . at entityID .= Nothing
+    wldComponents . cmpScale . at entityID .= Nothing
+    wldComponents . cmpShape . at entityID .= Nothing
+    wldComponents . cmpName  . at entityID .= Nothing
+
+
+

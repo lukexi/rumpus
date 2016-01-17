@@ -20,6 +20,12 @@ getEntityName entityID = fromMaybe "No Name" <$> use (wldComponents . cmpName . 
 getEntityPose :: MonadState World m => EntityID -> m (Pose GLfloat)
 getEntityPose entityID = fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
 
+getEntitySize :: MonadState World m => EntityID -> m (V3 GLfloat)
+getEntitySize entityID = fromMaybe 1 <$> use (wldComponents . cmpSize . at entityID)
+
+getEntityColor :: MonadState World m => EntityID -> m (V4 GLfloat)
+getEntityColor entityID = fromMaybe 1 <$> use (wldComponents . cmpColor . at entityID)
+
 traverseM :: (Monad m, Traversable t) => m (t a) -> (a -> m b) -> m (t b)
 traverseM f x = f >>= traverse x
 

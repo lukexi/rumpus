@@ -40,6 +40,13 @@ addPdPatchComponent entityID entity = forM_ (entity ^. entPdPatch) $ \patchPath 
         send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
         )
 
+removePdPatchComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
+removePdPatchComponent entityID = do
+    pd <- view wlsPd
+    withPdPatch entityID $ \patch ->
+        closePatch pd patch
+    wldComponents . cmpPdPatch . at entityID .= Nothing
+
 withPdPatch :: MonadState World m => EntityID -> (Patch -> m b) -> m ()
 withPdPatch entityID = useMaybeM_ (wldComponents . cmpPdPatch . at entityID)
 

@@ -5,6 +5,7 @@ import PreludeExtra
 
 import qualified Data.Map as Map
 import Rumpus.Types
+import Rumpus.Systems.Shared
 
 import TinyRick
 
@@ -78,9 +79,9 @@ renderSimulation projM44 viewM44 = do
         entityIDsForShape <- getEntityIDsForShapeType shapeType
         forM_ entityIDsForShape $ \entityID -> do
 
-            size       <- fromMaybe 1       <$> use (wldComponents . cmpSize  . at entityID)
-            color      <- fromMaybe 1       <$> use (wldComponents . cmpColor . at entityID)
-            pose       <- fromMaybe newPose <$> use (wldComponents . cmpPose  . at entityID)
+            size  <- getEntitySize entityID
+            color <- getEntityColor entityID
+            pose  <- getEntityPose entityID
 
             let model = transformationFromPose pose !*! scaleMatrix size
             uniformM44 uModelViewProjection (projViewM44 !*! model)
