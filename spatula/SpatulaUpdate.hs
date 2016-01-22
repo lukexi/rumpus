@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+    {-# LANGUAGE LambdaCase #-}
 module SpatulaUpdate where
 import Rumpus
 
@@ -8,7 +8,7 @@ update entityID = do
     let a     = (*5) . sin . (/10) $ now
         spatX = (*a) . sin  $ now
         spatZ = (*a) . cos  $ now
-        newPose_ = Pose (V3 spatX 0.1   spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
+        newPose_ = Pose (V3 spatX 0.5   spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
     setEntityPose newPose_ entityID
 
     withScriptData entityID $ \channel -> do

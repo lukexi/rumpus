@@ -113,6 +113,7 @@ data Components = Components
     , _cmpRigidBody         :: EntityMap RigidBody
     , _cmpGhostObject       :: EntityMap GhostObject
     , _cmpSpring            :: EntityMap SpringConstraint
+    , _cmpPhysicsProperties :: EntityMap [PhysicsProperties]
     , _cmpPdPatch           :: EntityMap Patch
     , _cmpSoundSource       :: EntityMap OpenALSource
     , _cmpAttachment        :: EntityMap Attachment
@@ -146,6 +147,7 @@ newComponents = Components
     , _cmpRigidBody         = mempty
     , _cmpGhostObject       = mempty
     , _cmpSpring            = mempty
+    , _cmpPhysicsProperties = mempty
     , _cmpPdPatch           = mempty
     , _cmpSoundSource       = mempty
     , _cmpAttachment        = mempty

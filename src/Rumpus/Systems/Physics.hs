@@ -15,6 +15,7 @@ physicsSystem = do
     dynamicsWorld <- view wlsDynamicsWorld
     stepSimulation dynamicsWorld 90
 
+-- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components
 syncPhysicsPosesSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 syncPhysicsPosesSystem = do
     -- Sync rigid bodies with entity poses
@@ -23,7 +24,8 @@ syncPhysicsPosesSystem = do
             pose <- uncurry Pose <$> getBodyState rigidBody
             wldComponents . cmpPose . at entityID ?= pose
 
-
+-- | Loop through the collisions for this frame and call any 
+-- entities' registered collision callbacks
 collisionsSystem :: WorldMonad ()
 collisionsSystem = do
     dynamicsWorld <- view wlsDynamicsWorld
@@ -51,6 +53,8 @@ addPhysicsComponent entityID entity = do
         shapeType      = entity ^. entShape
         physProperties = entity ^. entPhysProps
         mass           = entity ^. entMass
+
+    wldComponents . cmpPhysicsProperties . at entityID ?= physProperties
 
     maybeShape <- case shapeType of
         NoShape          -> return Nothing

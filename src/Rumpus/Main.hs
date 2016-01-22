@@ -45,7 +45,8 @@ main = withPd $ \pd -> do
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
         -- loadSceneFile "spatula/minimal.yaml"
-        loadSceneFile "spatula/fountain.yaml"
+        -- loadSceneFile "spatula/fountain.yaml"
+        loadSceneFile "spatula/spatula.yaml"
 
         whileVR vrPal $ \headM44 hands -> do
             

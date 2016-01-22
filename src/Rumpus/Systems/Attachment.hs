@@ -36,8 +36,11 @@ detachEntity entityID =
     withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
 
         wldComponents . cmpAttachment . at entityID .= Nothing
-        withEntityRigidBody attachedEntityID $ \rigidBody ->
-            setRigidBodyKinematic rigidBody False
+
+        physProps <- fromMaybe [] <$> use (wldComponents . cmpPhysicsProperties . at attachedEntityID)
+        unless (IsKinematic `elem` physProps) $ 
+            withEntityRigidBody attachedEntityID $ \rigidBody ->
+                setRigidBodyKinematic rigidBody False
 
 withAttachment :: MonadState World m => EntityID -> (Attachment -> m b) -> m ()
 withAttachment entityID = useMaybeM_ (wldComponents . cmpAttachment . at entityID)

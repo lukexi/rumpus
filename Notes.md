@@ -83,6 +83,7 @@ Spherical piano
 Piano room
 Fractal Flower room
 Drum machine
+Fireworks (!)
 
 
 http://bulletphysics.org/Bullet/BulletFull/classbtConeTwistConstraint.html

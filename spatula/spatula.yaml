@@ -17,16 +17,17 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - 0.28406054
-      - - 0.0
-        - 0.9588064
-        - 0.0
+      - 3.2296768e-4
+      - - -0.9967747
+        - 1.2207031e-4
+        - -8.025053e-2
       Position:
-      - -0.21967663
-      - 1.9567112
-      - -0.27466118
+      - -1.4314804
+      - 1.075404
+      - -0.3022729
     OnStart: null
     PhysProps: []
     Name: SoundCube
@@ -50,6 +51,7 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 1
@@ -84,16 +86,17 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - -0.37515095
-      - - -1.22070305e-4
-        - 0.9269637
-        - 0.0
+      - 0.16151945
+      - - 0.68472815
+        - 0.69338334
+        - 0.15581514
       Position:
-      - 7.627717e-2
-      - 2.0567012
-      - 1.4102101e-2
+      - -0.44366735
+      - 1.2382588
+      - -0.5660496
     OnStart: null
     PhysProps: []
     Name: MessyCube
@@ -117,6 +120,7 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 0.70710677
@@ -150,16 +154,17 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - -0.2194393
-      - - 0.0
-        - 0.97562623
-        - 0.0
+      - 0.69133633
+      - - -2.8628026e-4
+        - 0.72253305
+        - 8.6316744e-5
       Position:
-      - -0.90313315
-      - 0.1
-      - 0.42845142
+      - 0.23167068
+      - 0.7138907
+      - -0.232716
     OnStart: spatula/SpatulaStart.hs
     PhysProps:
     - IsKinematic
@@ -184,6 +189,7 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 0.495197
@@ -218,16 +224,17 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - 0.8606907
-      - - 0.0
-        - -0.5091282
-        - -8.6316744e-5
+      - 0.62220174
+      - - -0.3477505
+        - 0.6865788
+        - 0.14333212
       Position:
-      - 0.80566657
-      - 1.4579561
-      - 0.13519958
+      - -8.312541e-2
+      - 2.3149238
+      - -0.3740393
     OnStart: null
     PhysProps: []
     Name: MessyBall
