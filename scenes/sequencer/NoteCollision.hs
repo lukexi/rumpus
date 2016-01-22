@@ -2,7 +2,7 @@ module SoundCubeCollision where
 import Rumpus
 
 collision :: OnCollision
-collision entityID _collidedID impulse = when (impulse > 0.1) $ do
+collision entityID _collidedID _impulse = do
     
     withPdPatch entityID $ \patch -> 
-        sendPd patch "trigger" (Atom (realToFrac impulse))
+        sendPd patch "trigger" (Atom 1)

@@ -35,7 +35,7 @@ leftHand = newEntity
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = CubeShape
         , _entPose        = newPose & posPosition .~ (V3 0 0.1 0)
-        , _entPhysProps   = [IsGhost]
+        , _entPhysProps   = [NoContactResponse]
         , _entName        = "Left Hand"
         }
 
@@ -44,7 +44,7 @@ rightHand = newEntity
         { _entColor       = V4 0.7 1 0.8 1 
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = CubeShape
-        , _entPhysProps   = [IsGhost]
+        , _entPhysProps   = [NoContactResponse]
         , _entName        = "Right Hand"
         }
 

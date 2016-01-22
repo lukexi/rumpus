@@ -1,114 +1,9 @@
-- - 694474371
-  - Mass: 1
-    OnCollision: null
-    PdPatch: null
-    Size:
-    - 0.1
-    - 0.1
-    - 0.4
-    Color:
-    - 1
-    - 0.8
-    - 0.7
-    - 1
-    OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Lifetime: null
-    Pose:
-      Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
-      Position:
-      - 0.0
-      - 0.1
-      - 0.0
-    OnStart: null
-    PhysProps:
-    - IsGhost
-    Name: Left Hand
-    Shape: CubeShape
-- - 1801803679
-  - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
-    PdPatch: scenes/sequencer/saw-voice
-    Size:
-    - 0.3
-    - 0.1
-    - 0.1
-    Color:
-    - 1
-    - 1
-    - 1
-    - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Lifetime: null
-    Pose:
-      Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
-      Position:
-      - 0.9423677
-      - 1.0612341
-      - 0.10490848
-    OnStart: null
-    PhysProps:
-    - IsKinematic
-    Name: Note
-    Shape: CubeShape
-- - 1801803680
-  - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
-    PdPatch: scenes/sequencer/saw-voice
-    Size:
-    - 0.3
-    - 0.1
-    - 0.1
-    Color:
-    - 1
-    - 1
-    - 1
-    - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Lifetime: null
-    Pose:
-      Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
-      Position:
-      - 0.5726322
-      - 0.91378653
-      - 0.1704236
-    OnStart: null
-    PhysProps:
-    - IsKinematic
-    Name: Note
-    Shape: CubeShape
 - - 1801803681
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
-    - 0.3
+    - 0.1
     - 0.1
     - 0.1
     Color:
@@ -130,9 +25,219 @@
         - 0.0
         - 0.0
       Position:
-      - 0.5609219
-      - 0.6681522
-      - 0.18362483
+      - 0.17036155
+      - 1.1219139
+      - 0.1299716
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803682
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.1
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.74622655
+      - 0.7951777
+      - 0.19150409
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803683
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.1
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.9206605
+      - 1.4271917
+      - 0.23405418
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803684
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.1
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.602226
+      - 0.8848458
+      - 0.17266473
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803685
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.1
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.9310613
+      - 1.0170342
+      - 0.2135025
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803686
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.1
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.2909709
+      - 1.1477076
+      - 0.1455222
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803687
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.1
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.5237771
+      - 1.3782191
+      - 0.17602882
     OnStart: null
     PhysProps:
     - IsKinematic
@@ -194,17 +299,17 @@
     Lifetime: null
     Pose:
       Orientation:
-      - 0.9596177
+      - 1
       - - 0.0
-        - 0.28130743
+        - 0.0
         - 0.0
       Position:
-      - 1.3076365e-3
-      - 0.8562407
-      - -6.86041e-2
+      - 0.9533405
+      - 1.1365529
+      - 4.173088e-2
     OnStart: null
     PhysProps:
-    - IsGhost
+    - NoContactResponse
     Name: Right Hand
     Shape: CubeShape
 - - 3839326968
@@ -234,11 +339,12 @@
         - 0.0
         - 0.0
       Position:
-      - 0.33935547
+      - 0.765625
       - 1
       - 0.0
     OnStart: null
     PhysProps:
-    - IsGhost
+    - NoContactResponse
+    - IsKinematic
     Name: PlayHead
     Shape: CubeShape

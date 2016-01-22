@@ -30,7 +30,7 @@
       - 0.0
     OnStart: null
     PhysProps:
-    - IsGhost
+    - NoContactResponse
     Name: Left Hand
     Shape: CubeShape
 - - 1801803679
@@ -133,6 +133,6 @@
       - -6.86041e-2
     OnStart: null
     PhysProps:
-    - IsGhost
+    - NoContactResponse
     Name: Right Hand
     Shape: CubeShape

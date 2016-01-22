@@ -30,17 +30,28 @@ collisionsSystem :: WorldMonad ()
 collisionsSystem = do
     dynamicsWorld <- view wlsDynamicsWorld
     -- Tell objects about any collisions
-    collisions <- getCollisions dynamicsWorld
+    -- collisions <- getCollisions dynamicsWorld
     
-    forM_ collisions $ \collision -> do
-        let bodyAID = (fromIntegral . unCollisionObjectID . cbBodyAID) collision
-            bodyBID = (fromIntegral . unCollisionObjectID . cbBodyBID) collision
-            appliedImpulse = cbAppliedImpulse collision
-        traverseM_ (use (wldComponents . cmpOnCollision . at bodyAID)) $
-            \onCollision -> onCollision bodyAID bodyBID appliedImpulse
+    -- forM_ collisions $ \collision -> do
+    --     let bodyAID = (fromIntegral . unCollisionObjectID . cbBodyAID) collision
+    --         bodyBID = (fromIntegral . unCollisionObjectID . cbBodyBID) collision
+    --         appliedImpulse = cbAppliedImpulse collision
+    --     traverseM_ (use (wldComponents . cmpOnCollision . at bodyAID)) $
+    --         \onCollision -> onCollision bodyAID bodyBID appliedImpulse
 
-        traverseM_ (use (wldComponents . cmpOnCollision . at bodyBID)) $
-            \onCollision -> onCollision bodyBID bodyAID appliedImpulse
+    --     traverseM_ (use (wldComponents . cmpOnCollision . at bodyBID)) $
+    --         \onCollision -> onCollision bodyBID bodyAID appliedImpulse
+
+        -- name1 <- getEntityName bodyAID
+        -- name2 <- getEntityName bodyBID
+        -- putStrLnIO $ name1 ++ " collided with " ++ name2 ++ " : " ++ show appliedImpulse
+
+    onCollisions <- Map.toList <$> use (wldComponents . cmpOnCollision)
+    forM_ onCollisions $ \(entityID, onCollision) -> do
+        collidingIDs <- getEntityOverlappingEntityIDs entityID
+        forM_ collidingIDs $ \collidingID -> 
+            onCollision entityID collidingID 0.1
+    
 
 
 
@@ -71,13 +82,18 @@ addPhysicsComponent entityID entity = do
                               }
 
         dynamicsWorld <- view wlsDynamicsWorld
-        if IsGhost `elem` physProperties 
+        if NoContactResponse `elem` physProperties 
             then do
-                ghostObject <- addGhostObject dynamicsWorld collisionID shape bodyInfo
+                -- ghostObject <- addGhostObject dynamicsWorld collisionID shape bodyInfo
 
-                wldComponents . cmpGhostObject . at entityID ?= ghostObject
+                -- wldComponents . cmpGhostObject . at entityID ?= ghostObject
 
-                return ()
+                rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+                setRigidBodyKinematic rigidBody True
+                setRigidBodyNoContactResponse rigidBody True
+                wldComponents . cmpRigidBody . at entityID ?= rigidBody
+
+                
             else do
                 rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
                 
@@ -93,33 +109,28 @@ removePhysicsComponents entityID = do
         removeRigidBody dynamicsWorld rigidBody
     wldComponents . cmpRigidBody . at entityID .= Nothing
 
-    -- withEntityGhostObject entityID $ \ghostObject -> do
-    --     removeGhostObject dynamicsWorld ghostObject
-    wldComponents . cmpGhostObject . at entityID .= Nothing
-
 
 withEntityRigidBody :: MonadState World m => EntityID -> (RigidBody -> m b) -> m ()
 withEntityRigidBody entityID = useMaybeM_ (wldComponents . cmpRigidBody . at entityID)
 
-withEntityGhostObject :: MonadState World m => EntityID -> (GhostObject -> m b) -> m ()
-withEntityGhostObject entityID = useMaybeM_ (wldComponents . cmpGhostObject . at entityID)
-
-getEntityGhostOverlapping :: (MonadState World m, MonadIO m) => EntityID -> m [CollisionObject]
-getEntityGhostOverlapping entityID = use (wldComponents . cmpGhostObject . at entityID) >>= \case
+getEntityOverlapping :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> m [Collision]
+getEntityOverlapping entityID = use (wldComponents . cmpRigidBody . at entityID) >>= \case
     Nothing          -> return []
-    Just ghostObject -> getGhostObjectOverlapping ghostObject
+    Just rigidBody -> do
+        dynamicsWorld <- view wlsDynamicsWorld
+        contactTest dynamicsWorld rigidBody
 
-getEntityGhostOverlappingEntityIDs :: (MonadState World m, MonadIO m) => EntityID -> m [EntityID]
-getEntityGhostOverlappingEntityIDs entityID = do
-    overlappingCollisionObjects <- getEntityGhostOverlapping entityID
-    map unCollisionObjectID <$> mapM getCollisionObjectID overlappingCollisionObjects
+getEntityOverlappingEntityIDs :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> m [EntityID]
+getEntityOverlappingEntityIDs entityID = 
+        filter (/= entityID) 
+        . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)]) 
+        <$> getEntityOverlapping entityID
 
 
 setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => V3 GLfloat -> EntityID -> m ()
 setEntitySize newSize entityID = do
     wldComponents . cmpSize . ix entityID .= newSize
 
-    -- FIXME need to do this for ghost objects too
     withEntityRigidBody entityID $ \rigidBody -> do 
         dynamicsWorld <- view wlsDynamicsWorld
         setRigidBodyScale dynamicsWorld rigidBody newSize
@@ -133,5 +144,3 @@ setEntityPose newPose_ entityID = do
 
     withEntityRigidBody entityID $ \rigidBody -> 
         setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
-    withEntityGhostObject entityID $ \ghostObject -> 
-        setCollisionObjectWorldTransform ghostObject (newPose_ ^. posPosition) (newPose_ ^. posOrientation)

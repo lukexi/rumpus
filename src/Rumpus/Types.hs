@@ -24,7 +24,7 @@ type EntityMap a = Map EntityID a
 
 data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape deriving (Eq, Show, Ord, Enum, Generic, FromJSON)
 
-data PhysicsProperties = IsKinematic | IsGhost deriving (Eq, Show, Generic, FromJSON)
+data PhysicsProperties = IsKinematic | NoContactResponse deriving (Eq, Show, Generic, FromJSON)
 
 type WorldMonad = StateT World (ReaderT WorldStatic IO)
 
@@ -111,7 +111,6 @@ data Components = Components
     , _cmpScriptData        :: EntityMap Dynamic
     , _cmpParent            :: EntityMap EntityID
     , _cmpRigidBody         :: EntityMap RigidBody
-    , _cmpGhostObject       :: EntityMap GhostObject
     , _cmpSpring            :: EntityMap SpringConstraint
     , _cmpPhysicsProperties :: EntityMap [PhysicsProperties]
     , _cmpPdPatch           :: EntityMap Patch
@@ -123,7 +122,6 @@ data Components = Components
 -- not yet used
 data PhysicsComponents = PhysicsComponents
     { _pcRigidBody   :: EntityMap RigidBody
-    , _pcGhostObject :: EntityMap GhostObject
     , _pcSpring      :: EntityMap SpringConstraint
     , _pcCollision   :: EntityMap OnCollision
     }
@@ -145,7 +143,6 @@ newComponents = Components
     , _cmpScriptData        = mempty
     , _cmpParent            = mempty
     , _cmpRigidBody         = mempty
-    , _cmpGhostObject       = mempty
     , _cmpSpring            = mempty
     , _cmpPhysicsProperties = mempty
     , _cmpPdPatch           = mempty

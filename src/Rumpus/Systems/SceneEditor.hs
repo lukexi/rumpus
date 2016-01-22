@@ -31,7 +31,8 @@ sceneEditorSystem = do
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
                     -- Find the entities overlapping the hand, and attach them to it
                     overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
-                                            =<< getEntityGhostOverlappingEntityIDs handEntityID
+                                                =<< getEntityOverlappingEntityIDs handEntityID
+                    
                     forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
                         -- Select the entity (it's ok to select the floor, just not move it)
                         wldSelectedEntityID ?= touchedID
@@ -99,9 +100,9 @@ createEntityWithID persistence entityID entity = do
     wldComponents . cmpShape . at entityID ?= entity ^. entShape
     wldComponents . cmpName  . at entityID ?= entity ^. entName
 
-    addScriptComponent  entityID entity
-    addPhysicsComponent entityID entity
-    addPdPatchComponent entityID entity
+    addScriptComponent   entityID entity
+    addPhysicsComponent  entityID entity
+    addPdPatchComponent  entityID entity
     addLifetimeComponent entityID entity
 
     forM_ (entity ^. entChildren) $ \child -> do
