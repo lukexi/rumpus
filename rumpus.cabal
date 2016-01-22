@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 
 library 
-  hs-source-dirs:      src, spatula
+  hs-source-dirs:      src
   
   exposed-modules:     Rumpus.Types
                        Rumpus.Control

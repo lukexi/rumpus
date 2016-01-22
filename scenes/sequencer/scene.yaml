@@ -1,37 +1,3 @@
-- - 355696329
-  - Mass: 1
-    OnCollision: scenes/sequencer/SoundCubeCollision.hs
-    PdPatch: scenes/sequencer/saw-voice
-    Size:
-    - 0.5
-    - 0.5
-    - 0.5
-    Color:
-    - 1
-    - 1
-    - 1
-    - 1
-    OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Lifetime: null
-    Pose:
-      Orientation:
-      - 0.64529127
-      - - 0.28913474
-        - 0.28913453
-        - 0.6452918
-      Position:
-      - -0.46437144
-      - 1.3495806
-      - -0.37104565
-    OnStart: null
-    PhysProps: []
-    Name: SoundCube
-    Shape: CubeShape
 - - 694474371
   - Mass: 1
     OnCollision: null
@@ -69,8 +35,8 @@
     Shape: CubeShape
 - - 1801803679
   - Mass: 1
-    OnCollision: null
-    PdPatch: null
+    OnCollision: scenes/sequencer/SoundCubeCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.3
     - 0.3
@@ -89,17 +55,18 @@
     Lifetime: null
     Pose:
       Orientation:
-      - 0.26410848
-      - - 0.655932
-        - -0.6559312
-        - -0.2641103
+      - 0.70633376
+      - - -3.1352352e-2
+        - 3.1435892e-2
+        - -0.70648533
       Position:
-      - -0.48957357
-      - 1.1360716
-      - 0.39346
+      - 0.64796436
+      - 1.248623
+      - 5.43101e-2
     OnStart: null
-    PhysProps: []
-    Name: MessyCube
+    PhysProps:
+    - IsKinematic
+    Name: Note
     Shape: CubeShape
 - - 2978547395
   - Mass: 0.0

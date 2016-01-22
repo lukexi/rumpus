@@ -55,6 +55,7 @@ Core
 
 Features
 - [ ] Instanced rendering
+- [ ] Transparency
 - [ ] Entity property-editor sliders for anything not easily directly-manipulable
 - [x] Switch between edit and play modes (edit = no physics, reset initial positions)
         Would be fun to pause physics to inspect too.

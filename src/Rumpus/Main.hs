@@ -20,6 +20,7 @@ import Halive.Utils
 
 main :: IO ()
 main = withPd $ \pd -> do
+
 -- main = do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
     -- pd    <- reacquire 1 $ initLibPd
@@ -42,12 +43,12 @@ main = withPd $ \pd -> do
                                         then newPose
                                         else newPose & posPosition .~ V3 0 1 5
 
+    args <- getArgs
+    let sceneName = fromMaybe "minimal" (listToMaybe args)
+
     void . flip runReaderT worldStatic . flip runStateT world $ do 
 
-        -- loadScene "minimal"
-        -- loadScene "sequencer"
-        -- loadScene "fountain"
-        loadScene "spatula"
+        loadScene sceneName
 
         whileVR vrPal $ \headM44 hands -> do
             
