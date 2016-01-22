@@ -1,10 +1,27 @@
+TONIGHT:
+Let's build the music sequencer.
+
+FIRST: Try the system out from inside. Fix egregious bugs.
 
 
+What's needed?
+
+Note object that changes pitch based on height.
+Already have playhead - transparency would be nice but not essential.
 
 
+Let's build it first, then see what we need to build it from scratch.
+Note and playhead objects just need update function, scaling, ghost object designation.
+Sketch out some ideas for how to interact with components.
+E.g. Scale. Color. Shape. PdPatch. Mass.
+    I like the idea of tools; choose the tool you want, reach into the object, use the touchpad.
+    Clone tool: hold the object you want to clone in your left hand, then hit trigger with right hand to place.
+Need a way to create script files, and assign them to objects.
+Create a script by default with a name like NewScript1 when creating an object, then just clone the object?
+    Clones inherit names from their parents, so the code will be inherited.
 
 Core
-- [ ] Load scenes from folders, add them to the path
+- [ ] Load scenes from folders, add their folder to the path
 
 - [x] Start functions
     Make cmpUpdate just refer to code.
@@ -74,17 +91,23 @@ UPDATE: ok, I've got a sketch of this in Projects/extensible-systems/
 "Script" system as parallel path. Component holds init func, which returns a state, and an update func which can update the state. Hold state in a Dynamic.
 
 
-- Touchable audio
-Route touchable audio through the vive touchpad such that it's audible from the outside!!
-Build a pair of threads that just listen for a frequency + envelope + duty cycle message and transform it to pulses for the controller.
-
 Demos:
-Spherical piano
-Piano room
-Fractal Flower room
-Drum machine
-Fireworks (!)
+- Spherical piano
+- Piano room
+- Fractal Flower room
+- Drum machine
+- Fireworks (!)
 
+- Garage band mini based on sequencer idea. Simple sampler, simple synth.
+
+- Touchable audio
+    Route touchable audio through the vive touchpad such that it's audible from the outside!!
+    Build a pair of threads that just listen for a frequency + envelope + duty cycle message and transform it to pulses for the controller.
+
+- Multiplayer is *really important*, do it asap before system gets too big as it will be a lot of rote refactoring.
+
+
+Links:
 
 http://bulletphysics.org/Bullet/BulletFull/classbtConeTwistConstraint.html
 http://www.vrinflux.com/newton-vr-physics-based-interaction-on-the-vive/
