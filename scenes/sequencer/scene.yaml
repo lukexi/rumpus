@@ -35,18 +35,18 @@
     Shape: CubeShape
 - - 1801803679
   - Mass: 1
-    OnCollision: scenes/sequencer/SoundCubeCollision.hs
+    OnCollision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.3
-    - 0.3
-    - 0.3
+    - 0.1
+    - 0.1
     Color:
     - 1
     - 1
     - 1
     - 1
-    OnUpdate: null
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
     Scale:
     - 1
     - 1
@@ -55,14 +55,84 @@
     Lifetime: null
     Pose:
       Orientation:
-      - 0.70633376
-      - - -3.1352352e-2
-        - 3.1435892e-2
-        - -0.70648533
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
       Position:
-      - 0.64796436
-      - 1.248623
-      - 5.43101e-2
+      - 0.9423677
+      - 1.0612341
+      - 0.10490848
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803680
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.3
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.5726322
+      - 0.91378653
+      - 0.1704236
+    OnStart: null
+    PhysProps:
+    - IsKinematic
+    Name: Note
+    Shape: CubeShape
+- - 1801803681
+  - Mass: 1
+    OnCollision: scenes/sequencer/NoteCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.3
+    - 0.1
+    - 0.1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.5609219
+      - 0.6681522
+      - 0.18362483
     OnStart: null
     PhysProps:
     - IsKinematic
@@ -142,7 +212,7 @@
     OnCollision: null
     PdPatch: null
     Size:
-    - 0.1
+    - 1.0e-2
     - 1
     - 1
     Color:
