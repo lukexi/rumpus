@@ -1,37 +1,3 @@
-- - 355696329
-  - Mass: 1
-    OnCollision: spatula/SoundCubeCollision.hs
-    PdPatch: spatula/spatula1
-    Size:
-    - 0.5
-    - 0.5
-    - 0.5
-    Color:
-    - 1
-    - 1
-    - 1
-    - 1
-    OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Pose:
-      Orientation:
-      - -0.9939828
-      - - 0.10954782
-        - 0.0
-        - 0.0
-      Position:
-      - -0.28256136
-      - 1.5246012
-      - 0.17519844
-    OnStart: null
-    PhysProps: []
-    Name: SoundCube
-    Shape: CubeShape
-    Lifetime: 2
 - - 694474371
   - Mass: 1
     OnCollision: null
@@ -51,6 +17,7 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 1
@@ -65,6 +32,40 @@
     PhysProps:
     - IsGhost
     Name: Left Hand
+    Shape: CubeShape
+- - 1801803679
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.3
+    - 0.3
+    - 0.3
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 0.81015223
+      - - -5.696539e-2
+        - -0.57573026
+        - 9.456723e-2
+      Position:
+      - 1.1820167e-2
+      - 1.3711734
+      - 0.1281358
+    OnStart: null
+    PhysProps: []
+    Name: MessyCube
     Shape: CubeShape
 - - 2978547395
   - Mass: 0.0
@@ -85,6 +86,7 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 0.70710677
@@ -95,7 +97,7 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: spatula/MessStart.hs
+    OnStart: null
     PhysProps: []
     Name: Floor
     Shape: StaticPlaneShape
@@ -112,12 +114,13 @@
     - 1
     - 0.8
     - 1
-    OnUpdate: spatula/HandFireUpdate.hs
+    OnUpdate: null
     Scale:
     - 1
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 0.9596177
@@ -133,38 +136,3 @@
     - IsGhost
     Name: Right Hand
     Shape: CubeShape
-- - 3839326967
-  - Mass: 1
-    OnCollision: null
-    PdPatch: spatula/flutter
-    Size:
-    - 0.3
-    - 0.3
-    - 0.3
-    Color:
-    - 0.0
-    - 1
-    - 0.0
-    - 1
-    OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Pose:
-      Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
-      Position:
-      - 0.0
-      - 0.0
-      - 0.0
-    OnStart: null
-    PhysProps: []
-    Name: MessyBall
-    Shape: SphereShape
-    Lifetime: 2
-

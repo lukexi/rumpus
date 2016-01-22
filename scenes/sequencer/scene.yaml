@@ -1,0 +1,207 @@
+- - 355696329
+  - Mass: 1
+    OnCollision: scenes/sequencer/SoundCubeCollision.hs
+    PdPatch: scenes/sequencer/saw-voice
+    Size:
+    - 0.5
+    - 0.5
+    - 0.5
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 0.64529127
+      - - 0.28913474
+        - 0.28913453
+        - 0.6452918
+      Position:
+      - -0.46437144
+      - 1.3495806
+      - -0.37104565
+    OnStart: null
+    PhysProps: []
+    Name: SoundCube
+    Shape: CubeShape
+- - 694474371
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 0.1
+    - 0.4
+    Color:
+    - 1
+    - 0.8
+    - 0.7
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.1
+      - 0.0
+    OnStart: null
+    PhysProps:
+    - IsGhost
+    Name: Left Hand
+    Shape: CubeShape
+- - 1801803679
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.3
+    - 0.3
+    - 0.3
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 0.26410848
+      - - 0.655932
+        - -0.6559312
+        - -0.2641103
+      Position:
+      - -0.48957357
+      - 1.1360716
+      - 0.39346
+    OnStart: null
+    PhysProps: []
+    Name: MessyCube
+    Shape: CubeShape
+- - 2978547395
+  - Mass: 0.0
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 1000
+    - 1000
+    - 1
+    Color:
+    - 1
+    - 1
+    - 1
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 0.70710677
+      - - -0.70710677
+        - 0.0
+        - 0.0
+      Position:
+      - 0.0
+      - 0.0
+      - 0.0
+    OnStart: null
+    PhysProps: []
+    Name: Floor
+    Shape: StaticPlaneShape
+- - 3216010645
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 0.1
+    - 0.4
+    Color:
+    - 0.7
+    - 1
+    - 0.8
+    - 1
+    OnUpdate: null
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 0.9596177
+      - - 0.0
+        - 0.28130743
+        - 0.0
+      Position:
+      - 1.3076365e-3
+      - 0.8562407
+      - -6.86041e-2
+    OnStart: null
+    PhysProps:
+    - IsGhost
+    Name: Right Hand
+    Shape: CubeShape
+- - 3839326968
+  - Mass: 1
+    OnCollision: null
+    PdPatch: null
+    Size:
+    - 0.1
+    - 1
+    - 1
+    Color:
+    - 1
+    - 1
+    - 0.0
+    - 1
+    OnUpdate: scenes/sequencer/PlayHeadUpdate.hs
+    Scale:
+    - 1
+    - 1
+    - 1
+    Children: []
+    Lifetime: null
+    Pose:
+      Orientation:
+      - 1
+      - - 0.0
+        - 0.0
+        - 0.0
+      Position:
+      - 0.33935547
+      - 1
+      - 0.0
+    OnStart: null
+    PhysProps:
+    - IsGhost
+    Name: PlayHead
+    Shape: CubeShape

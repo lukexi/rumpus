@@ -31,7 +31,6 @@ library
                        Rumpus.Systems.Sound
                        Rumpus
                        PreludeExtra
-                       Spatula
   ghc-options:         -O2 -Wall 
   build-depends:       base
                      , bullet-mini
@@ -52,6 +51,8 @@ library
                      , stm
                      , halive
                      , time
+                     , directory
+                     , filepath
   default-language:    Haskell2010
 
 executable rumpus

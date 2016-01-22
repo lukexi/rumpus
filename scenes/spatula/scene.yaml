@@ -1,36 +1,3 @@
-- - 355696329
-  - Mass: 1
-    OnCollision: spatula/SoundCubeCollision.hs
-    PdPatch: spatula/spatula1
-    Size:
-    - 0.5
-    - 0.5
-    - 0.5
-    Color:
-    - 1
-    - 1
-    - 1
-    - 1
-    OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Pose:
-      Orientation:
-      - -0.9939828
-      - - 0.10954782
-        - 0.0
-        - 0.0
-      Position:
-      - -0.28256136
-      - 1.5246012
-      - 0.17519844
-    OnStart: null
-    PhysProps: []
-    Name: SoundCube
-    Shape: CubeShape
 - - 694474371
   - Mass: 1
     OnCollision: null
@@ -50,6 +17,7 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 1
@@ -84,16 +52,17 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - 0.17269337
-      - - -0.10695881
-        - -0.97876906
-        - 2.7346522e-2
+      - 0.16151945
+      - - 0.68472815
+        - 0.69338334
+        - 0.15581514
       Position:
-      - -2.030886
-      - 1.1620339
-      - -3.0928314e-2
+      - -0.44366735
+      - 1.2382588
+      - -0.5660496
     OnStart: null
     PhysProps: []
     Name: MessyCube
@@ -117,6 +86,7 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
       - 0.70710677
@@ -127,14 +97,14 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: spatula/MessStart.hs
+    OnStart: null
     PhysProps: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3215898416
   - Mass: 1
     OnCollision: null
-    PdPatch: spatula/spatula2
+    PdPatch: scenes/spatula/spatula-song
     Size:
     - 0.2
     - 0.1
@@ -144,23 +114,24 @@
     - 1
     - 1
     - 1
-    OnUpdate: spatula/SpatulaUpdate.hs
+    OnUpdate: scenes/spatula/SpatulaUpdate.hs
     Scale:
     - 1
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
+      - 0.69133633
+      - - -2.8628026e-4
+        - 0.72253305
+        - 8.6316744e-5
       Position:
-      - 0.8460811
-      - 1.6334165
-      - 8.472204e-2
-    OnStart: spatula/SpatulaStart.hs
+      - 0.23167068
+      - 0.7138907
+      - -0.232716
+    OnStart: scenes/spatula/SpatulaStart.hs
     PhysProps:
     - IsKinematic
     Name: Spatula
@@ -178,22 +149,23 @@
     - 1
     - 0.8
     - 1
-    OnUpdate: spatula/HandFireUpdate.hs
+    OnUpdate: scenes/spatula/HandFireUpdate.hs
     Scale:
     - 1
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - 0.9596177
+      - 0.495197
       - - 0.0
-        - 0.28130743
+        - 0.86878073
         - 0.0
       Position:
-      - 1.3076365e-3
-      - 0.8562407
-      - -6.86041e-2
+      - -0.71248907
+      - 2.6274974
+      - 0.22345476
     OnStart: null
     PhysProps:
     - IsGhost
@@ -202,15 +174,15 @@
 - - 3839326967
   - Mass: 1
     OnCollision: null
-    PdPatch: spatula/flutter
+    PdPatch: null
     Size:
     - 0.3
     - 0.3
     - 0.3
     Color:
-    - 0.0
     - 1
-    - 0.0
+    - 1
+    - 1
     - 1
     OnUpdate: null
     Scale:
@@ -218,51 +190,18 @@
     - 1
     - 1
     Children: []
+    Lifetime: null
     Pose:
       Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
+      - 0.62220174
+      - - -0.3477505
+        - 0.6865788
+        - 0.14333212
       Position:
-      - 0.0
-      - 0.0
-      - 0.0
+      - -8.312541e-2
+      - 2.3149238
+      - -0.3740393
     OnStart: null
     PhysProps: []
     Name: MessyBall
     Shape: SphereShape
-- - 3839326968
-  - Mass: 1
-    OnCollision: null
-    PdPatch: null
-    Size:
-    - 0.1
-    - 1
-    - 1
-    Color:
-    - 1
-    - 1
-    - 0.0
-    - 1
-    OnUpdate: spatula/PlayHeadUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
-    Children: []
-    Pose:
-      Orientation:
-      - 0.95823014
-      - - 0.0
-        - 0.2859982
-        - 0.0
-      Position:
-      - -0.29861173
-      - 1.9871751
-      - 7.083609e-2
-    OnStart: null
-    PhysProps:
-    - IsGhost
-    Name: PlayHead
-    Shape: CubeShape

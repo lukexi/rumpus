@@ -21,7 +21,7 @@ Create a script by default with a name like NewScript1 when creating an object, 
     Clones inherit names from their parents, so the code will be inherited.
 
 Core
-- [ ] Load scenes from folders, add their folder to the path
+- [x] Load scenes from folders, add their folder to the path
 
 - [x] Start functions
     Make cmpUpdate just refer to code.

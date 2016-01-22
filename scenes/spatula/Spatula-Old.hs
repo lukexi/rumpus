@@ -5,19 +5,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Spatula where
 
-import Control.Lens.Extra
-import Linear.Extra
-import Graphics.GL.Pal
-import Graphics.VR.Pal
-import Control.Monad.State
-import Control.Monad.Reader
-import Rumpus.Types
-import Rumpus.Systems.Shared
-import Rumpus.Systems.Physics
-import Rumpus.Systems.SceneEditor
-import Rumpus.Control
-import Physics.Bullet
-import Data.Maybe
+import PreludeExtra
+import Rumpus
 
 initScene :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 initScene = do

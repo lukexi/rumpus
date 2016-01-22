@@ -51,21 +51,24 @@ sceneEditorSystem = do
     withLeftHandEvents (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
+sceneFileNamed :: String -> FilePath
+sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"
 
-loadSceneFile :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => FilePath -> m ()
-loadSceneFile sceneFile =     
-    liftIO (decodeFileEither sceneFile) >>= \case
-        Left parseException -> putStrLnIO ("Error loading " ++ sceneFile ++ ": " ++ show parseException)
+loadScene :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => FilePath -> m ()
+loadScene sceneName =     
+    liftIO (decodeFileEither (sceneFileNamed sceneName)) >>= \case
+        Left parseException -> putStrLnIO ("Error loading " ++ sceneName ++ ": " ++ show parseException)
         Right entities -> do
-            wldScene .= Scene { _scnName = sceneFile, _scnEntities = Map.fromList entities }
+            wldScene .= Scene { _scnName = sceneName, _scnEntities = Map.fromList entities }
             forM_ (entities :: [(EntityID, Entity)]) $ \(entityID, entity) -> do
                 defineEntity entity
                 createEntityWithID Persistent entityID entity
 
 saveScene :: (MonadState World m, MonadIO m) => m ()
 saveScene = do
-    sceneFile     <- use (wldScene . scnName)
+    sceneName     <- use (wldScene . scnName)
     sceneEntities <- use (wldScene . scnEntities)
+    let sceneFile = sceneFileNamed sceneName
     liftIO $ encodeFile sceneFile (Map.toList sceneEntities)
 
 

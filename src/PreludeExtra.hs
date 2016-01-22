@@ -8,12 +8,14 @@ import Control.Concurrent as Exports
 import Control.Concurrent.STM as Exports
 import Data.Map as Exports (Map)
 import System.Random as Exports
+import System.Directory as Exports
+import System.FilePath as Exports
 import Data.Dynamic as Exports
 import Debug.Trace as Exports
 import Data.Fixed as Exports
 import Data.Time as Exports
 
-import Control.Lens.Extra as Exports hiding (List)
+import Control.Lens.Extra as Exports hiding (List, (<.>))
 import Linear.Extra as Exports hiding (trace)
 import Graphics.UI.GLFW.Pal as Exports
 import Graphics.GL.Pal as Exports hiding (trace)
