@@ -9,6 +9,7 @@ import Rumpus.Types
 import Rumpus.Control
 
 import Rumpus.Systems.Attachment
+import Rumpus.Systems.Animation
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Physics
@@ -41,7 +42,7 @@ main = withPd $ \pd -> do
         world = newWorld & wldOpenALSourcePool .~ zip [1..] (pdSources pd)
                          & wldPlayer .~ if gpRoomScale vrPal == RoomScale 
                                         then newPose
-                                        else newPose & posPosition .~ V3 0 1 5
+                                        else newPose & posPosition .~ V3 0 1 3
 
     args <- getArgs
     let sceneName = fromMaybe "minimal" (listToMaybe args)
@@ -64,6 +65,8 @@ main = withPd $ \pd -> do
             use wldPlaying >>= \case
                 True -> do
                     scriptingSystem
+
+                    animationSystem
                                         
                     physicsSystem
                     

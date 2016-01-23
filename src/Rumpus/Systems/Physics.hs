@@ -62,7 +62,7 @@ addPhysicsComponent entityID entity = do
     
     let size           = entity ^. entSize
         shapeType      = entity ^. entShape
-        physProperties = entity ^. entPhysProps
+        physProperties = entity ^. entPhysicsProperties
         mass           = entity ^. entMass
 
     wldComponents . cmpPhysicsProperties . at entityID ?= physProperties

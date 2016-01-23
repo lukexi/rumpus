@@ -23,3 +23,4 @@ import Graphics.GL.Pal as Exports hiding (trace)
 import Graphics.VR.Pal as Exports
 import Sound.Pd as Exports
 import Physics.Bullet as Exports
+import Animation.Pal as Exports hiding (getNow)

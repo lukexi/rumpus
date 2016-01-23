@@ -96,7 +96,6 @@ createEntityWithID persistence entityID entity = do
     wldComponents . cmpPose  . at entityID ?= entity ^. entPose
     wldComponents . cmpSize  . at entityID ?= entity ^. entSize
     wldComponents . cmpColor . at entityID ?= entity ^. entColor
-    wldComponents . cmpScale . at entityID ?= entity ^. entScale
     wldComponents . cmpShape . at entityID ?= entity ^. entShape
     wldComponents . cmpName  . at entityID ?= entity ^. entName
 
@@ -126,7 +125,6 @@ removeEntity entityID = do
     wldComponents . cmpPose  . at entityID .= Nothing
     wldComponents . cmpSize  . at entityID .= Nothing
     wldComponents . cmpColor . at entityID .= Nothing
-    wldComponents . cmpScale . at entityID .= Nothing
     wldComponents . cmpShape . at entityID .= Nothing
     wldComponents . cmpName  . at entityID .= Nothing
 

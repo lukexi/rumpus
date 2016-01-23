@@ -12,10 +12,6 @@
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -29,10 +25,10 @@
       - 1.1219139
       - 0.1299716
     OnStart: null
-    PhysProps:
-    - IsKinematic
     Name: Note
     Shape: CubeShape
+    PhysicsProperties:
+    - IsKinematic
 - - 1801803682
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -47,10 +43,6 @@
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -60,14 +52,14 @@
         - 0.0
         - 0.0
       Position:
-      - 0.74622655
-      - 0.7951777
-      - 0.19150409
+      - 0.79229087
+      - 0.7955182
+      - 0.1990448
     OnStart: null
-    PhysProps:
-    - IsKinematic
     Name: Note
     Shape: CubeShape
+    PhysicsProperties:
+    - IsKinematic
 - - 1801803683
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -82,10 +74,6 @@
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -95,14 +83,14 @@
         - 0.0
         - 0.0
       Position:
-      - 0.9206605
-      - 1.4271917
-      - 0.23405418
+      - 0.9244758
+      - 1.3316362
+      - 0.2311047
     OnStart: null
-    PhysProps:
-    - IsKinematic
     Name: Note
     Shape: CubeShape
+    PhysicsProperties:
+    - IsKinematic
 - - 1801803684
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -117,10 +105,6 @@
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -130,14 +114,14 @@
         - 0.0
         - 0.0
       Position:
-      - 0.602226
-      - 0.8848458
-      - 0.17266473
+      - 0.5646953
+      - 1.0178287
+      - 0.16563544
     OnStart: null
-    PhysProps:
-    - IsKinematic
     Name: Note
     Shape: CubeShape
+    PhysicsProperties:
+    - IsKinematic
 - - 1801803685
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -152,10 +136,6 @@
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -169,10 +149,10 @@
       - 1.0170342
       - 0.2135025
     OnStart: null
-    PhysProps:
-    - IsKinematic
     Name: Note
     Shape: CubeShape
+    PhysicsProperties:
+    - IsKinematic
 - - 1801803686
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -187,10 +167,6 @@
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -204,10 +180,10 @@
       - 1.1477076
       - 0.1455222
     OnStart: null
-    PhysProps:
-    - IsKinematic
     Name: Note
     Shape: CubeShape
+    PhysicsProperties:
+    - IsKinematic
 - - 1801803687
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -222,10 +198,6 @@
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -235,14 +207,14 @@
         - 0.0
         - 0.0
       Position:
-      - 0.5237771
-      - 1.3782191
-      - 0.17602882
+      - 0.55992115
+      - 1.438744
+      - 0.19346675
     OnStart: null
-    PhysProps:
-    - IsKinematic
     Name: Note
     Shape: CubeShape
+    PhysicsProperties:
+    - IsKinematic
 - - 2978547395
   - Mass: 0.0
     OnCollision: null
@@ -257,10 +229,6 @@
     - 1
     - 1
     OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -274,9 +242,9 @@
       - 0.0
       - 0.0
     OnStart: null
-    PhysProps: []
     Name: Floor
     Shape: StaticPlaneShape
+    PhysicsProperties: []
 - - 3216010645
   - Mass: 1
     OnCollision: null
@@ -291,10 +259,6 @@
     - 0.8
     - 1
     OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -308,10 +272,10 @@
       - 1.1365529
       - 4.173088e-2
     OnStart: null
-    PhysProps:
-    - NoContactResponse
     Name: Right Hand
     Shape: CubeShape
+    PhysicsProperties:
+    - NoContactResponse
 - - 3839326968
   - Mass: 1
     OnCollision: null
@@ -326,10 +290,6 @@
     - 0.0
     - 1
     OnUpdate: scenes/sequencer/PlayHeadUpdate.hs
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -339,12 +299,12 @@
         - 0.0
         - 0.0
       Position:
-      - 0.765625
+      - 0.2607422
       - 1
       - 0.0
     OnStart: null
-    PhysProps:
-    - NoContactResponse
-    - IsKinematic
     Name: PlayHead
     Shape: CubeShape
+    PhysicsProperties:
+    - NoContactResponse
+    - IsKinematic

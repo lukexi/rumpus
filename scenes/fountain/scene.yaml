@@ -28,7 +28,7 @@
       - 1.5246012
       - 0.17519844
     OnStart: null
-    PhysProps: []
+    PhysicsProperties: []
     Name: SoundCube
     Shape: CubeShape
     Lifetime: 2
@@ -62,7 +62,7 @@
       - 0.1
       - 0.0
     OnStart: null
-    PhysProps:
+    PhysicsProperties:
     - NoContactResponse
     Name: Left Hand
     Shape: CubeShape
@@ -96,7 +96,7 @@
       - 0.0
       - 0.0
     OnStart: scenes/fountain/MessStart.hs
-    PhysProps: []
+    PhysicsProperties: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3216010645
@@ -129,7 +129,7 @@
       - 0.8562407
       - -6.86041e-2
     OnStart: null
-    PhysProps:
+    PhysicsProperties:
     - NoContactResponse
     Name: Right Hand
     Shape: CubeShape
@@ -163,7 +163,7 @@
       - 0.0
       - 0.0
     OnStart: null
-    PhysProps: []
+    PhysicsProperties: []
     Name: MessyBall
     Shape: SphereShape
     Lifetime: 2

@@ -6,8 +6,8 @@ FIRST: Try the system out from inside. Fix egregious bugs.
 
 What's needed?
 
-Note object that changes pitch based on height.
-Already have playhead - transparency would be nice but not essential.
+[x] Note object that changes pitch based on height.
+[x] Already have playhead - transparency would be nice but not essential.
 
 
 Let's build it first, then see what we need to build it from scratch.

@@ -29,7 +29,7 @@
       - 0.1
       - 0.0
     OnStart: null
-    PhysProps:
+    PhysicsProperties:
     - NoContactResponse
     Name: Left Hand
     Shape: CubeShape
@@ -64,7 +64,7 @@
       - 1.3711734
       - 0.1281358
     OnStart: null
-    PhysProps: []
+    PhysicsProperties: []
     Name: MessyCube
     Shape: CubeShape
 - - 2978547395
@@ -98,7 +98,7 @@
       - 0.0
       - 0.0
     OnStart: null
-    PhysProps: []
+    PhysicsProperties: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3216010645
@@ -132,7 +132,7 @@
       - 0.8562407
       - -6.86041e-2
     OnStart: null
-    PhysProps:
+    PhysicsProperties:
     - NoContactResponse
     Name: Right Hand
     Shape: CubeShape

@@ -56,6 +56,5 @@ removeEntity entityID = do
     wldComponents . cmpPose  . at entityID .= Nothing
     wldComponents . cmpSize  . at entityID .= Nothing
     wldComponents . cmpColor . at entityID .= Nothing
-    wldComponents . cmpScale . at entityID .= Nothing
     wldComponents . cmpShape . at entityID .= Nothing
     wldComponents . cmpName  . at entityID .= Nothing

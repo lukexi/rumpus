@@ -35,7 +35,7 @@ leftHand = newEntity
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = CubeShape
         , _entPose        = newPose & posPosition .~ (V3 0 0.1 0)
-        , _entPhysProps   = [NoContactResponse]
+        , _entPhysicsProperties   = [NoContactResponse]
         , _entName        = "Left Hand"
         }
 
@@ -44,7 +44,7 @@ rightHand = newEntity
         { _entColor       = V4 0.7 1 0.8 1 
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = CubeShape
-        , _entPhysProps   = [NoContactResponse]
+        , _entPhysicsProperties   = [NoContactResponse]
         , _entName        = "Right Hand"
         }
 
@@ -81,7 +81,7 @@ spatula = newEntity
         { _entSize        = V3 0.2 0.1 0.1
         , _entPose        = newPose & posPosition .~ V3 0 0.5 0
         , _entColor       = V4 0 1 1 1
-        , _entPhysProps   = [IsKinematic]
+        , _entPhysicsProperties   = [IsKinematic]
         , _entShape       = CubeShape
         , _entName        = "Spatula"
         , _entOnUpdate    = Just "spatula/Wobble.hs"

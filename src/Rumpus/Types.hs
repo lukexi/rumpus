@@ -100,7 +100,6 @@ data Components = Components
     , _cmpPose              :: EntityMap (Pose GLfloat)
     , _cmpSize              :: EntityMap (V3 GLfloat)
     , _cmpShape             :: EntityMap ShapeType
-    , _cmpScale             :: EntityMap (V3 GLfloat)
     , _cmpColor             :: EntityMap (V4 GLfloat)
     , _cmpOnStart           :: EntityMap OnStart
     , _cmpOnUpdate          :: EntityMap OnUpdate
@@ -117,6 +116,8 @@ data Components = Components
     , _cmpSoundSource       :: EntityMap OpenALSource
     , _cmpAttachment        :: EntityMap Attachment
     , _cmpLifetime          :: EntityMap Lifetime
+    , _cmpAnimationColor    :: EntityMap (Animation (V4 GLfloat))
+    , _cmpAnimationSize     :: EntityMap (Animation (V3 GLfloat))
     }
 
 -- not yet used
@@ -132,7 +133,6 @@ newComponents = Components
     , _cmpPose              = mempty
     , _cmpSize              = mempty
     , _cmpShape             = mempty
-    , _cmpScale             = mempty
     , _cmpColor             = mempty
     , _cmpOnStart           = mempty
     , _cmpOnUpdate          = mempty
@@ -149,6 +149,8 @@ newComponents = Components
     , _cmpSoundSource       = mempty
     , _cmpAttachment        = mempty
     , _cmpLifetime          = mempty
+    , _cmpAnimationColor    = mempty
+    , _cmpAnimationSize     = mempty
     }
 
 data Entity = Entity
@@ -156,9 +158,8 @@ data Entity = Entity
     , _entSize        :: !(V3 GLfloat)
     , _entShape       :: !(ShapeType)
     , _entPose        :: !(Pose GLfloat)
-    , _entScale       :: !(V3 GLfloat)
     , _entColor       :: !(V4 GLfloat)
-    , _entPhysProps   :: ![PhysicsProperties]
+    , _entPhysicsProperties   :: ![PhysicsProperties]
     , _entChildren    :: ![Entity]
     , _entMass        :: !Float
     , _entLifetime    :: !(Maybe Float)
@@ -174,9 +175,8 @@ newEntity = Entity
     , _entSize        = V3 1 1 1
     , _entShape       = NoShape
     , _entPose        = newPose
-    , _entScale       = V3 1 1 1
     , _entColor       = V4 1 1 1 1
-    , _entPhysProps   = []
+    , _entPhysicsProperties   = []
     , _entChildren    = []
     , _entMass        = 1
     , _entLifetime    = Nothing

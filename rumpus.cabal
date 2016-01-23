@@ -20,6 +20,7 @@ library
   exposed-modules:     Rumpus.Types
                        Rumpus.Control
                        Rumpus.Main
+                       Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
                        Rumpus.Systems.CodeEditor
                        Rumpus.Systems.Lifetime
@@ -48,6 +49,7 @@ library
                      , aeson
                      , tinyrick
                      , freetype-gl-mini
+                     , animation-pal
                      , stm
                      , halive
                      , time

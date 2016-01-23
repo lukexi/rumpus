@@ -29,7 +29,7 @@
       - 0.1
       - 0.0
     OnStart: null
-    PhysProps:
+    PhysicsProperties:
     - NoContactResponse
     Name: Left Hand
     Shape: CubeShape
@@ -64,7 +64,7 @@
       - 1.2382588
       - -0.5660496
     OnStart: null
-    PhysProps: []
+    PhysicsProperties: []
     Name: MessyCube
     Shape: CubeShape
 - - 2978547395
@@ -98,7 +98,7 @@
       - 0.0
       - 0.0
     OnStart: null
-    PhysProps: []
+    PhysicsProperties: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3215898416
@@ -132,7 +132,7 @@
       - 0.7138907
       - -0.232716
     OnStart: scenes/spatula/SpatulaStart.hs
-    PhysProps:
+    PhysicsProperties:
     - IsKinematic
     Name: Spatula
     Shape: CubeShape
@@ -167,7 +167,7 @@
       - 2.6274974
       - 0.22345476
     OnStart: null
-    PhysProps:
+    PhysicsProperties:
     - NoContactResponse
     Name: Right Hand
     Shape: CubeShape
@@ -202,6 +202,6 @@
       - 2.3149238
       - -0.3740393
     OnStart: null
-    PhysProps: []
+    PhysicsProperties: []
     Name: MessyBall
     Shape: SphereShape
