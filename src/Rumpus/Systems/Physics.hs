@@ -28,7 +28,7 @@ syncPhysicsPosesSystem = do
 -- entities' registered collision callbacks
 collisionsSystem :: WorldMonad ()
 collisionsSystem = do
-    dynamicsWorld <- view wlsDynamicsWorld
+    -- dynamicsWorld <- view wlsDynamicsWorld
     -- Tell objects about any collisions
     -- collisions <- getCollisions dynamicsWorld
     
