@@ -43,4 +43,5 @@ detachEntity entityID =
                 setRigidBodyKinematic rigidBody False
 
 withAttachment :: MonadState World m => EntityID -> (Attachment -> m b) -> m ()
-withAttachment entityID = useMaybeM_ (wldComponents . cmpAttachment . at entityID)
+withAttachment entityID = useTraverseM_ (wldComponents . cmpAttachment . at entityID)
+

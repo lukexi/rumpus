@@ -1,3 +1,9 @@
+[ ] Fix touchpad support... can we detect the button yet?
+[ ] Fix hand ordering
+[ ] Try SteamVR keyboard again
+
+[ ] Fix OpenAL positioning
+
 TONIGHT:
 Let's build the music sequencer.
 
@@ -19,6 +25,12 @@ E.g. Scale. Color. Shape. PdPatch. Mass.
 Need a way to create script files, and assign them to objects.
 Create a script by default with a name like NewScript1 when creating an object, then just clone the object?
     Clones inherit names from their parents, so the code will be inherited.
+
+
+THEN:
+Microphone stuff!
+Instanced rendering would be awesome for FFT viz.
+See if we can make that efficiently and nicely user-specifiable.
 
 Core
 - [x] Load scenes from folders, add their folder to the path
@@ -56,6 +68,7 @@ Core
 Features
 - [ ] Instanced rendering
 - [ ] Transparency
+- [ ] Shadows
 - [ ] Entity property-editor sliders for anything not easily directly-manipulable
 - [x] Switch between edit and play modes (edit = no physics, reset initial positions)
         Would be fun to pause physics to inspect too.
@@ -86,7 +99,7 @@ E.g, would like a "Lifetime" component-system that makes a thing automatically e
 
 No need to make these fully runtime, I guess, thanks to halive?
 
-UPDATE: ok, I've got a sketch of this in Projects/extensible-systems/
+UPDATE: I've got a sketch of this in Projects/extensible-systems/
 
 - Script systems
 "Script" system as parallel path. Component holds init func, which returns a state, and an update func which can update the state. Hold state in a Dynamic.
@@ -144,3 +157,21 @@ Now both Subhalive and the executable are relying on the compiled version
 of Lib, and everything will work wonderfully!
 
 
+SHADOWS:
+Recommends CSM as 2012 state of the art in simplicity and quality
+http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/
+
+Recommends ESM as fast.
+http://blog.kiteandlightning.la/variance-shadow-maps/
+
+Implementing VSM
+https://www.youtube.com/watch?v=mb7WuTDz5jw
+
+http://codeflow.org/entries/2013/feb/15/soft-shadow-mapping/#variance-shadow-mapping-vsm
+
+The Book: Real-Time Shadows ($69)
+http://www.amazon.com/gp/product/1568814380
+
+
+NETWORKING:
+http://enet.bespin.org/Features.html
