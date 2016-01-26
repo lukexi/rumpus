@@ -36,7 +36,7 @@ renderSystem headM44 = do
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
-            renderSimulation projM44 viewM44
+            renderEntities projM44 viewM44
             renderEditors projM44 viewM44
             )
 
@@ -47,25 +47,34 @@ renderEditors projM44 viewM44 = do
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
 
     let projViewM44 = projM44 !*! viewM44
-    editors <- Map.toList <$> use (wldComponents . cmpOnUpdateEditor)
-    forM_ editors $ \(entityID, editor) -> do
-        pose <- fromMaybe newPose <$> use (wldComponents . cmpPose  . at entityID)
-        let codeModelM44 = transformationFromPose pose
 
-        -- Render code in white
-        renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
 
-        let errorsModelM44 = codeModelM44 !*! identity & translation .~ V3 1 0 0
+    useTraverseM_ wldSelectedEntityID $ \entityID -> do
+        parentPose <- fromMaybe newPose <$> use (wldComponents . cmpPose  . at entityID)
 
-        -- Render errors in light red
-        renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
+        onStartEditor     <- use (wldComponents . cmpOnUpdateEditor . at entityID)
+        onUpdateEditor    <- use (wldComponents . cmpOnStartEditor . at entityID)
+        onCollisionEditor <- use (wldComponents . cmpOnStartEditor . at entityID)
+
+        let editors = catMaybes [onStartEditor, onUpdateEditor, onCollisionEditor]
+
+        forM_ editors $ \editor -> do
+            let codeModelM44 = transformationFromPose parentPose
+
+            -- Render code in white
+            renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
+
+            let errorsModelM44 = codeModelM44 !*! identity & translation .~ V3 1 0 0
+
+            -- Render errors in light red
+            renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
 
     glDisable GL_BLEND
 
 
-renderSimulation :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
+renderEntities :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
                  => M44 GLfloat -> M44 GLfloat -> m ()
-renderSimulation projM44 viewM44 = do
+renderEntities projM44 viewM44 = do
     
     let projViewM44 = projM44 !*! viewM44
 

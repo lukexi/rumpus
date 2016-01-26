@@ -26,6 +26,7 @@ Need a way to create script files, and assign them to objects.
 Create a script by default with a name like NewScript1 when creating an object, then just clone the object?
     Clones inherit names from their parents, so the code will be inherited.
 
+Spherical bouquet menus for choosing objects to duplicate
 
 THEN:
 Microphone stuff!
@@ -69,6 +70,7 @@ Features
 - [ ] Instanced rendering
 - [ ] Transparency
 - [ ] Shadows
+        - proof of concept in shadow-pal, integrate
 - [ ] Entity property-editor sliders for anything not easily directly-manipulable
 - [x] Switch between edit and play modes (edit = no physics, reset initial positions)
         Would be fun to pause physics to inspect too.
@@ -92,6 +94,8 @@ Modules
 
 - Build Pd patches physically. Remote control Pd in the same way as metapatching.
     UPDATE: I've got this working in pd-haskell/test/test-meta
+
+- Show the clipboard contents! Place it on your right wrist or something...
 
 - Extensible 
 Need a better way to define component-systems.
@@ -120,6 +124,8 @@ Demos:
 
 - Multiplayer is *really important*, do it asap before system gets too big as it will be a lot of rote refactoring.
 
+- Implement Bret's "geometric clock" example:
+    spinning plane that hits a sphere collider which emits a pulse
 
 Links:
 
@@ -172,6 +178,9 @@ http://codeflow.org/entries/2013/feb/15/soft-shadow-mapping/#variance-shadow-map
 The Book: Real-Time Shadows ($69)
 http://www.amazon.com/gp/product/1568814380
 
+https://msdn.microsoft.com/en-us/library/windows/desktop/ee416324%28v=vs.85%29.aspx
+
+http://learnopengl.com/#!Advanced-Lighting/Shadows/Shadow-Mapping
 
 NETWORKING:
 http://enet.bespin.org/Features.html

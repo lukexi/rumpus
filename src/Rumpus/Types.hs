@@ -34,17 +34,26 @@ data WorldEvent = GLFWEvent Event
 
 data Persistence = Transient | Persistent deriving (Eq, Show, Generic, FromJSON)
 
-type OnUpdate = EntityID -> WorldMonad ()
-nullOnUpdate :: OnUpdate
-nullOnUpdate _entityID = return ()
 
+-- | OnStart function
 type OnStart = EntityID -> WorldMonad (Maybe Dynamic)
+
 nullOnStart :: OnStart
 nullOnStart _entityID = return Nothing
 
+
+-- | OnUpdate function
+type OnUpdate = EntityID -> WorldMonad ()
+
+nullOnUpdate :: OnUpdate
+nullOnUpdate _entityID = return ()
+
+
+-- | OnCollision functions
 type CollidedWithID = EntityID
 type CollisionImpulse = GLfloat
 type OnCollision = EntityID -> CollidedWithID -> CollisionImpulse -> WorldMonad ()
+
 nullOnCollision :: OnCollision
 nullOnCollision _entityID _collidedWithID _collisionImpulse = return ()
 
@@ -66,34 +75,38 @@ newScene :: Scene
 newScene = Scene { _scnName = "NewScene", _scnEntities = mempty }
 
 data World = World
-    { _wldPlayer           :: !(Pose GLfloat)
-    , _wldPlayerHeadM44    :: !(M44 GLfloat)
-    , _wldComponents       :: !Components
-    , _wldEvents           :: ![WorldEvent]
-    , _wldOpenALSourcePool :: ![(Int, OpenALSource)]
-    , _wldPlaying          :: !Bool
-    , _wldEntityLibrary    :: !(Map String Entity)
-    , _wldScene            :: !Scene
-    , _wldSelectedEntityID :: !(Maybe EntityID)
+    { _wldPlayer             :: !(Pose GLfloat)
+    , _wldPlayerHeadM44      :: !(M44 GLfloat)
+    , _wldComponents         :: !Components
+    , _wldEvents             :: ![WorldEvent]
+    , _wldOpenALSourcePool   :: ![(Int, OpenALSource)]
+    , _wldPlaying            :: !Bool
+    , _wldEntityLibrary      :: !(Map String Entity)
+    , _wldScene              :: !Scene
+    , _wldSelectedEntityID   :: !(Maybe EntityID)
+    , _wldCurrentEditorFrame :: !(Maybe EntityID)
     }
 
 
 newWorld :: World
 newWorld = World
-    { _wldPlayer = Pose (V3 0 0 0) (axisAngle (V3 0 1 0) 0)
-    , _wldPlayerHeadM44 = identity
-    , _wldComponents = newComponents
-    , _wldEvents = []
-    , _wldOpenALSourcePool = []
-    , _wldPlaying = False
-    , _wldEntityLibrary = mempty
-    , _wldScene = newScene
-    , _wldSelectedEntityID = Nothing
+    { _wldPlayer             = newPose
+    , _wldPlayerHeadM44      = identity
+    , _wldComponents         = newComponents
+    , _wldEvents             = []
+    , _wldOpenALSourcePool   = []
+    , _wldPlaying            = False
+    , _wldEntityLibrary      = mempty
+    , _wldScene              = newScene
+    , _wldSelectedEntityID   = Nothing
+    , _wldCurrentEditorFrame = Nothing
     }
 
 data Attachment = Attachment EntityID (Pose GLfloat)
 
 data Lifetime = Lifetime UTCTime NominalDiffTime
+
+data Constraint = RelativePositionTo EntityID (V3 GLfloat)
 
 data Components = Components
     { _cmpName              :: EntityMap String
@@ -118,6 +131,7 @@ data Components = Components
     , _cmpLifetime          :: EntityMap Lifetime
     , _cmpAnimationColor    :: EntityMap (Animation (V4 GLfloat))
     , _cmpAnimationSize     :: EntityMap (Animation (V3 GLfloat))
+    , _cmpConstraint        :: EntityMap Constraint
     }
 
 -- not yet used
@@ -151,39 +165,40 @@ newComponents = Components
     , _cmpLifetime          = mempty
     , _cmpAnimationColor    = mempty
     , _cmpAnimationSize     = mempty
+    , _cmpConstraint        = mempty
     }
 
 data Entity = Entity
-    { _entName        :: !String
-    , _entSize        :: !(V3 GLfloat)
-    , _entShape       :: !(ShapeType)
-    , _entPose        :: !(Pose GLfloat)
-    , _entColor       :: !(V4 GLfloat)
-    , _entPhysicsProperties   :: ![PhysicsProperties]
-    , _entChildren    :: ![Entity]
-    , _entMass        :: !Float
-    , _entLifetime    :: !(Maybe Float)
-    , _entPdPatch     :: !(Maybe FilePath)
-    , _entOnStart     :: !(Maybe FilePath)
-    , _entOnUpdate    :: !(Maybe FilePath)
-    , _entOnCollision :: !(Maybe FilePath)
+    { _entName              :: !String
+    , _entSize              :: !(V3 GLfloat)
+    , _entShape             :: !(ShapeType)
+    , _entPose              :: !(Pose GLfloat)
+    , _entColor             :: !(V4 GLfloat)
+    , _entPhysicsProperties :: ![PhysicsProperties]
+    , _entChildren          :: ![Entity]
+    , _entMass              :: !Float
+    , _entLifetime          :: !(Maybe Float)
+    , _entPdPatch           :: !(Maybe FilePath)
+    , _entOnStart           :: !(Maybe FilePath)
+    , _entOnUpdate          :: !(Maybe FilePath)
+    , _entOnCollision       :: !(Maybe FilePath)
     } deriving (Show, Generic)
 
 newEntity :: Entity
 newEntity = Entity
-    { _entName        = "NewEntity"
-    , _entSize        = V3 1 1 1
-    , _entShape       = NoShape
-    , _entPose        = newPose
-    , _entColor       = V4 1 1 1 1
-    , _entPhysicsProperties   = []
-    , _entChildren    = []
-    , _entMass        = 1
-    , _entLifetime    = Nothing
-    , _entPdPatch     = Nothing
-    , _entOnStart     = Nothing
-    , _entOnUpdate    = Nothing
-    , _entOnCollision = Nothing
+    { _entName              = "NewEntity"
+    , _entSize              = V3 1 1 1
+    , _entShape             = NoShape
+    , _entPose              = newPose
+    , _entColor             = V4 1 1 1 1
+    , _entPhysicsProperties = []
+    , _entChildren          = []
+    , _entMass              = 1
+    , _entLifetime          = Nothing
+    , _entPdPatch           = Nothing
+    , _entOnStart           = Nothing
+    , _entOnUpdate          = Nothing
+    , _entOnCollision       = Nothing
     }
 
 

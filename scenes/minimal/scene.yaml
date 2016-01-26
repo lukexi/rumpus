@@ -12,10 +12,6 @@
     - 0.7
     - 1
     OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -26,13 +22,13 @@
         - 0.0
       Position:
       - 0.0
-      - 0.1
+      - 0.0
       - 0.0
     OnStart: null
-    PhysicsProperties:
-    - NoContactResponse
     Name: Left Hand
     Shape: CubeShape
+    PhysicsProperties:
+    - NoContactResponse
 - - 1801803679
   - Mass: 1
     OnCollision: null
@@ -47,26 +43,22 @@
     - 1
     - 1
     OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
       Orientation:
       - 0.81015223
-      - - -5.696539e-2
+      - - -5.6965128e-2
         - -0.57573026
-        - 9.456723e-2
+        - 9.456739e-2
       Position:
-      - 1.1820167e-2
-      - 1.3711734
-      - 0.1281358
+      - -0.67335325
+      - 1.8002021
+      - 0.3048991
     OnStart: null
-    PhysicsProperties: []
     Name: MessyCube
     Shape: CubeShape
+    PhysicsProperties: []
 - - 2978547395
   - Mass: 0.0
     OnCollision: null
@@ -81,10 +73,6 @@
     - 1
     - 1
     OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -98,9 +86,9 @@
       - 0.0
       - 0.0
     OnStart: null
-    PhysicsProperties: []
     Name: Floor
     Shape: StaticPlaneShape
+    PhysicsProperties: []
 - - 3216010645
   - Mass: 1
     OnCollision: null
@@ -115,10 +103,6 @@
     - 0.8
     - 1
     OnUpdate: null
-    Scale:
-    - 1
-    - 1
-    - 1
     Children: []
     Lifetime: null
     Pose:
@@ -132,7 +116,7 @@
       - 0.8562407
       - -6.86041e-2
     OnStart: null
-    PhysicsProperties:
-    - NoContactResponse
     Name: Right Hand
     Shape: CubeShape
+    PhysicsProperties:
+    - NoContactResponse

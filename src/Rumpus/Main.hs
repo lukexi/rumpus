@@ -17,6 +17,7 @@ import Rumpus.Systems.Render
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Script
 import Rumpus.Systems.Sound
+import Rumpus.Systems.Constraint
 import Halive.Utils
 
 main :: IO ()
@@ -61,6 +62,8 @@ main = withPd $ \pd -> do
             syncCodeEditorSystem
 
             attachmentsSystem
+
+            constraintSystem
 
             use wldPlaying >>= \case
                 True -> do
