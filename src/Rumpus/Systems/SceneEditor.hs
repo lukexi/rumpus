@@ -24,7 +24,7 @@ clearSelection = do
 
 selectEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
 selectEntity entityID = do
-    
+
     clearSelection
 
     wldSelectedEntityID ?= entityID
@@ -37,24 +37,37 @@ selectEntity entityID = do
 
     setEntityConstraint (RelativePositionTo entityID 0) editorFrame
 
+    -- Define a color editor
     let colorEditorEntity = newEntity
             & entShape .~ SphereShape
             & entColor .~ V4 1 0 0 1
             & entSize .~ 0.1
+            & entPhysicsProperties .~ [IsKinematic, NoContactResponse]
     colorEditor <- createEntity Transient colorEditorEntity
+
+    wldComponents . cmpOnDrag . at colorEditor ?= \_colorEditorID dragDistance -> do
+        let x = dragDistance ^. _x
+        setEntityColor (hslColor (mod' x 1) 0.9 0.9 1) entityID
 
     setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 0.5 0)) colorEditor
 
-    let shapeEditorEntity = newEntity
+    addEntityChild editorFrame colorEditor
+
+    -- Define a size editor
+    let sizeEditorEntity = newEntity
             & entShape .~ SphereShape
             & entColor .~ V4 0 1 0 1
             & entSize .~ 0.1
-    shapeEditor <- createEntity Transient shapeEditorEntity
+            & entPhysicsProperties .~ [IsKinematic, NoContactResponse]
+    sizeEditor <- createEntity Transient sizeEditorEntity
 
-    setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 (-0.5) 0)) shapeEditor
+    wldComponents . cmpOnDrag . at sizeEditor ?= \_sizeEditorID dragDistance -> do
+        let size = max 0.05 (abs dragDistance)
+        setEntitySize size entityID
 
-    addEntityChild editorFrame colorEditor
-    addEntityChild editorFrame shapeEditor
+    setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 (-0.5) 0)) sizeEditor
+    
+    addEntityChild editorFrame sizeEditor
 
     wldCurrentEditorFrame ?= editorFrame
 
@@ -67,14 +80,36 @@ addEntityChild :: MonadState World m => EntityID -> EntityID -> m ()
 addEntityChild entityID childEntityID = do
     wldComponents . cmpParent . at childEntityID ?= entityID
 
+beginDrag :: MonadState World m => EntityID -> EntityID -> m ()
+beginDrag handEntityID draggedID = do
+    startPos <- view posPosition <$> getEntityPose handEntityID
+    wldComponents . cmpDrag . at draggedID ?= Drag handEntityID startPos
+
+continueDrag :: HandEntityID -> WorldMonad ()
+continueDrag draggingHandEntityID = do
+    useMapM_ (wldComponents . cmpDrag) $ \(entityID, Drag handEntityID startPos) ->
+        when (handEntityID == draggingHandEntityID) $ do
+            currentPose <- view posPosition <$> getEntityPose handEntityID
+            let dragDistance = currentPose - startPos
+
+            useTraverseM_ (wldComponents . cmpOnDrag . at entityID) $ \onDrag ->
+                onDrag entityID dragDistance
+
+endDrag :: MonadState World m => HandEntityID -> m ()
+endDrag endingDragHandEntityID = do
+    useMapM_ (wldComponents . cmpDrag) $ \(entityID, Drag handEntityID _) ->
+        when (handEntityID == endingDragHandEntityID) $
+            wldComponents . cmpDrag . at entityID .= Nothing
+
 
 sceneEditorSystem :: WorldMonad ()
 sceneEditorSystem = do
     let editSceneWithHand handName event = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
             forM_ mHandEntityID $ \handEntityID -> case event of
-                HandStateEvent hand -> 
+                HandStateEvent hand -> do
                     setEntityPose (poseFromMatrix (hand ^. hndMatrix)) handEntityID
+                    continueDrag handEntityID
                 HandButtonEvent HandButtonGrip ButtonDown -> do
                     handPose <- getEntityPose handEntityID
                     let entity = newEntity 
@@ -88,7 +123,7 @@ sceneEditorSystem = do
                     -- Find the entities overlapping the hand, and attach them to it
                     overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
                                                 =<< getEntityOverlappingEntityIDs handEntityID
-                    printIO overlappingEntityIDs
+                    -- printIO overlappingEntityIDs
                     when (null overlappingEntityIDs) clearSelection
                     
                     forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
@@ -97,7 +132,7 @@ sceneEditorSystem = do
                         touchedParentID <- use (wldComponents . cmpParent . at touchedID)
                         if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
                             then do
-                                putStrLnIO "DRAGGGG"
+                                beginDrag handEntityID touchedID
                             else do
                                 -- Select the entity (it's ok to select the floor, just not move it)
                                 selectEntity touchedID
@@ -106,6 +141,7 @@ sceneEditorSystem = do
                                 when (name /= "Floor") $ 
                                     attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
+                    endDrag handEntityID
                     -- Copy the current pose to the scene file and save it
                     withAttachment handEntityID $ \(Attachment attachedEntityID _offset) -> do
                         currentPose <- getEntityPose attachedEntityID

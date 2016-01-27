@@ -1,4 +1,4 @@
- module NoteUpdate where
+       module NoteUpdate where
 import Rumpus
 
 update :: OnUpdate

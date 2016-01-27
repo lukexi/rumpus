@@ -2,7 +2,7 @@
 [ ] Fix hand ordering
 [ ] Try SteamVR keyboard again
 
-[ ] Fix OpenAL positioning
+[x] Fix OpenAL positioning
 
 TONIGHT:
 Let's build the music sequencer.

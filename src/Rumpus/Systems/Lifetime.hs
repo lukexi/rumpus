@@ -60,3 +60,9 @@ removeEntity entityID = do
     wldComponents . cmpShape . at entityID .= Nothing
     wldComponents . cmpName  . at entityID .= Nothing
 
+    wldComponents . cmpAttachment  . at entityID .= Nothing
+    wldComponents . cmpDrag  . at entityID .= Nothing
+    wldComponents . cmpOnDrag  . at entityID .= Nothing
+    wldComponents . cmpAnimationColor . at entityID .= Nothing
+    wldComponents . cmpAnimationSize . at entityID .= Nothing
+

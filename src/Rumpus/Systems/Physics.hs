@@ -66,12 +66,7 @@ addPhysicsComponent entityID entity = do
         physProperties = entity ^. entPhysicsProperties
         mass           = entity ^. entMass
 
-    maybeShape <- case shapeType of
-        NoShape          -> return Nothing
-        CubeShape        -> Just <$> createBoxShape size
-        SphereShape      -> Just <$> createSphereShape (size ^. _x)
-        StaticPlaneShape -> Just <$> createStaticPlaneShape (0 :: Int)
-    
+    maybeShape <- createShapeCollider shapeType size
     forM_ maybeShape $ \shape -> do
         
         let pose = entity ^. entPose
@@ -93,6 +88,13 @@ addPhysicsComponent entityID entity = do
 
         when (NoContactResponse `elem` physProperties) $ 
             setRigidBodyNoContactResponse rigidBody True
+
+
+createShapeCollider shapeType size = case shapeType of
+        NoShape          -> return Nothing
+        CubeShape        -> Just <$> createBoxShape         size
+        SphereShape      -> Just <$> createSphereShape      (size ^. _x)
+        StaticPlaneShape -> Just <$> createStaticPlaneShape (0 :: Int)
 
 removePhysicsComponents :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
 removePhysicsComponents entityID = do
@@ -125,7 +127,11 @@ setEntitySize newSize entityID = do
 
     withEntityRigidBody entityID $ \rigidBody -> do 
         dynamicsWorld <- view wlsDynamicsWorld
-        setRigidBodyScale dynamicsWorld rigidBody newSize
+        mass       <- fromMaybe 1 <$> use (wldComponents . cmpMass . at entityID)
+        shapeType  <- fromMaybe NoShape <$> use (wldComponents . cmpShape . at entityID)
+        maybeShape <- createShapeCollider shapeType newSize
+        forM_ maybeShape $ \shape ->
+            setRigidBodyShape dynamicsWorld rigidBody shape mass
 
 
 

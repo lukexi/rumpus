@@ -15,6 +15,7 @@ import Data.Dynamic as Exports
 import Debug.Trace as Exports
 import Data.Fixed as Exports
 import Data.Time as Exports
+import Data.IORef as Exports
 
 import Control.Lens.Extra as Exports hiding (List, (<.>))
 import Linear.Extra as Exports hiding (trace)

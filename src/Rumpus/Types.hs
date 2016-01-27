@@ -48,6 +48,10 @@ type OnUpdate = EntityID -> WorldMonad ()
 nullOnUpdate :: OnUpdate
 nullOnUpdate _entityID = return ()
 
+-- | OnDrag function
+type OnDrag = EntityID -> V3 GLfloat -> WorldMonad ()
+nullOnDrag :: OnDrag
+nullOnDrag _entityID _dragDistance = return ()
 
 -- | OnCollision functions
 type CollidedWithID = EntityID
@@ -108,6 +112,10 @@ data Lifetime = Lifetime UTCTime NominalDiffTime
 
 data Constraint = RelativePositionTo EntityID (V3 GLfloat)
 
+type HandEntityID = EntityID
+-- data Drag = Drag HandEntityID (Pose GLfloat)
+data Drag = Drag HandEntityID (V3 GLfloat)
+
 data Components = Components
     { _cmpName              :: EntityMap String
     , _cmpPose              :: EntityMap (Pose GLfloat)
@@ -123,6 +131,7 @@ data Components = Components
     , _cmpScriptData        :: EntityMap Dynamic
     , _cmpParent            :: EntityMap EntityID
     , _cmpRigidBody         :: EntityMap RigidBody
+    , _cmpMass              :: EntityMap GLfloat
     , _cmpSpring            :: EntityMap SpringConstraint
     , _cmpPhysicsProperties :: EntityMap [PhysicsProperties]
     , _cmpPdPatch           :: EntityMap Patch
@@ -132,6 +141,8 @@ data Components = Components
     , _cmpAnimationColor    :: EntityMap (Animation (V4 GLfloat))
     , _cmpAnimationSize     :: EntityMap (Animation (V3 GLfloat))
     , _cmpConstraint        :: EntityMap Constraint
+    , _cmpDrag              :: EntityMap Drag
+    , _cmpOnDrag            :: EntityMap OnDrag
     }
 
 -- not yet used
@@ -157,6 +168,7 @@ newComponents = Components
     , _cmpScriptData        = mempty
     , _cmpParent            = mempty
     , _cmpRigidBody         = mempty
+    , _cmpMass              = mempty
     , _cmpSpring            = mempty
     , _cmpPhysicsProperties = mempty
     , _cmpPdPatch           = mempty
@@ -166,6 +178,8 @@ newComponents = Components
     , _cmpAnimationColor    = mempty
     , _cmpAnimationSize     = mempty
     , _cmpConstraint        = mempty
+    , _cmpDrag              = mempty
+    , _cmpOnDrag            = mempty
     }
 
 data Entity = Entity

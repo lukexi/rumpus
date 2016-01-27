@@ -35,8 +35,9 @@ addPdPatchComponent entityID entity = forM_ (entity ^. entPdPatch) $ \patchPath 
     patch <- makePatch pd patchPath
     wldComponents . cmpPdPatch . at entityID ?= patch
     -- Assign the patch's output DAC index to route it to the the SourceID
-    traverseM_ dequeueOpenALSource $ \(sourceChannel, _sourceID) -> 
+    traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
         send pd patch "dac" $ Atom (fromIntegral sourceChannel)
+        wldComponents . cmpSoundSource . at entityID ?= sourceID
 
 removePdPatchComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
 removePdPatchComponent entityID = do
@@ -44,6 +45,7 @@ removePdPatchComponent entityID = do
     withPdPatch entityID $ \patch ->
         closePatch pd patch
     wldComponents . cmpPdPatch . at entityID .= Nothing
+    wldComponents . cmpSoundSource . at entityID .= Nothing
 
 withPdPatch :: MonadState World m => EntityID -> (Patch -> m b) -> m ()
 withPdPatch entityID = useTraverseM_ (wldComponents . cmpPdPatch . at entityID)

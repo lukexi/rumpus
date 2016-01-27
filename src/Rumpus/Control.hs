@@ -56,10 +56,16 @@ emulateRightHand = do
     mouseRay    <- cursorPosToWorldRay gpWindow projM44 player
     mouseState1 <- getMouseButton gpWindow MouseButton'1
     mouseState2 <- getMouseButton gpWindow MouseButton'2
+
+    events <- use wldEvents
+    forM_ events $ \case
+        GLFWEvent e -> onScroll e $ \_x y -> 
+            liftIO $ modifyIORef' gpEmulatedHandDepthRef (+ y)
+        _ -> return ()
+    handZ <- liftIO (readIORef gpEmulatedHandDepthRef)
     -- a <- getNow -- swap with line below to rotate hand for testing
     let a = 0
-    let handZ        = 3 -- TODO: control with scroll/pinch?
-        handPosition = projectRay mouseRay handZ
+    let handPosition = projectRay mouseRay handZ
         trigger      = if mouseState1 == MouseButtonState'Pressed then 1 else 0
         grip         = mouseState2 == MouseButtonState'Pressed
         handMatrix   = transformationFromPose $ newPose 
