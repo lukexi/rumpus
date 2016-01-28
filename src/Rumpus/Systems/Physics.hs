@@ -89,7 +89,7 @@ addPhysicsComponent entityID entity = do
         when (NoContactResponse `elem` physProperties) $ 
             setRigidBodyNoContactResponse rigidBody True
 
-
+createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m (Maybe CollisionShape)
 createShapeCollider shapeType size = case shapeType of
         NoShape          -> return Nothing
         CubeShape        -> Just <$> createBoxShape         size

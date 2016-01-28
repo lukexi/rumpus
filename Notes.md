@@ -115,6 +115,8 @@ Demos:
 - Fractal Flower room
 - Drum machine
 - Fireworks (!)
+- Mandelbox
+    https://vimeo.com/152795080
 
 - Garage band mini based on sequencer idea. Simple sampler, simple synth.
 
@@ -181,6 +183,14 @@ http://www.amazon.com/gp/product/1568814380
 https://msdn.microsoft.com/en-us/library/windows/desktop/ee416324%28v=vs.85%29.aspx
 
 http://learnopengl.com/#!Advanced-Lighting/Shadows/Shadow-Mapping
+
+Generic spotlight shadows
+https://www.youtube.com/watch?v=5rg1Kd_2TkQ
+
+SSAO
+http://john-chapman-graphics.blogspot.co.uk/2013/01/ssao-tutorial.html
+http://john-chapman-graphics.blogspot.co.uk/p/demos.html
+https://www.youtube.com/user/johnChapman
 
 NETWORKING:
 http://enet.bespin.org/Features.html

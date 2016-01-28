@@ -37,6 +37,7 @@ selectEntity entityID = do
 
     setEntityConstraint (RelativePositionTo entityID 0) editorFrame
 
+    ------------------------
     -- Define a color editor
     let colorEditorEntity = newEntity
             & entShape .~ SphereShape
@@ -47,12 +48,13 @@ selectEntity entityID = do
 
     wldComponents . cmpOnDrag . at colorEditor ?= \_colorEditorID dragDistance -> do
         let x = dragDistance ^. _x
-        setEntityColor (hslColor (mod' x 1) 0.9 0.9 1) entityID
+        setEntityColor (hslColor (mod' x 1) 0.9 0.6 1) entityID
 
-    setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 0.5 0)) colorEditor
+    setEntityConstraint (RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)) colorEditor
 
     addEntityChild editorFrame colorEditor
 
+    -----------------------
     -- Define a size editor
     let sizeEditorEntity = newEntity
             & entShape .~ SphereShape
@@ -65,7 +67,7 @@ selectEntity entityID = do
         let size = max 0.05 (abs dragDistance)
         setEntitySize size entityID
 
-    setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 (-0.5) 0)) sizeEditor
+    setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 0.5 0)) sizeEditor
     
     addEntityChild editorFrame sizeEditor
 
@@ -142,16 +144,26 @@ sceneEditorSystem = do
                                     attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     endDrag handEntityID
-                    -- Copy the current pose to the scene file and save it
-                    withAttachment handEntityID $ \(Attachment attachedEntityID _offset) -> do
-                        currentPose <- getEntityPose attachedEntityID
-                        wldScene . scnEntities . at attachedEntityID . traverse . entPose .= currentPose
-                        saveScene
                     detachEntity handEntityID
+
+                    useTraverseM_ wldSelectedEntityID 
+                        updateEntityInScene
+                    saveScene
+
                 _ -> return ()
 
     withLeftHandEvents (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
+
+updateEntityInScene :: MonadState World m => EntityID -> m ()
+updateEntityInScene entityID = do
+    -- Copy the current pose to the scene file and save it
+    pose <- getEntityPose entityID
+    wldScene . scnEntities . at entityID . traverse . entPose .= pose
+    color <- getEntityColor entityID
+    wldScene . scnEntities . at entityID . traverse . entColor .= color
+    size <- getEntitySize entityID
+    wldScene . scnEntities . at entityID . traverse . entSize .= size
 
 sceneFileNamed :: String -> FilePath
 sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"
