@@ -1,3 +1,9 @@
+[ ] Fix touchpad support... can we detect the button yet?
+[ ] Fix hand ordering
+[ ] Try SteamVR keyboard again
+
+[x] Fix OpenAL positioning
+
 TONIGHT:
 Let's build the music sequencer.
 
@@ -19,6 +25,13 @@ E.g. Scale. Color. Shape. PdPatch. Mass.
 Need a way to create script files, and assign them to objects.
 Create a script by default with a name like NewScript1 when creating an object, then just clone the object?
     Clones inherit names from their parents, so the code will be inherited.
+
+Spherical bouquet menus for choosing objects to duplicate
+
+THEN:
+Microphone stuff!
+Instanced rendering would be awesome for FFT viz.
+See if we can make that efficiently and nicely user-specifiable.
 
 Core
 - [x] Load scenes from folders, add their folder to the path
@@ -56,6 +69,8 @@ Core
 Features
 - [ ] Instanced rendering
 - [ ] Transparency
+- [ ] Shadows
+        - proof of concept in shadow-pal, integrate
 - [ ] Entity property-editor sliders for anything not easily directly-manipulable
 - [x] Switch between edit and play modes (edit = no physics, reset initial positions)
         Would be fun to pause physics to inspect too.
@@ -75,10 +90,14 @@ Modules
 
 - [x] Music component
 - [x] Key handling
+- [x] Script system
+    "Script" system as parallel path. Component holds init func, which returns a state, and an update func which can update the state. Hold state in a Dynamic.
 
 
 - Build Pd patches physically. Remote control Pd in the same way as metapatching.
     UPDATE: I've got this working in pd-haskell/test/test-meta
+
+- Show the clipboard contents! Place it on your right wrist or something...
 
 - Extensible 
 Need a better way to define component-systems.
@@ -86,10 +105,9 @@ E.g, would like a "Lifetime" component-system that makes a thing automatically e
 
 No need to make these fully runtime, I guess, thanks to halive?
 
-UPDATE: ok, I've got a sketch of this in Projects/extensible-systems/
+UPDATE: I've got a sketch of this in Projects/extensible-systems/
 
-- Script systems
-"Script" system as parallel path. Component holds init func, which returns a state, and an update func which can update the state. Hold state in a Dynamic.
+
 
 
 Demos:
@@ -98,8 +116,12 @@ Demos:
 - Fractal Flower room
 - Drum machine
 - Fireworks (!)
+- Mandelbox
+    https://vimeo.com/152795080
 
 - Garage band mini based on sequencer idea. Simple sampler, simple synth.
+    - Have done synth : D needs presets.
+    - Simple sampler next!
 
 - Touchable audio
     Route touchable audio through the vive touchpad such that it's audible from the outside!!
@@ -107,6 +129,8 @@ Demos:
 
 - Multiplayer is *really important*, do it asap before system gets too big as it will be a lot of rote refactoring.
 
+- Implement Bret's "geometric clock" example:
+    spinning plane that hits a sphere collider which emits a pulse
 
 Links:
 
@@ -124,23 +148,33 @@ Keyboard API
 http://steamcommunity.com/app/358720/discussions/0/481115363863637539/
 
 
-DOCUMENT FOR SUBHALIVE:
-This is a model project for SubHalive and exposes one subtlety of its use:
 
-Say we've got some code in src/ that is used by both the executable and the
-plugins. The wrong thing to do is to pass "src" to startGHC (aka subhalive)
-such that src/ is added to subhalive's search path. This is wrong 
-because the executable is compiled code, whereas subhalive is interpreted,
-thus if subhalive returns values inhabiting datatypes defined in src,
-it will be returning the interpreted versions to compiled code 
-expecting compiled versions. This results in a segfault.
+SHADOWS:
+Recommends CSM as 2012 state of the art in simplicity and quality
+http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/
 
-Instead, you must split the code into an executable, a library, and the plugins.
-The executable will simply be "import qualified Lib; main = Lib.main". 
-For the plugins, pass no include directories to startGHC,
-(except if they are for other interpreted code used only by the plugins),
-instead relying on the package-finding functionality of subhalive to find Lib. 
-Now both Subhalive and the executable are relying on the compiled version 
-of Lib, and everything will work wonderfully!
+Recommends ESM as fast.
+http://blog.kiteandlightning.la/variance-shadow-maps/
 
+Implementing VSM
+https://www.youtube.com/watch?v=mb7WuTDz5jw
 
+http://codeflow.org/entries/2013/feb/15/soft-shadow-mapping/#variance-shadow-mapping-vsm
+
+The Book: Real-Time Shadows ($69)
+http://www.amazon.com/gp/product/1568814380
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/ee416324%28v=vs.85%29.aspx
+
+http://learnopengl.com/#!Advanced-Lighting/Shadows/Shadow-Mapping
+
+Generic spotlight shadows
+https://www.youtube.com/watch?v=5rg1Kd_2TkQ
+
+SSAO
+http://john-chapman-graphics.blogspot.co.uk/2013/01/ssao-tutorial.html
+http://john-chapman-graphics.blogspot.co.uk/p/demos.html
+https://www.youtube.com/user/johnChapman
+
+NETWORKING:
+http://enet.bespin.org/Features.html

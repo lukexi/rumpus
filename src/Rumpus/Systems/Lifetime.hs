@@ -44,17 +44,25 @@ removeLifetimeComponent entityID = do
 removeEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
 removeEntity entityID = do
     removePhysicsComponents entityID
-    removeScriptComponent entityID
-    removePdPatchComponent entityID
+    removeScriptComponent   entityID
+    removePdPatchComponent  entityID
     removeLifetimeComponent entityID
 
     wldComponents . cmpParent . at entityID .= Nothing
-    -- TODO remove this object from any objects claiming it as a parent.
-    -- Or delete them too.
-    -- (if we don't delete them, have them inherit their position from this object first)
+
+    traverseM_ (Map.toList <$> use (wldComponents . cmpParent)) $ \(childID, childParentID) -> do
+        when (childParentID == entityID) $ 
+            removeEntity childID
 
     wldComponents . cmpPose  . at entityID .= Nothing
     wldComponents . cmpSize  . at entityID .= Nothing
     wldComponents . cmpColor . at entityID .= Nothing
     wldComponents . cmpShape . at entityID .= Nothing
     wldComponents . cmpName  . at entityID .= Nothing
+
+    wldComponents . cmpAttachment  . at entityID .= Nothing
+    wldComponents . cmpDrag  . at entityID .= Nothing
+    wldComponents . cmpOnDrag  . at entityID .= Nothing
+    wldComponents . cmpAnimationColor . at entityID .= Nothing
+    wldComponents . cmpAnimationSize . at entityID .= Nothing
+

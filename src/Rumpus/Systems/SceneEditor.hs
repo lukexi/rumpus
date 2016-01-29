@@ -11,9 +11,97 @@ import Rumpus.Systems.Attachment
 import Rumpus.Systems.Script
 import Rumpus.Systems.Sound
 import Rumpus.Systems.Lifetime
+import Rumpus.Systems.Constraint
 
 import Data.Yaml hiding ((.=))
 import qualified Data.Map as Map
+
+clearSelection :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
+clearSelection = do
+    useTraverseM_ wldCurrentEditorFrame removeEntity
+    wldSelectedEntityID .= Nothing
+
+
+selectEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
+selectEntity entityID = do
+
+    clearSelection
+
+    wldSelectedEntityID ?= entityID
+
+
+    let editorFrameEntity = newEntity
+            -- & entShape .~ CubeShape
+            & entSize  .~ 1
+    editorFrame <- createEntity Transient editorFrameEntity
+
+    setEntityConstraint (RelativePositionTo entityID 0) editorFrame
+
+    ------------------------
+    -- Define a color editor
+    let colorEditorEntity = newEntity
+            & entShape .~ SphereShape
+            & entColor .~ V4 1 0 0 1
+            & entSize .~ 0.1
+            & entPhysicsProperties .~ [IsKinematic, NoContactResponse]
+    colorEditor <- createEntity Transient colorEditorEntity
+
+    wldComponents . cmpOnDrag . at colorEditor ?= \_colorEditorID dragDistance -> do
+        let x = dragDistance ^. _x
+        setEntityColor (hslColor (mod' x 1) 0.9 0.6 1) entityID
+
+    setEntityConstraint (RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)) colorEditor
+
+    addEntityChild editorFrame colorEditor
+
+    -----------------------
+    -- Define a size editor
+    let sizeEditorEntity = newEntity
+            & entShape .~ SphereShape
+            & entColor .~ V4 0 1 0 1
+            & entSize .~ 0.1
+            & entPhysicsProperties .~ [IsKinematic, NoContactResponse]
+    sizeEditor <- createEntity Transient sizeEditorEntity
+
+    wldComponents . cmpOnDrag . at sizeEditor ?= \_sizeEditorID dragDistance -> do
+        let size = max 0.05 (abs dragDistance)
+        setEntitySize size entityID
+
+    setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 0.5 0)) sizeEditor
+    
+    addEntityChild editorFrame sizeEditor
+
+    wldCurrentEditorFrame ?= editorFrame
+
+    -- Tick the constraint system once to put things in place for this frame
+    constraintSystem
+
+    return ()
+
+addEntityChild :: MonadState World m => EntityID -> EntityID -> m ()
+addEntityChild entityID childEntityID = do
+    wldComponents . cmpParent . at childEntityID ?= entityID
+
+beginDrag :: MonadState World m => EntityID -> EntityID -> m ()
+beginDrag handEntityID draggedID = do
+    startPos <- view posPosition <$> getEntityPose handEntityID
+    wldComponents . cmpDrag . at draggedID ?= Drag handEntityID startPos
+
+continueDrag :: HandEntityID -> WorldMonad ()
+continueDrag draggingHandEntityID = do
+    useMapM_ (wldComponents . cmpDrag) $ \(entityID, Drag handEntityID startPos) ->
+        when (handEntityID == draggingHandEntityID) $ do
+            currentPose <- view posPosition <$> getEntityPose handEntityID
+            let dragDistance = currentPose - startPos
+
+            useTraverseM_ (wldComponents . cmpOnDrag . at entityID) $ \onDrag ->
+                onDrag entityID dragDistance
+
+endDrag :: MonadState World m => HandEntityID -> m ()
+endDrag endingDragHandEntityID = do
+    useMapM_ (wldComponents . cmpDrag) $ \(entityID, Drag handEntityID _) ->
+        when (handEntityID == endingDragHandEntityID) $
+            wldComponents . cmpDrag . at entityID .= Nothing
 
 
 sceneEditorSystem :: WorldMonad ()
@@ -21,36 +109,61 @@ sceneEditorSystem = do
     let editSceneWithHand handName event = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
             forM_ mHandEntityID $ \handEntityID -> case event of
-                HandStateEvent hand -> 
+                HandStateEvent hand -> do
                     setEntityPose (poseFromMatrix (hand ^. hndMatrix)) handEntityID
+                    continueDrag handEntityID
                 HandButtonEvent HandButtonGrip ButtonDown -> do
                     handPose <- getEntityPose handEntityID
-                    let entity = newEntity & entPose .~ handPose & entShape .~ CubeShape
+                    let entity = newEntity 
+                            & entPose .~ handPose 
+                            & entShape .~ CubeShape
+                            & entSize .~ 0.5
                     _ <- createEntity Persistent entity
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
+                    
                     -- Find the entities overlapping the hand, and attach them to it
                     overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
                                                 =<< getEntityOverlappingEntityIDs handEntityID
+                    -- printIO overlappingEntityIDs
+                    when (null overlappingEntityIDs) clearSelection
                     
                     forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
-                        -- Select the entity (it's ok to select the floor, just not move it)
-                        wldSelectedEntityID ?= touchedID
 
-                        name <- getEntityName touchedID
-                        when (name /= "Floor") $ 
-                            attachEntity handEntityID touchedID
+                        currentEditorFrame <- use wldCurrentEditorFrame
+                        touchedParentID <- use (wldComponents . cmpParent . at touchedID)
+                        if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
+                            then do
+                                beginDrag handEntityID touchedID
+                            else do
+                                -- Select the entity (it's ok to select the floor, just not move it)
+                                selectEntity touchedID
+
+                                name <- getEntityName touchedID
+                                when (name /= "Floor") $ 
+                                    attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
-                    -- Copy the current pose to the scene file and save it
-                    withAttachment handEntityID $ \(Attachment attachedEntityID _offset) -> do
-                        currentPose <- getEntityPose attachedEntityID
-                        wldScene . scnEntities . at attachedEntityID . traverse . entPose .= currentPose
-                        saveScene
+                    endDrag handEntityID
                     detachEntity handEntityID
+
+                    useTraverseM_ wldSelectedEntityID 
+                        updateEntityInScene
+                    saveScene
+
                 _ -> return ()
 
     withLeftHandEvents (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
+
+updateEntityInScene :: MonadState World m => EntityID -> m ()
+updateEntityInScene entityID = do
+    -- Copy the current pose to the scene file and save it
+    pose <- getEntityPose entityID
+    wldScene . scnEntities . at entityID . traverse . entPose .= pose
+    color <- getEntityColor entityID
+    wldScene . scnEntities . at entityID . traverse . entColor .= color
+    size <- getEntitySize entityID
+    wldScene . scnEntities . at entityID . traverse . entSize .= size
 
 sceneFileNamed :: String -> FilePath
 sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"
@@ -109,24 +222,4 @@ createEntityWithID persistence entityID entity = do
         wldComponents . cmpParent . at childID ?= entityID
     
     return entityID
-
-removeEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
-removeEntity entityID = do
-    removePhysicsComponents entityID
-    removeScriptComponent entityID
-    removePdPatchComponent entityID
-    removeLifetimeComponent entityID
-
-    wldComponents . cmpParent . at entityID .= Nothing
-    -- TODO remove this object from any objects claiming it as a parent.
-    -- Or delete them too.
-    -- (if we don't delete them, have them inherit their position from this object first)
-
-    wldComponents . cmpPose  . at entityID .= Nothing
-    wldComponents . cmpSize  . at entityID .= Nothing
-    wldComponents . cmpColor . at entityID .= Nothing
-    wldComponents . cmpShape . at entityID .= Nothing
-    wldComponents . cmpName  . at entityID .= Nothing
-
-
 

@@ -1,0 +1,15 @@
+#N canvas 478 368 450 300 10;
+#X obj 133 144 blsaw~;
+#X obj 43 144 blsquare~;
+#X obj 78 228 outlet~;
+#X obj 145 69 inlet~ shape;
+#X obj 242 139 inlet choose;
+#X obj 43 69 inlet~ freq;
+#X obj 78 193 xfade~;
+#X connect 0 0 6 1;
+#X connect 1 0 6 0;
+#X connect 3 0 1 1;
+#X connect 4 0 6 2;
+#X connect 5 0 1 0;
+#X connect 5 0 0 0;
+#X connect 6 0 2 0;

@@ -32,7 +32,9 @@ traverseM f x = f >>= traverse x
 traverseM_ :: (Monad m, Foldable t) => m (t a) -> (a -> m b) -> m ()
 traverseM_ f x = f >>= traverse_ x
 
-useMaybeM_ :: (MonadState s m) => Lens' s (Maybe a) -> (a -> m b) -> m ()
-useMaybeM_ aLens f = do
-    current <- use aLens
-    mapM_ f current
+useTraverseM_ :: (MonadState s m, Foldable t) => Lens' s (t a) -> (a -> m b) -> m ()
+useTraverseM_ aLens f = traverseM_ (use aLens) f
+
+
+useMapM_ :: (MonadState s m) => Lens' s (Map k v) -> ((k,v) -> m b) -> m ()
+useMapM_ aLens f = traverseM_ (Map.toList <$> use aLens) f

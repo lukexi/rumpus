@@ -16,10 +16,9 @@ openALSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => M4
 openALSystem headM44 = do
     -- Update souce and listener poitions
     alListenerPose (poseFromMatrix headM44)
-    mapM_ (\(entityID, sourceID) -> do
+    traverseM_ (Map.toList <$> use (wldComponents . cmpSoundSource)) $ \(entityID, sourceID) -> do
         position <- view posPosition <$> getEntityPose entityID
-        alSourcePosition sourceID position)
-        =<< Map.toList <$> use (wldComponents . cmpSoundSource)
+        alSourcePosition sourceID position
 
 dequeueOpenALSource :: MonadState World m => m (Maybe (Int, OpenALSource))
 dequeueOpenALSource = do
@@ -36,9 +35,9 @@ addPdPatchComponent entityID entity = forM_ (entity ^. entPdPatch) $ \patchPath 
     patch <- makePatch pd patchPath
     wldComponents . cmpPdPatch . at entityID ?= patch
     -- Assign the patch's output DAC index to route it to the the SourceID
-    dequeueOpenALSource >>= mapM_ (\(sourceChannel, _sourceID) -> do
-        send pd patch "dac" (Atom (Float (fromIntegral sourceChannel)))
-        )
+    traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
+        send pd patch "dac" $ Atom (fromIntegral sourceChannel)
+        wldComponents . cmpSoundSource . at entityID ?= sourceID
 
 removePdPatchComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
 removePdPatchComponent entityID = do
@@ -46,9 +45,10 @@ removePdPatchComponent entityID = do
     withPdPatch entityID $ \patch ->
         closePatch pd patch
     wldComponents . cmpPdPatch . at entityID .= Nothing
+    wldComponents . cmpSoundSource . at entityID .= Nothing
 
 withPdPatch :: MonadState World m => EntityID -> (Patch -> m b) -> m ()
-withPdPatch entityID = useMaybeM_ (wldComponents . cmpPdPatch . at entityID)
+withPdPatch entityID = useTraverseM_ (wldComponents . cmpPdPatch . at entityID)
 
 sendPd :: (MonadIO m, MonadReader WorldStatic m) => Patch -> Receiver -> Message -> m ()
 sendPd patch receiver message = do

@@ -28,8 +28,12 @@ syncPhysicsPosesSystem = do
 -- entities' registered collision callbacks
 collisionsSystem :: WorldMonad ()
 collisionsSystem = do
-    -- dynamicsWorld <- view wlsDynamicsWorld
+
+    -- NOTE: we get stale collisions with this method, so I've switched to the
+    -- "contactTest" API which works perfectly
+
     -- Tell objects about any collisions
+    -- dynamicsWorld <- view wlsDynamicsWorld
     -- collisions <- getCollisions dynamicsWorld
     
     -- forM_ collisions $ \collision -> do
@@ -51,27 +55,18 @@ collisionsSystem = do
         collidingIDs <- getEntityOverlappingEntityIDs entityID
         forM_ collidingIDs $ \collidingID -> 
             onCollision entityID collidingID 0.1
-    
-
 
 
 addPhysicsComponent :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
                     => EntityID -> Entity -> m ()
 addPhysicsComponent entityID entity = do
 
-    
     let size           = entity ^. entSize
         shapeType      = entity ^. entShape
         physProperties = entity ^. entPhysicsProperties
         mass           = entity ^. entMass
 
-    wldComponents . cmpPhysicsProperties . at entityID ?= physProperties
-
-    maybeShape <- case shapeType of
-        NoShape          -> return Nothing
-        CubeShape        -> Just <$> createBoxShape size
-        SphereShape      -> Just <$> createSphereShape (size ^. _x)
-        StaticPlaneShape -> Just <$> createStaticPlaneShape (0 :: Int)
+    maybeShape <- createShapeCollider shapeType size
     forM_ maybeShape $ \shape -> do
         
         let pose = entity ^. entPose
@@ -82,36 +77,35 @@ addPhysicsComponent entityID entity = do
                               }
 
         dynamicsWorld <- view wlsDynamicsWorld
-        if NoContactResponse `elem` physProperties 
-            then do
-                -- ghostObject <- addGhostObject dynamicsWorld collisionID shape bodyInfo
+        
+        rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+        
+        wldComponents . cmpRigidBody         . at entityID ?= rigidBody
+        wldComponents . cmpPhysicsProperties . at entityID ?= physProperties
 
-                -- wldComponents . cmpGhostObject . at entityID ?= ghostObject
+        when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
+            setRigidBodyKinematic rigidBody True
 
-                rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
-                setRigidBodyKinematic rigidBody True
-                setRigidBodyNoContactResponse rigidBody True
-                wldComponents . cmpRigidBody . at entityID ?= rigidBody
+        when (NoContactResponse `elem` physProperties) $ 
+            setRigidBodyNoContactResponse rigidBody True
 
-                
-            else do
-                rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
-                
-                when (IsKinematic `elem` physProperties) 
-                    (setRigidBodyKinematic rigidBody True)
-
-                wldComponents . cmpRigidBody . at entityID ?= rigidBody
+createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m (Maybe CollisionShape)
+createShapeCollider shapeType size = case shapeType of
+        NoShape          -> return Nothing
+        CubeShape        -> Just <$> createBoxShape         size
+        SphereShape      -> Just <$> createSphereShape      (size ^. _x)
+        StaticPlaneShape -> Just <$> createStaticPlaneShape (0 :: Int)
 
 removePhysicsComponents :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
 removePhysicsComponents entityID = do
-    dynamicsWorld <- view wlsDynamicsWorld
     withEntityRigidBody entityID $ \rigidBody -> do
+        dynamicsWorld <- view wlsDynamicsWorld
         removeRigidBody dynamicsWorld rigidBody
     wldComponents . cmpRigidBody . at entityID .= Nothing
 
 
 withEntityRigidBody :: MonadState World m => EntityID -> (RigidBody -> m b) -> m ()
-withEntityRigidBody entityID = useMaybeM_ (wldComponents . cmpRigidBody . at entityID)
+withEntityRigidBody entityID = useTraverseM_ (wldComponents . cmpRigidBody . at entityID)
 
 getEntityOverlapping :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> m [Collision]
 getEntityOverlapping entityID = use (wldComponents . cmpRigidBody . at entityID) >>= \case
@@ -122,9 +116,9 @@ getEntityOverlapping entityID = use (wldComponents . cmpRigidBody . at entityID)
 
 getEntityOverlappingEntityIDs :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> m [EntityID]
 getEntityOverlappingEntityIDs entityID = 
-        filter (/= entityID) 
-        . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)]) 
-        <$> getEntityOverlapping entityID
+    filter (/= entityID) 
+    . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)]) 
+    <$> getEntityOverlapping entityID
 
 
 setEntitySize :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => V3 GLfloat -> EntityID -> m ()
@@ -133,7 +127,11 @@ setEntitySize newSize entityID = do
 
     withEntityRigidBody entityID $ \rigidBody -> do 
         dynamicsWorld <- view wlsDynamicsWorld
-        setRigidBodyScale dynamicsWorld rigidBody newSize
+        mass       <- fromMaybe 1 <$> use (wldComponents . cmpMass . at entityID)
+        shapeType  <- fromMaybe NoShape <$> use (wldComponents . cmpShape . at entityID)
+        maybeShape <- createShapeCollider shapeType newSize
+        forM_ maybeShape $ \shape ->
+            setRigidBodyShape dynamicsWorld rigidBody shape mass
 
 
 

@@ -1,4 +1,4 @@
-module PlayHeadUpdate where
+ module PlayHeadUpdate where
 import Rumpus
 
 update :: OnUpdate

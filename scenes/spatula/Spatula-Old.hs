@@ -107,44 +107,43 @@ attachWithSpring entityID = do
             let pose = poseFromMatrix (hand ^. hndMatrix)
             setEntityPose pose entityID
 
-            useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring ->
+            useTraverseM_ (wldComponents . cmpSpring . at entityID) $ \spring ->
                 setSpringWorldPose spring (pose ^. posPosition) (pose ^. posOrientation)
         HandButtonEvent HandButtonTrigger ButtonDown -> do
 
-            withEntityGhostObject entityID $ \ghostObject -> do
-                overlapping         <- getGhostObjectOverlapping ghostObject
-                nonFloorOverlapping <- flip filterM overlapping $ \overlapper -> do
-                    overlapperEntityID <- unCollisionObjectID <$> getCollisionObjectID overlapper
-                    (/= Just "Floor") <$> use (wldComponents . cmpName . at overlapperEntityID)
-                forM_ (listToMaybe nonFloorOverlapping) $ \oneNonFloor -> do
-                    do
-                        anEntityID <- unCollisionObjectID <$> getCollisionObjectID oneNonFloor
-                        printIO =<< use (wldComponents . cmpName . at anEntityID)
-                    dynamicsWorld <- view wlsDynamicsWorld
+            overlapping         <- getEntityOverlapping entityID
+            nonFloorOverlapping <- flip filterM overlapping $ \overlapper -> do
+                overlapperEntityID <- unCollisionObjectID <$> getCollisionObjectID overlapper
+                (/= Just "Floor") <$> use (wldComponents . cmpName . at overlapperEntityID)
+            forM_ (listToMaybe nonFloorOverlapping) $ \oneNonFloor -> do
+                do
+                    anEntityID <- unCollisionObjectID <$> getCollisionObjectID oneNonFloor
+                    printIO =<< use (wldComponents . cmpName . at anEntityID)
+                dynamicsWorld <- view wlsDynamicsWorld
 
-                    spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
-                    wldComponents . cmpSpring . at entityID ?= spring
+                spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
+                wldComponents . cmpSpring . at entityID ?= spring
 
-                    setSpringLinearLowerLimit  spring (-5  :: V3 Float)
-                    setSpringLinearUpperLimit  spring (5   :: V3 Float)
-                    setSpringAngularLowerLimit spring (-1  :: V3 Float)
-                    setSpringAngularUpperLimit spring (1   :: V3 Float)
-                    setSpringAngularStiffness  spring (100 :: V3 Float)
-                    setSpringLinearStiffness   spring (100 :: V3 Float)
-                    setSpringLinearDamping     spring (0.9 :: V3 Float)
-                    setSpringAngularDamping    spring (0.9 :: V3 Float)
-                    setSpringLinearBounce      spring (10  :: V3 Float)
-                    setSpringAngularBounce     spring (10  :: V3 Float)
-                    -- setSpringLinearEquilibrium spring 0
-                    -- setSpringAngularEquilibrium spring 0
-                    setLinearSpringEnabled spring (V3 True True True)
-                    setAngularSpringEnabled spring (V3 True True True)
-                    return ()
+                setSpringLinearLowerLimit  spring (-5  :: V3 Float)
+                setSpringLinearUpperLimit  spring (5   :: V3 Float)
+                setSpringAngularLowerLimit spring (-1  :: V3 Float)
+                setSpringAngularUpperLimit spring (1   :: V3 Float)
+                setSpringAngularStiffness  spring (100 :: V3 Float)
+                setSpringLinearStiffness   spring (100 :: V3 Float)
+                setSpringLinearDamping     spring (0.9 :: V3 Float)
+                setSpringAngularDamping    spring (0.9 :: V3 Float)
+                setSpringLinearBounce      spring (10  :: V3 Float)
+                setSpringAngularBounce     spring (10  :: V3 Float)
+                -- setSpringLinearEquilibrium spring 0
+                -- setSpringAngularEquilibrium spring 0
+                setLinearSpringEnabled spring (V3 True True True)
+                setAngularSpringEnabled spring (V3 True True True)
+                return ()
             setEntityColor (V4 1 1 1 1) entityID
         HandButtonEvent HandButtonTrigger ButtonUp -> do
             setEntityColor (V4 0 1 0 1) entityID
 
-            useMaybeM_ (wldComponents . cmpSpring . at entityID) $ \spring -> do
+            useTraverseM_ (wldComponents . cmpSpring . at entityID) $ \spring -> do
                 dynamicsWorld <- view wlsDynamicsWorld
                 removeSpringConstraint dynamicsWorld spring
                 wldComponents . cmpSpring . at entityID .= Nothing
