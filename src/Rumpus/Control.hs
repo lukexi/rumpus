@@ -6,6 +6,7 @@
 module Rumpus.Control where
 import PreludeExtra
 import Rumpus.Types
+import Rumpus.Systems.Shared
 
 controlEventsSystem :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => M44 GLfloat -> [Hand] -> m ()
 controlEventsSystem headM44 hands = do
@@ -46,6 +47,10 @@ controlEventsSystem headM44 hands = do
         ( HeadEvent headM44
         : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands')
         )
+
+    traverseM_ (use wldEvents) $ \case
+        VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> toggleWorldPlaying
+        _ -> return ()
 
 
 emulateRightHand :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => m [Hand]
