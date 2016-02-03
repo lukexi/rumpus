@@ -51,9 +51,9 @@
         - -0.2616137
         - 0.0
       Position:
-      - -0.36549377
-      - 0.5395194
-      - 0.80241126
+      - -7.592902e-2
+      - 0.7625083
+      - 1.6618123
     OnStart: null
     Name: NewEntity
     Shape: CubeShape
@@ -653,9 +653,9 @@
         - -0.6290167
         - 0.6290167
       Position:
-      - -1.2939818
-      - 1.0035229
-      - 0.48157454
+      - -1.1098061
+      - 1.5573068
+      - 0.48824763
     OnStart: null
     Name: NewEntity
     Shape: CubeShape

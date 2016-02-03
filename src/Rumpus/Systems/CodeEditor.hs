@@ -1,15 +1,14 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE LambdaCase #-}
-
+{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.CodeEditor where
 import PreludeExtra
 import Rumpus.Types
 import Rumpus.Systems.Shared
 
 import Graphics.GL.Freetype
-import Control.Concurrent.STM
 import Halive.SubHalive
-import Graphics.GL.Pal
+import Halive.Recompiler
 import TinyRick
 
 import qualified Data.Map as Map
@@ -22,8 +21,8 @@ createCodeEditorSystem = do
 
     return (font, ghcChan)
 
-lookupCodeEditor :: (MonadReader WorldStatic m, MonadIO m) => CodeExpressionKey -> m CodeEditor
-lookupCodeEditor codeExpressionKey = do
+createCodeEditor :: (MonadReader WorldStatic m, MonadIO m, MonadState World m) => CodeExpressionKey -> m CodeEditor
+createCodeEditor codeExpressionKey = do
 
     maybeExisting <- use (wldCodeEditors . at codeExpressionKey)
     case maybeExisting of
@@ -32,47 +31,62 @@ lookupCodeEditor codeExpressionKey = do
             ghcChan <- view wlsGHCChan
             font    <- view wlsFont
 
+            let (scriptPath, exprString) = codeExpressionKey
             resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
             codeRenderer  <- textRendererFromFile font scriptPath
             errorRenderer <- createTextRenderer font (textBufferFromString "noFile" "")
-            return CodeEditor 
+            let codeEditor = CodeEditor 
                     { _cedCodeRenderer = codeRenderer
                     , _cedErrorRenderer = errorRenderer
                     , _cedResultTChan = resultTChan 
                     }
+            wldCodeEditors . at codeExpressionKey ?= codeEditor
+            return codeEditor
 
 codeEditorSystem :: WorldMonad ()
 codeEditorSystem = do
     -- Pass keyboard events to the selected entity's text editor, if it has one
     events <- use wldEvents
     window <- gpWindow <$> view wlsVRPal
-    traverseM_ (use wldSelectedEntityID) $ \selectedEntityID ->
-        forM_ events $ \case
-            GLFWEvent e -> handleTextBufferEvent window e 
-                (wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer)
-            VREvent (VRKeyboardInputEvent chars) -> forM_ chars $ \char -> do
-                handleTextBufferEvent window (Character char)
-                    (wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer)
-            _ -> return ()
+    useTraverseM_ wldSelectedEntityID $ \selectedEntityID -> do
+        useTraverseM_ (wldComponents . cmpOnUpdateExpr . at selectedEntityID) $ \codeExprKey ->
+            forM_ events $ \case
+                GLFWEvent e -> handleTextBufferEvent window e 
+                    (wldCodeEditors . ix codeExprKey . cedCodeRenderer)
+                VREvent (VRKeyboardInputEvent chars) -> forM_ chars $ \char -> do
+                    handleTextBufferEvent window (Character char)
+                        (wldCodeEditors . ix codeExprKey . cedCodeRenderer)
+                _ -> return ()
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
 syncCodeEditorSystem :: WorldMonad ()
 syncCodeEditorSystem = do
     font <- view wlsFont
-    let updateFromEditor :: Lens' Components (EntityMap CodeEditor) -> Lens' Components (EntityMap r) -> WorldMonad ()
-        updateFromEditor editorLens valueLens =
-            traverseM_ (Map.toList <$> use (wldComponents . editorLens)) $
-                \(entityID, editor) -> 
-                    fmap getCompilationResult <$> tryReadTChanIO (editor ^. cedResultTChan) >>= \case
-                        Just (Left errors) -> do
-                            let allErrors = unlines errors
-                            putStrLnIO allErrors
-                            errorRenderer <- createTextRenderer font (textBufferFromString "noFile" allErrors)
-                            wldComponents . editorLens . ix entityID . cedErrorRenderer .= errorRenderer
-                        Just (Right value) ->
-                            wldComponents . valueLens . at entityID ?= value
-                        Nothing -> return ()
-    updateFromEditor cmpOnStartEditor     cmpOnStart
-    updateFromEditor cmpOnUpdateEditor    cmpOnUpdate
-    updateFromEditor cmpOnCollisionEditor cmpOnCollision
+
+    let copyCompiledResultToEntities codeExprKey value codeExprLens valueLens = 
+            traverseM_ (Map.toList <$> use (wldComponents . codeExprLens)) $ \(entityID, entityCodeExprKey) -> do
+                    when (entityCodeExprKey == codeExprKey) $ 
+                        wldComponents . valueLens . at entityID ?= value
+
+    traverseM_ (Map.toList <$> use wldCodeEditors) $ \(codeExprKey, editor) -> do
+        tryReadTChanIO (editor ^. cedResultTChan) >>= \case
+            Just (Left errors) -> do
+                let allErrors = unlines errors
+                putStrLnIO allErrors
+                errorRenderer <- createTextRenderer font (textBufferFromString "errorMessage" allErrors)
+                wldCodeEditors . ix codeExprKey . cedErrorRenderer .= errorRenderer
+            Just (Right compiledValue) -> do
+                -- Clear the error renderer
+                errorRenderer <- createTextRenderer font (textBufferFromString "errorMessage" "")
+                wldCodeEditors . ix codeExprKey . cedErrorRenderer .= errorRenderer
+
+                let value = getCompiledValue compiledValue
+                copyCompiledResultToEntities codeExprKey value cmpOnStartExpr     cmpOnStart
+                copyCompiledResultToEntities codeExprKey value cmpOnUpdateExpr    cmpOnUpdate
+                copyCompiledResultToEntities codeExprKey value cmpOnCollisionExpr cmpOnCollision
+            Nothing -> return ()
+
+
+
+    

@@ -134,23 +134,28 @@ sceneEditorSystem = do
                     didPlaceCursor <- case mSelectedEntityID of
                         Nothing -> return False
                         Just selectedEntityID -> do
-                            mTextRenderer <- preuse (wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer)
-                            case mTextRenderer of
+                            maybeCodeExprKey <- use (wldComponents . cmpOnUpdateExpr . at selectedEntityID)
+                            case maybeCodeExprKey of
                                 Nothing -> return False
-                                Just textRenderer -> do
-                                    handPose <- getEntityPose handEntityID
-                                    let handRay = poseToRay handPose (V3 0 0 (-1))
-                                    -- We currently render code editors directly matched with the pose
-                                    -- of the entity; update this when we make code editors into their own entities
-                                    -- like the editorFrame children are
-                                    pose <- getEntityPose selectedEntityID
-                                    let model44 = transformationFromPose pose
-                                    mUpdatedRenderer <- castRayToTextRenderer handRay textRenderer model44
-                                    case mUpdatedRenderer of
+                                Just codeExprKey -> do
+                                    maybeEditor <- use (wldCodeEditors . at codeExprKey)
+                                    case maybeEditor of
                                         Nothing -> return False
-                                        Just updatedRenderer -> do
-                                            wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer .= updatedRenderer
-                                            return True
+                                        Just editor -> do
+                                            let codeRenderer = editor ^. cedCodeRenderer
+                                            handPose <- getEntityPose handEntityID
+                                            let handRay = poseToRay handPose (V3 0 0 (-1))
+                                            -- We currently render code editors directly matched with the pose
+                                            -- of the entity; update this when we make code editors into their own entities
+                                            -- like the editorFrame children are
+                                            pose <- getEntityPose selectedEntityID
+                                            let model44 = transformationFromPose pose
+                                            mUpdatedRenderer <- castRayToTextRenderer handRay codeRenderer model44
+                                            case mUpdatedRenderer of
+                                                Nothing -> return False
+                                                Just updatedRenderer -> do
+                                                    wldCodeEditors . ix codeExprKey . cedCodeRenderer .= updatedRenderer
+                                                    return True
                     when (not didPlaceCursor) $ do
                         -- Find the entities overlapping the hand, and attach them to it
                         overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 

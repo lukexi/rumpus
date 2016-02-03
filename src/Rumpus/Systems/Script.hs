@@ -8,9 +8,6 @@ import Rumpus.Types
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
 
-import Halive.SubHalive
-import TinyRick
-
 scriptingSystem :: WorldMonad ()
 scriptingSystem = do
     traverseM_ (Map.toList <$> use (wldComponents . cmpOnStart)) $ 
@@ -30,25 +27,29 @@ addScriptComponent :: (MonadReader WorldStatic m, MonadState World m, MonadIO m)
 addScriptComponent entityID entity = do
 
     forM_ (entity ^. entOnStart) $ \scriptPath -> do
-        editor <- createCodeEditor scriptPath "start"
+
+        let codeExprKey = (scriptPath, "start")
+        _ <- createCodeEditor codeExprKey
         
-        wldComponents . cmpOnStartEditor . at entityID ?= editor
+        wldComponents . cmpOnStartExpr . at entityID ?= codeExprKey
 
     forM_ (entity ^. entOnUpdate) $ \scriptPath -> do
-        editor <- createCodeEditor scriptPath "update"
+        let codeExprKey = (scriptPath, "update")
+        _ <- createCodeEditor codeExprKey
         
-        wldComponents . cmpOnUpdateEditor . at entityID ?= editor
+        wldComponents . cmpOnUpdateExpr . at entityID ?= codeExprKey
 
     forM_ (entity ^. entOnCollision) $ \scriptPath -> do
-        editor <- createCodeEditor scriptPath "collision"
+        let codeExprKey = (scriptPath, "collision")
+        _ <- createCodeEditor codeExprKey
         
-        wldComponents . cmpOnCollisionEditor . at entityID ?= editor
+        wldComponents . cmpOnCollisionExpr . at entityID ?= codeExprKey
 
 removeScriptComponent :: MonadState World m => EntityID -> m ()
 removeScriptComponent entityID = do
-    wldComponents . cmpOnStartEditor . at entityID .= Nothing
-    wldComponents . cmpOnUpdateEditor . at entityID .= Nothing
-    wldComponents . cmpOnCollisionEditor . at entityID .= Nothing
+    wldComponents . cmpOnStartExpr . at entityID .= Nothing
+    wldComponents . cmpOnUpdateExpr . at entityID .= Nothing
+    wldComponents . cmpOnCollisionExpr . at entityID .= Nothing
     wldComponents . cmpOnStart . at entityID .= Nothing
     wldComponents . cmpOnUpdate . at entityID .= Nothing
     wldComponents . cmpOnCollision . at entityID .= Nothing

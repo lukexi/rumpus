@@ -52,22 +52,18 @@ renderEditors projM44 viewM44 = do
     useTraverseM_ wldSelectedEntityID $ \entityID -> do
         parentPose <- fromMaybe newPose <$> use (wldComponents . cmpPose  . at entityID)
 
-        onStartEditor     <- use (wldComponents . cmpOnUpdateEditor . at entityID)
-        onUpdateEditor    <- use (wldComponents . cmpOnStartEditor . at entityID)
-        onCollisionEditor <- use (wldComponents . cmpOnCollisionEditor . at entityID)
+        useTraverseM_ (wldComponents . cmpOnUpdateExpr . at entityID) $ \codeExprKey -> 
+            useTraverseM_ (wldCodeEditors . at codeExprKey) $ \editor -> do
 
-        let editors = catMaybes [onStartEditor, onUpdateEditor, onCollisionEditor]
+                let codeModelM44 = transformationFromPose parentPose
 
-        forM_ editors $ \editor -> do
-            let codeModelM44 = transformationFromPose parentPose
+                -- Render code in white
+                renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
 
-            -- Render code in white
-            renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
+                let errorsModelM44 = codeModelM44 !*! identity & translation .~ V3 1 0 0
 
-            let errorsModelM44 = codeModelM44 !*! identity & translation .~ V3 1 0 0
-
-            -- Render errors in light red
-            renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
+                -- Render errors in light red
+                renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
 
     glDisable GL_BLEND
 
