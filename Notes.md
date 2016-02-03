@@ -1,8 +1,11 @@
 [ ] Fix touchpad support... can we detect the button yet?
-[ ] Fix hand ordering
-[ ] Try SteamVR keyboard again
+[x] Fix hand ordering
+[x] Try SteamVR keyboard again
 
 [x] Fix OpenAL positioning
+
+[ ] Enable multisampling
+    https://www.opengl.org/wiki/Multisampling
 
 TONIGHT:
 Let's build the music sequencer.
@@ -118,6 +121,8 @@ Demos:
 - Fireworks (!)
 - Mandelbox
     https://vimeo.com/152795080
+- Wind chimes
+- Bow&Arrow
 
 - Garage band mini based on sequencer idea. Simple sampler, simple synth.
     - Have done synth : D needs presets.
@@ -138,10 +143,6 @@ http://bulletphysics.org/Bullet/BulletFull/classbtConeTwistConstraint.html
 http://www.vrinflux.com/newton-vr-physics-based-interaction-on-the-vive/
 http://pomax.github.io/bezierjs/
 http://www.continuousphysics.com/Bullet/BulletFull/classbtIDebugDraw.html
-
-
-GetTrackedDeviceIndexForControllerRole
-http://steamcommunity.com/app/358720/discussions/0/451848855009182860/
 
 
 Keyboard API

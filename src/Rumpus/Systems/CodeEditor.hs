@@ -6,7 +6,7 @@ import Rumpus.Types
 import Control.Monad.State
 import Graphics.GL.Freetype
 import Control.Concurrent.STM
-import TinyRick.Recompiler2
+import Halive.SubHalive
 import Graphics.GL.Pal
 import TinyRick
 import Control.Lens.Extra
@@ -22,7 +22,24 @@ createCodeEditorSystem = do
 
     return (font, ghcChan)
 
+lookupCodeEditor :: (MonadReader WorldStatic m, MonadIO m) => CodeExpressionKey -> m CodeEditor
+lookupCodeEditor codeExpressionKey = do
 
+    maybeExisting <- use (wldCodeEditors . at codeExpressionKey)
+    case maybeExisting of
+        Just existing -> return existing
+        Nothing -> do
+            ghcChan <- view wlsGHCChan
+            font    <- view wlsFont
+
+            resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
+            codeRenderer  <- textRendererFromFile font scriptPath
+            errorRenderer <- createTextRenderer font (textBufferFromString "noFile" "")
+            return CodeEditor 
+                    { _cedCodeRenderer = codeRenderer
+                    , _cedErrorRenderer = errorRenderer
+                    , _cedResultTChan = resultTChan 
+                    }
 
 codeEditorSystem :: WorldMonad ()
 codeEditorSystem = do

@@ -5,8 +5,10 @@ import PreludeExtra
 import qualified Data.Map as Map
 
 import Rumpus.Types
+import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
-import TinyRick.Recompiler2
+
+import Halive.SubHalive
 import TinyRick
 
 scriptingSystem :: WorldMonad ()
@@ -52,18 +54,7 @@ removeScriptComponent entityID = do
     wldComponents . cmpOnCollision . at entityID .= Nothing
     wldComponents . cmpScriptData . at entityID .= Nothing
 
-createCodeEditor :: (MonadReader WorldStatic m, MonadIO m) => FilePath -> String -> m CodeEditor
-createCodeEditor scriptPath exprString = do
-    ghcChan <- view wlsGHCChan
-    font    <- view wlsFont
 
-    resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
-    codeRenderer  <- textRendererFromFile font scriptPath
-    errorRenderer <- createTextRenderer font (textBufferFromString "noFile" [])
-    return CodeEditor 
-            { _cedCodeRenderer = codeRenderer
-            , _cedErrorRenderer = errorRenderer
-            , _cedResultTChan = resultTChan }
 
 withScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
                     EntityID -> (a -> m ()) -> m ()

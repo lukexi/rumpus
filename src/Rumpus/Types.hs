@@ -15,16 +15,18 @@ import Data.Yaml
 import Data.Aeson.Types
 
 import TinyRick
-import TinyRick.Recompiler2
+import Halive.Recompiler
 
 
 type EntityID = Word32
 
 type EntityMap a = Map EntityID a
 
-data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape deriving (Eq, Show, Ord, Enum, Generic, FromJSON)
+data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape 
+    deriving (Eq, Show, Ord, Enum, Generic, FromJSON)
 
-data PhysicsProperties = IsKinematic | NoContactResponse deriving (Eq, Show, Generic, FromJSON)
+data PhysicsProperties = IsKinematic | NoContactResponse 
+    deriving (Eq, Show, Generic, FromJSON)
 
 type WorldMonad = StateT World (ReaderT WorldStatic IO)
 
@@ -32,7 +34,8 @@ data WorldEvent = GLFWEvent Event
                 | VREvent VREvent 
                 deriving Show
 
-data Persistence = Transient | Persistent deriving (Eq, Show, Generic, FromJSON)
+data Persistence = Transient | Persistent 
+    deriving (Eq, Show, Generic, FromJSON)
 
 
 -- | OnStart function
@@ -89,8 +92,10 @@ data World = World
     , _wldScene              :: !Scene
     , _wldSelectedEntityID   :: !(Maybe EntityID)
     , _wldCurrentEditorFrame :: !(Maybe EntityID)
+    , _wldCodeEditors        :: !(Map CodeExpressionKey CodeEditor)
     }
 
+type CodeExpressionKey = (FilePath, String)
 
 newWorld :: World
 newWorld = World
@@ -104,6 +109,7 @@ newWorld = World
     , _wldScene              = newScene
     , _wldSelectedEntityID   = Nothing
     , _wldCurrentEditorFrame = Nothing
+    , _wldCodeEditors        = mempty
     }
 
 data Attachment = Attachment EntityID (Pose GLfloat)
@@ -125,9 +131,9 @@ data Components = Components
     , _cmpOnStart           :: EntityMap OnStart
     , _cmpOnUpdate          :: EntityMap OnUpdate
     , _cmpOnCollision       :: EntityMap OnCollision
-    , _cmpOnStartEditor     :: EntityMap CodeEditor
-    , _cmpOnUpdateEditor    :: EntityMap CodeEditor
-    , _cmpOnCollisionEditor :: EntityMap CodeEditor
+    , _cmpOnStartExpr       :: EntityMap CodeExpressionKey
+    , _cmpOnUpdateExpr      :: EntityMap CodeExpressionKey
+    , _cmpOnCollisionExpr   :: EntityMap CodeExpressionKey
     , _cmpScriptData        :: EntityMap Dynamic
     , _cmpParent            :: EntityMap EntityID
     , _cmpRigidBody         :: EntityMap RigidBody
@@ -162,9 +168,9 @@ newComponents = Components
     , _cmpOnStart           = mempty
     , _cmpOnUpdate          = mempty
     , _cmpOnCollision       = mempty
-    , _cmpOnStartEditor     = mempty
-    , _cmpOnUpdateEditor    = mempty
-    , _cmpOnCollisionEditor = mempty
+    , _cmpOnStartExpr       = mempty
+    , _cmpOnUpdateExpr      = mempty
+    , _cmpOnCollisionExpr   = mempty
     , _cmpScriptData        = mempty
     , _cmpParent            = mempty
     , _cmpRigidBody         = mempty
