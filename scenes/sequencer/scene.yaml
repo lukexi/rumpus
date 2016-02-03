@@ -76,14 +76,14 @@
     Lifetime: null
     Pose:
       Orientation:
-      - 0.5554088
-      - - -0.2603486
-        - -0.4376311
-        - -0.65743345
+      - -0.34931043
+      - - 0.50797415
+        - 0.3646373
+        - 0.6978425
       Position:
-      - -0.6485667
-      - 1.4711764
-      - -0.66474366
+      - -1.0906844
+      - 0.81796974
+      - -0.82365805
     OnStart: null
     Name: NewEntity
     Shape: CubeShape
@@ -106,14 +106,14 @@
     Lifetime: null
     Pose:
       Orientation:
-      - 1.5349826e-2
-      - - -0.70694095
-        - 0.7069394
-        - -1.5347884e-2
+      - 8.842602e-2
+      - - -0.31750876
+        - 0.92962486
+        - 0.16482326
       Position:
-      - -0.5451493
-      - 1.7270837
-      - 0.23586223
+      - -0.97537386
+      - 1.0264641
+      - -0.12770715
     OnStart: null
     Name: NewEntity
     Shape: CubeShape
@@ -282,7 +282,7 @@
     - 0.1
     Color:
     - 1
-    - 1
+    - 5.8144593e-4
     - 1
     - 1
     OnUpdate: scenes/sequencer/NoteUpdate.hs
@@ -290,14 +290,14 @@
     Lifetime: null
     Pose:
       Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
+      - 0.9987897
+      - - 3.968637e-2
+        - 2.7320303e-2
+        - -9.886942e-3
       Position:
-      - 0.3885464
-      - 0.9528057
-      - 8.038959e-2
+      - 0.3884779
+      - 1.4330782
+      - 4.377815e-2
     OnStart: null
     Name: Note
     Shape: CubeShape
@@ -383,14 +383,14 @@
     Lifetime: null
     Pose:
       Orientation:
-      - 1
-      - - 0.0
-        - 0.0
-        - 0.0
+      - 0.5007575
+      - - -0.8450097
+        - -0.17368641
+        - 7.0948966e-2
       Position:
-      - -0.8070159
-      - 2.1406612
-      - -0.48412967
+      - -0.39743516
+      - 2.2075076
+      - -0.21649782
     OnStart: null
     Name: NewEntity
     Shape: CubeShape

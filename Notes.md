@@ -70,6 +70,7 @@ Core
 - [x] Destroying entities
 
 Features
+- [ ] "Immovable" tag so we don't have to filter for the floor
 - [ ] Instanced rendering
 - [ ] Transparency
 - [ ] Shadows

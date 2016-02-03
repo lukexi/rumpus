@@ -13,11 +13,15 @@ import Rumpus.Systems.Sound
 import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Constraint
 
+import Graphics.GL.Freetype
+
 import Data.Yaml hiding ((.=))
 import qualified Data.Map as Map
 
 clearSelection :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
 clearSelection = do
+    vrPal <- view wlsVRPal
+    hideHandKeyboard vrPal
     useTraverseM_ wldCurrentEditorFrame removeEntity
     wldSelectedEntityID .= Nothing
 
@@ -104,6 +108,7 @@ endDrag endingDragHandEntityID = do
             wldComponents . cmpDrag . at entityID .= Nothing
 
 
+
 sceneEditorSystem :: WorldMonad ()
 sceneEditorSystem = do
     let editSceneWithHand handName event = do
@@ -118,33 +123,66 @@ sceneEditorSystem = do
                             & entPose .~ handPose 
                             & entShape .~ CubeShape
                             & entSize .~ 0.5
+                            & entOnUpdate ?~ "scenes/minimal/DefaultUpdate.hs"
                     _ <- createEntity Persistent entity
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
-                    
-                    -- Find the entities overlapping the hand, and attach them to it
-                    overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
-                                                =<< getEntityOverlappingEntityIDs handEntityID
-                    -- printIO overlappingEntityIDs
-                    when (null overlappingEntityIDs) clearSelection
-                    
-                    forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
 
-                        currentEditorFrame <- use wldCurrentEditorFrame
-                        touchedParentID <- use (wldComponents . cmpParent . at touchedID)
-                        if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
-                            then do
-                                beginDrag handEntityID touchedID
-                            else do
-                                -- Select the entity (it's ok to select the floor, just not move it)
-                                selectEntity touchedID
+                    -- First, see if we can place a cursor into a text buffer.
+                    -- If not, then move onto the selection logic.
+                    mSelectedEntityID <- use wldSelectedEntityID
+                    didPlaceCursor <- case mSelectedEntityID of
+                        Nothing -> return False
+                        Just selectedEntityID -> do
+                            mTextRenderer <- preuse (wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer)
+                            case mTextRenderer of
+                                Nothing -> return False
+                                Just textRenderer -> do
+                                    handPose <- getEntityPose handEntityID
+                                    let handRay = poseToRay handPose (V3 0 0 (-1))
+                                    -- We currently render code editors directly matched with the pose
+                                    -- of the entity; update this when we make code editors into their own entities
+                                    -- like the editorFrame children are
+                                    pose <- getEntityPose selectedEntityID
+                                    let model44 = transformationFromPose pose
+                                    mUpdatedRenderer <- castRayToTextRenderer handRay textRenderer model44
+                                    case mUpdatedRenderer of
+                                        Nothing -> return False
+                                        Just updatedRenderer -> do
+                                            wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer .= updatedRenderer
+                                            return True
+                    when (not didPlaceCursor) $ do
+                        -- Find the entities overlapping the hand, and attach them to it
+                        overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
+                                                    =<< getEntityOverlappingEntityIDs handEntityID
+                        -- printIO overlappingEntityIDs
+                        when (null overlappingEntityIDs) clearSelection
+                        
+                        forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
 
-                                name <- getEntityName touchedID
-                                when (name /= "Floor") $ 
-                                    attachEntity handEntityID touchedID
+                            -- See if the touched object has the current EditorFrame as a parent;
+                            -- If so, it's a draggable object.
+                            -- (we should just look to see if it has a drag function, actually!)
+                            currentEditorFrame <- use wldCurrentEditorFrame
+                            touchedParentID <- use (wldComponents . cmpParent . at touchedID)
+                            if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
+                                then do
+                                    beginDrag handEntityID touchedID
+                                else do
+                                    -- Select the entity (it's ok to select the floor, just not move it)
+                                    selectEntity touchedID
+
+                                    name <- getEntityName touchedID
+                                    when (name /= "Floor") $ 
+                                        attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     endDrag handEntityID
                     detachEntity handEntityID
+
+                    -- If we've selected something, show the keyboard on grip-up
+                    useTraverseM_ wldSelectedEntityID $ \_selectedID -> do
+                        vrPal <- view wlsVRPal
+                        showHandKeyboard vrPal
 
                     useTraverseM_ wldSelectedEntityID 
                         updateEntityInScene
@@ -152,7 +190,7 @@ sceneEditorSystem = do
 
                 _ -> return ()
 
-    withLeftHandEvents (editSceneWithHand "Left Hand")
+    withLeftHandEvents  (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
 updateEntityInScene :: MonadState World m => EntityID -> m ()
