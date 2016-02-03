@@ -54,7 +54,7 @@ renderEditors projM44 viewM44 = do
 
         onStartEditor     <- use (wldComponents . cmpOnUpdateEditor . at entityID)
         onUpdateEditor    <- use (wldComponents . cmpOnStartEditor . at entityID)
-        onCollisionEditor <- use (wldComponents . cmpOnStartEditor . at entityID)
+        onCollisionEditor <- use (wldComponents . cmpOnCollisionEditor . at entityID)
 
         let editors = catMaybes [onStartEditor, onUpdateEditor, onCollisionEditor]
 

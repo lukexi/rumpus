@@ -1,6 +1,6 @@
 [ ] Fix touchpad support... can we detect the button yet?
-[ ] Fix hand ordering
-[ ] Try SteamVR keyboard again
+[x] Fix hand ordering
+[x] Try SteamVR keyboard again
 
 [x] Fix OpenAL positioning
 
@@ -67,6 +67,7 @@ Core
 - [x] Destroying entities
 
 Features
+- [ ] "Immovable" tag so we don't have to filter for the floor
 - [ ] Instanced rendering
 - [ ] Transparency
 - [ ] Shadows

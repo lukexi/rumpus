@@ -2,16 +2,14 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Rumpus.Systems.CodeEditor where
+import PreludeExtra
 import Rumpus.Types
-import Control.Monad.State
-import Graphics.GL.Freetype
-import Control.Concurrent.STM
-import TinyRick.Recompiler2
-import Graphics.GL.Pal
-import TinyRick
-import Control.Lens.Extra
-import Graphics.VR.Pal
 import Rumpus.Systems.Shared
+
+import Graphics.GL.Freetype
+import TinyRick.Recompiler2
+import TinyRick
+
 import qualified Data.Map as Map
 
 createCodeEditorSystem :: IO (Font, TChan CompilationRequest)
@@ -33,6 +31,9 @@ codeEditorSystem = do
         forM_ events $ \case
             GLFWEvent e -> handleTextBufferEvent window e 
                 (wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer)
+            VREvent (VRKeyboardInputEvent chars) -> forM_ chars $ \char -> do
+                handleTextBufferEvent window (Character char)
+                    (wldComponents . cmpOnUpdateEditor . ix selectedEntityID . cedCodeRenderer)
             _ -> return ()
 
 -- | Update the world state with the result of the editor upon successful compilations

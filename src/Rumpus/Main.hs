@@ -52,10 +52,10 @@ main = withPd $ \pd -> do
 
         loadScene sceneName
 
-        whileVR vrPal $ \headM44 hands -> do
+        whileVR vrPal $ \headM44 hands vrEvents -> do
             
             -- Collect control events into the events channel to be read by entities during update
-            controlEventsSystem headM44 hands
+            controlEventsSystem headM44 hands vrEvents
 
             codeEditorSystem
             

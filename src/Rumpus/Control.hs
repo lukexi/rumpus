@@ -8,14 +8,14 @@ import PreludeExtra
 import Rumpus.Types
 import Rumpus.Systems.Shared
 
-controlEventsSystem :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => M44 GLfloat -> [Hand] -> m ()
-controlEventsSystem headM44 hands = do
+controlEventsSystem :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
+controlEventsSystem headM44 hands vrEvents = do
     VRPal{..} <- view wlsVRPal
 
     -- Grab the old events for comparison
     lastEvents <- use wldEvents
     -- Clear the events list
-    wldEvents .= []
+    wldEvents .= map VREvent vrEvents
 
     -- Gather GLFW Pal events
     processEvents gpEvents $ \e -> do
@@ -89,10 +89,10 @@ toggleWorldPlaying = wldPlaying %= not
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip,    view hndGrip)
               , (HandButtonTrigger, view (hndTrigger . to (> 0.5)))
+              , (HandButtonStart,   view hndButtonS)
+              , (HandButtonJoy,     view hndButtonJ)
               , (HandButtonA,       view hndButtonA)
               , (HandButtonB,       view hndButtonB)
-              , (HandButtonC,       view hndButtonC)
-              , (HandButtonD,       view hndButtonD)
               ]
 
 withLeftHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()
