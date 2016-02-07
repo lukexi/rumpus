@@ -24,10 +24,10 @@ type EntityID = Word32
 type EntityMap a = Map EntityID a
 
 data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape 
-    deriving (Eq, Show, Ord, Enum, Generic, FromJSON)
+    deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
 data PhysicsProperties = IsKinematic | NoContactResponse 
-    deriving (Eq, Show, Generic, FromJSON)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type WorldMonad = StateT World (ReaderT WorldStatic IO)
 
@@ -36,7 +36,7 @@ data WorldEvent = GLFWEvent Event
                 deriving Show
 
 data Persistence = Transient | Persistent 
-    deriving (Eq, Show, Generic, FromJSON)
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 
 -- | OnStart function
@@ -120,6 +120,7 @@ data Lifetime = Lifetime UTCTime NominalDiffTime
 data Constraint = RelativePositionTo EntityID (V3 GLfloat)
 
 type HandEntityID = EntityID
+
 -- data Drag = Drag HandEntityID (Pose GLfloat)
 data Drag = Drag HandEntityID (V3 GLfloat)
 
@@ -237,14 +238,6 @@ instance FromJSON Entity where
     parseJSON = genericParseJSON entityJSONOptions
 instance ToJSON Entity where
     toJSON    = genericToJSON entityJSONOptions
-
--- These can be put back in the deriving clause once the aforementioned Aeson bug is fixed
-instance ToJSON ShapeType where
-    toJSON = genericToJSON defaultOptions
-instance ToJSON PhysicsProperties where
-    toJSON = genericToJSON defaultOptions
-instance ToJSON Persistence where
-    toJSON = genericToJSON defaultOptions
 
 makeLenses ''WorldStatic
 makeLenses ''World
