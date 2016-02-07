@@ -10,6 +10,7 @@ import PreludeExtra
 
 import GHC.Word
 import GHC.Generics
+import Rumpus.Orphans ()
 
 import Data.Yaml
 import Data.Aeson.Types
@@ -151,13 +152,6 @@ data Components = Components
     , _cmpOnDrag            :: EntityMap OnDrag
     }
 
--- not yet used
-data PhysicsComponents = PhysicsComponents
-    { _pcRigidBody   :: EntityMap RigidBody
-    , _pcSpring      :: EntityMap SpringConstraint
-    , _pcCollision   :: EntityMap OnCollision
-    }
-
 newComponents :: Components
 newComponents = Components
     { _cmpName              = mempty
@@ -236,43 +230,13 @@ data Uniforms = Uniforms
     , uDiffuse             :: UniformLocation (V4  GLfloat)
     } deriving (Data)
 
-
------------------
--- JSON instances
------------------
--- NOTE: we're using 
--- toJSON = genericToJSON defaultOptions
--- to work around "No explicit implementation" bug in the current
--- version of Aeson caused by an errant minimal definition pragma
-instance FromJSON a => FromJSON (V4 a)
-instance FromJSON a => FromJSON (V3 a)
-instance FromJSON a => FromJSON (V2 a)
-instance FromJSON a => FromJSON (Quaternion a)
-instance ToJSON a => ToJSON (V4 a) where
-    toJSON = genericToJSON defaultOptions
-instance ToJSON a => ToJSON (V3 a) where
-    toJSON = genericToJSON defaultOptions
-instance ToJSON a => ToJSON (V2 a) where
-    toJSON = genericToJSON defaultOptions
-instance ToJSON a => ToJSON (Quaternion a) where
-    toJSON = genericToJSON defaultOptions
-
-poseJSONOptions :: Options
-poseJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
-
-instance FromJSON a => FromJSON (Pose a) where
-    parseJSON = genericParseJSON poseJSONOptions
-instance ToJSON a => ToJSON (Pose a) where
-    toJSON     = genericToJSON poseJSONOptions
-
-
 entityJSONOptions :: Options
 entityJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
 
 instance FromJSON Entity where
     parseJSON = genericParseJSON entityJSONOptions
 instance ToJSON Entity where
-    toJSON     = genericToJSON entityJSONOptions
+    toJSON    = genericToJSON entityJSONOptions
 
 -- These can be put back in the deriving clause once the aforementioned Aeson bug is fixed
 instance ToJSON ShapeType where
@@ -289,19 +253,4 @@ makeLenses ''Components
 makeLenses ''Scene
 makeLenses ''CodeEditor
 
-raycastCursorHits :: (MonadIO m, MonadState World m) 
-                  => Window -> DynamicsWorld -> M44 GLfloat -> m ()
-raycastCursorHits window dynamicsWorld projMat = do
-    playerPose <- use wldPlayer
-    cursorRay  <- cursorPosToWorldRay window projMat playerPose
 
-    mRayResult <- rayTestClosest dynamicsWorld cursorRay
-    forM_ mRayResult $ \rayResult -> do
-        bodyID <- getCollisionObjectID (rrCollisionObject rayResult)
-        -- Convert the hit location into model space
-        -- (position, orientation) <- getBodyState (cube ^. cubBody)
-        -- let model = mkTransformation orientation position
-        --     pointOnModel = worldPointToModelPoint model (rrLocation rayResult)
-        let _hitInWorld = rrLocation rayResult
-            entityID = fromIntegral (unCollisionObjectID bodyID) :: EntityID
-        return entityID

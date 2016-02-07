@@ -107,7 +107,36 @@ endDrag endingDragHandEntityID = do
         when (handEntityID == endingDragHandEntityID) $
             wldComponents . cmpDrag . at entityID .= Nothing
 
-
+raycastCursor :: (MonadIO m, MonadState World m) => EntityID -> m Bool
+raycastCursor handEntityID = do
+    -- First, see if we can place a cursor into a text buffer.
+    -- If not, then move onto the selection logic.
+    mSelectedEntityID <- use wldSelectedEntityID
+    case mSelectedEntityID of
+        Nothing -> return False
+        Just selectedEntityID -> do
+            maybeCodeExprKey <- use (wldComponents . cmpOnUpdateExpr . at selectedEntityID)
+            case maybeCodeExprKey of
+                Nothing -> return False
+                Just codeExprKey -> do
+                    maybeEditor <- use (wldCodeEditors . at codeExprKey)
+                    case maybeEditor of
+                        Nothing -> return False
+                        Just editor -> do
+                            handPose <- getEntityPose handEntityID
+                            pose     <- getEntityPose selectedEntityID
+                            -- We currently render code editors directly matched with the pose
+                            -- of the entity; update this when we make code editors into their own entities
+                            -- like the editorFrame children are
+                            let model44 = transformationFromPose pose
+                                codeRenderer = editor ^. cedCodeRenderer
+                                handRay = poseToRay handPose (V3 0 0 (-1))
+                            mUpdatedRenderer <- castRayToTextRenderer handRay codeRenderer model44
+                            case mUpdatedRenderer of
+                                Nothing -> return False
+                                Just updatedRenderer -> do
+                                    wldCodeEditors . ix codeExprKey . cedCodeRenderer .= updatedRenderer
+                                    return True
 
 sceneEditorSystem :: WorldMonad ()
 sceneEditorSystem = do
@@ -128,34 +157,7 @@ sceneEditorSystem = do
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
 
-                    -- First, see if we can place a cursor into a text buffer.
-                    -- If not, then move onto the selection logic.
-                    mSelectedEntityID <- use wldSelectedEntityID
-                    didPlaceCursor <- case mSelectedEntityID of
-                        Nothing -> return False
-                        Just selectedEntityID -> do
-                            maybeCodeExprKey <- use (wldComponents . cmpOnUpdateExpr . at selectedEntityID)
-                            case maybeCodeExprKey of
-                                Nothing -> return False
-                                Just codeExprKey -> do
-                                    maybeEditor <- use (wldCodeEditors . at codeExprKey)
-                                    case maybeEditor of
-                                        Nothing -> return False
-                                        Just editor -> do
-                                            let codeRenderer = editor ^. cedCodeRenderer
-                                            handPose <- getEntityPose handEntityID
-                                            let handRay = poseToRay handPose (V3 0 0 (-1))
-                                            -- We currently render code editors directly matched with the pose
-                                            -- of the entity; update this when we make code editors into their own entities
-                                            -- like the editorFrame children are
-                                            pose <- getEntityPose selectedEntityID
-                                            let model44 = transformationFromPose pose
-                                            mUpdatedRenderer <- castRayToTextRenderer handRay codeRenderer model44
-                                            case mUpdatedRenderer of
-                                                Nothing -> return False
-                                                Just updatedRenderer -> do
-                                                    wldCodeEditors . ix codeExprKey . cedCodeRenderer .= updatedRenderer
-                                                    return True
+                    didPlaceCursor <- raycastCursor handEntityID
                     when (not didPlaceCursor) $ do
                         -- Find the entities overlapping the hand, and attach them to it
                         overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 

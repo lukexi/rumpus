@@ -112,3 +112,21 @@ onLeftHandEvent _ _ = return ()
 onRightHandEvent :: Monad m => WorldEvent -> (HandEvent -> m ()) -> m ()
 onRightHandEvent (VREvent (HandEvent RightHand handEvent)) f = f handEvent
 onRightHandEvent _ _ = return ()
+
+
+raycastCursorHits :: (MonadIO m, MonadState World m) 
+                  => Window -> DynamicsWorld -> M44 GLfloat -> m ()
+raycastCursorHits window dynamicsWorld projMat = do
+    playerPose <- use wldPlayer
+    cursorRay  <- cursorPosToWorldRay window projMat playerPose
+
+    mRayResult <- rayTestClosest dynamicsWorld cursorRay
+    forM_ mRayResult $ \rayResult -> do
+        bodyID <- getCollisionObjectID (rrCollisionObject rayResult)
+        -- Convert the hit location into model space
+        -- (position, orientation) <- getBodyState (cube ^. cubBody)
+        -- let model = mkTransformation orientation position
+        --     pointOnModel = worldPointToModelPoint model (rrLocation rayResult)
+        let _hitInWorld = rrLocation rayResult
+            entityID = fromIntegral (unCollisionObjectID bodyID) :: EntityID
+        return entityID
