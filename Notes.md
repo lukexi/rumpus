@@ -31,6 +31,15 @@ Create a script by default with a name like NewScript1 when creating an object, 
 
 Spherical bouquet menus for choosing objects to duplicate
 
+Bouquet menu... take this more literally : ) — have it pop out of your hand like a magician
+The shapes could be on the end of stems and you pluck them out and a new one grows
+U o E
+\ | /
+ \|/
+  |
+[hand]  
+
+
 THEN:
 Microphone stuff!
 Instanced rendering would be awesome for FFT viz.
