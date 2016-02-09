@@ -7,6 +7,7 @@ import PreludeExtra
 
 import Rumpus.Types
 import Rumpus.Control
+import Rumpus.ECS
 
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.Animation
@@ -32,25 +33,12 @@ main = withPd $ \pd -> do
     (font, ghcChan) <- createCodeEditorSystem
     dynamicsWorld   <- createPhysicsSystem
 
-    let worldStatic = WorldStatic
-            { _wlsDynamicsWorld = dynamicsWorld
-            , _wlsShapes        = shapes
-            , _wlsVRPal         = vrPal
-            , _wlsPd            = pd
-            , _wlsFont          = font
-            , _wlsGHCChan       = ghcChan
-            }
-        world = newWorld & wldOpenALSourcePool .~ zip [1..] (pdSources pd)
-                         & wldPlayer .~ if gpRoomScale vrPal == RoomScale 
-                                        then newPose
-                                        else newPose & posPosition .~ V3 0 1 3
-
     args <- getArgs
     let sceneName = fromMaybe "minimal" (listToMaybe args)
 
-    void . flip runReaderT worldStatic . flip runStateT world $ do 
+    void . flip runStateT newWorld $ do 
 
-        loadScene sceneName
+        -- loadScene sceneName
 
         whileVR vrPal $ \headM44 hands vrEvents -> do
             
@@ -65,10 +53,13 @@ main = withPd $ \pd -> do
 
             constraintSystem
 
-            use wldPlaying >>= \case
-                True -> do
+            isPlaying <- viewSystem controlSystemKey ctsPlaying
+            if isPlaying
+                then do
                     scriptingSystem
 
+                    lifetimeSystem
+                    
                     animationSystem
                                         
                     physicsSystem
@@ -76,16 +67,12 @@ main = withPd $ \pd -> do
                     syncPhysicsPosesSystem
 
                     collisionsSystem
-
-                    sceneEditorSystem
-
-                    lifetimeSystem
-                False -> do
+                else do
                     performDiscreteCollisionDetection dynamicsWorld
 
-                    sceneEditorSystem
+            sceneEditorSystem
 
-            openALSystem headM44
+            soundSystem headM44
 
             renderSystem headM44
 

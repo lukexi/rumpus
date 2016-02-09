@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.Render where
@@ -6,8 +9,28 @@ import PreludeExtra
 import qualified Data.Map as Map
 import Rumpus.Types
 import Rumpus.Systems.Shared
+import Rumpus.Systems.Selection
+import Rumpus.Systems.CodeEditor
+import Rumpus.Control
+import Rumpus.ECS
 
 import TinyRick
+
+data Uniforms = Uniforms
+    { uModelViewProjection :: UniformLocation (M44 GLfloat)
+    , uInverseModel        :: UniformLocation (M44 GLfloat)
+    , uModel               :: UniformLocation (M44 GLfloat)
+    , uCamera              :: UniformLocation (V3  GLfloat)
+    , uDiffuse             :: UniformLocation (V4  GLfloat)
+    } deriving (Data)
+
+data RenderSystem = RenderSystem 
+    { _rdsShapes :: ![(ShapeType, Shape Uniforms)]
+    }
+makeLenses ''RenderSystem
+defineSystemKey ''RenderSystem
+
+
 
 createRenderSystem :: IO [(ShapeType, Shape Uniforms)]
 createRenderSystem = do
@@ -28,11 +51,11 @@ createRenderSystem = do
     return shapes
 
 
-renderSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => M44 GLfloat -> m ()
+renderSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
 renderSystem headM44 = do
-    vrPal <- view wlsVRPal
+    vrPal  <- viewSystem controlSystemKey ctsVRPal
+    player <- viewSystem controlSystemKey ctsPlayer
     -- Render the scene
-    player <- use wldPlayer
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
@@ -49,11 +72,12 @@ renderEditors projM44 viewM44 = do
     let projViewM44 = projM44 !*! viewM44
 
 
-    useTraverseM_ wldSelectedEntityID $ \entityID -> do
-        parentPose <- fromMaybe newPose <$> use (wldComponents . cmpPose  . at entityID)
+    traverseM_ (viewSystem selectionSystemKey selSelectedEntityID) $ \entityID -> do
+        parentPose <- getEntityPose entityID
 
-        useTraverseM_ (wldComponents . cmpOnUpdateExpr . at entityID) $ \codeExprKey -> 
-            useTraverseM_ (wldCodeEditors . at codeExprKey) $ \editor -> do
+        
+        traverseM_ (getComponent entityID onUpdateExprKey) $ \codeExprKey -> 
+            traverseM_ (viewSystem codeEditorSystemKey (cesCodeEditors . at codeExprKey)) $ \editor -> do
 
                 let codeModelM44 = transformationFromPose parentPose
 
@@ -68,13 +92,13 @@ renderEditors projM44 viewM44 = do
     glDisable GL_BLEND
 
 
-renderEntities :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
+renderEntities :: (MonadIO m, MonadState World m) 
                  => M44 GLfloat -> M44 GLfloat -> m ()
 renderEntities projM44 viewM44 = do
     
     let projViewM44 = projM44 !*! viewM44
 
-    shapes <- view wlsShapes
+    shapes <- viewSystem renderSystemKey rdsShapes
     forM_ shapes $ \(shapeType, shape) -> withShape shape $ do
 
         Uniforms{..} <- asks sUniforms
@@ -102,11 +126,11 @@ getEntityTotalModelMatrix startEntityID = do
     
     let go Nothing = return identity
         go (Just entityID) = do
-            pose   <- fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
-            parent <- use (wldComponents . cmpParent . at entityID)
+            pose   <- getEntityPose entityID
+            parent <- getComponent entityID parentKey
             (transformationFromPose pose !*!) <$> go parent
     
     go (Just startEntityID)
 
-getEntityIDsForShapeType :: MonadState World f => ShapeType -> f [EntityID]
-getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> use (wldComponents . cmpShape)
+getEntityIDsForShapeType :: MonadState World m => ShapeType -> m [EntityID]
+getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap shapeTypeKey

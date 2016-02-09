@@ -1,40 +1,53 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Rumpus.Systems.Shared where
 import PreludeExtra
 
+import Rumpus.ECS
 import Rumpus.Types
 import qualified Data.Map as Map
 
-setEntityColor :: (MonadState World m, MonadReader WorldStatic m) => V4 GLfloat -> EntityID -> m ()
-setEntityColor newColor entityID = wldComponents . cmpColor . ix entityID .= newColor
+data ShapeType = CubeShape | SphereShape | StaticPlaneShape 
+    deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
+defineComponentKey ''ShapeType
+
+
+defineComponentKeyWithType "Name" [t|String|]
+
+defineComponentKeyWithType "Pose" [t|Pose GLfloat|]
+
+defineComponentKeyWithType "Size" [t|V3 GLfloat|]
+
+defineComponentKeyWithType "Color" [t|V4 GLfloat|]
+
+defineComponentKeyWithType "Parent" [t|EntityID|]
+
+{-
+FIXME: in registerComponent Parent, must remove children!
+traverseM_ (Map.toList <$> use (wldComponents . cmpParent)) $ \(childID, childParentID) -> do
+        when (childParentID == entityID) $ 
+            removeEntity childID
+-}
+
+setEntityColor :: (MonadState World m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
+setEntityColor newColor entityID = addComponent colorKey newColor entityID
 
 
 getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
-getEntityIDsWithName name = 
-    Map.keys . Map.filter (== name) <$> use (wldComponents . cmpName)
+getEntityIDsWithName name = fromMaybe [] <$> withComponentMap nameKey (return . Map.keys . Map.filter (== name))
 
 getEntityName :: MonadState World m => EntityID -> m String
-getEntityName entityID = fromMaybe "No Name" <$> use (wldComponents . cmpName . at entityID)
+getEntityName entityID = fromMaybe "No Name" <$> getComponent entityID nameKey
 
 getEntityPose :: MonadState World m => EntityID -> m (Pose GLfloat)
-getEntityPose entityID = fromMaybe newPose <$> use (wldComponents . cmpPose . at entityID)
+getEntityPose entityID = fromMaybe newPose <$> getComponent entityID poseKey
 
 getEntitySize :: MonadState World m => EntityID -> m (V3 GLfloat)
-getEntitySize entityID = fromMaybe 1 <$> use (wldComponents . cmpSize . at entityID)
+getEntitySize entityID = fromMaybe 1 <$> getComponent entityID sizeKey
 
 getEntityColor :: MonadState World m => EntityID -> m (V4 GLfloat)
-getEntityColor entityID = fromMaybe 1 <$> use (wldComponents . cmpColor . at entityID)
+getEntityColor entityID = fromMaybe 1 <$> getComponent entityID colorKey
 
-traverseM :: (Monad m, Traversable t) => m (t a) -> (a -> m b) -> m (t b)
-traverseM f x = f >>= traverse x
-
-traverseM_ :: (Monad m, Foldable t) => m (t a) -> (a -> m b) -> m ()
-traverseM_ f x = f >>= traverse_ x
-
-useTraverseM_ :: (MonadState s m, Foldable t) => Lens' s (t a) -> (a -> m b) -> m ()
-useTraverseM_ aLens f = traverseM_ (use aLens) f
-
-
-useMapM_ :: (MonadState s m) => Lens' s (Map k v) -> ((k,v) -> m b) -> m ()
-useMapM_ aLens f = traverseM_ (Map.toList <$> use aLens) f

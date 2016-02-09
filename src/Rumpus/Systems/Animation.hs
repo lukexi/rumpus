@@ -1,24 +1,28 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Animation where
 import PreludeExtra
+import Rumpus.ECS
 import Rumpus.Types
-import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import qualified Data.Map as Map
+import Rumpus.Systems.Shared
 
-animationSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
+defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
+defineComponentKeyWithType "SizeAnimation" [t|Animation (V3 GLfloat)|]
+
+animationSystem :: (MonadIO m, MonadState World m) => m ()
 animationSystem = do
     now <- getNow
-    traverseM_ (Map.toList <$> use (wldComponents . cmpAnimationColor)) $ \(entityID, animation) -> do
+    forEntitiesWithComponent colorAnimationKey $ \(entityID, animation) -> do
         let evaled = evalAnim now animation
 
-        wldComponents . cmpColor . ix entityID .= evanResult evaled
+        setComponent colorKey (evanResult evaled) entityID
         when (evanRunning evaled == False) $ do
-            wldComponents . cmpAnimationColor . at entityID .= Nothing
+            removeComponentFromEntity colorAnimationKey entityID
 
-    traverseM_ (Map.toList <$> use (wldComponents . cmpAnimationSize)) $ \(entityID, animation) -> do
+    forEntitiesWithComponent sizeAnimationKey  $ \(entityID, animation) -> do
         let evaled = evalAnim now animation
 
         setEntitySize (evanResult evaled) entityID
         when (evanRunning evaled == False) $ do
-            wldComponents . cmpAnimationSize . at entityID .= Nothing
+            removeComponentFromEntity sizeAnimationKey entityID

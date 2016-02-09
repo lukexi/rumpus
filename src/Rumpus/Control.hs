@@ -6,63 +6,93 @@
 module Rumpus.Control where
 import PreludeExtra
 import Rumpus.Types
-import Rumpus.Systems.Shared
+import Rumpus.ECS
 
-controlEventsSystem :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
-controlEventsSystem headM44 hands vrEvents = do
-    VRPal{..} <- view wlsVRPal
+data WorldEvent = GLFWEvent Event
+                | VREvent VREvent 
+                deriving Show
+
+data ControlSystem = ControlSystem 
+    { _ctsVRPal   :: !VRPal 
+    , _ctsPlayer  :: !(Pose GLfloat)
+    , _ctsEvents  :: ![WorldEvent]
+    , _ctsPlaying :: !Bool
+    }
+makeLenses ''ControlSystem
+defineSystemKey ''ControlSystem
+
+createControlSystem vrPal = do
+    
+
+    let controlSystem = ControlSystem
+            { _ctsVRPal = vrPal
+            , _ctsPlayer = if gpRoomScale vrPal == RoomScale 
+                            then newPose
+                            else newPose & posPosition .~ V3 0 1 3
+            , _ctsEvents = []
+            , _ctsPlaying = False
+            }
+    return ()
+
+controlEventsSystem :: (MonadState World m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
+controlEventsSystem headM44 hands vrEvents = modifySystem_ controlSystemKey $ \controlSystem -> do
+    let VRPal{..} = controlSystem ^. ctsVRPal
 
     -- Grab the old events for comparison
-    lastEvents <- use wldEvents
-    -- Clear the events list
-    wldEvents .= map VREvent vrEvents
+    let lastEvents = controlSystem ^. ctsEvents
 
-    -- Gather GLFW Pal events
-    processEvents gpEvents $ \e -> do
-        closeOnEscape gpWindow e
-        onKeyDown e Key'Space $ toggleWorldPlaying
+    newControlSystem <- flip execStateT controlSystem $ do
+        -- Clear the events list
+        ctsEvents .= map VREvent vrEvents
 
-        wldEvents %= (GLFWEvent e:)
+        -- Gather GLFW Pal events
+        processEvents gpEvents $ \e -> do
+            closeOnEscape gpWindow e
+            ctsEvents %= (GLFWEvent e:)
 
-    hands' <- if gpRoomScale == RoomScale
-        then return hands
-        else emulateRightHand
+        hands' <- if gpRoomScale == RoomScale
+            then return hands
+            else do
+                player <- use ctsPlayer
+                events <- use ctsEvents
+                emulateRightHand (controlSystem ^. ctsVRPal) player events
 
-    -- Generate ButtonDown and ButtonUp events for Hand controllers. This should go in VRPal.
-    let lastHands = catMaybes $ map (\case
-            (VREvent (HandEvent _ (HandStateEvent hand))) -> Just hand
-            _ -> Nothing) lastEvents
+        -- Generate ButtonDown and ButtonUp events for Hand controllers. This should go in VRPal.
+        let lastHands = catMaybes $ map (\case
+                (VREvent (HandEvent _ (HandStateEvent hand))) -> Just hand
+                _ -> Nothing) lastEvents
 
-    let handTriples = zip3 lastHands hands' [LeftHand, RightHand]
-    forM_ handTriples $ \(oldHand, newHand, whichHand) -> 
-        forM_ buttonPairs $ \(whichButton, buttonView) -> do
-            let maybeEvent = case (buttonView oldHand, buttonView newHand) of
-                    (True, False) -> Just ButtonUp
-                    (False, True) -> Just ButtonDown
-                    _             -> Nothing
-            forM_ maybeEvent $ \buttonDownUp -> 
-                wldEvents %= (VREvent (HandEvent whichHand (HandButtonEvent whichButton buttonDownUp)) :)
-    
-    wldEvents <>= map VREvent
-        ( HeadEvent headM44
-        : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands')
-        )
+        let handTriples = zip3 lastHands hands' [LeftHand, RightHand]
+        forM_ handTriples $ \(oldHand, newHand, whichHand) -> 
+            forM_ buttonPairs $ \(whichButton, buttonView) -> do
+                let maybeEvent = case (buttonView oldHand, buttonView newHand) of
+                        (True, False) -> Just ButtonUp
+                        (False, True) -> Just ButtonDown
+                        _             -> Nothing
+                forM_ maybeEvent $ \buttonDownUp -> 
+                    ctsEvents %= (VREvent (HandEvent whichHand (HandButtonEvent whichButton buttonDownUp)) :)
+        
+        ctsEvents <>= map VREvent
+            ( HeadEvent headM44
+            : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands')
+            )
 
-    traverseM_ (use wldEvents) $ \case
+
+    forM_ (newControlSystem ^. ctsEvents) $ \case
         VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> toggleWorldPlaying
         _ -> return ()
 
+    return newControlSystem
 
-emulateRightHand :: (MonadState World m, MonadReader WorldStatic m, MonadIO m) => m [Hand]
-emulateRightHand = do
-    VRPal{..}   <- view wlsVRPal
-    player      <- use wldPlayer
+
+emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [WorldEvent] -> m [Hand]
+emulateRightHand VRPal{..} player events  = do
+    
     projM44     <- getWindowProjection gpWindow 45 0.1 1000
     mouseRay    <- cursorPosToWorldRay gpWindow projM44 player
     mouseState1 <- getMouseButton gpWindow MouseButton'1
     mouseState2 <- getMouseButton gpWindow MouseButton'2
 
-    events <- use wldEvents
     forM_ events $ \case
         GLFWEvent e -> onScroll e $ \_x y -> 
             liftIO $ modifyIORef' gpEmulatedHandDepthRef (+ y)
@@ -84,7 +114,7 @@ emulateRightHand = do
 
 
 toggleWorldPlaying :: (MonadState World m) => m ()
-toggleWorldPlaying = wldPlaying %= not
+toggleWorldPlaying = modifySystem_ controlSystemKey $ return . (ctsPlaying %~ not)
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip,    view hndGrip)
@@ -96,13 +126,13 @@ buttonPairs = [ (HandButtonGrip,    view hndGrip)
               ]
 
 withLeftHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()
-withLeftHandEvents f = do
-  events <- use wldEvents
+withLeftHandEvents f = withSystem_ controlSystemKey $ \controlSystem -> do
+  let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onLeftHandEvent e f)
 
 withRightHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()
-withRightHandEvents f = do
-  events <- use wldEvents
+withRightHandEvents f = withSystem_ controlSystemKey $ \controlSystem -> do
+  let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onRightHandEvent e f)
 
 onLeftHandEvent :: Monad m => WorldEvent -> (HandEvent -> m ()) -> m ()
@@ -116,9 +146,9 @@ onRightHandEvent _ _ = return ()
 
 raycastCursorHits :: (MonadIO m, MonadState World m) 
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
-raycastCursorHits window dynamicsWorld projMat = do
-    playerPose <- use wldPlayer
-    cursorRay  <- cursorPosToWorldRay window projMat playerPose
+raycastCursorHits window dynamicsWorld projMat = withSystem_ controlSystemKey $ \controlSystem -> do
+    let playerPose = controlSystem ^. ctsPlayer
+    cursorRay <- cursorPosToWorldRay window projMat playerPose
 
     mRayResult <- rayTestClosest dynamicsWorld cursorRay
     forM_ mRayResult $ \rayResult -> do

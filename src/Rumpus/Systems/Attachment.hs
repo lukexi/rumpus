@@ -1,20 +1,24 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Attachment where
 import PreludeExtra
 
-import qualified Data.Map as Map
-
 import Rumpus.Types
+import Rumpus.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 
+data Attachment = Attachment EntityID (Pose GLfloat)
 
-attachmentsSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
-attachmentsSystem = do
-    attachments <- Map.toList <$> use (wldComponents . cmpAttachment)
-    forM_ attachments $ \(entityID, Attachment toEntityID offset) -> do
-        pose <- getEntityPose entityID
-        setEntityPose (pose `addPose` offset) toEntityID
+defineComponentKey ''Attachment
+
+
+attachmentsSystem :: (MonadIO m, MonadState World m) => m ()
+attachmentsSystem = 
+    forEntitiesWithComponent attachmentKey $
+        \(entityID, Attachment toEntityID offset) -> do
+            pose <- getEntityPose entityID
+            setEntityPose (pose `addPose` offset) toEntityID
 
 
 attachEntity :: (MonadIO m, MonadState World m) => EntityID -> EntityID -> m ()
@@ -25,7 +29,7 @@ attachEntity entityID toEntityID = do
     entityPose   <- getEntityPose entityID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractPose` entityPose
-    wldComponents . cmpAttachment . at entityID ?= Attachment toEntityID offset
+    addComponent attachmentKey (Attachment toEntityID offset) entityID
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
@@ -35,13 +39,13 @@ detachEntity :: (MonadState World m, MonadIO m) => EntityID -> m ()
 detachEntity entityID = 
     withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
 
-        wldComponents . cmpAttachment . at entityID .= Nothing
+        removeComponentFromEntity attachmentKey entityID
 
-        physProps <- fromMaybe [] <$> use (wldComponents . cmpPhysicsProperties . at attachedEntityID)
+        physProps <- fromMaybe [] <$> getComponent attachedEntityID physicsPropertiesKey
         unless (IsKinematic `elem` physProps) $ 
             withEntityRigidBody attachedEntityID $ \rigidBody ->
                 setRigidBodyKinematic rigidBody False
 
 withAttachment :: MonadState World m => EntityID -> (Attachment -> m b) -> m ()
-withAttachment entityID = useTraverseM_ (wldComponents . cmpAttachment . at entityID)
+withAttachment entityID = withComponent entityID attachmentKey 
 

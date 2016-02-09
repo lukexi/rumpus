@@ -1,21 +1,22 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Lifetime where
 import PreludeExtra
 
-import qualified Data.Map as Map
-
 import Rumpus.Types
+import Rumpus.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Script
-import Rumpus.Systems.Sound
 
+data Lifetime = Lifetime UTCTime NominalDiffTime
+defineComponentKey ''Lifetime
 
-lifetimeSystem :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
+lifetimeSystem :: (MonadIO m, MonadState World m) => m ()
 lifetimeSystem = do
     now <- liftIO getCurrentTime
-    lifetimes <- Map.toList <$> use (wldComponents . cmpLifetime)
-    forM_ lifetimes $ \(entityID, Lifetime birthtime lifetime) -> do
+    
+
+    forEntitiesWithComponent lifetimeKey $ \(entityID, Lifetime birthtime lifetime) -> do
         let age = now `diffUTCTime` birthtime
         
         let fadeStart = lifetime - 1
@@ -28,41 +29,11 @@ lifetimeSystem = do
             removeEntity entityID
         
 
-addLifetimeComponent :: (MonadIO m, MonadState World m) => EntityID -> Entity -> m ()
-addLifetimeComponent entityID entity = do
-
-    forM_ (entity ^. entLifetime) $ \lifetime -> do
-        birth <- liftIO getCurrentTime
-        wldComponents . cmpLifetime . at entityID ?= Lifetime birth (realToFrac lifetime)
-
-removeLifetimeComponent :: MonadState World m => EntityID -> m ()
-removeLifetimeComponent entityID = do
-    wldComponents . cmpLifetime . at entityID .= Nothing
+addLifetimeComponent :: (MonadIO m, MonadState World m) => EntityID -> DiffTime -> m ()
+addLifetimeComponent entityID lifetime = do
+    birth <- liftIO getCurrentTime
+    addComponent lifetimeKey (Lifetime birth (realToFrac lifetime)) entityID
 
 
 
-removeEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
-removeEntity entityID = do
-    removePhysicsComponents entityID
-    removeScriptComponent   entityID
-    removePdPatchComponent  entityID
-    removeLifetimeComponent entityID
-
-    wldComponents . cmpParent . at entityID .= Nothing
-
-    traverseM_ (Map.toList <$> use (wldComponents . cmpParent)) $ \(childID, childParentID) -> do
-        when (childParentID == entityID) $ 
-            removeEntity childID
-
-    wldComponents . cmpPose  . at entityID .= Nothing
-    wldComponents . cmpSize  . at entityID .= Nothing
-    wldComponents . cmpColor . at entityID .= Nothing
-    wldComponents . cmpShape . at entityID .= Nothing
-    wldComponents . cmpName  . at entityID .= Nothing
-
-    wldComponents . cmpAttachment  . at entityID .= Nothing
-    wldComponents . cmpDrag  . at entityID .= Nothing
-    wldComponents . cmpOnDrag  . at entityID .= Nothing
-    wldComponents . cmpAnimationColor . at entityID .= Nothing
-    wldComponents . cmpAnimationSize . at entityID .= Nothing
 

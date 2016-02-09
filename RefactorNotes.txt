@@ -1,0 +1,26 @@
+Get rid of withSystem in favor of viewSys — it's ok to crash on a missing system.
+(think about this a bit more; I feel like I always regret introducing partial functions...)
+
+- Syntax ideas:
+
+dynamicsWorld <- viewSystem sysPhysics psDynamicsWorld
+dynamicsWorld <- view psDynamicsWorld <$> viewSystem sysPhysics
+dynamicsWorld <- sysPhysics >. psDynamicsWorld
+
+audit for uses of withSystem to make sure modifySystem wasn't meant instead
+
+
+
+Need to support:
+- [ ] EntityLibrary with spawning by name, and optional persistence
+      (An entity template is a Vault? A (Map String Value)? 
+      Don't want to pay deserialization cost...)
+- [ ] Saving entities and scenes (with references to entities)
+- [ ] Associated components, e.g. mass with rigidbody, delete the rigidbody and lose mass too?
+
+
+- Move Selection to its own system so CodeEditor and SceneEditor can use it
+
+- Add FocusedCodeEditor to CodeEditor to use rather than selectedEntity
+
+- PlayPause -> System?

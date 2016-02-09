@@ -1,66 +1,59 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Script where
 import PreludeExtra
-
-import qualified Data.Map as Map
-
 import Rumpus.Types
-import Rumpus.Systems.CodeEditor
-import Rumpus.Systems.Shared
+import Rumpus.ECS
+
+-- | OnStart function
+type OnStart = EntityID -> WorldMonad (Maybe Dynamic)
+
+nullOnStart :: OnStart
+nullOnStart _entityID = return Nothing
+
+
+-- | OnUpdate function
+type OnUpdate = EntityID -> WorldMonad ()
+
+nullOnUpdate :: OnUpdate
+nullOnUpdate _entityID = return ()
+
+
+
+-- | OnCollision functions
+type CollidedWithID = EntityID
+type CollisionImpulse = GLfloat
+type OnCollision = EntityID -> CollidedWithID -> CollisionImpulse -> WorldMonad ()
+
+nullOnCollision :: OnCollision
+nullOnCollision _entityID _collidedWithID _collisionImpulse = return ()
+
+
+defineComponentKey ''OnStart
+defineComponentKey ''OnUpdate
+defineComponentKey ''OnCollision
+defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
 scriptingSystem :: WorldMonad ()
 scriptingSystem = do
-    traverseM_ (Map.toList <$> use (wldComponents . cmpOnStart)) $ 
+    forEntitiesWithComponent onStartKey $
         \(entityID, onStart) -> do
-            scriptData <- onStart entityID
-            wldComponents . cmpScriptData . at entityID .= scriptData
             -- Only call OnStart once
-            wldComponents . cmpOnStart . at entityID .= Nothing
+            mScriptData <- onStart entityID
+            forM_ mScriptData $ \scriptData -> 
+                addComponent scriptDataKey scriptData entityID
+            removeComponentFromEntity onStartKey entityID
 
-    traverseM_ (Map.toList <$> use (wldComponents . cmpOnUpdate)) $ 
+    forEntitiesWithComponent onUpdateKey $
         \(entityID, onUpdate) -> 
             onUpdate entityID
-
-
-
-addScriptComponent :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => EntityID -> Entity -> m ()
-addScriptComponent entityID entity = do
-
-    forM_ (entity ^. entOnStart) $ \scriptPath -> do
-
-        let codeExprKey = (scriptPath, "start")
-        _ <- createCodeEditor codeExprKey
-        
-        wldComponents . cmpOnStartExpr . at entityID ?= codeExprKey
-
-    forM_ (entity ^. entOnUpdate) $ \scriptPath -> do
-        let codeExprKey = (scriptPath, "update")
-        _ <- createCodeEditor codeExprKey
-        
-        wldComponents . cmpOnUpdateExpr . at entityID ?= codeExprKey
-
-    forM_ (entity ^. entOnCollision) $ \scriptPath -> do
-        let codeExprKey = (scriptPath, "collision")
-        _ <- createCodeEditor codeExprKey
-        
-        wldComponents . cmpOnCollisionExpr . at entityID ?= codeExprKey
-
-removeScriptComponent :: MonadState World m => EntityID -> m ()
-removeScriptComponent entityID = do
-    wldComponents . cmpOnStartExpr . at entityID .= Nothing
-    wldComponents . cmpOnUpdateExpr . at entityID .= Nothing
-    wldComponents . cmpOnCollisionExpr . at entityID .= Nothing
-    wldComponents . cmpOnStart . at entityID .= Nothing
-    wldComponents . cmpOnUpdate . at entityID .= Nothing
-    wldComponents . cmpOnCollision . at entityID .= Nothing
-    wldComponents . cmpScriptData . at entityID .= Nothing
 
 
 
 withScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
                     EntityID -> (a -> m ()) -> m ()
 withScriptData entityID f = 
-    traverseM_ (use (wldComponents . cmpScriptData . at entityID)) $ \dynScriptData -> do
+    withComponent entityID scriptDataKey $ \dynScriptData -> do
         case fromDynamic dynScriptData of
             Just scriptData -> f scriptData
             Nothing -> putStrLnIO 
@@ -71,13 +64,12 @@ withScriptData entityID f =
 editScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
                     EntityID -> (a -> m a) -> m ()
 editScriptData entityID f = 
-    traverseM_ (use (wldComponents . cmpScriptData . at entityID)) $ \dynScriptData -> do
+    modifyComponent entityID scriptDataKey $ \dynScriptData -> do
         case fromDynamic dynScriptData of
-            Just scriptData -> do
-                newScriptData <- f scriptData
-                wldComponents . cmpScriptData . at entityID ?= toDyn newScriptData
+            Just scriptData -> toDyn <$> f scriptData
             Nothing -> do
                 putStrLnIO 
                     ("editScriptData: Attempted to use entityID " ++ show entityID 
                         ++ "'s script data of type " ++ show dynScriptData 
                         ++ " with a function that accepts a different type.")
+                return dynScriptData

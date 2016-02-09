@@ -9,180 +9,57 @@ module Rumpus.Types where
 import PreludeExtra
 
 import GHC.Word
-import GHC.Generics
 import Rumpus.Orphans ()
 
-import Data.Yaml
-import Data.Aeson.Types
 
-import TinyRick
-import Halive.Recompiler
+import Data.Vault.Strict (Vault)
 
+type ComponentName = String
+
+-- data ComponentInterface = ComponentInterface
+--     { ciAddComponent     :: (EntityID -> WorldMonad ())
+--     , ciRemoveComponent  :: (EntityID -> WorldMonad ())
+--     , ciExtractComponent :: Maybe (EntityID -> WorldMonad (Maybe Value))
+--     }
+data ComponentInterface = ComponentInterface
+    { ciAddComponent     :: forall m. (MonadState World m, MonadIO m) => (EntityID -> m ())
+    , ciRemoveComponent  :: forall m. (MonadState World m, MonadIO m) => (EntityID -> m ())
+    , ciExtractComponent :: forall m. (MonadState World m, MonadIO m) => Maybe (EntityID -> m (Maybe Value))
+    }
 
 type EntityID = Word32
 
 type EntityMap a = Map EntityID a
 
-data ShapeType = NoShape | CubeShape | SphereShape | StaticPlaneShape 
-    deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
-
-data PhysicsProperties = IsKinematic | NoContactResponse 
-    deriving (Eq, Show, Generic, FromJSON, ToJSON)
-
-type WorldMonad = StateT World (ReaderT WorldStatic IO)
-
-data WorldEvent = GLFWEvent Event
-                | VREvent VREvent 
-                deriving Show
-
-data Persistence = Transient | Persistent 
-    deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 
--- | OnStart function
-type OnStart = EntityID -> WorldMonad (Maybe Dynamic)
 
-nullOnStart :: OnStart
-nullOnStart _entityID = return Nothing
+type WorldMonad = StateT World IO
 
 
--- | OnUpdate function
-type OnUpdate = EntityID -> WorldMonad ()
 
-nullOnUpdate :: OnUpdate
-nullOnUpdate _entityID = return ()
-
--- | OnDrag function
-type OnDrag = EntityID -> V3 GLfloat -> WorldMonad ()
-nullOnDrag :: OnDrag
-nullOnDrag _entityID _dragDistance = return ()
-
--- | OnCollision functions
-type CollidedWithID = EntityID
-type CollisionImpulse = GLfloat
-type OnCollision = EntityID -> CollidedWithID -> CollisionImpulse -> WorldMonad ()
-
-nullOnCollision :: OnCollision
-nullOnCollision _entityID _collidedWithID _collisionImpulse = return ()
-
-data WorldStatic = WorldStatic
-    { _wlsVRPal         :: !VRPal
-    , _wlsDynamicsWorld :: !DynamicsWorld
-    , _wlsPd            :: !PureData
-    , _wlsShapes        :: ![(ShapeType, Shape Uniforms)]
-    , _wlsFont          :: !Font
-    , _wlsGHCChan       :: !(TChan CompilationRequest)
-    }
-
-data Scene = Scene
-    { _scnName     :: String
-    , _scnEntities :: !(Map EntityID Entity)
-    }
-
-newScene :: Scene
-newScene = Scene { _scnName = "NewScene", _scnEntities = mempty }
 
 data World = World
-    { _wldPlayer             :: !(Pose GLfloat)
-    , _wldPlayerHeadM44      :: !(M44 GLfloat)
-    , _wldComponents         :: !Components
-    , _wldEvents             :: ![WorldEvent]
-    , _wldOpenALSourcePool   :: ![(Int, OpenALSource)]
-    , _wldPlaying            :: !Bool
-    , _wldEntityLibrary      :: !(Map String Entity)
-    , _wldScene              :: !Scene
-    , _wldSelectedEntityID   :: !(Maybe EntityID)
-    , _wldCurrentEditorFrame :: !(Maybe EntityID)
-    , _wldCodeEditors        :: !(Map CodeExpressionKey CodeEditor)
+    { _wldSystems            :: Vault
+    , _wldComponents         :: Vault
+    , _wldComponentLibrary   :: Map ComponentName ComponentInterface
+    , _wldEntities           :: [EntityID]
     }
 
-type CodeExpressionKey = (FilePath, String)
+
 
 newWorld :: World
 newWorld = World
-    { _wldPlayer             = newPose
-    , _wldPlayerHeadM44      = identity
-    , _wldComponents         = newComponents
-    , _wldEvents             = []
-    , _wldOpenALSourcePool   = []
-    , _wldPlaying            = False
-    , _wldEntityLibrary      = mempty
-    , _wldScene              = newScene
-    , _wldSelectedEntityID   = Nothing
-    , _wldCurrentEditorFrame = Nothing
-    , _wldCodeEditors        = mempty
+    { _wldComponents         = mempty
+    , _wldSystems            = mempty
+    , _wldComponentLibrary   = mempty
+    , _wldEntities           = mempty    
     }
 
-data Attachment = Attachment EntityID (Pose GLfloat)
-
-data Lifetime = Lifetime UTCTime NominalDiffTime
-
-data Constraint = RelativePositionTo EntityID (V3 GLfloat)
+makeLenses ''World
 
 type HandEntityID = EntityID
-
--- data Drag = Drag HandEntityID (Pose GLfloat)
-data Drag = Drag HandEntityID (V3 GLfloat)
-
-data Components = Components
-    { _cmpName              :: EntityMap String
-    , _cmpPose              :: EntityMap (Pose GLfloat)
-    , _cmpSize              :: EntityMap (V3 GLfloat)
-    , _cmpShape             :: EntityMap ShapeType
-    , _cmpColor             :: EntityMap (V4 GLfloat)
-    , _cmpOnStart           :: EntityMap OnStart
-    , _cmpOnUpdate          :: EntityMap OnUpdate
-    , _cmpOnCollision       :: EntityMap OnCollision
-    , _cmpOnStartExpr       :: EntityMap CodeExpressionKey
-    , _cmpOnUpdateExpr      :: EntityMap CodeExpressionKey
-    , _cmpOnCollisionExpr   :: EntityMap CodeExpressionKey
-    , _cmpScriptData        :: EntityMap Dynamic
-    , _cmpParent            :: EntityMap EntityID
-    , _cmpRigidBody         :: EntityMap RigidBody
-    , _cmpMass              :: EntityMap GLfloat
-    , _cmpSpring            :: EntityMap SpringConstraint
-    , _cmpPhysicsProperties :: EntityMap [PhysicsProperties]
-    , _cmpPdPatch           :: EntityMap Patch
-    , _cmpSoundSource       :: EntityMap OpenALSource
-    , _cmpAttachment        :: EntityMap Attachment
-    , _cmpLifetime          :: EntityMap Lifetime
-    , _cmpAnimationColor    :: EntityMap (Animation (V4 GLfloat))
-    , _cmpAnimationSize     :: EntityMap (Animation (V3 GLfloat))
-    , _cmpConstraint        :: EntityMap Constraint
-    , _cmpDrag              :: EntityMap Drag
-    , _cmpOnDrag            :: EntityMap OnDrag
-    }
-
-newComponents :: Components
-newComponents = Components
-    { _cmpName              = mempty
-    , _cmpPose              = mempty
-    , _cmpSize              = mempty
-    , _cmpShape             = mempty
-    , _cmpColor             = mempty
-    , _cmpOnStart           = mempty
-    , _cmpOnUpdate          = mempty
-    , _cmpOnCollision       = mempty
-    , _cmpOnStartExpr       = mempty
-    , _cmpOnUpdateExpr      = mempty
-    , _cmpOnCollisionExpr   = mempty
-    , _cmpScriptData        = mempty
-    , _cmpParent            = mempty
-    , _cmpRigidBody         = mempty
-    , _cmpMass              = mempty
-    , _cmpSpring            = mempty
-    , _cmpPhysicsProperties = mempty
-    , _cmpPdPatch           = mempty
-    , _cmpSoundSource       = mempty
-    , _cmpAttachment        = mempty
-    , _cmpLifetime          = mempty
-    , _cmpAnimationColor    = mempty
-    , _cmpAnimationSize     = mempty
-    , _cmpConstraint        = mempty
-    , _cmpDrag              = mempty
-    , _cmpOnDrag            = mempty
-    }
-
+{-
 data Entity = Entity
     { _entName              :: !String
     , _entSize              :: !(V3 GLfloat)
@@ -217,19 +94,6 @@ newEntity = Entity
     }
 
 
-data CodeEditor = CodeEditor
-    { _cedResultTChan   :: TChan CompilationResult
-    , _cedCodeRenderer  :: TextRenderer
-    , _cedErrorRenderer :: TextRenderer
-    }
-
-data Uniforms = Uniforms
-    { uModelViewProjection :: UniformLocation (M44 GLfloat)
-    , uInverseModel        :: UniformLocation (M44 GLfloat)
-    , uModel               :: UniformLocation (M44 GLfloat)
-    , uCamera              :: UniformLocation (V3  GLfloat)
-    , uDiffuse             :: UniformLocation (V4  GLfloat)
-    } deriving (Data)
 
 entityJSONOptions :: Options
 entityJSONOptions = defaultOptions { fieldLabelModifier = drop 4 }
@@ -238,12 +102,8 @@ instance FromJSON Entity where
     parseJSON = genericParseJSON entityJSONOptions
 instance ToJSON Entity where
     toJSON    = genericToJSON entityJSONOptions
+-}
 
-makeLenses ''WorldStatic
-makeLenses ''World
-makeLenses ''Entity
-makeLenses ''Components
-makeLenses ''Scene
-makeLenses ''CodeEditor
+
 
 

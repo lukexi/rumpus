@@ -1,39 +1,76 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module Rumpus.Systems.SceneEditor where
 import PreludeExtra
 
+import Rumpus.ECS
 import Rumpus.Types
 import Rumpus.Control
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
-import Rumpus.Systems.Script
-import Rumpus.Systems.Sound
-import Rumpus.Systems.Lifetime
-import Rumpus.Systems.Constraint
+import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.Selection
 
-import Graphics.GL.Freetype
+data Scene = Scene
+    { _scnName     :: !String
+    -- , _scnEntities :: !(Map EntityID Entity)
+    }
+makeLenses ''Scene
 
-import Data.Yaml hiding ((.=))
-import qualified Data.Map as Map
+newScene :: Scene
+newScene = Scene 
+    { _scnName = "NewScene"
+    -- , _scnEntities = mempty 
+    }
 
-clearSelection :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
+
+
+data Persistence = Transient | Persistent 
+    deriving (Eq, Show, Generic, FromJSON, ToJSON)
+
+data SceneEditorSystem = SceneEditorSystem
+    { _sesScene              :: !Scene
+    , _sesCurrentEditorFrame :: !(Maybe EntityID)
+    -- , _sesEntityLibrary      :: !(Map String Entity)
+    }
+makeLenses ''SceneEditorSystem
+defineSystemKey ''SceneEditorSystem
+
+-- data Drag = Drag HandEntityID (Pose GLfloat)
+data Drag = Drag HandEntityID (V3 GLfloat)
+
+-- | OnDrag function
+type OnDrag = EntityID -> V3 GLfloat -> WorldMonad ()
+nullOnDrag :: OnDrag
+nullOnDrag _entityID _dragDistance = return ()
+
+defineComponentKey ''Drag
+defineComponentKey ''OnDrag
+
+
+clearSelection :: (MonadIO m, MonadState World m) => m ()
 clearSelection = do
-    vrPal <- view wlsVRPal
+
+    vrPal <- viewSystem controlSystemKey ctsVRPal
     hideHandKeyboard vrPal
-    useTraverseM_ wldCurrentEditorFrame removeEntity
-    wldSelectedEntityID .= Nothing
+
+    traverseM_ (viewSystem sceneEditorSystemKey sesCurrentEditorFrame) removeEntity
+    
+    modifySystem_ selectionSystemKey $ return . (selSelectedEntityID .~ Nothing)
 
 
-selectEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => EntityID -> m ()
+selectEntity :: (MonadIO m, MonadState World m) => EntityID -> m ()
 selectEntity entityID = do
 
     clearSelection
 
-    wldSelectedEntityID ?= entityID
+    modifySystem_ selectionSystemKey $ return . (selSelectedEntityID ?~ entityID)
 
-
+    {- FIXME
     let editorFrameEntity = newEntity
             -- & entShape .~ CubeShape
             & entSize  .~ 1
@@ -75,68 +112,40 @@ selectEntity entityID = do
     
     addEntityChild editorFrame sizeEditor
 
-    wldCurrentEditorFrame ?= editorFrame
+    modifySystem_ sceneEditorSystemKey $ sesCurrentEditorFrame ?~ editorFrame
 
     -- Tick the constraint system once to put things in place for this frame
     constraintSystem
+    -}
 
     return ()
 
-addEntityChild :: MonadState World m => EntityID -> EntityID -> m ()
-addEntityChild entityID childEntityID = do
-    wldComponents . cmpParent . at childEntityID ?= entityID
+addEntityChild :: (MonadState World m, MonadIO m) => EntityID -> EntityID -> m ()
+addEntityChild entityID childEntityID = 
+    addComponent parentKey entityID childEntityID
 
-beginDrag :: MonadState World m => EntityID -> EntityID -> m ()
+
+beginDrag :: (MonadState World m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
     startPos <- view posPosition <$> getEntityPose handEntityID
-    wldComponents . cmpDrag . at draggedID ?= Drag handEntityID startPos
+    setComponent dragKey (Drag handEntityID startPos) draggedID
 
 continueDrag :: HandEntityID -> WorldMonad ()
 continueDrag draggingHandEntityID = do
-    useMapM_ (wldComponents . cmpDrag) $ \(entityID, Drag handEntityID startPos) ->
+    forEntitiesWithComponent dragKey $ \(entityID, Drag handEntityID startPos) ->
         when (handEntityID == draggingHandEntityID) $ do
             currentPose <- view posPosition <$> getEntityPose handEntityID
             let dragDistance = currentPose - startPos
 
-            useTraverseM_ (wldComponents . cmpOnDrag . at entityID) $ \onDrag ->
+            withComponent entityID onDragKey $ \onDrag ->
                 onDrag entityID dragDistance
 
 endDrag :: MonadState World m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
-    useMapM_ (wldComponents . cmpDrag) $ \(entityID, Drag handEntityID _) ->
+    forEntitiesWithComponent dragKey $ \(entityID, Drag handEntityID _) ->
         when (handEntityID == endingDragHandEntityID) $
-            wldComponents . cmpDrag . at entityID .= Nothing
+            removeComponentFromEntity dragKey entityID
 
-raycastCursor :: (MonadIO m, MonadState World m) => EntityID -> m Bool
-raycastCursor handEntityID = do
-    -- First, see if we can place a cursor into a text buffer.
-    -- If not, then move onto the selection logic.
-    mSelectedEntityID <- use wldSelectedEntityID
-    case mSelectedEntityID of
-        Nothing -> return False
-        Just selectedEntityID -> do
-            maybeCodeExprKey <- use (wldComponents . cmpOnUpdateExpr . at selectedEntityID)
-            case maybeCodeExprKey of
-                Nothing -> return False
-                Just codeExprKey -> do
-                    maybeEditor <- use (wldCodeEditors . at codeExprKey)
-                    case maybeEditor of
-                        Nothing -> return False
-                        Just editor -> do
-                            handPose <- getEntityPose handEntityID
-                            pose     <- getEntityPose selectedEntityID
-                            -- We currently render code editors directly matched with the pose
-                            -- of the entity; update this when we make code editors into their own entities
-                            -- like the editorFrame children are
-                            let model44 = transformationFromPose pose
-                                codeRenderer = editor ^. cedCodeRenderer
-                                handRay = poseToRay handPose (V3 0 0 (-1))
-                            mUpdatedRenderer <- castRayToTextRenderer handRay codeRenderer model44
-                            case mUpdatedRenderer of
-                                Nothing -> return False
-                                Just updatedRenderer -> do
-                                    wldCodeEditors . ix codeExprKey . cedCodeRenderer .= updatedRenderer
-                                    return True
 
 sceneEditorSystem :: WorldMonad ()
 sceneEditorSystem = do
@@ -147,6 +156,7 @@ sceneEditorSystem = do
                     setEntityPose (poseFromMatrix (hand ^. hndMatrix)) handEntityID
                     continueDrag handEntityID
                 HandButtonEvent HandButtonGrip ButtonDown -> do
+                    {- FIXME
                     handPose <- getEntityPose handEntityID
                     let entity = newEntity 
                             & entPose .~ handPose 
@@ -154,6 +164,7 @@ sceneEditorSystem = do
                             & entSize .~ 0.5
                             & entOnUpdate ?~ "scenes/minimal/DefaultUpdate.hs"
                     _ <- createEntity Persistent entity
+                    -}
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
 
@@ -170,8 +181,8 @@ sceneEditorSystem = do
                             -- See if the touched object has the current EditorFrame as a parent;
                             -- If so, it's a draggable object.
                             -- (we should just look to see if it has a drag function, actually!)
-                            currentEditorFrame <- use wldCurrentEditorFrame
-                            touchedParentID <- use (wldComponents . cmpParent . at touchedID)
+                            currentEditorFrame <- viewSystem sceneEditorSystemKey sesCurrentEditorFrame
+                            touchedParentID <- getComponent touchedID parentKey
                             if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
                                 then do
                                     beginDrag handEntityID touchedID
@@ -187,33 +198,34 @@ sceneEditorSystem = do
                     detachEntity handEntityID
 
                     -- If we've selected something, show the keyboard on grip-up
-                    useTraverseM_ wldSelectedEntityID $ \_selectedID -> do
-                        vrPal <- view wlsVRPal
+                    traverseM_ (viewSystem selectionSystemKey selSelectedEntityID) $ \_selectedID -> do
+                        vrPal <- viewSystem controlSystemKey ctsVRPal
                         showHandKeyboard vrPal
 
-                    useTraverseM_ wldSelectedEntityID 
-                        updateEntityInScene
-                    saveScene
+                    -- useTraverseM_ wldSelectedEntityID 
+                    --     updateEntityInScene
+                    -- saveScene
 
                 _ -> return ()
 
     withLeftHandEvents  (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
-updateEntityInScene :: MonadState World m => EntityID -> m ()
-updateEntityInScene entityID = do
-    -- Copy the current pose to the scene file and save it
-    pose <- getEntityPose entityID
-    wldScene . scnEntities . at entityID . traverse . entPose .= pose
-    color <- getEntityColor entityID
-    wldScene . scnEntities . at entityID . traverse . entColor .= color
-    size <- getEntitySize entityID
-    wldScene . scnEntities . at entityID . traverse . entSize .= size
+-- updateEntityInScene :: MonadState World m => EntityID -> m ()
+-- updateEntityInScene entityID = do
+--     -- Copy the current pose to the scene file and save it
+--     pose <- getEntityPose entityID
+--     wldScene . scnEntities . at entityID . traverse . entPose .= pose
+--     color <- getEntityColor entityID
+--     wldScene . scnEntities . at entityID . traverse . entColor .= color
+--     size <- getEntitySize entityID
+--     wldScene . scnEntities . at entityID . traverse . entSize .= size
 
 sceneFileNamed :: String -> FilePath
 sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"
 
-loadScene :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => FilePath -> m ()
+{- FIXME
+loadScene :: (MonadState World m, MonadIO m) => FilePath -> m ()
 loadScene sceneName =     
     liftIO (decodeFileEither (sceneFileNamed sceneName)) >>= \case
         Left parseException -> putStrLnIO ("Error loading " ++ sceneName ++ ": " ++ show parseException)
@@ -232,20 +244,20 @@ saveScene = do
 
 
 
-spawnEntity :: (MonadReader WorldStatic m, MonadState World m, MonadIO m) => Persistence -> String -> m (Maybe EntityID)
+spawnEntity :: (MonadState World m, MonadIO m) => Persistence -> String -> m (Maybe EntityID)
 spawnEntity persistence entityName = 
     traverseM (use (wldEntityLibrary . at entityName)) (createEntity persistence)
 
 defineEntity :: MonadState World m => Entity -> m ()
 defineEntity entity = wldEntityLibrary . at (entity ^. entName) ?= entity
 
-createEntity :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
+createEntity :: (MonadIO m, MonadState World m) 
              => Persistence -> Entity -> m EntityID
 createEntity persistence entity = do
     entityID <- liftIO randomIO
     createEntityWithID persistence entityID entity
 
-createEntityWithID :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) 
+createEntityWithID :: (MonadIO m, MonadState World m) 
                    => Persistence -> EntityID -> Entity -> m EntityID
 createEntityWithID persistence entityID entity = do
     when (persistence == Persistent) $
@@ -267,4 +279,4 @@ createEntityWithID persistence entityID entity = do
         wldComponents . cmpParent . at childID ?= entityID
     
     return entityID
-
+-}
