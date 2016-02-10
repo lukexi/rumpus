@@ -13,16 +13,16 @@ defineComponentKeyWithType "SizeAnimation" [t|Animation (V3 GLfloat)|]
 tickAnimationSystem :: (MonadIO m, MonadState World m) => m ()
 tickAnimationSystem = do
     now <- getNow
-    forEntitiesWithComponent colorAnimationKey $ \(entityID, animation) -> do
+    forEntitiesWithComponent cmpColorAnimation $ \(entityID, animation) -> do
         let evaled = evalAnim now animation
 
-        setComponent colorKey (evanResult evaled) entityID
+        setComponent cmpColor (evanResult evaled) entityID
         when (evanRunning evaled == False) $ do
-            removeComponentFromEntity colorAnimationKey entityID
+            removeComponentFromEntity cmpColorAnimation entityID
 
-    forEntitiesWithComponent sizeAnimationKey  $ \(entityID, animation) -> do
+    forEntitiesWithComponent cmpSizeAnimation $ \(entityID, animation) -> do
         let evaled = evalAnim now animation
 
         setEntitySize (evanResult evaled) entityID
         when (evanRunning evaled == False) $ do
-            removeComponentFromEntity sizeAnimationKey entityID
+            removeComponentFromEntity cmpSizeAnimation entityID

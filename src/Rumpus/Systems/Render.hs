@@ -32,29 +32,30 @@ defineSystemKey ''RenderSystem
 
 
 
-createRenderSystem :: IO [(ShapeType, Shape Uniforms)]
-createRenderSystem = do
+initRenderSystem :: (MonadIO m, MonadState World m) => m ()
+initRenderSystem = do
     glEnable GL_DEPTH_TEST
     glClearColor 0 0 0.1 1
 
-    basicProg   <- createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
+    basicProg   <- liftIO $ createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
 
-    cubeGeo     <- cubeGeometry (V3 1 1 1) 1
-    sphereGeo   <- icosahedronGeometry 1 5 -- radius subdivisions
-    planeGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
+    cubeGeo     <- liftIO $ cubeGeometry (V3 1 1 1) 1
+    sphereGeo   <- liftIO $ icosahedronGeometry 1 5 -- radius subdivisions
+    planeGeo    <- liftIO $ planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     
-    planeShape  <- makeShape planeGeo  basicProg
-    cubeShape   <- makeShape cubeGeo   basicProg
-    sphereShape <- makeShape sphereGeo basicProg
+    planeShape  <- liftIO $ makeShape planeGeo  basicProg
+    cubeShape   <- liftIO $ makeShape cubeGeo   basicProg
+    sphereShape <- liftIO $ makeShape sphereGeo basicProg
 
     let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
-    return shapes
+
+    registerSystem sysRender (RenderSystem shapes)
 
 
 tickRenderSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
-    vrPal  <- viewSystem controlSystemKey ctsVRPal
-    player <- viewSystem controlSystemKey ctsPlayer
+    vrPal  <- viewSystem sysControl ctsVRPal
+    player <- viewSystem sysControl ctsPlayer
     -- Render the scene
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
@@ -72,12 +73,12 @@ renderEditors projM44 viewM44 = do
     let projViewM44 = projM44 !*! viewM44
 
 
-    traverseM_ (viewSystem selectionSystemKey selSelectedEntityID) $ \entityID -> do
+    traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \entityID -> do
         parentPose <- getEntityPose entityID
 
         
-        traverseM_ (getComponent entityID onUpdateExprKey) $ \codeExprKey -> 
-            traverseM_ (viewSystem codeEditorSystemKey (cesCodeEditors . at codeExprKey)) $ \editor -> do
+        traverseM_ (getComponent entityID cmpOnUpdateExpr) $ \codeExprKey -> 
+            traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
 
                 let codeModelM44 = transformationFromPose parentPose
 
@@ -98,7 +99,7 @@ renderEntities projM44 viewM44 = do
     
     let projViewM44 = projM44 !*! viewM44
 
-    shapes <- viewSystem renderSystemKey rdsShapes
+    shapes <- viewSystem sysRender rdsShapes
     forM_ shapes $ \(shapeType, shape) -> withShape shape $ do
 
         Uniforms{..} <- asks sUniforms
@@ -127,10 +128,10 @@ getEntityTotalModelMatrix startEntityID = do
     let go Nothing = return identity
         go (Just entityID) = do
             pose   <- getEntityPose entityID
-            parent <- getComponent entityID parentKey
+            parent <- getComponent entityID cmpParent
             (transformationFromPose pose !*!) <$> go parent
     
     go (Just startEntityID)
 
 getEntityIDsForShapeType :: MonadState World m => ShapeType -> m [EntityID]
-getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap shapeTypeKey
+getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType

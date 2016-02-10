@@ -32,23 +32,25 @@ defineComponentKey ''PhysicsProperties
 
 
 
-createPhysicsSystem :: IO DynamicsWorld
-createPhysicsSystem = createDynamicsWorld mempty
+initPhysicsSystem :: (MonadIO m, MonadState World m) => m ()
+initPhysicsSystem = do
+    dynamicsWorld <- createDynamicsWorld mempty
+    registerSystem sysPhysics (PhysicsSystem dynamicsWorld)
 
 
 tickPhysicsSystem :: (MonadIO m, MonadState World m) => m ()
 tickPhysicsSystem = do
-    dynamicsWorld <- viewSystem physicsSystemKey psDynamicsWorld
+    dynamicsWorld <- viewSystem sysPhysics psDynamicsWorld
     stepSimulation dynamicsWorld 90
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components
 tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState World m) => m ()
 tickSyncPhysicsPosesSystem = do
     -- Sync rigid bodies with entity poses
-    forEntitiesWithComponent rigidBodyKey $
+    forEntitiesWithComponent cmpRigidBody $
         \(entityID, rigidBody) -> do
             pose <- uncurry Pose <$> getBodyState rigidBody
-            setComponent poseKey pose entityID
+            setComponent cmpPose pose entityID
 
 -- | Loop through the collisions for this frame and call any 
 -- entities' registered collision callbacks
@@ -58,7 +60,7 @@ tickCollisionsSystem = do
     -- NOTE: we get stale collisions with bullet-mini's getCollisions, 
     -- so I've switched to the "contactTest" API which works.
 
-    forEntitiesWithComponent onCollisionKey $ \(entityID, onCollision) -> do
+    forEntitiesWithComponent cmpOnCollision $ \(entityID, onCollision) -> do
         collidingIDs <- getEntityOverlappingEntityIDs entityID
         forM_ collidingIDs $ \collidingID -> 
             onCollision entityID collidingID 0.1
@@ -66,11 +68,11 @@ tickCollisionsSystem = do
 
 addPhysicsComponent :: (MonadIO m, MonadState World m) 
                     => EntityID -> GLfloat -> PhysicsProperties -> m ()
-addPhysicsComponent entityID mass physProperties = withSystem_ physicsSystemKey $ \(PhysicsSystem dynamicsWorld) -> do
+addPhysicsComponent entityID mass physProperties = withSystem_ sysPhysics $ \(PhysicsSystem dynamicsWorld) -> do
 
-    pose      <- fromMaybe newPose   <$> getComponent entityID poseKey
-    size      <- fromMaybe 1         <$> getComponent entityID sizeKey
-    shapeType <- fromMaybe CubeShape <$> getComponent entityID shapeTypeKey
+    pose      <- fromMaybe newPose   <$> getComponent entityID cmpPose
+    size      <- fromMaybe 1         <$> getComponent entityID cmpSize
+    shapeType <- fromMaybe CubeShape <$> getComponent entityID cmpShapeType
 
     shape <- createShapeCollider shapeType size
             
@@ -82,8 +84,8 @@ addPhysicsComponent entityID mass physProperties = withSystem_ physicsSystemKey 
     
     rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
     
-    addComponent rigidBodyKey rigidBody entityID
-    addComponent physicsPropertiesKey physProperties entityID
+    addComponent cmpRigidBody rigidBody entityID
+    addComponent cmpPhysicsProperties physProperties entityID
 
     when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
         setRigidBodyKinematic rigidBody True
@@ -100,22 +102,22 @@ createShapeCollider shapeType size = case shapeType of
 removePhysicsComponents :: (MonadIO m, MonadState World m) => EntityID -> m ()
 removePhysicsComponents entityID = do
     withEntityRigidBody entityID $ \rigidBody -> do
-        withSystem physicsSystemKey $ \(PhysicsSystem dynamicsWorld) -> 
+        withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> 
             removeRigidBody dynamicsWorld rigidBody
     
-    removeComponentFromEntity rigidBodyKey entityID
+    removeComponentFromEntity cmpRigidBody entityID
 
 
 withEntityRigidBody :: MonadState World m => EntityID -> (RigidBody -> m b) -> m ()
-withEntityRigidBody entityID = withComponent entityID rigidBodyKey
+withEntityRigidBody entityID = withComponent entityID cmpRigidBody
 
 
 getEntityOverlapping :: (MonadState World m, MonadIO m) => EntityID -> m [Collision]
-getEntityOverlapping entityID = getComponent entityID rigidBodyKey  >>= \case
+getEntityOverlapping entityID = getComponent entityID cmpRigidBody  >>= \case
     Nothing          -> return []
     Just rigidBody -> do
         fmap (fromMaybe []) $ 
-            withSystem physicsSystemKey $ \(PhysicsSystem dynamicsWorld) -> 
+            withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> 
                 contactTest dynamicsWorld rigidBody
 
 getEntityOverlappingEntityIDs :: (MonadState World m, MonadIO m) => EntityID -> m [EntityID]
@@ -128,12 +130,12 @@ getEntityOverlappingEntityIDs entityID =
 setEntitySize :: (MonadIO m, MonadState World m) => V3 GLfloat -> EntityID -> m ()
 setEntitySize newSize entityID = do
 
-    setComponent sizeKey newSize entityID
+    setComponent cmpSize newSize entityID
 
     withEntityRigidBody entityID $ \rigidBody -> do 
-        withSystem physicsSystemKey $ \(PhysicsSystem dynamicsWorld) -> do
-            mass       <- fromMaybe 1         <$> getComponent entityID massKey
-            shapeType  <- fromMaybe CubeShape <$> getComponent entityID shapeTypeKey
+        withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> do
+            mass       <- fromMaybe 1         <$> getComponent entityID cmpMass
+            shapeType  <- fromMaybe CubeShape <$> getComponent entityID cmpShapeType
 
             shape      <- createShapeCollider shapeType newSize
             setRigidBodyShape dynamicsWorld rigidBody shape mass
@@ -143,7 +145,7 @@ setEntitySize newSize entityID = do
 setEntityPose :: (MonadState World m, MonadIO m) => Pose GLfloat -> EntityID -> m ()
 setEntityPose newPose_ entityID = do
 
-    setComponent poseKey newPose_ entityID
+    setComponent cmpPose newPose_ entityID
 
     withEntityRigidBody entityID $ \rigidBody -> 
         setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)

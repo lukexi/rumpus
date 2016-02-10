@@ -14,7 +14,7 @@ defineComponentKey ''Constraint
 
 tickConstraintSystem :: (MonadState World m, MonadIO m) => m ()
 tickConstraintSystem = do
-    forEntitiesWithComponent constraintKey $ \(entityID, constraint) -> do
+    forEntitiesWithComponent cmpConstraint $ \(entityID, constraint) -> do
         case constraint of
             RelativePositionTo parentEntityID relativePosition -> do
                 parentPose <- getEntityPose parentEntityID
@@ -24,4 +24,4 @@ tickConstraintSystem = do
 
 setEntityConstraint :: (MonadState World m, MonadIO m) => Constraint -> EntityID -> m ()
 setEntityConstraint constraint entityID = 
-    addComponent constraintKey constraint entityID
+    setComponent cmpConstraint constraint entityID

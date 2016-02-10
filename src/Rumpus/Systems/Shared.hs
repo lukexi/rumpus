@@ -33,21 +33,21 @@ traverseM_ (Map.toList <$> use (wldComponents . cmpParent)) $ \(childID, childPa
 -}
 
 setEntityColor :: (MonadState World m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
-setEntityColor newColor entityID = addComponent colorKey newColor entityID
+setEntityColor newColor entityID = setComponent cmpColor newColor entityID
 
 
 getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
-getEntityIDsWithName name = fromMaybe [] <$> withComponentMap nameKey (return . Map.keys . Map.filter (== name))
+getEntityIDsWithName name = fromMaybe [] <$> withComponentMap cmpName (return . Map.keys . Map.filter (== name))
 
 getEntityName :: MonadState World m => EntityID -> m String
-getEntityName entityID = fromMaybe "No Name" <$> getComponent entityID nameKey
+getEntityName entityID = fromMaybe "No Name" <$> getComponent entityID cmpName
 
 getEntityPose :: MonadState World m => EntityID -> m (Pose GLfloat)
-getEntityPose entityID = fromMaybe newPose <$> getComponent entityID poseKey
+getEntityPose entityID = fromMaybe newPose <$> getComponent entityID cmpPose
 
 getEntitySize :: MonadState World m => EntityID -> m (V3 GLfloat)
-getEntitySize entityID = fromMaybe 1 <$> getComponent entityID sizeKey
+getEntitySize entityID = fromMaybe 1 <$> getComponent entityID cmpSize
 
 getEntityColor :: MonadState World m => EntityID -> m (V4 GLfloat)
-getEntityColor entityID = fromMaybe 1 <$> getComponent entityID colorKey
+getEntityColor entityID = fromMaybe 1 <$> getComponent entityID cmpColor
 

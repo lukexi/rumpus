@@ -30,16 +30,17 @@ main = withPd $ \pd -> do
 -- main = do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
     -- pd    <- reacquire 1 $ initLibPd
-
-    _               <- createSoundSystem pd
-    shapes          <- createRenderSystem
-    (font, ghcChan) <- createCodeEditorSystem
-    dynamicsWorld   <- createPhysicsSystem
-
+    
     args <- getArgs
-    let sceneName = fromMaybe "minimal" (listToMaybe args)
+    let _sceneName = fromMaybe "minimal" (listToMaybe args)
 
     void . flip runStateT newWorld $ do 
+
+        initControlSystem vrPal
+        initSoundSystem pd
+        initPhysicsSystem
+        initRenderSystem
+        initCodeEditorSystem
 
         -- loadScene sceneName
 
@@ -56,7 +57,7 @@ main = withPd $ \pd -> do
 
             tickConstraintSystem
 
-            isPlaying <- viewSystem controlSystemKey ctsPlaying
+            isPlaying <- viewSystem sysControl ctsPlaying
             if isPlaying
                 then do
                     tickScriptingSystem
@@ -71,6 +72,7 @@ main = withPd $ \pd -> do
 
                     tickCollisionsSystem
                 else do
+                    dynamicsWorld <- viewSystem sysPhysics psDynamicsWorld
                     performDiscreteCollisionDetection dynamicsWorld
 
             tickSceneEditorSystem

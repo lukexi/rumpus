@@ -55,12 +55,12 @@ defineComponentKey ''OnDrag
 clearSelection :: (MonadIO m, MonadState World m) => m ()
 clearSelection = do
 
-    vrPal <- viewSystem controlSystemKey ctsVRPal
+    vrPal <- viewSystem sysControl ctsVRPal
     hideHandKeyboard vrPal
 
-    traverseM_ (viewSystem sceneEditorSystemKey sesCurrentEditorFrame) removeEntity
+    traverseM_ (viewSystem sysSceneEditor sesCurrentEditorFrame) removeEntity
     
-    modifySystem_ selectionSystemKey $ return . (selSelectedEntityID .~ Nothing)
+    modifySystem_ sysSelection $ return . (selSelectedEntityID .~ Nothing)
 
 
 selectEntity :: (MonadIO m, MonadState World m) => EntityID -> m ()
@@ -68,7 +68,7 @@ selectEntity entityID = do
 
     clearSelection
 
-    modifySystem_ selectionSystemKey $ return . (selSelectedEntityID ?~ entityID)
+    modifySystem_ sysSelection $ return . (selSelectedEntityID ?~ entityID)
 
     {- FIXME
     let editorFrameEntity = newEntity
@@ -112,7 +112,7 @@ selectEntity entityID = do
     
     addEntityChild editorFrame sizeEditor
 
-    modifySystem_ sceneEditorSystemKey $ sesCurrentEditorFrame ?~ editorFrame
+    modifySystem_ sysSceneEditor $ sesCurrentEditorFrame ?~ editorFrame
 
     -- Tick the constraint system once to put things in place for this frame
     constraintSystem
@@ -122,29 +122,29 @@ selectEntity entityID = do
 
 addEntityChild :: (MonadState World m, MonadIO m) => EntityID -> EntityID -> m ()
 addEntityChild entityID childEntityID = 
-    addComponent parentKey entityID childEntityID
+    addComponent cmpParent entityID childEntityID
 
 
 beginDrag :: (MonadState World m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
     startPos <- view posPosition <$> getEntityPose handEntityID
-    setComponent dragKey (Drag handEntityID startPos) draggedID
+    setComponent cmpDrag (Drag handEntityID startPos) draggedID
 
 continueDrag :: HandEntityID -> WorldMonad ()
 continueDrag draggingHandEntityID = do
-    forEntitiesWithComponent dragKey $ \(entityID, Drag handEntityID startPos) ->
+    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID startPos) ->
         when (handEntityID == draggingHandEntityID) $ do
             currentPose <- view posPosition <$> getEntityPose handEntityID
             let dragDistance = currentPose - startPos
 
-            withComponent entityID onDragKey $ \onDrag ->
+            withComponent entityID cmpOnDrag $ \onDrag ->
                 onDrag entityID dragDistance
 
 endDrag :: MonadState World m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
-    forEntitiesWithComponent dragKey $ \(entityID, Drag handEntityID _) ->
+    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID _) ->
         when (handEntityID == endingDragHandEntityID) $
-            removeComponentFromEntity dragKey entityID
+            removeComponentFromEntity cmpDrag entityID
 
 
 tickSceneEditorSystem :: WorldMonad ()
@@ -181,8 +181,8 @@ tickSceneEditorSystem = do
                             -- See if the touched object has the current EditorFrame as a parent;
                             -- If so, it's a draggable object.
                             -- (we should just look to see if it has a drag function, actually!)
-                            currentEditorFrame <- viewSystem sceneEditorSystemKey sesCurrentEditorFrame
-                            touchedParentID <- getComponent touchedID parentKey
+                            currentEditorFrame <- viewSystem sysSceneEditor sesCurrentEditorFrame
+                            touchedParentID <- getComponent touchedID cmpParent
                             if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
                                 then do
                                     beginDrag handEntityID touchedID
@@ -198,8 +198,8 @@ tickSceneEditorSystem = do
                     detachEntity handEntityID
 
                     -- If we've selected something, show the keyboard on grip-up
-                    traverseM_ (viewSystem selectionSystemKey selSelectedEntityID) $ \_selectedID -> do
-                        vrPal <- viewSystem controlSystemKey ctsVRPal
+                    traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \_selectedID -> do
+                        vrPal <- viewSystem sysControl ctsVRPal
                         showHandKeyboard vrPal
 
                     -- useTraverseM_ wldSelectedEntityID 

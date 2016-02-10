@@ -13,9 +13,10 @@ data Attachment = Attachment EntityID (Pose GLfloat)
 defineComponentKey ''Attachment
 
 
+
 tickAttachmentsSystem :: (MonadIO m, MonadState World m) => m ()
 tickAttachmentsSystem = 
-    forEntitiesWithComponent attachmentKey $
+    forEntitiesWithComponent cmpAttachment $
         \(entityID, Attachment toEntityID offset) -> do
             pose <- getEntityPose entityID
             setEntityPose (pose `addPose` offset) toEntityID
@@ -29,7 +30,7 @@ attachEntity entityID toEntityID = do
     entityPose   <- getEntityPose entityID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractPose` entityPose
-    addComponent attachmentKey (Attachment toEntityID offset) entityID
+    addComponent cmpAttachment (Attachment toEntityID offset) entityID
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
@@ -39,13 +40,13 @@ detachEntity :: (MonadState World m, MonadIO m) => EntityID -> m ()
 detachEntity entityID = 
     withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
 
-        removeComponentFromEntity attachmentKey entityID
+        removeComponentFromEntity cmpAttachment entityID
 
-        physProps <- fromMaybe [] <$> getComponent attachedEntityID physicsPropertiesKey
+        physProps <- fromMaybe [] <$> getComponent attachedEntityID cmpPhysicsProperties
         unless (IsKinematic `elem` physProps) $ 
             withEntityRigidBody attachedEntityID $ \rigidBody ->
                 setRigidBodyKinematic rigidBody False
 
 withAttachment :: MonadState World m => EntityID -> (Attachment -> m b) -> m ()
-withAttachment entityID = withComponent entityID attachmentKey 
+withAttachment entityID = withComponent entityID cmpAttachment 
 

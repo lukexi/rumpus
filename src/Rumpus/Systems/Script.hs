@@ -36,15 +36,15 @@ defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
 tickScriptingSystem :: WorldMonad ()
 tickScriptingSystem = do
-    forEntitiesWithComponent onStartKey $
+    forEntitiesWithComponent cmpOnStart $
         \(entityID, onStart) -> do
             -- Only call OnStart once
             mScriptData <- onStart entityID
             forM_ mScriptData $ \scriptData -> 
-                addComponent scriptDataKey scriptData entityID
-            removeComponentFromEntity onStartKey entityID
+                addComponent cmpScriptData scriptData entityID
+            removeComponentFromEntity cmpOnStart entityID
 
-    forEntitiesWithComponent onUpdateKey $
+    forEntitiesWithComponent cmpOnUpdate $
         \(entityID, onUpdate) -> 
             onUpdate entityID
 
@@ -53,7 +53,7 @@ tickScriptingSystem = do
 withScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
                     EntityID -> (a -> m ()) -> m ()
 withScriptData entityID f = 
-    withComponent entityID scriptDataKey $ \dynScriptData -> do
+    withComponent entityID cmpScriptData $ \dynScriptData -> do
         case fromDynamic dynScriptData of
             Just scriptData -> f scriptData
             Nothing -> putStrLnIO 
@@ -64,7 +64,7 @@ withScriptData entityID f =
 editScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
                     EntityID -> (a -> m a) -> m ()
 editScriptData entityID f = 
-    modifyComponent entityID scriptDataKey $ \dynScriptData -> do
+    modifyComponent entityID cmpScriptData $ \dynScriptData -> do
         case fromDynamic dynScriptData of
             Just scriptData -> toDyn <$> f scriptData
             Nothing -> do

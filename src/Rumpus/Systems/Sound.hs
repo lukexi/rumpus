@@ -20,24 +20,25 @@ defineComponentKey ''OpenALSource
 
 
 
-createSoundSystem :: MonadIO m => PureData -> m ()
-createSoundSystem pd = do
+initSoundSystem :: (MonadState World m, MonadIO m) => PureData -> m ()
+initSoundSystem pd = do
     mapM_ (addToLibPdSearchPath pd)
         ["resources/pd-kit", "resources/pd-kit/list-abs"]
 
     let soundSystem = SoundSystem { _sdsPd = pd, _sdsOpenALSourcePool = zip [1..] (pdSources pd) }
-    return ()
+
+    registerSystem sysSound soundSystem
 
 tickSoundSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
 tickSoundSystem headM44 = do
     -- Update souce and listener poitions
     alListenerPose (poseFromMatrix headM44)
-    forEntitiesWithComponent openALSourceKey $ \(entityID, sourceID) -> do
+    forEntitiesWithComponent cmpOpenALSource $ \(entityID, sourceID) -> do
         position <- view posPosition <$> getEntityPose entityID
         alSourcePosition sourceID position
 
 dequeueOpenALSource :: MonadState World m => m (Maybe (Int, OpenALSource))
-dequeueOpenALSource = modifySystemState soundSystemKey $ do
+dequeueOpenALSource = modifySystemState sysSound $ do
     openALSourcePool <- use sdsOpenALSourcePool
     case openALSourcePool of
         [] -> return Nothing
@@ -46,28 +47,28 @@ dequeueOpenALSource = modifySystemState soundSystemKey $ do
             return (Just x)
 
 addPdPatchComponent :: (MonadState World m, MonadIO m) => EntityID -> FilePath -> m ()
-addPdPatchComponent entityID patchPath = withSystem_ soundSystemKey $ \soundSystem -> do
+addPdPatchComponent entityID patchPath = withSystem_ sysSound $ \soundSystem -> do
     let pd = soundSystem ^. sdsPd
     patch <- makePatch pd patchPath
-    addComponent pdPatchKey patch entityID
+    addComponent cmpPdPatch patch entityID
 
     -- Assign the patch's output DAC index to route it to the the SourceID
     traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
         send pd patch "dac" $ Atom (fromIntegral sourceChannel)
-        addComponent openALSourceKey sourceID entityID
+        addComponent cmpOpenALSource sourceID entityID
 
 removePdPatchComponent :: (MonadIO m, MonadState World m) => EntityID -> m ()
-removePdPatchComponent entityID = withSystem_ soundSystemKey $ \soundSystem -> do
+removePdPatchComponent entityID = withSystem_ sysSound $ \soundSystem -> do
     let pd = soundSystem ^. sdsPd
     withPdPatch entityID $ \patch ->
         closePatch pd patch
 
-    removeComponentFromEntity pdPatchKey entityID
-    removeComponentFromEntity openALSourceKey entityID
+    removeComponentFromEntity cmpPdPatch entityID
+    removeComponentFromEntity cmpOpenALSource entityID
 
 withPdPatch :: MonadState World m => EntityID -> (Patch -> m b) -> m ()
-withPdPatch entityID = withComponent entityID pdPatchKey
+withPdPatch entityID = withComponent entityID cmpPdPatch
 
 sendPd :: (MonadIO m, MonadState World m) => Patch -> Receiver -> Message -> m ()
-sendPd patch receiver message = withSystem_ soundSystemKey $ \soundSystem -> 
+sendPd patch receiver message = withSystem_ sysSound $ \soundSystem -> 
     send (soundSystem ^. sdsPd) patch receiver message

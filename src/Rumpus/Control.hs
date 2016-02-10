@@ -21,9 +21,8 @@ data ControlSystem = ControlSystem
 makeLenses ''ControlSystem
 defineSystemKey ''ControlSystem
 
-createControlSystem vrPal = do
-    
-
+initControlSystem :: MonadState World m => VRPal -> m ()
+initControlSystem vrPal = do
     let controlSystem = ControlSystem
             { _ctsVRPal = vrPal
             , _ctsPlayer = if gpRoomScale vrPal == RoomScale 
@@ -32,10 +31,11 @@ createControlSystem vrPal = do
             , _ctsEvents = []
             , _ctsPlaying = False
             }
-    return ()
+    registerSystem sysControl controlSystem
+
 
 tickControlEventsSystem :: (MonadState World m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
-tickControlEventsSystem headM44 hands vrEvents = modifySystem_ controlSystemKey $ \controlSystem -> do
+tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControl $ \controlSystem -> do
     let VRPal{..} = controlSystem ^. ctsVRPal
 
     -- Grab the old events for comparison
@@ -114,7 +114,7 @@ emulateRightHand VRPal{..} player events  = do
 
 
 toggleWorldPlaying :: (MonadState World m) => m ()
-toggleWorldPlaying = modifySystem_ controlSystemKey $ return . (ctsPlaying %~ not)
+toggleWorldPlaying = modifySystem_ sysControl $ return . (ctsPlaying %~ not)
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip,    view hndGrip)
@@ -126,12 +126,12 @@ buttonPairs = [ (HandButtonGrip,    view hndGrip)
               ]
 
 withLeftHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()
-withLeftHandEvents f = withSystem_ controlSystemKey $ \controlSystem -> do
+withLeftHandEvents f = withSystem_ sysControl $ \controlSystem -> do
   let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onLeftHandEvent e f)
 
 withRightHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()
-withRightHandEvents f = withSystem_ controlSystemKey $ \controlSystem -> do
+withRightHandEvents f = withSystem_ sysControl $ \controlSystem -> do
   let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onRightHandEvent e f)
 
@@ -146,7 +146,7 @@ onRightHandEvent _ _ = return ()
 
 raycastCursorHits :: (MonadIO m, MonadState World m) 
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
-raycastCursorHits window dynamicsWorld projMat = withSystem_ controlSystemKey $ \controlSystem -> do
+raycastCursorHits window dynamicsWorld projMat = withSystem_ sysControl $ \controlSystem -> do
     let playerPose = controlSystem ^. ctsPlayer
     cursorRay <- cursorPosToWorldRay window projMat playerPose
 

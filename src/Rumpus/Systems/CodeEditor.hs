@@ -43,16 +43,20 @@ defineComponentKeyWithType "OnCollisionExpr" [t|CodeExpressionKey|]
 
 
 
-createCodeEditorSystem :: IO (Font, TChan CompilationRequest)
-createCodeEditorSystem = do
+initCodeEditorSystem :: (MonadIO m, MonadState World m) => m ()
+initCodeEditorSystem = do
     ghcChan   <- startGHC []
-    glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
-    font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
+    glyphProg <- liftIO $ createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
+    font      <- liftIO $ createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
 
-    return (font, ghcChan)
+    registerSystem sysCodeEditor $ CodeEditorSystem
+        { _cesCodeEditors = mempty
+        , _cesFont = font
+        , _cesGHCChan = ghcChan
+        }
 
 createCodeEditor :: (MonadIO m, MonadState World m) => CodeExpressionKey -> m CodeEditor
-createCodeEditor codeExpressionKey = modifySystemState codeEditorSystemKey $ do
+createCodeEditor codeExpressionKey = modifySystemState sysCodeEditor $ do
     mEditor <- use (cesCodeEditors . at codeExpressionKey)
     case mEditor of
         Just existing -> return existing
@@ -73,16 +77,16 @@ createCodeEditor codeExpressionKey = modifySystemState codeEditorSystemKey $ do
             return codeEditor
 
 tickCodeEditorSystem :: (MonadIO m, MonadState World m) => m ()
-tickCodeEditorSystem = withSystem_ controlSystemKey $ \ControlSystem{..} -> do
+tickCodeEditorSystem = withSystem_ sysControl $ \ControlSystem{..} -> do
     -- Pass keyboard events to the selected entity's text editor, if it has one
     let events = _ctsEvents
         window = gpWindow _ctsVRPal
 
 
-    mSelectedEntityID <- viewSystem selectionSystemKey selSelectedEntityID
+    mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
     forM mSelectedEntityID $ \selectedEntityID ->
-        withComponent selectedEntityID onUpdateExprKey $ \codeExprKey ->
-            modifySystemState codeEditorSystemKey $ 
+        withComponent selectedEntityID cmpOnUpdateExpr $ \codeExprKey ->
+            modifySystemState sysCodeEditor $ 
                 forM_ events $ \case
                     GLFWEvent e -> handleTextBufferEvent window e 
                         (cesCodeEditors . ix codeExprKey . cedCodeRenderer)
@@ -94,7 +98,7 @@ tickCodeEditorSystem = withSystem_ controlSystemKey $ \ControlSystem{..} -> do
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
 tickSyncCodeEditorSystem :: WorldMonad ()
-tickSyncCodeEditorSystem = modifySystemState codeEditorSystemKey $ do
+tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
     font <- use cesFont
 
     let copyCompiledResultToEntities codeExprKey value comCodeExpr comCode = 
@@ -116,9 +120,9 @@ tickSyncCodeEditorSystem = modifySystemState codeEditorSystemKey $ do
                 cesCodeEditors . ix codeExprKey . cedErrorRenderer .= errorRenderer
 
                 let value = getCompiledValue compiledValue
-                lift $ copyCompiledResultToEntities codeExprKey value onStartExprKey     onStartKey
-                lift $ copyCompiledResultToEntities codeExprKey value onUpdateExprKey    onUpdateKey
-                lift $ copyCompiledResultToEntities codeExprKey value onCollisionExprKey onCollisionKey
+                lift $ copyCompiledResultToEntities codeExprKey value cmpOnStartExpr     cmpOnStart
+                lift $ copyCompiledResultToEntities codeExprKey value cmpOnUpdateExpr    cmpOnUpdate
+                lift $ copyCompiledResultToEntities codeExprKey value cmpOnCollisionExpr cmpOnCollision
             Nothing -> return ()
 
 -- | Dummy leftover to illustrate adding expression editor for each script
@@ -131,31 +135,31 @@ addScriptComponent entityID mOnStart mOnUpdate mOnCollision = do
         let codeExprKey = (scriptPath, "start")
         _ <- createCodeEditor codeExprKey
         
-        addComponent onStartExprKey codeExprKey entityID 
+        addComponent cmpOnStartExpr codeExprKey entityID 
         
 
     forM_ (mOnUpdate) $ \scriptPath -> do
         let codeExprKey = (scriptPath, "update")
         _ <- createCodeEditor codeExprKey
         
-        addComponent onUpdateExprKey codeExprKey entityID 
+        addComponent cmpOnUpdateExpr codeExprKey entityID 
 
     forM_ (mOnCollision) $ \scriptPath -> do
         let codeExprKey = (scriptPath, "collision")
         _ <- createCodeEditor codeExprKey
         
-        addComponent onCollisionExprKey codeExprKey entityID 
+        addComponent cmpOnCollisionExpr codeExprKey entityID 
 
 
 raycastCursor :: (MonadIO m, MonadState World m) => EntityID -> m Bool
-raycastCursor handEntityID = modifySystemState codeEditorSystemKey $ do
+raycastCursor handEntityID = modifySystemState sysCodeEditor $ do
     -- First, see if we can place a cursor into a text buffer.
     -- If not, then move onto the selection logic.
-    mSelectedEntityID <- lift $ viewSystem selectionSystemKey selSelectedEntityID
+    mSelectedEntityID <- lift $ viewSystem sysSelection selSelectedEntityID
     case mSelectedEntityID of
         Nothing -> return False
         Just selectedEntityID -> do
-            maybeCodeExprKey <- lift $ getComponent selectedEntityID onUpdateExprKey
+            maybeCodeExprKey <- lift $ getComponent selectedEntityID cmpOnUpdateExpr
             case maybeCodeExprKey of
                 Nothing -> return False
                 Just codeExprKey -> do
