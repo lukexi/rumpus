@@ -147,8 +147,8 @@ endDrag endingDragHandEntityID = do
             removeComponentFromEntity dragKey entityID
 
 
-sceneEditorSystem :: WorldMonad ()
-sceneEditorSystem = do
+tickSceneEditorSystem :: WorldMonad ()
+tickSceneEditorSystem = do
     let editSceneWithHand handName event = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
             forM_ mHandEntityID $ \handEntityID -> case event of

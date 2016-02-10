@@ -34,8 +34,8 @@ defineComponentKey ''OnUpdate
 defineComponentKey ''OnCollision
 defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
-scriptingSystem :: WorldMonad ()
-scriptingSystem = do
+tickScriptingSystem :: WorldMonad ()
+tickScriptingSystem = do
     forEntitiesWithComponent onStartKey $
         \(entityID, onStart) -> do
             -- Only call OnStart once

@@ -16,7 +16,7 @@ Need to support:
       (An entity template is a Vault? A (Map String Value)? 
       Don't want to pay deserialization cost...)
 - [ ] Saving entities and scenes (with references to entities)
-- [ ] Associated components, e.g. mass with rigidbody, delete the rigidbody and lose mass too?
+- [ ] Associated components, e.g. mass with rigidbody, delete the rigidbody and autodelete mass too?
 
 
 - Move Selection to its own system so CodeEditor and SceneEditor can use it
@@ -24,3 +24,16 @@ Need to support:
 - Add FocusedCodeEditor to CodeEditor to use rather than selectedEntity
 
 - PlayPause -> System?
+
+
+
+
+- Use the Hspec-discover http://hspec.github.io/hspec-discover.html method of 
+    {-# OPTIONS_GHC -F -pgmF hspec-discover #-}
+  (i.e. write rumpus-discover)
+  to find all the systems in e.g. app/Systems, and thus register them with the system.
+  Use a graph representation to define dependencies
+
+
+
+

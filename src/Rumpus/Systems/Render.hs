@@ -51,8 +51,8 @@ createRenderSystem = do
     return shapes
 
 
-renderSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
-renderSystem headM44 = do
+tickRenderSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
+tickRenderSystem headM44 = do
     vrPal  <- viewSystem controlSystemKey ctsVRPal
     player <- viewSystem controlSystemKey ctsPlayer
     -- Render the scene

@@ -28,8 +28,8 @@ createSoundSystem pd = do
     let soundSystem = SoundSystem { _sdsPd = pd, _sdsOpenALSourcePool = zip [1..] (pdSources pd) }
     return ()
 
-soundSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
-soundSystem headM44 = do
+tickSoundSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
+tickSoundSystem headM44 = do
     -- Update souce and listener poitions
     alListenerPose (poseFromMatrix headM44)
     forEntitiesWithComponent openALSourceKey $ \(entityID, sourceID) -> do

@@ -10,8 +10,8 @@ import Rumpus.Systems.Shared
 defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
 defineComponentKeyWithType "SizeAnimation" [t|Animation (V3 GLfloat)|]
 
-animationSystem :: (MonadIO m, MonadState World m) => m ()
-animationSystem = do
+tickAnimationSystem :: (MonadIO m, MonadState World m) => m ()
+tickAnimationSystem = do
     now <- getNow
     forEntitiesWithComponent colorAnimationKey $ \(entityID, animation) -> do
         let evaled = evalAnim now animation

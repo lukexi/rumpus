@@ -11,8 +11,8 @@ import Rumpus.Systems.Physics
 data Lifetime = Lifetime UTCTime NominalDiffTime
 defineComponentKey ''Lifetime
 
-lifetimeSystem :: (MonadIO m, MonadState World m) => m ()
-lifetimeSystem = do
+tickLifetimeSystem :: (MonadIO m, MonadState World m) => m ()
+tickLifetimeSystem = do
     now <- liftIO getCurrentTime
     
 

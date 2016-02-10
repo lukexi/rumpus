@@ -36,23 +36,24 @@ createPhysicsSystem :: IO DynamicsWorld
 createPhysicsSystem = createDynamicsWorld mempty
 
 
-physicsSystem :: (MonadIO m, MonadState World m) => m ()
-physicsSystem = withSystem_ physicsSystemKey $ \(PhysicsSystem dynamicsWorld) ->
+tickPhysicsSystem :: (MonadIO m, MonadState World m) => m ()
+tickPhysicsSystem = do
+    dynamicsWorld <- viewSystem physicsSystemKey psDynamicsWorld
     stepSimulation dynamicsWorld 90
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components
-syncPhysicsPosesSystem :: (MonadIO m, MonadState World m) => m ()
-syncPhysicsPosesSystem = do
+tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState World m) => m ()
+tickSyncPhysicsPosesSystem = do
     -- Sync rigid bodies with entity poses
     forEntitiesWithComponent rigidBodyKey $
         \(entityID, rigidBody) -> do
             pose <- uncurry Pose <$> getBodyState rigidBody
-            addComponent poseKey pose entityID
+            setComponent poseKey pose entityID
 
 -- | Loop through the collisions for this frame and call any 
 -- entities' registered collision callbacks
-collisionsSystem :: WorldMonad ()
-collisionsSystem = do
+tickCollisionsSystem :: WorldMonad ()
+tickCollisionsSystem = do
 
     -- NOTE: we get stale collisions with bullet-mini's getCollisions, 
     -- so I've switched to the "contactTest" API which works.

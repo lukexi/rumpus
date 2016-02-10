@@ -12,8 +12,8 @@ data Constraint = RelativePositionTo EntityID (V3 GLfloat)
 
 defineComponentKey ''Constraint
 
-constraintSystem :: (MonadState World m, MonadIO m) => m ()
-constraintSystem = do
+tickConstraintSystem :: (MonadState World m, MonadIO m) => m ()
+tickConstraintSystem = do
     forEntitiesWithComponent constraintKey $ \(entityID, constraint) -> do
         case constraint of
             RelativePositionTo parentEntityID relativePosition -> do

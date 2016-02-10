@@ -72,8 +72,8 @@ createCodeEditor codeExpressionKey = modifySystemState codeEditorSystemKey $ do
             cesCodeEditors . at codeExpressionKey ?= codeEditor
             return codeEditor
 
-codeEditorSystem :: (MonadIO m, MonadState World m) => m ()
-codeEditorSystem = withSystem_ controlSystemKey $ \ControlSystem{..} -> do
+tickCodeEditorSystem :: (MonadIO m, MonadState World m) => m ()
+tickCodeEditorSystem = withSystem_ controlSystemKey $ \ControlSystem{..} -> do
     -- Pass keyboard events to the selected entity's text editor, if it has one
     let events = _ctsEvents
         window = gpWindow _ctsVRPal
@@ -93,8 +93,8 @@ codeEditorSystem = withSystem_ controlSystemKey $ \ControlSystem{..} -> do
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
-syncCodeEditorSystem :: WorldMonad ()
-syncCodeEditorSystem = modifySystemState codeEditorSystemKey $ do
+tickSyncCodeEditorSystem :: WorldMonad ()
+tickSyncCodeEditorSystem = modifySystemState codeEditorSystemKey $ do
     font <- use cesFont
 
     let copyCompiledResultToEntities codeExprKey value comCodeExpr comCode = 

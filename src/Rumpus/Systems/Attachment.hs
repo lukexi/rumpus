@@ -13,8 +13,8 @@ data Attachment = Attachment EntityID (Pose GLfloat)
 defineComponentKey ''Attachment
 
 
-attachmentsSystem :: (MonadIO m, MonadState World m) => m ()
-attachmentsSystem = 
+tickAttachmentsSystem :: (MonadIO m, MonadState World m) => m ()
+tickAttachmentsSystem = 
     forEntitiesWithComponent attachmentKey $
         \(entityID, Attachment toEntityID offset) -> do
             pose <- getEntityPose entityID

@@ -34,8 +34,8 @@ createControlSystem vrPal = do
             }
     return ()
 
-controlEventsSystem :: (MonadState World m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
-controlEventsSystem headM44 hands vrEvents = modifySystem_ controlSystemKey $ \controlSystem -> do
+tickControlEventsSystem :: (MonadState World m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
+tickControlEventsSystem headM44 hands vrEvents = modifySystem_ controlSystemKey $ \controlSystem -> do
     let VRPal{..} = controlSystem ^. ctsVRPal
 
     -- Grab the old events for comparison
