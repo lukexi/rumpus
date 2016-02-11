@@ -15,3 +15,4 @@ packages:
 - ../bindings-GLFW
 - ../freetype-gl-mini
 - ../tinyrick
+- ../extensible-ecs

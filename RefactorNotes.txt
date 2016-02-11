@@ -37,3 +37,35 @@ Need to support:
 
 
 
+Must distinguish between derived and persistent properties.
+E.g. rigidBody, animation, codeEditor, etc. are derived.
+We need a descriptor for animations.
+
+We also want a way to define a default set of properties.
+Size, Color, Position, Shape (eventually, Shader)
+
+These should be the properties added to a brand new object.
+
+How to add an animation of an arbitrary property (e.g. a uniform?)
+(rethink from start what an animation is; include infinite sines)
+
+We also want to be able to clone named entities.
+A library of Map Name Vault would be good here,
+where the Vault in this case either uses special keys to Component types,
+or reuses the Key (EntityMap ComponentFoo) with a single entityID.
+Must be able to "resuscitate" these inert entities, 
+which should consist only of persistent properties,
+into living entities again. E.g. adding a rigidBody.
+
+
+This should probably piggyback on a system that always adds derived properties from inert at the moment of addition.
+
+
+So e.g.
+
+ciActivateComponent = \entityID -> do
+    shape <- getShapeType entityID
+    shapeCollider <- makeShapeCollider shape
+    rigidBody <- createRigidBody shapeCollider
+    addRigidBody dynamicsWorld rigidBody
+

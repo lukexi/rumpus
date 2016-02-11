@@ -12,7 +12,7 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Control
-import Rumpus.ECS
+import Data.ECS
 
 import TinyRick
 
@@ -32,7 +32,7 @@ defineSystemKey ''RenderSystem
 
 
 
-initRenderSystem :: (MonadIO m, MonadState World m) => m ()
+initRenderSystem :: (MonadIO m, MonadState ECS m) => m ()
 initRenderSystem = do
     glEnable GL_DEPTH_TEST
     glClearColor 0 0 0.1 1
@@ -52,7 +52,7 @@ initRenderSystem = do
     registerSystem sysRender (RenderSystem shapes)
 
 
-tickRenderSystem :: (MonadIO m, MonadState World m) => M44 GLfloat -> m ()
+tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
     vrPal  <- viewSystem sysControl ctsVRPal
     player <- viewSystem sysControl ctsPlayer
@@ -65,7 +65,7 @@ tickRenderSystem headM44 = do
             )
 
 
-renderEditors :: (MonadState World m, MonadIO m) => M44 GLfloat -> M44 GLfloat -> m ()
+renderEditors :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> M44 GLfloat -> m ()
 renderEditors projM44 viewM44 = do
     glEnable GL_BLEND
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
@@ -93,7 +93,7 @@ renderEditors projM44 viewM44 = do
     glDisable GL_BLEND
 
 
-renderEntities :: (MonadIO m, MonadState World m) 
+renderEntities :: (MonadIO m, MonadState ECS m) 
                  => M44 GLfloat -> M44 GLfloat -> m ()
 renderEntities projM44 viewM44 = do
     
@@ -122,7 +122,7 @@ renderEntities projM44 viewM44 = do
             drawShape
 
 -- | Accumulate a matrix stack by walking up to the parent
-getEntityTotalModelMatrix :: MonadState World m => EntityID -> m (M44 GLfloat)
+getEntityTotalModelMatrix :: MonadState ECS m => EntityID -> m (M44 GLfloat)
 getEntityTotalModelMatrix startEntityID = do
     
     let go Nothing = return identity
@@ -133,5 +133,5 @@ getEntityTotalModelMatrix startEntityID = do
     
     go (Just startEntityID)
 
-getEntityIDsForShapeType :: MonadState World m => ShapeType -> m [EntityID]
+getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType

@@ -8,7 +8,7 @@ module Spatula where
 import PreludeExtra
 import Rumpus
 
-initScene :: (MonadIO m, MonadState World m, MonadReader WorldStatic m) => m ()
+initScene :: (MonadIO m, MonadState ECS m, MonadReader WorldStatic m) => m ()
 initScene = do
     defineEntity leftHand
     defineEntity rightHand
@@ -100,7 +100,7 @@ theFloor = newEntity
 
 
 
-attachWithSpring :: (MonadState World m, MonadIO m, MonadReader WorldStatic m) => EntityID -> m ()
+attachWithSpring :: (MonadState ECS m, MonadIO m, MonadReader WorldStatic m) => EntityID -> m ()
 attachWithSpring entityID = do
     withRightHandEvents $ \case
         HandStateEvent hand -> do

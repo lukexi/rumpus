@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.Selection where
 import Rumpus.Types
-import Rumpus.ECS
+import Data.ECS
 import PreludeExtra
 
 data SelectionSystem = SelectionSystem { _selSelectedEntityID   :: !(Maybe EntityID) }

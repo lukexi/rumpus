@@ -3,17 +3,17 @@
 module Rumpus.Systems.Script where
 import PreludeExtra
 import Rumpus.Types
-import Rumpus.ECS
+import Data.ECS
 
 -- | OnStart function
-type OnStart = EntityID -> WorldMonad (Maybe Dynamic)
+type OnStart = EntityID -> ECSMonad (Maybe Dynamic)
 
 nullOnStart :: OnStart
 nullOnStart _entityID = return Nothing
 
 
 -- | OnUpdate function
-type OnUpdate = EntityID -> WorldMonad ()
+type OnUpdate = EntityID -> ECSMonad ()
 
 nullOnUpdate :: OnUpdate
 nullOnUpdate _entityID = return ()
@@ -23,7 +23,7 @@ nullOnUpdate _entityID = return ()
 -- | OnCollision functions
 type CollidedWithID = EntityID
 type CollisionImpulse = GLfloat
-type OnCollision = EntityID -> CollidedWithID -> CollisionImpulse -> WorldMonad ()
+type OnCollision = EntityID -> CollidedWithID -> CollisionImpulse -> ECSMonad ()
 
 nullOnCollision :: OnCollision
 nullOnCollision _entityID _collidedWithID _collisionImpulse = return ()
@@ -34,7 +34,7 @@ defineComponentKey ''OnUpdate
 defineComponentKey ''OnCollision
 defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
-tickScriptingSystem :: WorldMonad ()
+tickScriptingSystem :: ECSMonad ()
 tickScriptingSystem = do
     forEntitiesWithComponent cmpOnStart $
         \(entityID, onStart) -> do
@@ -42,7 +42,7 @@ tickScriptingSystem = do
             mScriptData <- onStart entityID
             forM_ mScriptData $ \scriptData -> 
                 addComponent cmpScriptData scriptData entityID
-            removeComponentFromEntity cmpOnStart entityID
+            removeComponent cmpOnStart entityID
 
     forEntitiesWithComponent cmpOnUpdate $
         \(entityID, onUpdate) -> 
@@ -50,7 +50,7 @@ tickScriptingSystem = do
 
 
 
-withScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
+withScriptData :: (Typeable a, MonadIO m, MonadState ECS m) =>
                     EntityID -> (a -> m ()) -> m ()
 withScriptData entityID f = 
     withComponent entityID cmpScriptData $ \dynScriptData -> do
@@ -61,7 +61,7 @@ withScriptData entityID f =
                     ++ "'s script data of type " ++ show dynScriptData 
                     ++ " with a function that accepts a different type.")
 
-editScriptData :: (Typeable a, MonadIO m, MonadState World m) =>
+editScriptData :: (Typeable a, MonadIO m, MonadState ECS m) =>
                     EntityID -> (a -> m a) -> m ()
 editScriptData entityID f = 
     modifyComponent entityID cmpScriptData $ \dynScriptData -> do

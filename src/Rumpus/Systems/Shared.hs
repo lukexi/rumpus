@@ -6,7 +6,7 @@
 module Rumpus.Systems.Shared where
 import PreludeExtra
 
-import Rumpus.ECS
+import Data.ECS
 import Rumpus.Types
 import qualified Data.Map as Map
 
@@ -32,22 +32,22 @@ traverseM_ (Map.toList <$> use (wldComponents . cmpParent)) $ \(childID, childPa
             removeEntity childID
 -}
 
-setEntityColor :: (MonadState World m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
+setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
 setEntityColor newColor entityID = setComponent cmpColor newColor entityID
 
 
-getEntityIDsWithName :: MonadState World m => String -> m [EntityID]
+getEntityIDsWithName :: MonadState ECS m => String -> m [EntityID]
 getEntityIDsWithName name = fromMaybe [] <$> withComponentMap cmpName (return . Map.keys . Map.filter (== name))
 
-getEntityName :: MonadState World m => EntityID -> m String
+getEntityName :: MonadState ECS m => EntityID -> m String
 getEntityName entityID = fromMaybe "No Name" <$> getComponent entityID cmpName
 
-getEntityPose :: MonadState World m => EntityID -> m (Pose GLfloat)
+getEntityPose :: MonadState ECS m => EntityID -> m (Pose GLfloat)
 getEntityPose entityID = fromMaybe newPose <$> getComponent entityID cmpPose
 
-getEntitySize :: MonadState World m => EntityID -> m (V3 GLfloat)
+getEntitySize :: MonadState ECS m => EntityID -> m (V3 GLfloat)
 getEntitySize entityID = fromMaybe 1 <$> getComponent entityID cmpSize
 
-getEntityColor :: MonadState World m => EntityID -> m (V4 GLfloat)
+getEntityColor :: MonadState ECS m => EntityID -> m (V4 GLfloat)
 getEntityColor entityID = fromMaybe 1 <$> getComponent entityID cmpColor
 

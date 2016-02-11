@@ -6,7 +6,7 @@
 module Rumpus.Systems.CodeEditor where
 import PreludeExtra
 import Rumpus.Types
-import Rumpus.ECS
+import Data.ECS
 
 import Graphics.GL.Freetype
 import Halive.SubHalive
@@ -43,7 +43,7 @@ defineComponentKeyWithType "OnCollisionExpr" [t|CodeExpressionKey|]
 
 
 
-initCodeEditorSystem :: (MonadIO m, MonadState World m) => m ()
+initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
     ghcChan   <- startGHC []
     glyphProg <- liftIO $ createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
@@ -55,7 +55,7 @@ initCodeEditorSystem = do
         , _cesGHCChan = ghcChan
         }
 
-createCodeEditor :: (MonadIO m, MonadState World m) => CodeExpressionKey -> m CodeEditor
+createCodeEditor :: (MonadIO m, MonadState ECS m) => CodeExpressionKey -> m CodeEditor
 createCodeEditor codeExpressionKey = modifySystemState sysCodeEditor $ do
     mEditor <- use (cesCodeEditors . at codeExpressionKey)
     case mEditor of
@@ -76,7 +76,7 @@ createCodeEditor codeExpressionKey = modifySystemState sysCodeEditor $ do
             cesCodeEditors . at codeExpressionKey ?= codeEditor
             return codeEditor
 
-tickCodeEditorSystem :: (MonadIO m, MonadState World m) => m ()
+tickCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickCodeEditorSystem = withSystem_ sysControl $ \ControlSystem{..} -> do
     -- Pass keyboard events to the selected entity's text editor, if it has one
     let events = _ctsEvents
@@ -97,7 +97,7 @@ tickCodeEditorSystem = withSystem_ sysControl $ \ControlSystem{..} -> do
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
-tickSyncCodeEditorSystem :: WorldMonad ()
+tickSyncCodeEditorSystem :: ECSMonad ()
 tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
     font <- use cesFont
 
@@ -127,7 +127,7 @@ tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
 
 -- | Dummy leftover to illustrate adding expression editor for each script
 
-addScriptComponent :: (MonadState World m, MonadIO m) => EntityID -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> m ()
+addScriptComponent :: (MonadState ECS m, MonadIO m) => EntityID -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> m ()
 addScriptComponent entityID mOnStart mOnUpdate mOnCollision = do
 
     forM_ (mOnStart) $ \scriptPath -> do
@@ -151,7 +151,7 @@ addScriptComponent entityID mOnStart mOnUpdate mOnCollision = do
         addComponent cmpOnCollisionExpr codeExprKey entityID 
 
 
-raycastCursor :: (MonadIO m, MonadState World m) => EntityID -> m Bool
+raycastCursor :: (MonadIO m, MonadState ECS m) => EntityID -> m Bool
 raycastCursor handEntityID = modifySystemState sysCodeEditor $ do
     -- First, see if we can place a cursor into a text buffer.
     -- If not, then move onto the selection logic.

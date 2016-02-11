@@ -104,7 +104,7 @@ registerSystem :: (Dynamic a) =>
 registerSystem "fftSystem" (Dynamic )
 
 
-data System = System { _sysState :: Dynamic, sysUpdate :: Dynamic -> WorldMonad () }
+data System = System { _sysState :: Dynamic, sysUpdate :: Dynamic -> ECSMonad () }
 
 type SystemsStates = Map SystemName System
 

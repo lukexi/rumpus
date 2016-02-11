@@ -4,7 +4,7 @@ module Rumpus.Systems.Attachment where
 import PreludeExtra
 
 import Rumpus.Types
-import Rumpus.ECS
+import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 
@@ -14,15 +14,15 @@ defineComponentKey ''Attachment
 
 
 
-tickAttachmentsSystem :: (MonadIO m, MonadState World m) => m ()
-tickAttachmentsSystem = 
+tickAttachmentsSystem :: (MonadIO m, MonadState ECS m) => m ()
+tickAttachmentsSystem =
     forEntitiesWithComponent cmpAttachment $
         \(entityID, Attachment toEntityID offset) -> do
             pose <- getEntityPose entityID
             setEntityPose (pose `addPose` offset) toEntityID
 
 
-attachEntity :: (MonadIO m, MonadState World m) => EntityID -> EntityID -> m ()
+attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 attachEntity entityID toEntityID = do
     -- Detach any current attachments
     detachEntity entityID
@@ -36,17 +36,16 @@ attachEntity entityID toEntityID = do
 
 
 
-detachEntity :: (MonadState World m, MonadIO m) => EntityID -> m ()
-detachEntity entityID = 
+detachEntity :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
+detachEntity entityID =
     withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
 
-        removeComponentFromEntity cmpAttachment entityID
+        removeComponent cmpAttachment entityID
 
         physProps <- fromMaybe [] <$> getComponent attachedEntityID cmpPhysicsProperties
         unless (IsKinematic `elem` physProps) $ 
             withEntityRigidBody attachedEntityID $ \rigidBody ->
                 setRigidBodyKinematic rigidBody False
 
-withAttachment :: MonadState World m => EntityID -> (Attachment -> m b) -> m ()
-withAttachment entityID = withComponent entityID cmpAttachment 
-
+withAttachment :: MonadState ECS m => EntityID -> (Attachment -> m b) -> m ()
+withAttachment entityID = withComponent entityID cmpAttachment

@@ -6,7 +6,7 @@
 module Rumpus.Systems.SceneEditor where
 import PreludeExtra
 
-import Rumpus.ECS
+import Data.ECS
 import Rumpus.Types
 import Rumpus.Control
 import Rumpus.Systems.Shared
@@ -44,7 +44,7 @@ defineSystemKey ''SceneEditorSystem
 data Drag = Drag HandEntityID (V3 GLfloat)
 
 -- | OnDrag function
-type OnDrag = EntityID -> V3 GLfloat -> WorldMonad ()
+type OnDrag = EntityID -> V3 GLfloat -> ECSMonad ()
 nullOnDrag :: OnDrag
 nullOnDrag _entityID _dragDistance = return ()
 
@@ -52,7 +52,7 @@ defineComponentKey ''Drag
 defineComponentKey ''OnDrag
 
 
-clearSelection :: (MonadIO m, MonadState World m) => m ()
+clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
 
     vrPal <- viewSystem sysControl ctsVRPal
@@ -63,7 +63,7 @@ clearSelection = do
     modifySystem_ sysSelection $ return . (selSelectedEntityID .~ Nothing)
 
 
-selectEntity :: (MonadIO m, MonadState World m) => EntityID -> m ()
+selectEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 selectEntity entityID = do
 
     clearSelection
@@ -120,17 +120,17 @@ selectEntity entityID = do
 
     return ()
 
-addEntityChild :: (MonadState World m, MonadIO m) => EntityID -> EntityID -> m ()
+addEntityChild :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 addEntityChild entityID childEntityID = 
     addComponent cmpParent entityID childEntityID
 
 
-beginDrag :: (MonadState World m, MonadIO m) => EntityID -> EntityID -> m ()
+beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
     startPos <- view posPosition <$> getEntityPose handEntityID
     setComponent cmpDrag (Drag handEntityID startPos) draggedID
 
-continueDrag :: HandEntityID -> WorldMonad ()
+continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
     forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID startPos) ->
         when (handEntityID == draggingHandEntityID) $ do
@@ -140,14 +140,14 @@ continueDrag draggingHandEntityID = do
             withComponent entityID cmpOnDrag $ \onDrag ->
                 onDrag entityID dragDistance
 
-endDrag :: MonadState World m => HandEntityID -> m ()
+endDrag :: MonadState ECS m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
     forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID _) ->
         when (handEntityID == endingDragHandEntityID) $
-            removeComponentFromEntity cmpDrag entityID
+            removeComponent cmpDrag entityID
 
 
-tickSceneEditorSystem :: WorldMonad ()
+tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
     let editSceneWithHand handName event = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
@@ -211,7 +211,7 @@ tickSceneEditorSystem = do
     withLeftHandEvents  (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
--- updateEntityInScene :: MonadState World m => EntityID -> m ()
+-- updateEntityInScene :: MonadState ECS m => EntityID -> m ()
 -- updateEntityInScene entityID = do
 --     -- Copy the current pose to the scene file and save it
 --     pose <- getEntityPose entityID
@@ -225,7 +225,7 @@ sceneFileNamed :: String -> FilePath
 sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"
 
 {- FIXME
-loadScene :: (MonadState World m, MonadIO m) => FilePath -> m ()
+loadScene :: (MonadState ECS m, MonadIO m) => FilePath -> m ()
 loadScene sceneName =     
     liftIO (decodeFileEither (sceneFileNamed sceneName)) >>= \case
         Left parseException -> putStrLnIO ("Error loading " ++ sceneName ++ ": " ++ show parseException)
@@ -235,7 +235,7 @@ loadScene sceneName =
                 defineEntity entity
                 createEntityWithID Persistent entityID entity
 
-saveScene :: (MonadState World m, MonadIO m) => m ()
+saveScene :: (MonadState ECS m, MonadIO m) => m ()
 saveScene = do
     sceneName     <- use (wldScene . scnName)
     sceneEntities <- use (wldScene . scnEntities)
@@ -244,20 +244,20 @@ saveScene = do
 
 
 
-spawnEntity :: (MonadState World m, MonadIO m) => Persistence -> String -> m (Maybe EntityID)
+spawnEntity :: (MonadState ECS m, MonadIO m) => Persistence -> String -> m (Maybe EntityID)
 spawnEntity persistence entityName = 
     traverseM (use (wldEntityLibrary . at entityName)) (createEntity persistence)
 
-defineEntity :: MonadState World m => Entity -> m ()
+defineEntity :: MonadState ECS m => Entity -> m ()
 defineEntity entity = wldEntityLibrary . at (entity ^. entName) ?= entity
 
-createEntity :: (MonadIO m, MonadState World m) 
+createEntity :: (MonadIO m, MonadState ECS m) 
              => Persistence -> Entity -> m EntityID
 createEntity persistence entity = do
     entityID <- liftIO randomIO
     createEntityWithID persistence entityID entity
 
-createEntityWithID :: (MonadIO m, MonadState World m) 
+createEntityWithID :: (MonadIO m, MonadState ECS m) 
                    => Persistence -> EntityID -> Entity -> m EntityID
 createEntityWithID persistence entityID entity = do
     when (persistence == Persistent) $

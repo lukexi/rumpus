@@ -7,7 +7,7 @@ import PreludeExtra
 
 import Rumpus.Types
 import Rumpus.Control
-import Rumpus.ECS
+import Data.ECS
 
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Attachment
@@ -34,7 +34,7 @@ main = withPd $ \pd -> do
     args <- getArgs
     let _sceneName = fromMaybe "minimal" (listToMaybe args)
 
-    void . flip runStateT newWorld $ do 
+    void . flip runStateT newECS $ do 
 
         initControlSystem vrPal
         initSoundSystem pd

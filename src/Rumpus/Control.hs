@@ -5,15 +5,14 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Rumpus.Control where
 import PreludeExtra
-import Rumpus.Types
-import Rumpus.ECS
+import Data.ECS
 
 data WorldEvent = GLFWEvent Event
-                | VREvent VREvent 
+                | VREvent VREvent
                 deriving Show
 
-data ControlSystem = ControlSystem 
-    { _ctsVRPal   :: !VRPal 
+data ControlSystem = ControlSystem
+    { _ctsVRPal   :: !VRPal
     , _ctsPlayer  :: !(Pose GLfloat)
     , _ctsEvents  :: ![WorldEvent]
     , _ctsPlaying :: !Bool
@@ -21,11 +20,11 @@ data ControlSystem = ControlSystem
 makeLenses ''ControlSystem
 defineSystemKey ''ControlSystem
 
-initControlSystem :: MonadState World m => VRPal -> m ()
+initControlSystem :: MonadState ECS m => VRPal -> m ()
 initControlSystem vrPal = do
     let controlSystem = ControlSystem
             { _ctsVRPal = vrPal
-            , _ctsPlayer = if gpRoomScale vrPal == RoomScale 
+            , _ctsPlayer = if gpRoomScale vrPal == RoomScale
                             then newPose
                             else newPose & posPosition .~ V3 0 1 3
             , _ctsEvents = []
@@ -34,7 +33,7 @@ initControlSystem vrPal = do
     registerSystem sysControl controlSystem
 
 
-tickControlEventsSystem :: (MonadState World m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
+tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
 tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControl $ \controlSystem -> do
     let VRPal{..} = controlSystem ^. ctsVRPal
 
@@ -58,20 +57,20 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControl $ \con
                 emulateRightHand (controlSystem ^. ctsVRPal) player events
 
         -- Generate ButtonDown and ButtonUp events for Hand controllers. This should go in VRPal.
-        let lastHands = catMaybes $ map (\case
+        let lastHands = mapMaybe (\case
                 (VREvent (HandEvent _ (HandStateEvent hand))) -> Just hand
                 _ -> Nothing) lastEvents
 
         let handTriples = zip3 lastHands hands' [LeftHand, RightHand]
-        forM_ handTriples $ \(oldHand, newHand, whichHand) -> 
+        forM_ handTriples $ \(oldHand, newHand, whichHand) ->
             forM_ buttonPairs $ \(whichButton, buttonView) -> do
                 let maybeEvent = case (buttonView oldHand, buttonView newHand) of
                         (True, False) -> Just ButtonUp
                         (False, True) -> Just ButtonDown
                         _             -> Nothing
-                forM_ maybeEvent $ \buttonDownUp -> 
+                forM_ maybeEvent $ \buttonDownUp ->
                     ctsEvents %= (VREvent (HandEvent whichHand (HandButtonEvent whichButton buttonDownUp)) :)
-        
+
         ctsEvents <>= map VREvent
             ( HeadEvent headM44
             : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands')
@@ -87,14 +86,14 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControl $ \con
 
 emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [WorldEvent] -> m [Hand]
 emulateRightHand VRPal{..} player events  = do
-    
+
     projM44     <- getWindowProjection gpWindow 45 0.1 1000
     mouseRay    <- cursorPosToWorldRay gpWindow projM44 player
     mouseState1 <- getMouseButton gpWindow MouseButton'1
     mouseState2 <- getMouseButton gpWindow MouseButton'2
 
     forM_ events $ \case
-        GLFWEvent e -> onScroll e $ \_x y -> 
+        GLFWEvent e -> onScroll e $ \_x y ->
             liftIO $ modifyIORef' gpEmulatedHandDepthRef (+ y)
         _ -> return ()
     handZ <- liftIO (readIORef gpEmulatedHandDepthRef)
@@ -103,17 +102,17 @@ emulateRightHand VRPal{..} player events  = do
     let handPosition = projectRay mouseRay handZ
         trigger      = if mouseState1 == MouseButtonState'Pressed then 1 else 0
         grip         = mouseState2 == MouseButtonState'Pressed
-        handMatrix   = transformationFromPose $ newPose 
-                                              & posPosition .~ handPosition 
+        handMatrix   = transformationFromPose $ newPose
+                                              & posPosition .~ handPosition
                                               & posOrientation .~ axisAngle (V3 0 1 0) a
-        rightHand = emptyHand 
+        rightHand = emptyHand
                 & hndMatrix  .~ handMatrix
                 & hndTrigger .~ trigger
                 & hndGrip    .~ grip
     return [emptyHand, rightHand]
 
 
-toggleWorldPlaying :: (MonadState World m) => m ()
+toggleWorldPlaying :: (MonadState ECS m) => m ()
 toggleWorldPlaying = modifySystem_ sysControl $ return . (ctsPlaying %~ not)
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
@@ -125,12 +124,12 @@ buttonPairs = [ (HandButtonGrip,    view hndGrip)
               , (HandButtonB,       view hndButtonB)
               ]
 
-withLeftHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()
+withLeftHandEvents :: MonadState ECS m => (HandEvent -> m ()) -> m ()
 withLeftHandEvents f = withSystem_ sysControl $ \controlSystem -> do
   let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onLeftHandEvent e f)
 
-withRightHandEvents :: MonadState World m => (HandEvent -> m ()) -> m ()
+withRightHandEvents :: MonadState ECS m => (HandEvent -> m ()) -> m ()
 withRightHandEvents f = withSystem_ sysControl $ \controlSystem -> do
   let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onRightHandEvent e f)
@@ -144,7 +143,7 @@ onRightHandEvent (VREvent (HandEvent RightHand handEvent)) f = f handEvent
 onRightHandEvent _ _ = return ()
 
 
-raycastCursorHits :: (MonadIO m, MonadState World m) 
+raycastCursorHits :: (MonadIO m, MonadState ECS m)
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
 raycastCursorHits window dynamicsWorld projMat = withSystem_ sysControl $ \controlSystem -> do
     let playerPose = controlSystem ^. ctsPlayer

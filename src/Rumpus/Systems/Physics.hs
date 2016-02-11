@@ -6,7 +6,7 @@
 module Rumpus.Systems.Physics where
 import PreludeExtra
 import Rumpus.Types
-import Rumpus.ECS
+import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Script
 
@@ -32,19 +32,19 @@ defineComponentKey ''PhysicsProperties
 
 
 
-initPhysicsSystem :: (MonadIO m, MonadState World m) => m ()
+initPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 initPhysicsSystem = do
     dynamicsWorld <- createDynamicsWorld mempty
     registerSystem sysPhysics (PhysicsSystem dynamicsWorld)
 
 
-tickPhysicsSystem :: (MonadIO m, MonadState World m) => m ()
+tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = do
     dynamicsWorld <- viewSystem sysPhysics psDynamicsWorld
     stepSimulation dynamicsWorld 90
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components
-tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState World m) => m ()
+tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickSyncPhysicsPosesSystem = do
     -- Sync rigid bodies with entity poses
     forEntitiesWithComponent cmpRigidBody $
@@ -54,7 +54,7 @@ tickSyncPhysicsPosesSystem = do
 
 -- | Loop through the collisions for this frame and call any 
 -- entities' registered collision callbacks
-tickCollisionsSystem :: WorldMonad ()
+tickCollisionsSystem :: ECSMonad ()
 tickCollisionsSystem = do
 
     -- NOTE: we get stale collisions with bullet-mini's getCollisions, 
@@ -66,7 +66,7 @@ tickCollisionsSystem = do
             onCollision entityID collidingID 0.1
 
 
-addPhysicsComponent :: (MonadIO m, MonadState World m) 
+addPhysicsComponent :: (MonadIO m, MonadState ECS m) 
                     => EntityID -> GLfloat -> PhysicsProperties -> m ()
 addPhysicsComponent entityID mass physProperties = withSystem_ sysPhysics $ \(PhysicsSystem dynamicsWorld) -> do
 
@@ -99,20 +99,20 @@ createShapeCollider shapeType size = case shapeType of
         SphereShape      -> createSphereShape      (size ^. _x)
         StaticPlaneShape -> createStaticPlaneShape (0 :: Int)
 
-removePhysicsComponents :: (MonadIO m, MonadState World m) => EntityID -> m ()
+removePhysicsComponents :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 removePhysicsComponents entityID = do
     withEntityRigidBody entityID $ \rigidBody -> do
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> 
             removeRigidBody dynamicsWorld rigidBody
     
-    removeComponentFromEntity cmpRigidBody entityID
+    removeComponent cmpRigidBody entityID
 
 
-withEntityRigidBody :: MonadState World m => EntityID -> (RigidBody -> m b) -> m ()
+withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
 withEntityRigidBody entityID = withComponent entityID cmpRigidBody
 
 
-getEntityOverlapping :: (MonadState World m, MonadIO m) => EntityID -> m [Collision]
+getEntityOverlapping :: (MonadState ECS m, MonadIO m) => EntityID -> m [Collision]
 getEntityOverlapping entityID = getComponent entityID cmpRigidBody  >>= \case
     Nothing          -> return []
     Just rigidBody -> do
@@ -120,14 +120,14 @@ getEntityOverlapping entityID = getComponent entityID cmpRigidBody  >>= \case
             withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> 
                 contactTest dynamicsWorld rigidBody
 
-getEntityOverlappingEntityIDs :: (MonadState World m, MonadIO m) => EntityID -> m [EntityID]
+getEntityOverlappingEntityIDs :: (MonadState ECS m, MonadIO m) => EntityID -> m [EntityID]
 getEntityOverlappingEntityIDs entityID = 
     filter (/= entityID) 
     . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)]) 
     <$> getEntityOverlapping entityID
 
 
-setEntitySize :: (MonadIO m, MonadState World m) => V3 GLfloat -> EntityID -> m ()
+setEntitySize :: (MonadIO m, MonadState ECS m) => V3 GLfloat -> EntityID -> m ()
 setEntitySize newSize entityID = do
 
     setComponent cmpSize newSize entityID
@@ -142,7 +142,7 @@ setEntitySize newSize entityID = do
 
 
 
-setEntityPose :: (MonadState World m, MonadIO m) => Pose GLfloat -> EntityID -> m ()
+setEntityPose :: (MonadState ECS m, MonadIO m) => Pose GLfloat -> EntityID -> m ()
 setEntityPose newPose_ entityID = do
 
     setComponent cmpPose newPose_ entityID
