@@ -5,13 +5,12 @@
 {-# LANGUAGE DeriveAnyClass #-}
 module Rumpus.Systems.Physics where
 import PreludeExtra
-import Rumpus.Types
 import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Script
 
 
-data PhysicsSystem = PhysicsSystem { _psDynamicsWorld :: DynamicsWorld } deriving Show
+data PhysicsSystem = PhysicsSystem { _phyDynamicsWorld :: DynamicsWorld } deriving Show
 makeLenses ''PhysicsSystem
 
 defineSystemKey ''PhysicsSystem
@@ -40,7 +39,7 @@ initPhysicsSystem = do
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = do
-    dynamicsWorld <- viewSystem sysPhysics psDynamicsWorld
+    dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
     stepSimulation dynamicsWorld 90
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components

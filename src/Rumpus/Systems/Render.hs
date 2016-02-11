@@ -11,7 +11,7 @@ import Rumpus.Types
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
-import Rumpus.Control
+import Rumpus.Systems.Controls
 import Data.ECS
 
 import TinyRick
@@ -54,8 +54,8 @@ initRenderSystem = do
 
 tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
-    vrPal  <- viewSystem sysControl ctsVRPal
-    player <- viewSystem sysControl ctsPlayer
+    vrPal  <- viewSystem sysControls ctsVRPal
+    player <- viewSystem sysControls ctsPlayer
     -- Render the scene
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))

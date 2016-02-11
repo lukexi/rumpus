@@ -3,7 +3,6 @@
 module Rumpus.Systems.Lifetime where
 import PreludeExtra
 
-import Rumpus.Types
 import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics

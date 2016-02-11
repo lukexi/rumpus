@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-module Rumpus.Control where
+module Rumpus.Systems.Controls where
 import PreludeExtra
 import Data.ECS
 
@@ -11,18 +11,18 @@ data WorldEvent = GLFWEvent Event
                 | VREvent VREvent
                 deriving Show
 
-data ControlSystem = ControlSystem
+data ControlsSystem = ControlsSystem
     { _ctsVRPal   :: !VRPal
     , _ctsPlayer  :: !(Pose GLfloat)
     , _ctsEvents  :: ![WorldEvent]
     , _ctsPlaying :: !Bool
     }
-makeLenses ''ControlSystem
-defineSystemKey ''ControlSystem
+makeLenses ''ControlsSystem
+defineSystemKey ''ControlsSystem
 
-initControlSystem :: MonadState ECS m => VRPal -> m ()
-initControlSystem vrPal = do
-    let controlSystem = ControlSystem
+initControlsSystem :: MonadState ECS m => VRPal -> m ()
+initControlsSystem vrPal = do
+    let controlSystem = ControlsSystem
             { _ctsVRPal = vrPal
             , _ctsPlayer = if gpRoomScale vrPal == RoomScale
                             then newPose
@@ -30,17 +30,17 @@ initControlSystem vrPal = do
             , _ctsEvents = []
             , _ctsPlaying = False
             }
-    registerSystem sysControl controlSystem
+    registerSystem sysControls controlSystem
 
 
 tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
-tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControl $ \controlSystem -> do
+tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControls $ \controlSystem -> do
     let VRPal{..} = controlSystem ^. ctsVRPal
 
     -- Grab the old events for comparison
     let lastEvents = controlSystem ^. ctsEvents
 
-    newControlSystem <- flip execStateT controlSystem $ do
+    newControlsSystem <- flip execStateT controlSystem $ do
         -- Clear the events list
         ctsEvents .= map VREvent vrEvents
 
@@ -77,11 +77,11 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControl $ \con
             )
 
 
-    forM_ (newControlSystem ^. ctsEvents) $ \case
+    forM_ (newControlsSystem ^. ctsEvents) $ \case
         VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> toggleWorldPlaying
         _ -> return ()
 
-    return newControlSystem
+    return newControlsSystem
 
 
 emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [WorldEvent] -> m [Hand]
@@ -113,7 +113,7 @@ emulateRightHand VRPal{..} player events  = do
 
 
 toggleWorldPlaying :: (MonadState ECS m) => m ()
-toggleWorldPlaying = modifySystem_ sysControl $ return . (ctsPlaying %~ not)
+toggleWorldPlaying = modifySystem_ sysControls $ return . (ctsPlaying %~ not)
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip,    view hndGrip)
@@ -125,12 +125,12 @@ buttonPairs = [ (HandButtonGrip,    view hndGrip)
               ]
 
 withLeftHandEvents :: MonadState ECS m => (HandEvent -> m ()) -> m ()
-withLeftHandEvents f = withSystem_ sysControl $ \controlSystem -> do
+withLeftHandEvents f = withSystem_ sysControls $ \controlSystem -> do
   let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onLeftHandEvent e f)
 
 withRightHandEvents :: MonadState ECS m => (HandEvent -> m ()) -> m ()
-withRightHandEvents f = withSystem_ sysControl $ \controlSystem -> do
+withRightHandEvents f = withSystem_ sysControls $ \controlSystem -> do
   let events = controlSystem ^. ctsEvents
   forM_ events (\e -> onRightHandEvent e f)
 
@@ -145,7 +145,7 @@ onRightHandEvent _ _ = return ()
 
 raycastCursorHits :: (MonadIO m, MonadState ECS m)
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
-raycastCursorHits window dynamicsWorld projMat = withSystem_ sysControl $ \controlSystem -> do
+raycastCursorHits window dynamicsWorld projMat = withSystem_ sysControls $ \controlSystem -> do
     let playerPose = controlSystem ^. ctsPlayer
     cursorRay <- cursorPosToWorldRay window projMat playerPose
 

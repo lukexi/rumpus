@@ -8,7 +8,7 @@ import PreludeExtra
 
 import Data.ECS
 import Rumpus.Types
-import Rumpus.Control
+import Rumpus.Systems.Controls
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
@@ -55,7 +55,7 @@ defineComponentKey ''OnDrag
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
 
-    vrPal <- viewSystem sysControl ctsVRPal
+    vrPal <- viewSystem sysControls ctsVRPal
     hideHandKeyboard vrPal
 
     traverseM_ (viewSystem sysSceneEditor sesCurrentEditorFrame) removeEntity
@@ -199,7 +199,7 @@ tickSceneEditorSystem = do
 
                     -- If we've selected something, show the keyboard on grip-up
                     traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \_selectedID -> do
-                        vrPal <- viewSystem sysControl ctsVRPal
+                        vrPal <- viewSystem sysControls ctsVRPal
                         showHandKeyboard vrPal
 
                     -- useTraverseM_ wldSelectedEntityID 

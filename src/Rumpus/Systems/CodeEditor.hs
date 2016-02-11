@@ -13,7 +13,7 @@ import Halive.SubHalive
 import Halive.Recompiler
 import TinyRick
 
-import Rumpus.Control
+import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Script
 import Rumpus.Systems.Shared
@@ -77,7 +77,7 @@ createCodeEditor codeExpressionKey = modifySystemState sysCodeEditor $ do
             return codeEditor
 
 tickCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickCodeEditorSystem = withSystem_ sysControl $ \ControlSystem{..} -> do
+tickCodeEditorSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     -- Pass keyboard events to the selected entity's text editor, if it has one
     let events = _ctsEvents
         window = gpWindow _ctsVRPal

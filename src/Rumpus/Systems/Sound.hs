@@ -3,7 +3,6 @@
 module Rumpus.Systems.Sound where
 import PreludeExtra
 
-import Rumpus.Types
 import Rumpus.Systems.Shared
 import Data.ECS
 

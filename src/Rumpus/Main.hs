@@ -5,14 +5,13 @@
 module Rumpus.Main where
 import PreludeExtra
 
-import Rumpus.Types
-import Rumpus.Control
 import Data.ECS
 
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Constraint
+import Rumpus.Systems.Controls
 import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Render
@@ -36,7 +35,7 @@ main = withPd $ \pd -> do
 
     void . flip runStateT newECS $ do 
 
-        initControlSystem vrPal
+        initControlsSystem vrPal
         initSoundSystem pd
         initPhysicsSystem
         initRenderSystem
@@ -57,7 +56,7 @@ main = withPd $ \pd -> do
 
             tickConstraintSystem
 
-            isPlaying <- viewSystem sysControl ctsPlaying
+            isPlaying <- viewSystem sysControls ctsPlaying
             if isPlaying
                 then do
                     tickScriptingSystem
@@ -72,7 +71,7 @@ main = withPd $ \pd -> do
 
                     tickCollisionsSystem
                 else do
-                    dynamicsWorld <- viewSystem sysPhysics psDynamicsWorld
+                    dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
                     performDiscreteCollisionDetection dynamicsWorld
 
             tickSceneEditorSystem

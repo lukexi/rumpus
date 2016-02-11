@@ -3,9 +3,9 @@ Get rid of withSystem in favor of viewSys — it's ok to crash on a missing syst
 
 - Syntax ideas:
 
-dynamicsWorld <- viewSystem sysPhysics psDynamicsWorld
-dynamicsWorld <- view psDynamicsWorld <$> viewSystem sysPhysics
-dynamicsWorld <- sysPhysics >. psDynamicsWorld
+dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
+dynamicsWorld <- view phyDynamicsWorld <$> viewSystem sysPhysics
+dynamicsWorld <- sysPhysics >. phyDynamicsWorld
 
 audit for uses of withSystem to make sure modifySystem wasn't meant instead
 

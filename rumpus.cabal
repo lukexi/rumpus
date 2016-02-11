@@ -18,12 +18,12 @@ library
   hs-source-dirs:      src
   
   exposed-modules:     Rumpus.Types
-                       Rumpus.Control
                        Rumpus.Main
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
                        Rumpus.Systems.CodeEditor
                        Rumpus.Systems.Constraint
+                       Rumpus.Systems.Controls
                        Rumpus.Systems.Lifetime
                        Rumpus.Systems.Render
                        Rumpus.Systems.Physics
