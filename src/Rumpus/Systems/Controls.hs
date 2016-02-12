@@ -34,54 +34,52 @@ initControlsSystem vrPal = do
 
 
 tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
-tickControlEventsSystem headM44 hands vrEvents = modifySystem_ sysControls $ \controlSystem -> do
-    let VRPal{..} = controlSystem ^. ctsVRPal
+tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $ do
+    vrPal@VRPal{..} <- use ctsVRPal
 
     -- Grab the old events for comparison
-    let lastEvents = controlSystem ^. ctsEvents
+    lastEvents <- use ctsEvents
 
-    newControlsSystem <- flip execStateT controlSystem $ do
-        -- Clear the events list
-        ctsEvents .= map VREvent vrEvents
+    
+    -- Clear the events list
+    ctsEvents .= map VREvent vrEvents
 
-        -- Gather GLFW Pal events
-        processEvents gpEvents $ \e -> do
-            closeOnEscape gpWindow e
-            ctsEvents %= (GLFWEvent e:)
+    -- Gather GLFW Pal events
+    processEvents gpEvents $ \e -> do
+        closeOnEscape gpWindow e
+        ctsEvents %= (GLFWEvent e:)
 
-        hands' <- if gpRoomScale == RoomScale
-            then return hands
-            else do
-                player <- use ctsPlayer
-                events <- use ctsEvents
-                emulateRightHand (controlSystem ^. ctsVRPal) player events
+    hands' <- if gpRoomScale == RoomScale
+        then return hands
+        else do
+            player <- use ctsPlayer
+            events <- use ctsEvents
+            emulateRightHand vrPal player events
 
-        -- Generate ButtonDown and ButtonUp events for Hand controllers. This should go in VRPal.
-        let lastHands = mapMaybe (\case
-                (VREvent (HandEvent _ (HandStateEvent hand))) -> Just hand
-                _ -> Nothing) lastEvents
+    -- Generate ButtonDown and ButtonUp events for Hand controllers. This should go in VRPal.
+    let lastHands = mapMaybe (\case
+            (VREvent (HandEvent _ (HandStateEvent hand))) -> Just hand
+            _ -> Nothing) lastEvents
 
-        let handTriples = zip3 lastHands hands' [LeftHand, RightHand]
-        forM_ handTriples $ \(oldHand, newHand, whichHand) ->
-            forM_ buttonPairs $ \(whichButton, buttonView) -> do
-                let maybeEvent = case (buttonView oldHand, buttonView newHand) of
-                        (True, False) -> Just ButtonUp
-                        (False, True) -> Just ButtonDown
-                        _             -> Nothing
-                forM_ maybeEvent $ \buttonDownUp ->
-                    ctsEvents %= (VREvent (HandEvent whichHand (HandButtonEvent whichButton buttonDownUp)) :)
+    let handTriples = zip3 lastHands hands' [LeftHand, RightHand]
+    forM_ handTriples $ \(oldHand, newHand, whichHand) ->
+        forM_ buttonPairs $ \(whichButton, buttonView) -> do
+            let maybeEvent = case (buttonView oldHand, buttonView newHand) of
+                    (True, False) -> Just ButtonUp
+                    (False, True) -> Just ButtonDown
+                    _             -> Nothing
+            forM_ maybeEvent $ \buttonDownUp ->
+                ctsEvents %= (VREvent (HandEvent whichHand (HandButtonEvent whichButton buttonDownUp)) :)
 
-        ctsEvents <>= map VREvent
-            ( HeadEvent headM44
-            : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands')
-            )
+    ctsEvents <>= map VREvent
+        ( HeadEvent headM44
+        : zipWith ($) [HandEvent LeftHand, HandEvent RightHand] (map HandStateEvent hands')
+        )
 
-
-    forM_ (newControlsSystem ^. ctsEvents) $ \case
+    use ctsEvents >>= mapM_ (\case
         VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> toggleWorldPlaying
-        _ -> return ()
-
-    return newControlsSystem
+        GLFWEvent e -> onKeyDown e Key'Space toggleWorldPlaying
+        _ -> return ())
 
 
 emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [WorldEvent] -> m [Hand]
@@ -112,8 +110,8 @@ emulateRightHand VRPal{..} player events  = do
     return [emptyHand, rightHand]
 
 
-toggleWorldPlaying :: (MonadState ECS m) => m ()
-toggleWorldPlaying = modifySystem_ sysControls $ return . (ctsPlaying %~ not)
+toggleWorldPlaying :: (MonadState ControlsSystem m) => m ()
+toggleWorldPlaying = ctsPlaying %= not
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip,    view hndGrip)

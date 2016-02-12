@@ -44,7 +44,7 @@ main = withPd $ \pd -> do
         initSharedSystem
 
         -- loadScene sceneName
-        createEntity
+        _ <- createEntity
 
         whileVR vrPal $ \headM44 hands vrEvents -> do
             
