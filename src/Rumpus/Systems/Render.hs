@@ -7,7 +7,6 @@ module Rumpus.Systems.Render where
 import PreludeExtra
 
 import qualified Data.Map as Map
-import Rumpus.Types
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor

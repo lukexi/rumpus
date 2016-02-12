@@ -1,7 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Constraint where
-import Rumpus.Types
 import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics

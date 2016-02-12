@@ -10,6 +10,10 @@ import Rumpus.Systems.Physics
 data Lifetime = Lifetime UTCTime NominalDiffTime
 defineComponentKey ''Lifetime
 
+initLifetimeSystem :: MonadState ECS m => m ()
+initLifetimeSystem = do
+    registerComponent "Lifetime" cmpLifetime (newComponentInterface cmpLifetime)
+
 tickLifetimeSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickLifetimeSystem = do
     now <- liftIO getCurrentTime

@@ -33,8 +33,8 @@ data Persistence = Transient | Persistent
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data SceneEditorSystem = SceneEditorSystem
-    { _sesScene              :: !Scene
-    , _sesCurrentEditorFrame :: !(Maybe EntityID)
+    { _sedScene              :: !Scene
+    , _sedCurrentEditorFrame :: !(Maybe EntityID)
     -- , _sesEntityLibrary      :: !(Map String Entity)
     }
 makeLenses ''SceneEditorSystem
@@ -58,7 +58,7 @@ clearSelection = do
     vrPal <- viewSystem sysControls ctsVRPal
     hideHandKeyboard vrPal
 
-    traverseM_ (viewSystem sysSceneEditor sesCurrentEditorFrame) removeEntity
+    traverseM_ (viewSystem sysSceneEditor sedCurrentEditorFrame) removeEntity
     
     modifySystem_ sysSelection $ return . (selSelectedEntityID .~ Nothing)
 
@@ -112,7 +112,7 @@ selectEntity entityID = do
     
     addEntityChild editorFrame sizeEditor
 
-    modifySystem_ sysSceneEditor $ sesCurrentEditorFrame ?~ editorFrame
+    modifySystem_ sysSceneEditor $ sedCurrentEditorFrame ?~ editorFrame
 
     -- Tick the constraint system once to put things in place for this frame
     constraintSystem
@@ -181,7 +181,7 @@ tickSceneEditorSystem = do
                             -- See if the touched object has the current EditorFrame as a parent;
                             -- If so, it's a draggable object.
                             -- (we should just look to see if it has a drag function, actually!)
-                            currentEditorFrame <- viewSystem sysSceneEditor sesCurrentEditorFrame
+                            currentEditorFrame <- viewSystem sysSceneEditor sedCurrentEditorFrame
                             touchedParentID <- getComponent touchedID cmpParent
                             if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
                                 then do

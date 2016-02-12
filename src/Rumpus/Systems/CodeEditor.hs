@@ -5,7 +5,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.CodeEditor where
 import PreludeExtra
-import Rumpus.Types
 import Data.ECS
 
 import Graphics.GL.Freetype
@@ -19,6 +18,8 @@ import Rumpus.Systems.Script
 import Rumpus.Systems.Shared
 import qualified Data.Map as Map
 
+-- | Pairs a filename along with an expression 
+-- to evaluate in that filename's environment once compiled
 type CodeExpressionKey = (FilePath, String)
 
 data CodeEditor = CodeEditor
@@ -37,8 +38,8 @@ makeLenses ''CodeEditorSystem
 
 defineSystemKey ''CodeEditorSystem
 
-defineComponentKeyWithType "OnStartExpr" [t|CodeExpressionKey|]
-defineComponentKeyWithType "OnUpdateExpr" [t|CodeExpressionKey|]
+defineComponentKeyWithType "OnStartExpr"     [t|CodeExpressionKey|]
+defineComponentKeyWithType "OnUpdateExpr"    [t|CodeExpressionKey|]
 defineComponentKeyWithType "OnCollisionExpr" [t|CodeExpressionKey|]
 
 
@@ -54,6 +55,20 @@ initCodeEditorSystem = do
         , _cesFont = font
         , _cesGHCChan = ghcChan
         }
+
+    -- Will require (scriptPath, "start") (or "update" or "collision") to be added somewhere!
+    let registerCodeExprComponent name componentKey = 
+            registerComponent name componentKey $ (savedComponentInterface componentKey)
+                { ciDeriveComponent  = Just (\entityID -> do
+                    withComponent entityID componentKey $ \codeExprKey -> do
+                        _ <- createCodeEditor codeExprKey
+                        return ()
+                    )
+                }
+
+    registerCodeExprComponent "OnStartExpr" cmpOnStartExpr
+    registerCodeExprComponent "OnUpdateExpr" cmpOnUpdateExpr
+    registerCodeExprComponent "OnCollisionExpr" cmpOnCollisionExpr
 
 createCodeEditor :: (MonadIO m, MonadState ECS m) => CodeExpressionKey -> m CodeEditor
 createCodeEditor codeExpressionKey = modifySystemState sysCodeEditor $ do
@@ -125,30 +140,6 @@ tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
                 lift $ copyCompiledResultToEntities codeExprKey value cmpOnCollisionExpr cmpOnCollision
             Nothing -> return ()
 
--- | Dummy leftover to illustrate adding expression editor for each script
-
-addScriptComponent :: (MonadState ECS m, MonadIO m) => EntityID -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> m ()
-addScriptComponent entityID mOnStart mOnUpdate mOnCollision = do
-
-    forM_ (mOnStart) $ \scriptPath -> do
-
-        let codeExprKey = (scriptPath, "start")
-        _ <- createCodeEditor codeExprKey
-        
-        addComponent cmpOnStartExpr codeExprKey entityID 
-        
-
-    forM_ (mOnUpdate) $ \scriptPath -> do
-        let codeExprKey = (scriptPath, "update")
-        _ <- createCodeEditor codeExprKey
-        
-        addComponent cmpOnUpdateExpr codeExprKey entityID 
-
-    forM_ (mOnCollision) $ \scriptPath -> do
-        let codeExprKey = (scriptPath, "collision")
-        _ <- createCodeEditor codeExprKey
-        
-        addComponent cmpOnCollisionExpr codeExprKey entityID 
 
 
 raycastCursor :: (MonadIO m, MonadState ECS m) => EntityID -> m Bool

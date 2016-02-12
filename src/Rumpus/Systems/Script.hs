@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Script where
 import PreludeExtra
-import Rumpus.Types
 import Data.ECS
 
 -- | OnStart function
@@ -33,6 +32,12 @@ defineComponentKey ''OnStart
 defineComponentKey ''OnUpdate
 defineComponentKey ''OnCollision
 defineComponentKeyWithType "ScriptData" [t|Dynamic|]
+
+initScriptingSystem :: MonadState ECS m => m ()
+initScriptingSystem = do
+    registerComponent "OnStart" cmpOnStart (newComponentInterface cmpOnStart)
+    registerComponent "OnUpdate" cmpOnUpdate (newComponentInterface cmpOnUpdate)
+    registerComponent "OnCollision" cmpOnCollision (newComponentInterface cmpOnCollision)
 
 tickScriptingSystem :: ECSMonad ()
 tickScriptingSystem = do

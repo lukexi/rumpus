@@ -29,13 +29,47 @@ type PhysicsProperties = [PhysicsProperty]
 
 defineComponentKey ''PhysicsProperties
 
-
-
 initPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 initPhysicsSystem = do
     dynamicsWorld <- createDynamicsWorld mempty
     registerSystem sysPhysics (PhysicsSystem dynamicsWorld)
 
+    registerComponent "RigidBody" cmpRigidBody $ ComponentInterface 
+        { ciAddComponent     = Nothing
+        , ciExtractComponent = Nothing
+        , ciRestoreComponent = Nothing
+        , ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
+        , ciRemoveComponent  = \entityID -> 
+                withComponent entityID cmpRigidBody $ \rigidBody -> do
+                    removeRigidBody dynamicsWorld rigidBody
+                    removeComponent cmpRigidBody entityID
+        }
+    registerComponent "Mass" cmpMass (defaultComponentInterface cmpMass 1)
+    registerComponent "SpringConstraint" cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
+
+deriveRigidBody :: (MonadIO m, MonadState ECS m) => DynamicsWorld -> EntityID -> m ()
+deriveRigidBody dynamicsWorld entityID = do
+    mShapeType <- getComponent entityID cmpShapeType
+    forM_ mShapeType $ \shapeType -> do
+
+        mass <- fromMaybe 1 <$> getComponent entityID cmpMass
+        size <- getEntitySize entityID
+        pose <- getEntityPose entityID
+        physProperties <- fromMaybe [] <$> getComponent entityID cmpPhysicsProperties
+        let collisionID = CollisionObjectID entityID
+            bodyInfo = mempty { rbPosition = pose ^. posPosition
+                              , rbRotation = pose ^. posOrientation
+                              , rbMass     = mass
+                              }
+        shape <- createShapeCollider shapeType size
+        rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+        when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
+            setRigidBodyKinematic rigidBody True
+
+        when (NoContactResponse `elem` physProperties) $ 
+            setRigidBodyNoContactResponse rigidBody True
+        
+        addComponent cmpRigidBody rigidBody entityID
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = do
@@ -65,47 +99,11 @@ tickCollisionsSystem = do
             onCollision entityID collidingID 0.1
 
 
-addPhysicsComponent :: (MonadIO m, MonadState ECS m) 
-                    => EntityID -> GLfloat -> PhysicsProperties -> m ()
-addPhysicsComponent entityID mass physProperties = withSystem_ sysPhysics $ \(PhysicsSystem dynamicsWorld) -> do
-
-    pose      <- fromMaybe newPose   <$> getComponent entityID cmpPose
-    size      <- fromMaybe 1         <$> getComponent entityID cmpSize
-    shapeType <- fromMaybe CubeShape <$> getComponent entityID cmpShapeType
-
-    shape <- createShapeCollider shapeType size
-            
-    let collisionID = CollisionObjectID entityID
-        bodyInfo = mempty { rbPosition = pose ^. posPosition
-                          , rbRotation = pose ^. posOrientation
-                          , rbMass     = mass
-                          }
-    
-    rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
-    
-    addComponent cmpRigidBody rigidBody entityID
-    addComponent cmpPhysicsProperties physProperties entityID
-
-    when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
-        setRigidBodyKinematic rigidBody True
-
-    when (NoContactResponse `elem` physProperties) $ 
-        setRigidBodyNoContactResponse rigidBody True
-
 createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m CollisionShape
 createShapeCollider shapeType size = case shapeType of
-        CubeShape        -> createBoxShape         size
-        SphereShape      -> createSphereShape      (size ^. _x)
-        StaticPlaneShape -> createStaticPlaneShape (0 :: Int)
-
-removePhysicsComponents :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
-removePhysicsComponents entityID = do
-    withEntityRigidBody entityID $ \rigidBody -> do
-        withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> 
-            removeRigidBody dynamicsWorld rigidBody
-    
-    removeComponent cmpRigidBody entityID
-
+    CubeShape        -> createBoxShape         size
+    SphereShape      -> createSphereShape      (size ^. _x)
+    StaticPlaneShape -> createStaticPlaneShape (0 :: Int)
 
 withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
 withEntityRigidBody entityID = withComponent entityID cmpRigidBody

@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.Selection where
-import Rumpus.Types
 import Data.ECS
 import PreludeExtra
 
@@ -12,3 +11,7 @@ data SelectionSystem = SelectionSystem { _selSelectedEntityID   :: !(Maybe Entit
 makeLenses ''SelectionSystem
 
 defineSystemKey ''SelectionSystem
+
+initSelectionSystem :: MonadState ECS m => m ()
+initSelectionSystem = do
+    registerSystem sysSelection (SelectionSystem Nothing)

@@ -7,7 +7,6 @@ module Rumpus.Systems.Shared where
 import PreludeExtra
 
 import Data.ECS
-import Rumpus.Types
 import qualified Data.Map as Map
 
 data ShapeType = CubeShape | SphereShape | StaticPlaneShape 
@@ -31,6 +30,15 @@ traverseM_ (Map.toList <$> use (wldComponents . cmpParent)) $ \(childID, childPa
         when (childParentID == entityID) $ 
             removeEntity childID
 -}
+
+initSharedSystem :: MonadState ECS m => m ()
+initSharedSystem = do
+    registerComponent "Name" cmpName (defaultComponentInterface cmpName "New Entity")
+    registerComponent "Pose" cmpPose (defaultComponentInterface cmpPose newPose)
+    registerComponent "Size" cmpSize (defaultComponentInterface cmpSize (V3 1 1 1))
+    registerComponent "Color" cmpColor (defaultComponentInterface cmpColor (V4 1 1 1 1))
+    registerComponent "ShapeType" cmpShapeType (defaultComponentInterface cmpShapeType CubeShape)
+    registerComponent "Parent" cmpParent (newComponentInterface cmpParent)
 
 setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
 setEntityColor newColor entityID = setComponent cmpColor newColor entityID

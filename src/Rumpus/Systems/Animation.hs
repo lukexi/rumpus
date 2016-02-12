@@ -3,7 +3,6 @@
 module Rumpus.Systems.Animation where
 import PreludeExtra
 import Data.ECS
-import Rumpus.Types
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Shared
 
@@ -12,11 +11,9 @@ defineComponentKeyWithType "SizeAnimation" [t|Animation (V3 GLfloat)|]
 
 initAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAnimationSystem = do
-    -- defColorAnimation <- makeAnimation 0.0 (V4 1 1 1 1) (V4 1 1 1 1)
-    -- defSizeAnimation  <- makeAnimation 0.0 (V3 1 1 1) (V3 1 1 1)
+    registerComponent "ColorAnimation" cmpColorAnimation (newComponentInterface cmpColorAnimation)
+    registerComponent "SizeAnimation" cmpSizeAnimation (newComponentInterface cmpSizeAnimation)
 
-    -- registerComponentSimple "ColorAnimation" cmpColorAnimation defColorAnimation
-    -- registerComponentSimple "SizeAnimation"  cmpSizeAnimation defSizeAnimation
     return ()
 
 tickAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()

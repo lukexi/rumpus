@@ -17,8 +17,8 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Render
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Script
--- import Rumpus.Systems.Selection
--- import Rumpus.Systems.Shared
+import Rumpus.Systems.Selection
+import Rumpus.Systems.Shared
 import Rumpus.Systems.Sound
 
 import Halive.Utils
@@ -40,8 +40,11 @@ main = withPd $ \pd -> do
         initPhysicsSystem
         initRenderSystem
         initCodeEditorSystem
+        initSelectionSystem
+        initSharedSystem
 
         -- loadScene sceneName
+        createEntity
 
         whileVR vrPal $ \headM44 hands vrEvents -> do
             
