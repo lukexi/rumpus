@@ -6,6 +6,7 @@
 module Rumpus.Systems.Controls where
 import PreludeExtra
 import Data.ECS
+import Rumpus.Systems.PlayPause
 
 data WorldEvent = GLFWEvent Event
                 | VREvent VREvent
@@ -15,22 +16,19 @@ data ControlsSystem = ControlsSystem
     { _ctsVRPal   :: !VRPal
     , _ctsPlayer  :: !(Pose GLfloat)
     , _ctsEvents  :: ![WorldEvent]
-    , _ctsPlaying :: !Bool
     }
 makeLenses ''ControlsSystem
 defineSystemKey ''ControlsSystem
 
 initControlsSystem :: MonadState ECS m => VRPal -> m ()
 initControlsSystem vrPal = do
-    let controlSystem = ControlsSystem
+    registerSystem sysControls $ ControlsSystem
             { _ctsVRPal = vrPal
             , _ctsPlayer = if gpRoomScale vrPal == RoomScale
                             then newPose
                             else newPose & posPosition .~ V3 0 1 3
             , _ctsEvents = []
-            , _ctsPlaying = False
             }
-    registerSystem sysControls controlSystem
 
 
 tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
@@ -77,8 +75,8 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $
         )
 
     use ctsEvents >>= mapM_ (\case
-        VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> toggleWorldPlaying
-        GLFWEvent e -> onKeyDown e Key'Space toggleWorldPlaying
+        VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> lift toggleWorldPlaying
+        GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
         _ -> return ())
 
 
@@ -110,8 +108,7 @@ emulateRightHand VRPal{..} player events  = do
     return [emptyHand, rightHand]
 
 
-toggleWorldPlaying :: (MonadState ControlsSystem m) => m ()
-toggleWorldPlaying = ctsPlaying %= not
+
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip,    view hndGrip)

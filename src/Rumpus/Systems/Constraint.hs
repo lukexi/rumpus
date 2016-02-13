@@ -11,6 +11,10 @@ data Constraint = RelativePositionTo EntityID (V3 GLfloat)
 
 defineComponentKey ''Constraint
 
+initConstraintSystem :: MonadState ECS m => m ()
+initConstraintSystem = do
+    registerComponent "Constraint" cmpConstraint (newComponentInterface cmpConstraint)
+
 tickConstraintSystem :: (MonadState ECS m, MonadIO m) => m ()
 tickConstraintSystem = do
     forEntitiesWithComponent cmpConstraint $ \(entityID, constraint) -> do

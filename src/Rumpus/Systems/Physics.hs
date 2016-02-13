@@ -8,6 +8,7 @@ import PreludeExtra
 import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Script
+import Rumpus.Systems.PlayPause
 
 
 data PhysicsSystem = PhysicsSystem { _phyDynamicsWorld :: DynamicsWorld } deriving Show
@@ -34,11 +35,8 @@ initPhysicsSystem = do
     dynamicsWorld <- createDynamicsWorld mempty
     registerSystem sysPhysics (PhysicsSystem dynamicsWorld)
 
-    registerComponent "RigidBody" cmpRigidBody $ ComponentInterface 
-        { ciAddComponent     = Nothing
-        , ciExtractComponent = Nothing
-        , ciRestoreComponent = Nothing
-        , ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
+    registerComponent "RigidBody" cmpRigidBody $ (newComponentInterface cmpRigidBody)
+        { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
         , ciRemoveComponent  = \entityID -> 
                 withComponent entityID cmpRigidBody $ \rigidBody -> do
                     removeRigidBody dynamicsWorld rigidBody
@@ -61,7 +59,7 @@ deriveRigidBody dynamicsWorld entityID = do
                               , rbRotation = pose ^. posOrientation
                               , rbMass     = mass
                               }
-        shape <- createShapeCollider shapeType size
+        shape     <- createShapeCollider shapeType size
         rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
         when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
             setRigidBodyKinematic rigidBody True
@@ -72,13 +70,13 @@ deriveRigidBody dynamicsWorld entityID = do
         addComponent cmpRigidBody rigidBody entityID
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickPhysicsSystem = do
+tickPhysicsSystem = whenWorldPlaying $ do
     dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
     stepSimulation dynamicsWorld 90
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components
 tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickSyncPhysicsPosesSystem = do
+tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
     -- Sync rigid bodies with entity poses
     forEntitiesWithComponent cmpRigidBody $
         \(entityID, rigidBody) -> do
@@ -89,14 +87,20 @@ tickSyncPhysicsPosesSystem = do
 -- entities' registered collision callbacks
 tickCollisionsSystem :: ECSMonad ()
 tickCollisionsSystem = do
+    isPlaying <- viewSystem sysPlayPause plyPlaying
+    if isPlaying 
+        then do
+            -- NOTE: we get stale collisions with bullet-mini's getCollisions, 
+            -- so I've switched to the "contactTest" API which works.
 
-    -- NOTE: we get stale collisions with bullet-mini's getCollisions, 
-    -- so I've switched to the "contactTest" API which works.
-
-    forEntitiesWithComponent cmpOnCollision $ \(entityID, onCollision) -> do
-        collidingIDs <- getEntityOverlappingEntityIDs entityID
-        forM_ collidingIDs $ \collidingID -> 
-            onCollision entityID collidingID 0.1
+            forEntitiesWithComponent cmpOnCollision $ \(entityID, onCollision) -> do
+                collidingIDs <- getEntityOverlappingEntityIDs entityID
+                forM_ collidingIDs $ \collidingID -> 
+                    onCollision entityID collidingID 0.1
+        else do
+            -- When not playing, do a collisions tick so we can still calculate intersections
+            dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
+            performDiscreteCollisionDetection dynamicsWorld
 
 
 createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m CollisionShape

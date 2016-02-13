@@ -51,6 +51,12 @@ nullOnDrag _entityID _dragDistance = return ()
 defineComponentKey ''Drag
 defineComponentKey ''OnDrag
 
+initSceneEditorSystem :: MonadState ECS m => m ()
+initSceneEditorSystem = do
+    registerSystem sysSceneEditor $ SceneEditorSystem newScene Nothing
+
+    registerComponent "Drag" cmpDrag (newComponentInterface cmpDrag)
+    registerComponent "OnDrag" cmpOnDrag (newComponentInterface cmpOnDrag)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do

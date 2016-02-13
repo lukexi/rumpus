@@ -5,6 +5,7 @@ import PreludeExtra
 
 import Data.ECS
 import Rumpus.Systems.Shared
+import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
 
 data Lifetime = Lifetime UTCTime NominalDiffTime
@@ -15,7 +16,7 @@ initLifetimeSystem = do
     registerComponent "Lifetime" cmpLifetime (newComponentInterface cmpLifetime)
 
 tickLifetimeSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickLifetimeSystem = do
+tickLifetimeSystem = whenWorldPlaying $ do
     now <- liftIO getCurrentTime
     
 

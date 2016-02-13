@@ -27,6 +27,7 @@ library
                        Rumpus.Systems.Lifetime
                        Rumpus.Systems.Render
                        Rumpus.Systems.Physics
+                       Rumpus.Systems.PlayPause
                        Rumpus.Systems.SceneEditor
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared

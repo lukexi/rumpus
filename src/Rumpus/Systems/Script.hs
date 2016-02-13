@@ -3,7 +3,7 @@
 module Rumpus.Systems.Script where
 import PreludeExtra
 import Data.ECS
-
+import Rumpus.Systems.PlayPause
 -- | OnStart function
 type OnStart = EntityID -> ECSMonad (Maybe Dynamic)
 
@@ -33,14 +33,14 @@ defineComponentKey ''OnUpdate
 defineComponentKey ''OnCollision
 defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
-initScriptingSystem :: MonadState ECS m => m ()
-initScriptingSystem = do
+initScriptSystem :: MonadState ECS m => m ()
+initScriptSystem = do
     registerComponent "OnStart" cmpOnStart (newComponentInterface cmpOnStart)
     registerComponent "OnUpdate" cmpOnUpdate (newComponentInterface cmpOnUpdate)
     registerComponent "OnCollision" cmpOnCollision (newComponentInterface cmpOnCollision)
 
-tickScriptingSystem :: ECSMonad ()
-tickScriptingSystem = do
+tickScriptSystem :: ECSMonad ()
+tickScriptSystem = whenWorldPlaying $ do
     forEntitiesWithComponent cmpOnStart $
         \(entityID, onStart) -> do
             -- Only call OnStart once

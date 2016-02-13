@@ -20,6 +20,7 @@ import Rumpus.Systems.Script
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Sound
+import Rumpus.Systems.PlayPause
 
 import Halive.Utils
 
@@ -35,11 +36,18 @@ main = withPd $ \pd -> do
 
     void . flip runStateT newECS $ do 
 
-        initControlsSystem vrPal
-        initSoundSystem pd
-        initPhysicsSystem
-        initRenderSystem
+        initAnimationSystem
+        initAttachmentSystem
         initCodeEditorSystem
+        initConstraintSystem
+        initControlsSystem vrPal
+        initLifetimeSystem
+        initPhysicsSystem
+        initPlayPauseSystem
+        initRenderSystem
+        initSceneEditorSystem
+        initScriptSystem
+        initSoundSystem pd
         initSelectionSystem
         initSharedSystem
 
@@ -48,39 +56,19 @@ main = withPd $ \pd -> do
 
         whileVR vrPal $ \headM44 hands vrEvents -> do
             
-            -- Collect control events into the events channel to be read by entities during update
             tickControlEventsSystem headM44 hands vrEvents
-
             tickCodeEditorSystem
-            
             tickSyncCodeEditorSystem
-
-            tickAttachmentsSystem
-
+            tickAttachmentSystem
             tickConstraintSystem
-
-            isPlaying <- viewSystem sysControls ctsPlaying
-            if isPlaying
-                then do
-                    tickScriptingSystem
-
-                    tickLifetimeSystem
-                    
-                    tickAnimationSystem
-                                        
-                    tickPhysicsSystem
-                    
-                    tickSyncPhysicsPosesSystem
-
-                    tickCollisionsSystem
-                else do
-                    dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
-                    performDiscreteCollisionDetection dynamicsWorld
-
+            tickScriptSystem
+            tickLifetimeSystem
+            tickAnimationSystem
+            tickPhysicsSystem
+            tickSyncPhysicsPosesSystem
+            tickCollisionsSystem
             tickSceneEditorSystem
-
             tickSoundSystem headM44
-
             tickRenderSystem headM44
 
 

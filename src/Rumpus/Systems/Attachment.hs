@@ -11,10 +11,12 @@ data Attachment = Attachment EntityID (Pose GLfloat)
 
 defineComponentKey ''Attachment
 
+initAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
+initAttachmentSystem = do
+    registerComponent "Attachment" cmpAttachment (newComponentInterface cmpAttachment)
 
-
-tickAttachmentsSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickAttachmentsSystem =
+tickAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
+tickAttachmentSystem =
     forEntitiesWithComponent cmpAttachment $
         \(entityID, Attachment toEntityID offset) -> do
             pose <- getEntityPose entityID
