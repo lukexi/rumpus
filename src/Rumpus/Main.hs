@@ -32,7 +32,7 @@ main = withPd $ \pd -> do
     -- pd    <- reacquire 1 $ initLibPd
     
     args <- getArgs
-    let _sceneName = fromMaybe "minimal" (listToMaybe args)
+    let sceneName = fromMaybe "my-scene" (listToMaybe args)
 
     void . flip runStateT newECS $ do 
 
@@ -51,8 +51,16 @@ main = withPd $ \pd -> do
         initSelectionSystem
         initSharedSystem
 
-        -- loadScene sceneName
-        _ <- createEntity
+        loadScene sceneName
+
+        _ <- spawnEntity Transient $ do
+            cmpColor ==> V4 1 0 0 1
+            cmpSize  ==> V3 0.2 0.2 0.6
+            cmpName  ==> "Left Hand"
+        _ <- spawnEntity Transient $ do
+            cmpColor ==> V4 0 1 0 1
+            cmpSize  ==> V3 0.2 0.2 0.6
+            cmpName  ==> "Right Hand"
 
         whileVR vrPal $ \headM44 hands vrEvents -> do
             

@@ -77,3 +77,8 @@ withPdPatch entityID = withComponent entityID cmpPdPatch
 sendPd :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
 sendPd patch receiver message = withSystem_ sysSound $ \soundSystem -> 
     send (soundSystem ^. sdsPd) patch receiver message
+
+sendEntityPdPatch :: (MonadIO m, MonadState ECS m) => EntityID -> Receiver -> Message -> m ()
+sendEntityPdPatch entityID receiver message = 
+    withPdPatch entityID $ \patch -> 
+        sendPd patch receiver message

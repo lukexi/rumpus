@@ -14,6 +14,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Selection
+import Rumpus.Systems.Constraint
 
 data Scene = Scene
     { _scnName     :: !String
@@ -27,15 +28,10 @@ newScene = Scene
     -- , _scnEntities = mempty 
     }
 
-
-
-data Persistence = Transient | Persistent 
-    deriving (Eq, Show, Generic, FromJSON, ToJSON)
-
 data SceneEditorSystem = SceneEditorSystem
     { _sedScene              :: !Scene
     , _sedCurrentEditorFrame :: !(Maybe EntityID)
-    -- , _sesEntityLibrary      :: !(Map String Entity)
+    -- , _sedEntityLibrary      :: !(Map String Entity)
     }
 makeLenses ''SceneEditorSystem
 defineSystemKey ''SceneEditorSystem
@@ -55,7 +51,7 @@ initSceneEditorSystem :: MonadState ECS m => m ()
 initSceneEditorSystem = do
     registerSystem sysSceneEditor $ SceneEditorSystem newScene Nothing
 
-    registerComponent "Drag" cmpDrag (newComponentInterface cmpDrag)
+    registerComponent "Drag"   cmpDrag   (newComponentInterface cmpDrag)
     registerComponent "OnDrag" cmpOnDrag (newComponentInterface cmpOnDrag)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
@@ -76,60 +72,40 @@ selectEntity entityID = do
 
     modifySystem_ sysSelection $ return . (selSelectedEntityID ?~ entityID)
 
-    {- FIXME
-    let editorFrameEntity = newEntity
-            -- & entShape .~ CubeShape
-            & entSize  .~ 1
-    editorFrame <- createEntity Transient editorFrameEntity
-
-    setEntityConstraint (RelativePositionTo entityID 0) editorFrame
-
+    editorFrame <- spawnEntity Transient $ do
+        removeComponent cmpShapeType =<< ask
+        cmpConstraint ==> (RelativePositionTo entityID 0)
+    
     ------------------------
     -- Define a color editor
-    let colorEditorEntity = newEntity
-            & entShape .~ SphereShape
-            & entColor .~ V4 1 0 0 1
-            & entSize .~ 0.1
-            & entPhysicsProperties .~ [IsKinematic, NoContactResponse]
-    colorEditor <- createEntity Transient colorEditorEntity
-
-    wldComponents . cmpOnDrag . at colorEditor ?= \_colorEditorID dragDistance -> do
-        let x = dragDistance ^. _x
-        setEntityColor (hslColor (mod' x 1) 0.9 0.6 1) entityID
-
-    setEntityConstraint (RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)) colorEditor
-
-    addEntityChild editorFrame colorEditor
+    _colorEditor <- spawnEntity Transient $ do
+        cmpParent            ==> editorFrame
+        cmpShapeType         ==> SphereShape
+        cmpColor             ==> V4 1 0 0 1
+        cmpSize              ==> 0.1
+        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        cmpConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
+        cmpOnDrag            ==> \_colorEditorID dragDistance -> do
+            let x = dragDistance ^. _x
+            setEntityColor (hslColor (mod' x 1) 0.9 0.6 1) entityID
 
     -----------------------
     -- Define a size editor
-    let sizeEditorEntity = newEntity
-            & entShape .~ SphereShape
-            & entColor .~ V4 0 1 0 1
-            & entSize .~ 0.1
-            & entPhysicsProperties .~ [IsKinematic, NoContactResponse]
-    sizeEditor <- createEntity Transient sizeEditorEntity
 
-    wldComponents . cmpOnDrag . at sizeEditor ?= \_sizeEditorID dragDistance -> do
-        let size = max 0.05 (abs dragDistance)
-        setEntitySize size entityID
+    _sizeEditor <- spawnEntity Transient $ do
+        cmpParent            ==> editorFrame
+        cmpShapeType         ==> SphereShape
+        cmpColor             ==> V4 0 1 0 1
+        cmpSize              ==> 0.1
+        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        cmpConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
+        cmpOnDrag            ==> \_sizeEditorID dragDistance -> do
+            let size = max 0.05 (abs dragDistance)
+            setEntitySize size entityID
 
-    setEntityConstraint (RelativePositionTo editorFrame (V3 0.5 0.5 0)) sizeEditor
-    
-    addEntityChild editorFrame sizeEditor
-
-    modifySystem_ sysSceneEditor $ sedCurrentEditorFrame ?~ editorFrame
-
-    -- Tick the constraint system once to put things in place for this frame
-    constraintSystem
-    -}
+    modifySystemState sysSceneEditor $ sedCurrentEditorFrame ?= editorFrame
 
     return ()
-
-addEntityChild :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
-addEntityChild entityID childEntityID = 
-    addComponent cmpParent entityID childEntityID
-
 
 beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
@@ -162,15 +138,13 @@ tickSceneEditorSystem = do
                     setEntityPose (poseFromMatrix (hand ^. hndMatrix)) handEntityID
                     continueDrag handEntityID
                 HandButtonEvent HandButtonGrip ButtonDown -> do
-                    {- FIXME
                     handPose <- getEntityPose handEntityID
-                    let entity = newEntity 
-                            & entPose .~ handPose 
-                            & entShape .~ CubeShape
-                            & entSize .~ 0.5
-                            & entOnUpdate ?~ "scenes/minimal/DefaultUpdate.hs"
-                    _ <- createEntity Persistent entity
-                    -}
+                    _ <- spawnEntity Persistent $ do
+                        cmpPose          ==> handPose 
+                        cmpShapeType     ==> CubeShape
+                        cmpSize          ==> 0.5
+                        cmpOnUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
+                    
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
 
@@ -208,24 +182,14 @@ tickSceneEditorSystem = do
                         vrPal <- viewSystem sysControls ctsVRPal
                         showHandKeyboard vrPal
 
-                    -- useTraverseM_ wldSelectedEntityID 
-                    --     updateEntityInScene
-                    -- saveScene
+                    
+                    saveEntities
 
                 _ -> return ()
 
     withLeftHandEvents  (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
--- updateEntityInScene :: MonadState ECS m => EntityID -> m ()
--- updateEntityInScene entityID = do
---     -- Copy the current pose to the scene file and save it
---     pose <- getEntityPose entityID
---     wldScene . scnEntities . at entityID . traverse . entPose .= pose
---     color <- getEntityColor entityID
---     wldScene . scnEntities . at entityID . traverse . entColor .= color
---     size <- getEntitySize entityID
---     wldScene . scnEntities . at entityID . traverse . entSize .= size
 
 sceneFileNamed :: String -> FilePath
 sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"

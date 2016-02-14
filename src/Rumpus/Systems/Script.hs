@@ -35,8 +35,8 @@ defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
 initScriptSystem :: MonadState ECS m => m ()
 initScriptSystem = do
-    registerComponent "OnStart" cmpOnStart (newComponentInterface cmpOnStart)
-    registerComponent "OnUpdate" cmpOnUpdate (newComponentInterface cmpOnUpdate)
+    registerComponent "OnStart"     cmpOnStart (newComponentInterface cmpOnStart)
+    registerComponent "OnUpdate"    cmpOnUpdate (newComponentInterface cmpOnUpdate)
     registerComponent "OnCollision" cmpOnCollision (newComponentInterface cmpOnCollision)
 
 tickScriptSystem :: ECSMonad ()
