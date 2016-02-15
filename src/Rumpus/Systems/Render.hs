@@ -36,15 +36,15 @@ initRenderSystem = do
     glEnable GL_DEPTH_TEST
     glClearColor 0 0 0.1 1
 
-    basicProg   <- liftIO $ createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
+    basicProg   <- createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
 
-    cubeGeo     <- liftIO $ cubeGeometry (V3 1 1 1) 1
-    sphereGeo   <- liftIO $ icosahedronGeometry 1 5 -- radius subdivisions
-    planeGeo    <- liftIO $ planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
+    cubeGeo     <- cubeGeometry (V3 1 1 1) 1
+    sphereGeo   <- icosahedronGeometry 1 5 -- radius subdivisions
+    planeGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     
-    planeShape  <- liftIO $ makeShape planeGeo  basicProg
-    cubeShape   <- liftIO $ makeShape cubeGeo   basicProg
-    sphereShape <- liftIO $ makeShape sphereGeo basicProg
+    planeShape  <- makeShape planeGeo  basicProg
+    cubeShape   <- makeShape cubeGeo   basicProg
+    sphereShape <- makeShape sphereGeo basicProg
 
     let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
 

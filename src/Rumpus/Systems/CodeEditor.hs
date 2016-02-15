@@ -49,8 +49,8 @@ defineComponentKeyWithType "OnCollisionExpr" [t|CodeExpressionKey|]
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
     ghcChan   <- startGHC []
-    glyphProg <- liftIO $ createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
-    font      <- liftIO $ createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
+    glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
+    font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
 
     registerSystem sysCodeEditor $ CodeEditorSystem
         { _cesCodeEditors = mempty

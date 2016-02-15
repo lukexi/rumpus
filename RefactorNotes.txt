@@ -1,4 +1,5 @@
-Get rid of withSystem in favor of viewSys — it's ok to crash on a missing system.
+Get rid of withSystem in favor of viewSys — it's ok to crash on a missing system
+since they should ultimately be defined by template haskell at compile time.
 (think about this a bit more; I feel like I always regret introducing partial functions...)
 
 - Syntax ideas:
@@ -24,6 +25,7 @@ Need to support:
 - [ ] Add FocusedCodeEditor to CodeEditor to use rather than selectedEntity
 - [ ] Improve "editable code" structure to let systems register code with the CodeEditor
       rather than manually updating everything in there.
+- [ ] HandSystem that simply spawns (transiently) and records the IDs of the hands
 
 - [x] PlayPause -> System?
 
