@@ -24,13 +24,6 @@ defineComponentKeyWithType "Color" [t|V4 GLfloat|]
 
 defineComponentKeyWithType "Parent" [t|EntityID|]
 
-{-
-FIXME: in registerComponent Parent, must remove children!
-traverseM_ (Map.toList <$> use (wldComponents . cmpParent)) $ \(childID, childParentID) -> do
-        when (childParentID == entityID) $ 
-            removeEntity childID
--}
-
 initSharedSystem :: MonadState ECS m => m ()
 initSharedSystem = do
     registerComponent "Name" cmpName (defaultComponentInterface cmpName "New Entity")
@@ -38,7 +31,12 @@ initSharedSystem = do
     registerComponent "Size" cmpSize (defaultComponentInterface cmpSize (V3 1 1 1))
     registerComponent "Color" cmpColor (defaultComponentInterface cmpColor (V4 1 1 1 1))
     registerComponent "ShapeType" cmpShapeType (defaultComponentInterface cmpShapeType CubeShape)
-    registerComponent "Parent" cmpParent (newComponentInterface cmpParent)
+    registerComponent "Parent" cmpParent $ (newComponentInterface cmpParent)
+        { ciRemoveComponent = \entityID -> do
+            forEntitiesWithComponent cmpParent $ \(childID, childParentID) -> do
+                when (childParentID == entityID) $ 
+                    removeEntity childID
+        }
 
 setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
 setEntityColor newColor entityID = setComponent cmpColor newColor entityID

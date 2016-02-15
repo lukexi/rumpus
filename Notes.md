@@ -7,6 +7,10 @@
 [ ] Enable multisampling
     https://www.opengl.org/wiki/Multisampling
 
+[ ] See if calling swapBuffers every other frame fixes skips!
+    (i.e., thinking that maybe it is because the vive is triggering us at 90hz 
+    and that upsets something when blitting to the screen at 60hz.)
+
 TONIGHT:
 Let's build the music sequencer.
 
@@ -112,13 +116,13 @@ Modules
 
 - Show the clipboard contents! Place it on your right wrist or something...
 
-- Extensible 
-Need a better way to define component-systems.
-E.g, would like a "Lifetime" component-system that makes a thing automatically expire.
+- [x] Extensible 
+    Need a better way to define component-systems.
+    E.g, would like a "Lifetime" component-system that makes a thing automatically expire.
 
-No need to make these fully runtime, I guess, thanks to halive?
+    No need to make these fully runtime, I guess, thanks to halive?
 
-UPDATE: I've got a sketch of this in Projects/extensible-systems/
+    UPDATE: I've got a sketch of this in Projects/extensible-systems/
 
 
 

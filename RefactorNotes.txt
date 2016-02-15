@@ -19,11 +19,13 @@ Need to support:
 - [ ] Associated components, e.g. mass with rigidbody, delete the rigidbody and autodelete mass too?
 
 
-- Move Selection to its own system so CodeEditor and SceneEditor can use it
+- [x] Move Selection to its own system so CodeEditor and SceneEditor can use it
 
-- Add FocusedCodeEditor to CodeEditor to use rather than selectedEntity
+- [ ] Add FocusedCodeEditor to CodeEditor to use rather than selectedEntity
+- [ ] Improve "editable code" structure to let systems register code with the CodeEditor
+      rather than manually updating everything in there.
 
-- PlayPause -> System?
+- [x] PlayPause -> System?
 
 
 

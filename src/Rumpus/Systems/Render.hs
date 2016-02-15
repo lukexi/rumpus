@@ -93,7 +93,7 @@ renderEditors projM44 viewM44 = do
 
 
 renderEntities :: (MonadIO m, MonadState ECS m) 
-                 => M44 GLfloat -> M44 GLfloat -> m ()
+               => M44 GLfloat -> M44 GLfloat -> m ()
 renderEntities projM44 viewM44 = do
     
     let projViewM44 = projM44 !*! viewM44

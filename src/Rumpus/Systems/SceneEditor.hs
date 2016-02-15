@@ -39,10 +39,7 @@ defineSystemKey ''SceneEditorSystem
 -- data Drag = Drag HandEntityID (Pose GLfloat)
 data Drag = Drag HandEntityID (V3 GLfloat)
 
--- | OnDrag function
 type OnDrag = EntityID -> V3 GLfloat -> ECSMonad ()
-nullOnDrag :: OnDrag
-nullOnDrag _entityID _dragDistance = return ()
 
 defineComponentKey ''Drag
 defineComponentKey ''OnDrag
@@ -70,7 +67,7 @@ selectEntity entityID = do
 
     clearSelection
 
-    modifySystem_ sysSelection $ return . (selSelectedEntityID ?~ entityID)
+    modifySystemState sysSelection $ selSelectedEntityID ?= entityID
 
     editorFrame <- spawnEntity Transient $ do
         removeComponent cmpShapeType =<< ask

@@ -15,8 +15,10 @@ import TinyRick
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Script
+import Rumpus.Systems.Physics
 import Rumpus.Systems.Shared
 import qualified Data.Map as Map
+import Control.Monad.Trans.Maybe
 
 -- | Pairs a filename along with an expression 
 -- to evaluate in that filename's environment once compiled
@@ -143,32 +145,24 @@ tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
 
 
 raycastCursor :: (MonadIO m, MonadState ECS m) => EntityID -> m Bool
-raycastCursor handEntityID = modifySystemState sysCodeEditor $ do
+raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     -- First, see if we can place a cursor into a text buffer.
     -- If not, then move onto the selection logic.
-    mSelectedEntityID <- lift $ viewSystem sysSelection selSelectedEntityID
-    case mSelectedEntityID of
-        Nothing -> return False
-        Just selectedEntityID -> do
-            maybeCodeExprKey <- lift $ getComponent selectedEntityID cmpOnUpdateExpr
-            case maybeCodeExprKey of
-                Nothing -> return False
-                Just codeExprKey -> do
-                    maybeEditor <- use (cesCodeEditors . at codeExprKey)
-                    case maybeEditor of
-                        Nothing -> return False
-                        Just editor -> do
-                            handPose <- lift $ getEntityPose handEntityID
-                            pose     <- lift $ getEntityPose selectedEntityID
-                            -- We currently render code editors directly matched with the pose
-                            -- of the entity; update this when we make code editors into their own entities
-                            -- like the editorFrame children are
-                            let model44 = transformationFromPose pose
-                                codeRenderer = editor ^. cedCodeRenderer
-                                handRay = poseToRay handPose (V3 0 0 (-1))
-                            mUpdatedRenderer <- castRayToTextRenderer handRay codeRenderer model44
-                            case mUpdatedRenderer of
-                                Nothing -> return False
-                                Just updatedRenderer -> do
-                                    cesCodeEditors . ix codeExprKey . cedCodeRenderer .= updatedRenderer
-                                    return True
+    selectedEntityID <- MaybeT $ viewSystem sysSelection selSelectedEntityID
+    codeExprKey      <- MaybeT $ getComponent selectedEntityID cmpOnUpdateExpr
+    editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)
+    handPose         <- getEntityPose handEntityID
+    pose             <- getEntityPose selectedEntityID
+    
+    -- We currently render code editors directly matched with the pose
+    -- of the entity; update this when we make code editors into their own entities
+    -- like the editorFrame children are
+    let model44 = transformationFromPose pose
+        codeRenderer = editor ^. cedCodeRenderer
+        handRay = poseToRay handPose (V3 0 0 (-1))
+    updatedRenderer  <- MaybeT $ castRayToTextRenderer handRay codeRenderer model44
+    
+    modifySystemState sysCodeEditor $ 
+        cesCodeEditors . ix codeExprKey . cedCodeRenderer .= updatedRenderer
+    
+    return True

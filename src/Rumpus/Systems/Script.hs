@@ -4,40 +4,21 @@ module Rumpus.Systems.Script where
 import PreludeExtra
 import Data.ECS
 import Rumpus.Systems.PlayPause
--- | OnStart function
-type OnStart = EntityID -> ECSMonad (Maybe Dynamic)
-
-nullOnStart :: OnStart
-nullOnStart _entityID = return Nothing
 
 
--- | OnUpdate function
-type OnUpdate = EntityID -> ECSMonad ()
-
-nullOnUpdate :: OnUpdate
-nullOnUpdate _entityID = return ()
-
-
-
--- | OnCollision functions
-type CollidedWithID = EntityID
-type CollisionImpulse = GLfloat
-type OnCollision = EntityID -> CollidedWithID -> CollisionImpulse -> ECSMonad ()
-
-nullOnCollision :: OnCollision
-nullOnCollision _entityID _collidedWithID _collisionImpulse = return ()
-
+type OnStart            = EntityID -> ECSMonad (Maybe Dynamic)
+type OnUpdate           = EntityID -> ECSMonad ()
 
 defineComponentKey ''OnStart
 defineComponentKey ''OnUpdate
-defineComponentKey ''OnCollision
+
 defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
 initScriptSystem :: MonadState ECS m => m ()
 initScriptSystem = do
     registerComponent "OnStart"     cmpOnStart (newComponentInterface cmpOnStart)
     registerComponent "OnUpdate"    cmpOnUpdate (newComponentInterface cmpOnUpdate)
-    registerComponent "OnCollision" cmpOnCollision (newComponentInterface cmpOnCollision)
+    
 
 tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
@@ -53,10 +34,8 @@ tickScriptSystem = whenWorldPlaying $ do
         \(entityID, onUpdate) -> 
             onUpdate entityID
 
-
-
-withScriptData :: (Typeable a, MonadIO m, MonadState ECS m) =>
-                    EntityID -> (a -> m ()) -> m ()
+withScriptData :: (Typeable a, MonadIO m, MonadState ECS m) 
+               => EntityID -> (a -> m ()) -> m ()
 withScriptData entityID f = 
     withComponent entityID cmpScriptData $ \dynScriptData -> do
         case fromDynamic dynScriptData of
@@ -66,8 +45,8 @@ withScriptData entityID f =
                     ++ "'s script data of type " ++ show dynScriptData 
                     ++ " with a function that accepts a different type.")
 
-editScriptData :: (Typeable a, MonadIO m, MonadState ECS m) =>
-                    EntityID -> (a -> m a) -> m ()
+editScriptData :: (Typeable a, MonadIO m, MonadState ECS m) 
+               => EntityID -> (a -> m a) -> m ()
 editScriptData entityID f = 
     modifyComponent entityID cmpScriptData $ \dynScriptData -> do
         case fromDynamic dynScriptData of

@@ -7,28 +7,30 @@ module Rumpus.Systems.Physics where
 import PreludeExtra
 import Data.ECS
 import Rumpus.Systems.Shared
-import Rumpus.Systems.Script
 import Rumpus.Systems.PlayPause
 
 
 data PhysicsSystem = PhysicsSystem { _phyDynamicsWorld :: DynamicsWorld } deriving Show
 makeLenses ''PhysicsSystem
 
-defineSystemKey ''PhysicsSystem
-
-
-defineComponentKey ''RigidBody
-defineComponentKey ''SpringConstraint
-
-
-defineComponentKeyWithType "Mass" [t|GLfloat|]
-
 data PhysicsProperty = IsKinematic | NoContactResponse 
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type PhysicsProperties = [PhysicsProperty]
 
+
+type OnCollision        = EntityID -> CollidedWithID -> CollisionImpulse -> ECSMonad ()
+type CollidedWithID     = EntityID
+type CollisionImpulse   = GLfloat
+
+
+defineSystemKey ''PhysicsSystem
+
+defineComponentKeyWithType "Mass" [t|GLfloat|]
+defineComponentKey ''RigidBody
+defineComponentKey ''SpringConstraint
 defineComponentKey ''PhysicsProperties
+defineComponentKey ''OnCollision
 
 initPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 initPhysicsSystem = do
@@ -44,6 +46,8 @@ initPhysicsSystem = do
         }
     registerComponent "Mass" cmpMass (defaultComponentInterface cmpMass 1)
     registerComponent "SpringConstraint" cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
+
+    registerComponent "OnCollision" cmpOnCollision (newComponentInterface cmpOnCollision)
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m) => DynamicsWorld -> EntityID -> m ()
 deriveRigidBody dynamicsWorld entityID = do
