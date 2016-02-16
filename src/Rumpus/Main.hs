@@ -67,7 +67,7 @@ main = do
             cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
 
         let recorderAt x = do
-                cmpPose ==> (newPose & posPosition . _x .~ x)
+                cmpPose ==> newPose & posPosition . _x .~ x
                 cmpSize  ==> 0.25
                 cmpPdPatchFile ==> "recorder"
                 cmpOnCollisionStart ==> \entityID _ _ -> do
