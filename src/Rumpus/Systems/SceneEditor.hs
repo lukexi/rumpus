@@ -140,7 +140,7 @@ tickSceneEditorSystem = do
                         cmpPose          ==> handPose 
                         cmpShapeType     ==> CubeShape
                         cmpSize          ==> 0.5
-                        cmpOnUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
+                        -- cmpOnUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
                     
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
@@ -148,7 +148,7 @@ tickSceneEditorSystem = do
                     didPlaceCursor <- raycastCursor handEntityID
                     when (not didPlaceCursor) $ do
                         -- Find the entities overlapping the hand, and attach them to it
-                        overlappingEntityIDs <- filterM (fmap (/= "Floor") . getEntityName) 
+                        overlappingEntityIDs <- filterM (fmap (not . elem Static) . getEntityPhysProps)
                                                     =<< getEntityOverlappingEntityIDs handEntityID
                         -- printIO overlappingEntityIDs
                         when (null overlappingEntityIDs) clearSelection
@@ -164,12 +164,9 @@ tickSceneEditorSystem = do
                                 then do
                                     beginDrag handEntityID touchedID
                                 else do
-                                    -- Select the entity (it's ok to select the floor, just not move it)
                                     selectEntity touchedID
 
-                                    name <- getEntityName touchedID
-                                    when (name /= "Floor") $ 
-                                        attachEntity handEntityID touchedID
+                                    attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     endDrag handEntityID
                     detachEntity handEntityID
@@ -191,59 +188,3 @@ tickSceneEditorSystem = do
 sceneFileNamed :: String -> FilePath
 sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"
 
-{- FIXME
-loadScene :: (MonadState ECS m, MonadIO m) => FilePath -> m ()
-loadScene sceneName =     
-    liftIO (decodeFileEither (sceneFileNamed sceneName)) >>= \case
-        Left parseException -> putStrLnIO ("Error loading " ++ sceneName ++ ": " ++ show parseException)
-        Right entities -> do
-            wldScene .= Scene { _scnName = sceneName, _scnEntities = Map.fromList entities }
-            forM_ (entities :: [(EntityID, Entity)]) $ \(entityID, entity) -> do
-                defineEntity entity
-                createEntityWithID Persistent entityID entity
-
-saveScene :: (MonadState ECS m, MonadIO m) => m ()
-saveScene = do
-    sceneName     <- use (wldScene . scnName)
-    sceneEntities <- use (wldScene . scnEntities)
-    let sceneFile = sceneFileNamed sceneName
-    liftIO $ encodeFile sceneFile (Map.toList sceneEntities)
-
-
-
-spawnEntity :: (MonadState ECS m, MonadIO m) => Persistence -> String -> m (Maybe EntityID)
-spawnEntity persistence entityName = 
-    traverseM (use (wldEntityLibrary . at entityName)) (createEntity persistence)
-
-defineEntity :: MonadState ECS m => Entity -> m ()
-defineEntity entity = wldEntityLibrary . at (entity ^. entName) ?= entity
-
-createEntity :: (MonadIO m, MonadState ECS m) 
-             => Persistence -> Entity -> m EntityID
-createEntity persistence entity = do
-    entityID <- liftIO randomIO
-    createEntityWithID persistence entityID entity
-
-createEntityWithID :: (MonadIO m, MonadState ECS m) 
-                   => Persistence -> EntityID -> Entity -> m EntityID
-createEntityWithID persistence entityID entity = do
-    when (persistence == Persistent) $
-        wldScene . scnEntities . at entityID ?= entity
-
-    wldComponents . cmpPose  . at entityID ?= entity ^. entPose
-    wldComponents . cmpSize  . at entityID ?= entity ^. entSize
-    wldComponents . cmpColor . at entityID ?= entity ^. entColor
-    wldComponents . cmpShape . at entityID ?= entity ^. entShape
-    wldComponents . cmpName  . at entityID ?= entity ^. entName
-
-    addScriptComponent   entityID entity
-    addPhysicsComponent  entityID entity
-    addPdPatchComponent  entityID entity
-    addLifetimeComponent entityID entity
-
-    forM_ (entity ^. entChildren) $ \child -> do
-        childID <- createEntity persistence child
-        wldComponents . cmpParent . at childID ?= entityID
-    
-    return entityID
--}

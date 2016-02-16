@@ -22,6 +22,7 @@ library
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
                        Rumpus.Systems.CodeEditor
+                       Rumpus.Systems.Collisions
                        Rumpus.Systems.Constraint
                        Rumpus.Systems.Controls
                        Rumpus.Systems.Lifetime

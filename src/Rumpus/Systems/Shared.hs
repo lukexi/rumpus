@@ -14,14 +14,10 @@ data ShapeType = CubeShape | SphereShape | StaticPlaneShape
 defineComponentKey ''ShapeType
 
 
-defineComponentKeyWithType "Name" [t|String|]
-
-defineComponentKeyWithType "Pose" [t|Pose GLfloat|]
-
-defineComponentKeyWithType "Size" [t|V3 GLfloat|]
-
-defineComponentKeyWithType "Color" [t|V4 GLfloat|]
-
+defineComponentKeyWithType "Name"   [t|String|]
+defineComponentKeyWithType "Pose"   [t|Pose GLfloat|]
+defineComponentKeyWithType "Size"   [t|V3 GLfloat|]
+defineComponentKeyWithType "Color"  [t|V4 GLfloat|]
 defineComponentKeyWithType "Parent" [t|EntityID|]
 
 initSharedSystem :: MonadState ECS m => m ()
@@ -33,8 +29,8 @@ initSharedSystem = do
     registerComponent "ShapeType" cmpShapeType (defaultComponentInterface cmpShapeType CubeShape)
     registerComponent "Parent" cmpParent $ (newComponentInterface cmpParent)
         { ciRemoveComponent = \entityID -> do
-            forEntitiesWithComponent cmpParent $ \(childID, childParentID) -> do
-                when (childParentID == entityID) $ 
+            forEntitiesWithComponent cmpParent $ \(childID, parentID) -> do
+                when (parentID == entityID) $ 
                     removeEntity childID
         }
 

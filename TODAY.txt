@@ -1,0 +1,26 @@
+- [ ] Widget for switching kinematic on/off
+- [ ] Widget for switching contact response on/off
+    - one widget type for sum types (e.g. ShapeType) 
+    - one for list types (e.g. PhysicsProperties)
+
+- [ ] Widgets for OnStart, OnCollision, OnUpdate code
+    - OnSelect that detects raycasts
+
+- [ ] Widget text labels
+    - Make "selection" a Maybe in freetype-gl-mini
+
+
+- [x] OnCollisionEnter/OnCollisionExit
+    (just keep a Set of collision pairs, detect entries and exits that way)
+    Collisions should be their own system.
+
+- [ ] Animation can be done in OnStart
+
+- [ ] Component library so we can define an entity, name it and spawn it
+
+- [ ] Put script code in a reader monad so we can have an implicit self!
+        then have all the code use that.
+
+GOAL FOR TODAY:
+Create an object that blows sound bubbles when you touch it
+[x] Speech recorder with OnEnter/OnExit!

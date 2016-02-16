@@ -10,6 +10,7 @@ import Data.ECS
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.Collisions
 import Rumpus.Systems.Constraint
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Lifetime
@@ -25,11 +26,11 @@ import Rumpus.Systems.PlayPause
 import Halive.Utils
 
 main :: IO ()
-main = withPd $ \pd -> do
+-- main = withPd $ \pd -> do
 
--- main = do
+main = do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
-    -- pd    <- reacquire 1 $ initLibPd
+    pd    <- reacquire 1 $ initLibPd
     
     args <- getArgs
     let sceneName = fromMaybe "my-scene" (listToMaybe args)
@@ -39,6 +40,7 @@ main = withPd $ \pd -> do
         initAnimationSystem
         initAttachmentSystem
         initCodeEditorSystem
+        initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
         initLifetimeSystem
@@ -57,10 +59,29 @@ main = withPd $ \pd -> do
             cmpColor ==> V4 1 0 0 1
             cmpSize  ==> V3 0.2 0.2 0.6
             cmpName  ==> "Left Hand"
+            cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         _ <- spawnEntity Transient $ do
             cmpColor ==> V4 0 1 0 1
             cmpSize  ==> V3 0.2 0.2 0.6
             cmpName  ==> "Right Hand"
+            cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+
+        let recorderAt x = do
+                cmpPose ==> (newPose & posPosition . _x .~ x)
+                cmpSize  ==> 0.25
+                cmpPdPatchFile ==> "recorder"
+                cmpOnCollisionStart ==> \entityID _ _ -> do
+                    sendEntityPdPatch entityID "record-toggle" (Atom 1)
+                    hue <- liftIO randomIO
+                    setEntityColor (hslColor hue 0.8 0.4 1) entityID
+                cmpOnCollisionEnd ==> \entityID _ -> do
+                    sendEntityPdPatch entityID "record-toggle" (Atom 0)
+                cmpPhysicsProperties ==> [IsKinematic]
+        forM_ [-1,-0.75..1] $ \x -> spawnEntity Transient $ recorderAt x
+        -- testEntity <- spawnEntity Transient $ return ()
+        -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart
+        
+        -- selectEntity testEntity
 
         whileVR vrPal $ \headM44 hands vrEvents -> do
             

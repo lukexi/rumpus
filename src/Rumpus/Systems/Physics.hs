@@ -10,16 +10,23 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 
 
-data PhysicsSystem = PhysicsSystem { _phyDynamicsWorld :: DynamicsWorld } deriving Show
+
+data PhysicsSystem = PhysicsSystem 
+    { _phyDynamicsWorld :: DynamicsWorld 
+    , _phyCollisionPairs :: Map EntityID (Set EntityID)
+    } deriving Show
 makeLenses ''PhysicsSystem
 
-data PhysicsProperty = IsKinematic | NoContactResponse 
+data PhysicsProperty = IsKinematic | NoContactResponse | Static 
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type PhysicsProperties = [PhysicsProperty]
 
 
 type OnCollision        = EntityID -> CollidedWithID -> CollisionImpulse -> ECSMonad ()
+type OnCollisionStart   = OnCollision
+type OnCollisionEnd     = EntityID -> CollidedWithID -> ECSMonad ()
+
 type CollidedWithID     = EntityID
 type CollisionImpulse   = GLfloat
 
@@ -30,12 +37,12 @@ defineComponentKeyWithType "Mass" [t|GLfloat|]
 defineComponentKey ''RigidBody
 defineComponentKey ''SpringConstraint
 defineComponentKey ''PhysicsProperties
-defineComponentKey ''OnCollision
+
 
 initPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 initPhysicsSystem = do
     dynamicsWorld <- createDynamicsWorld mempty
-    registerSystem sysPhysics (PhysicsSystem dynamicsWorld)
+    registerSystem sysPhysics (PhysicsSystem dynamicsWorld mempty)
 
     registerComponent "RigidBody" cmpRigidBody $ (newComponentInterface cmpRigidBody)
         { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
@@ -46,8 +53,8 @@ initPhysicsSystem = do
         }
     registerComponent "Mass" cmpMass (defaultComponentInterface cmpMass 1)
     registerComponent "SpringConstraint" cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
-
-    registerComponent "OnCollision" cmpOnCollision (newComponentInterface cmpOnCollision)
+    registerComponent "PhysicsProperties" cmpPhysicsProperties (savedComponentInterface cmpPhysicsProperties)
+    
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m) => DynamicsWorld -> EntityID -> m ()
 deriveRigidBody dynamicsWorld entityID = do
@@ -65,6 +72,7 @@ deriveRigidBody dynamicsWorld entityID = do
                               }
         shape     <- createShapeCollider shapeType size
         rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+        
         when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
             setRigidBodyKinematic rigidBody True
 
@@ -76,7 +84,7 @@ deriveRigidBody dynamicsWorld entityID = do
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
     dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
-    stepSimulation dynamicsWorld 90
+    stepSimulation dynamicsWorld 60
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components
 tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -87,24 +95,6 @@ tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
             pose <- uncurry Pose <$> getBodyState rigidBody
             setComponent cmpPose pose entityID
 
--- | Loop through the collisions for this frame and call any 
--- entities' registered collision callbacks
-tickCollisionsSystem :: ECSMonad ()
-tickCollisionsSystem = do
-    isPlaying <- viewSystem sysPlayPause plyPlaying
-    if isPlaying 
-        then do
-            -- NOTE: we get stale collisions with bullet-mini's getCollisions, 
-            -- so I've switched to the "contactTest" API which works.
-
-            forEntitiesWithComponent cmpOnCollision $ \(entityID, onCollision) -> do
-                collidingIDs <- getEntityOverlappingEntityIDs entityID
-                forM_ collidingIDs $ \collidingID -> 
-                    onCollision entityID collidingID 0.1
-        else do
-            -- When not playing, do a collisions tick so we can still calculate intersections
-            dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
-            performDiscreteCollisionDetection dynamicsWorld
 
 
 createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m CollisionShape
@@ -122,7 +112,7 @@ getEntityOverlapping entityID = getComponent entityID cmpRigidBody  >>= \case
     Nothing          -> return []
     Just rigidBody -> do
         fmap (fromMaybe []) $ 
-            withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> 
+            withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> 
                 contactTest dynamicsWorld rigidBody
 
 getEntityOverlappingEntityIDs :: (MonadState ECS m, MonadIO m) => EntityID -> m [EntityID]
@@ -138,7 +128,7 @@ setEntitySize newSize entityID = do
     setComponent cmpSize newSize entityID
 
     withEntityRigidBody entityID $ \rigidBody -> do 
-        withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld) -> do
+        withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
             mass       <- fromMaybe 1         <$> getComponent entityID cmpMass
             shapeType  <- fromMaybe CubeShape <$> getComponent entityID cmpShapeType
 
@@ -154,3 +144,6 @@ setEntityPose newPose_ entityID = do
 
     withEntityRigidBody entityID $ \rigidBody -> 
         setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
+
+getEntityPhysProps :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
+getEntityPhysProps entityID = fromMaybe [] <$> getComponent entityID cmpPhysicsProperties

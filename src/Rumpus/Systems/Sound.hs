@@ -18,8 +18,6 @@ defineComponentKeyWithType "PdPatch" [t|Patch|]
 defineComponentKeyWithType "PdPatchFile" [t|FilePath|]
 defineComponentKey ''OpenALSource
 
-
-
 initSoundSystem :: (MonadState ECS m, MonadIO m) => PureData -> m ()
 initSoundSystem pd = do
     mapM_ (addToLibPdSearchPath pd)
@@ -29,6 +27,7 @@ initSoundSystem pd = do
 
     registerSystem sysSound soundSystem
 
+    registerComponent "PdPatchFile" cmpPdPatchFile (newComponentInterface cmpPdPatchFile)
     registerComponent "OpenALSource" cmpOpenALSource (newComponentInterface cmpOpenALSource)
     registerComponent "PdPatch" cmpPdPatch $ (newComponentInterface cmpPdPatch)
         { ciDeriveComponent = Just (derivePdPatchComponent pd) 
@@ -59,6 +58,7 @@ derivePdPatchComponent pd entityID =
 
         -- Assign the patch's output DAC index to route it to the the SourceID
         traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
+            putStrLnIO $ "loaded " ++ patchFile ++ " sending " ++ show sourceChannel
             send pd patch "dac" $ Atom (fromIntegral sourceChannel)
             addComponent cmpOpenALSource sourceID entityID
 

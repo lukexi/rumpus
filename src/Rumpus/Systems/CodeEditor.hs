@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.CodeEditor where
-import PreludeExtra
+import PreludeExtra hiding (Key)
 import Data.ECS
 
 import Graphics.GL.Freetype
@@ -15,24 +15,26 @@ import TinyRick
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Script
-import Rumpus.Systems.Physics
+import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import qualified Data.Map as Map
 import Control.Monad.Trans.Maybe
+import Data.Vault.Strict (Key)
 
 -- | Pairs a filename along with an expression 
 -- to evaluate in that filename's environment once compiled
-type CodeExpressionKey = (FilePath, String)
+type CodeFile = (FilePath, String)
 
 data CodeEditor = CodeEditor
     { _cedResultTChan   :: TChan CompilationResult
     , _cedCodeRenderer  :: TextRenderer
     , _cedErrorRenderer :: TextRenderer
+    , _cedDependents    :: Map EntityID (CompiledValue -> ECSMonad ())
     }
 makeLenses ''CodeEditor
 
 data CodeEditorSystem = CodeEditorSystem 
-    { _cesCodeEditors :: !(Map CodeExpressionKey CodeEditor) 
+    { _cesCodeEditors :: !(Map CodeFile CodeEditor) 
     , _cesFont        :: !Font
     , _cesGHCChan     :: !(TChan CompilationRequest)
     }
@@ -40,11 +42,26 @@ makeLenses ''CodeEditorSystem
 
 defineSystemKey ''CodeEditorSystem
 
-defineComponentKeyWithType "OnStartExpr"     [t|CodeExpressionKey|]
-defineComponentKeyWithType "OnUpdateExpr"    [t|CodeExpressionKey|]
-defineComponentKeyWithType "OnCollisionExpr" [t|CodeExpressionKey|]
+defineComponentKeyWithType "OnStartExpr"     [t|CodeFile|]
+defineComponentKeyWithType "OnUpdateExpr"    [t|CodeFile|]
+defineComponentKeyWithType "OnCollisionExpr" [t|CodeFile|]
+defineComponentKeyWithType "OnCollisionStartExpr" [t|CodeFile|]
 
-
+addCodeExpr :: (MonadIO m, MonadState ECS m) 
+            => EntityID
+            -> FilePath
+            -> String
+            -> Key (EntityMap CodeFile)
+            -> Key (EntityMap a)
+            -> m ()
+addCodeExpr entityID fileName exprName codeFileComponentKey codeComponentKey = do
+    let defaultFile = "resources" </> "default-code" </> "Default" ++ fileName <.> ".hs"
+        entityFileName = show entityID ++ "-" ++ fileName ++ ".hs"
+        codeFile = (entityFileName, exprName)
+    contents <- liftIO $ readFile defaultFile
+    liftIO $ writeFile entityFileName contents
+    setComponent codeFileComponentKey codeFile entityID
+    registerWithCodeEditor entityID codeFile codeComponentKey
 
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
@@ -59,29 +76,41 @@ initCodeEditorSystem = do
         }
 
     -- Will require (scriptPath, "start") (or "update" or "collision") to be added somewhere!
-    let registerCodeExprComponent name componentKey = 
-            registerComponent name componentKey $ (savedComponentInterface componentKey)
-                { ciDeriveComponent  = Just (\entityID -> do
-                    withComponent entityID componentKey $ \codeExprKey -> do
-                        _ <- createCodeEditor codeExprKey
-                        return ()
-                    )
-                }
+    registerCodeExprComponent "OnStartExpr"     cmpOnStartExpr     cmpOnStart
+    registerCodeExprComponent "OnUpdateExpr"    cmpOnUpdateExpr    cmpOnUpdate
+    registerCodeExprComponent "OnCollisionExpr" cmpOnCollisionExpr cmpOnCollision
+    registerCodeExprComponent "OnCollisionStartExpr" cmpOnCollisionStartExpr cmpOnCollisionStart
 
-    registerCodeExprComponent "OnStartExpr" cmpOnStartExpr
-    registerCodeExprComponent "OnUpdateExpr" cmpOnUpdateExpr
-    registerCodeExprComponent "OnCollisionExpr" cmpOnCollisionExpr
+registerCodeExprComponent :: MonadState ECS m 
+                          => String
+                          -> Key (EntityMap CodeFile) 
+                          -> Key (EntityMap a) 
+                          -> m ()
+registerCodeExprComponent name codeFileComponentKey codeComponentKey = 
+    registerComponent name codeFileComponentKey $ (savedComponentInterface codeFileComponentKey)
+        { ciDeriveComponent  = Just (\entityID -> do
+            withComponent entityID codeFileComponentKey $ \codeFileKey -> 
+                registerWithCodeEditor entityID codeFileKey codeComponentKey
+            )
+        , ciRemoveComponent = \entityID -> do
+            withComponent entityID codeFileComponentKey $ \codeFileKey -> 
+                unregisterWithCodeEditor entityID codeFileKey
+            removeComponent codeFileComponentKey entityID
+        }
 
-createCodeEditor :: (MonadIO m, MonadState ECS m) => CodeExpressionKey -> m CodeEditor
-createCodeEditor codeExpressionKey = modifySystemState sysCodeEditor $ do
-    mEditor <- use (cesCodeEditors . at codeExpressionKey)
-    case mEditor of
-        Just existing -> return existing
+registerWithCodeEditor :: (MonadIO m, MonadState ECS m) 
+                       => EntityID
+                       -> CodeFile
+                       -> Key (EntityMap a)
+                       -> m ()
+registerWithCodeEditor entityID codeFile codeComponentKey = modifySystemState sysCodeEditor $ do
+    use (cesCodeEditors . at codeFile) >>= \case
+        Just _ -> return ()
         Nothing -> do
             ghcChan <- use cesGHCChan
             font    <- use cesFont
 
-            let (scriptPath, exprString) = codeExpressionKey
+            let (scriptPath, exprString) = codeFile
             resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
             codeRenderer  <- textRendererFromFile font scriptPath
             errorRenderer <- createTextRenderer font (textBufferFromString "noFile" "")
@@ -89,9 +118,15 @@ createCodeEditor codeExpressionKey = modifySystemState sysCodeEditor $ do
                     { _cedCodeRenderer = codeRenderer
                     , _cedErrorRenderer = errorRenderer
                     , _cedResultTChan = resultTChan 
+                    , _cedDependents = Map.singleton entityID (\newValue -> do
+                        setComponent codeComponentKey (getCompiledValue newValue) entityID
+                        )
                     }
-            cesCodeEditors . at codeExpressionKey ?= codeEditor
-            return codeEditor
+            cesCodeEditors . at codeFile ?= codeEditor
+
+unregisterWithCodeEditor :: MonadState ECS m => EntityID -> CodeFile -> m ()
+unregisterWithCodeEditor entityID codeFile = modifySystemState sysCodeEditor $ do
+    cesCodeEditors . ix codeFile . cedDependents . at entityID .= Nothing
 
 tickCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickCodeEditorSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
@@ -102,14 +137,14 @@ tickCodeEditorSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 
     mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
     forM mSelectedEntityID $ \selectedEntityID ->
-        withComponent selectedEntityID cmpOnUpdateExpr $ \codeExprKey ->
+        withComponent selectedEntityID cmpOnUpdateExpr $ \codeFileKey ->
             modifySystemState sysCodeEditor $ 
                 forM_ events $ \case
                     GLFWEvent e -> handleTextBufferEvent window e 
-                        (cesCodeEditors . ix codeExprKey . cedCodeRenderer)
+                        (cesCodeEditors . ix codeFileKey . cedCodeRenderer)
                     VREvent (VRKeyboardInputEvent chars) -> forM_ chars $ \char -> do
                         handleTextBufferEvent window (Character char)
-                            (cesCodeEditors . ix codeExprKey . cedCodeRenderer)
+                            (cesCodeEditors . ix codeFileKey . cedCodeRenderer)
                     _ -> return ()
 
 -- | Update the world state with the result of the editor upon successful compilations
@@ -118,30 +153,21 @@ tickSyncCodeEditorSystem :: ECSMonad ()
 tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
     font <- use cesFont
 
-    let copyCompiledResultToEntities codeExprKey value comCodeExpr comCode = 
-            forEntitiesWithComponent comCodeExpr $ 
-                \(entityID, entityCodeExprKey) -> do
-                    when (entityCodeExprKey == codeExprKey) $ 
-                        setComponent comCode value entityID
-
-    traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeExprKey, editor) -> do
+    traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeFileKey, editor) -> do
         tryReadTChanIO (editor ^. cedResultTChan) >>= \case
+            Nothing -> return ()
             Just (Left errors) -> do
                 let allErrors = unlines errors
                 putStrLnIO allErrors
                 errorRenderer <- createTextRenderer font (textBufferFromString "errorMessage" allErrors)
-                cesCodeEditors . ix codeExprKey . cedErrorRenderer .= errorRenderer
+                cesCodeEditors . ix codeFileKey . cedErrorRenderer .= errorRenderer
             Just (Right compiledValue) -> do
                 -- Clear the error renderer
                 errorRenderer <- createTextRenderer font (textBufferFromString "errorMessage" "")
-                cesCodeEditors . ix codeExprKey . cedErrorRenderer .= errorRenderer
+                cesCodeEditors . ix codeFileKey . cedErrorRenderer .= errorRenderer
 
-                let value = getCompiledValue compiledValue
-                lift $ copyCompiledResultToEntities codeExprKey value cmpOnStartExpr     cmpOnStart
-                lift $ copyCompiledResultToEntities codeExprKey value cmpOnUpdateExpr    cmpOnUpdate
-                lift $ copyCompiledResultToEntities codeExprKey value cmpOnCollisionExpr cmpOnCollision
-            Nothing -> return ()
-
+                dependents <- use (cesCodeEditors . ix codeFileKey . cedDependents)
+                lift $ forM_ dependents ($ compiledValue)
 
 
 raycastCursor :: (MonadIO m, MonadState ECS m) => EntityID -> m Bool
@@ -149,8 +175,8 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     -- First, see if we can place a cursor into a text buffer.
     -- If not, then move onto the selection logic.
     selectedEntityID <- MaybeT $ viewSystem sysSelection selSelectedEntityID
-    codeExprKey      <- MaybeT $ getComponent selectedEntityID cmpOnUpdateExpr
-    editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)
+    codeFileKey      <- MaybeT $ getComponent selectedEntityID cmpOnUpdateExpr
+    editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeFileKey)
     handPose         <- getEntityPose handEntityID
     pose             <- getEntityPose selectedEntityID
     
@@ -163,6 +189,6 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     updatedRenderer  <- MaybeT $ castRayToTextRenderer handRay codeRenderer model44
     
     modifySystemState sysCodeEditor $ 
-        cesCodeEditors . ix codeExprKey . cedCodeRenderer .= updatedRenderer
+        cesCodeEditors . ix codeFileKey . cedCodeRenderer .= updatedRenderer
     
     return True

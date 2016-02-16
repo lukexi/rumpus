@@ -11,6 +11,7 @@ import Data.Foldable as Exports
 import Control.Concurrent as Exports
 import Control.Concurrent.STM as Exports
 import Data.Map as Exports (Map)
+import Data.Set as Exports (Set)
 import System.Random as Exports
 import System.Directory as Exports
 import System.FilePath as Exports
