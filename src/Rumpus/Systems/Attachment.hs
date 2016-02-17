@@ -31,7 +31,7 @@ attachEntity entityID toEntityID = do
     entityPose   <- getEntityPose entityID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractPose` entityPose
-    addComponent cmpAttachment (Attachment toEntityID offset) entityID
+    addEntityComponent cmpAttachment (Attachment toEntityID offset) entityID
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
@@ -41,12 +41,12 @@ detachEntity :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
 detachEntity entityID =
     withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
 
-        removeComponent cmpAttachment entityID
+        removeEntityComponent cmpAttachment entityID
 
-        physProps <- fromMaybe [] <$> getComponent attachedEntityID cmpPhysicsProperties
+        physProps <- fromMaybe [] <$> getEntityComponent attachedEntityID cmpPhysicsProperties
         unless (IsKinematic `elem` physProps) $ 
             withEntityRigidBody attachedEntityID $ \rigidBody ->
                 setRigidBodyKinematic rigidBody False
 
 withAttachment :: MonadState ECS m => EntityID -> (Attachment -> m b) -> m ()
-withAttachment entityID = withComponent entityID cmpAttachment
+withAttachment entityID = withEntityComponent entityID cmpAttachment

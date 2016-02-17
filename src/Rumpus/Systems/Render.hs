@@ -76,7 +76,7 @@ renderEditors projM44 viewM44 = do
         parentPose <- getEntityPose entityID
 
         
-        traverseM_ (getComponent entityID cmpOnUpdateExpr) $ \codeExprKey -> 
+        traverseM_ (getEntityComponent entityID cmpOnUpdateExpr) $ \codeExprKey -> 
             traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
 
                 let codeModelM44 = transformationFromPose parentPose
@@ -127,7 +127,7 @@ getEntityTotalModelMatrix startEntityID = do
     let go Nothing = return identity
         go (Just entityID) = do
             pose   <- getEntityPose entityID
-            parent <- getComponent entityID cmpParent
+            parent <- getEntityComponent entityID cmpParent
             (transformationFromPose pose !*!) <$> go parent
     
     go (Just startEntityID)

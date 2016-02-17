@@ -15,23 +15,23 @@ initConstraintSystem :: MonadState ECS m => m ()
 initConstraintSystem = do
     registerComponent "Constraint" cmpConstraint $ (newComponentInterface cmpConstraint) { 
         -- Satisfy the constraint once upon resuscitation
-        ciDeriveComponent = Just (\entityID -> 
-            withComponent entityID cmpConstraint $ satisfyConstraint entityID)
+        ciDeriveComponent = Just 
+            (withComponent cmpConstraint satisfyConstraint)
         }
 
 tickConstraintSystem :: (MonadState ECS m, MonadIO m) => m ()
 tickConstraintSystem = do
-    forEntitiesWithComponent cmpConstraint $ \(entityID, constraint) -> satisfyConstraint entityID constraint
+    forEntitiesWithComponent cmpConstraint $ \(entityID, constraint) -> runEntity entityID (satisfyConstraint constraint)
 
-satisfyConstraint :: (MonadIO m, MonadState ECS m) => EntityID -> Constraint -> m ()
-satisfyConstraint entityID constraint =
+satisfyConstraint :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => Constraint -> m ()
+satisfyConstraint constraint =
     case constraint of
         RelativePositionTo parentEntityID relativePosition -> do
             parentPose <- getEntityPose parentEntityID
             let newPosition = newPose 
                     & posPosition .~ parentPose ^. posPosition + relativePosition
-            setEntityPose newPosition entityID
+            setPose newPosition
 
 setEntityConstraint :: (MonadState ECS m, MonadIO m) => Constraint -> EntityID -> m ()
 setEntityConstraint constraint entityID = 
-    setComponent cmpConstraint constraint entityID
+    setEntityComponent cmpConstraint constraint entityID

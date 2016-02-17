@@ -32,9 +32,9 @@ tickComponentAnimation :: MonadState ECS m
                        -> m ()
 tickComponentAnimation now animComponentKey componentKey = 
     forEntitiesWithComponent animComponentKey $ 
-        \(entityID, animation) -> do
+        \(entityID, animation) -> runEntity entityID $ do
             let evaled = evalAnim now animation
 
-            setComponent componentKey (evanResult evaled) entityID
+            componentKey ==> evanResult evaled
             when (evanRunning evaled == False) $ do
-                removeComponent animComponentKey entityID
+                removeComponent animComponentKey

@@ -14,11 +14,16 @@
     (just keep a Set of collision pairs, detect entries and exits that way)
     Collisions should be their own system.
 
-- [ ] Animation can be done in OnStart
+- [ ] Add Hands system that simply adds hands and head entities and makes them available as 
+        hndLeftHand hndRightHand hndHead
+        also isLeftHand isRightHand isHand isHandOrHead isHead
+        Use this in Controls to get rid of string-based hand finding.
+
+- [ ] Animations can be added in OnStart
 
 - [ ] Component library so we can define an entity, name it and spawn it
 
-- [ ] Put script code in a reader monad so we can have an implicit self!
+- [x] Put script code in a reader monad so we can have an implicit self!
         then have all the code use that.
 
 GOAL FOR TODAY:

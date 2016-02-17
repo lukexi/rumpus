@@ -23,14 +23,6 @@ data PhysicsProperty = IsKinematic | NoContactResponse | Static
 type PhysicsProperties = [PhysicsProperty]
 
 
-type OnCollision        = EntityID -> CollidedWithID -> CollisionImpulse -> ECSMonad ()
-type OnCollisionStart   = OnCollision
-type OnCollisionEnd     = EntityID -> CollidedWithID -> ECSMonad ()
-
-type CollidedWithID     = EntityID
-type CollisionImpulse   = GLfloat
-
-
 defineSystemKey ''PhysicsSystem
 
 defineComponentKeyWithType "Mass" [t|GLfloat|]
@@ -46,27 +38,27 @@ initPhysicsSystem = do
 
     registerComponent "RigidBody" cmpRigidBody $ (newComponentInterface cmpRigidBody)
         { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
-        , ciRemoveComponent  = \entityID -> 
-                withComponent entityID cmpRigidBody $ \rigidBody -> do
+        , ciRemoveComponent  = 
+                withComponent cmpRigidBody $ \rigidBody -> do
                     removeRigidBody dynamicsWorld rigidBody
-                    removeComponent cmpRigidBody entityID
+                    removeComponent cmpRigidBody
         }
     registerComponent "Mass" cmpMass (defaultComponentInterface cmpMass 1)
     registerComponent "SpringConstraint" cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
     registerComponent "PhysicsProperties" cmpPhysicsProperties (savedComponentInterface cmpPhysicsProperties)
     
 
-deriveRigidBody :: (MonadIO m, MonadState ECS m) => DynamicsWorld -> EntityID -> m ()
-deriveRigidBody dynamicsWorld entityID = do
-    mShapeType <- getComponent entityID cmpShapeType
+deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
+deriveRigidBody dynamicsWorld = do
+    mShapeType <- getComponent cmpShapeType
     forM_ mShapeType $ \shapeType -> do
 
-        mass <- fromMaybe 1 <$> getComponent entityID cmpMass
-        size <- getEntitySize entityID
-        pose <- getEntityPose entityID
-        physProperties <- fromMaybe [] <$> getComponent entityID cmpPhysicsProperties
-        let collisionID = CollisionObjectID entityID
-            bodyInfo = mempty { rbPosition = pose ^. posPosition
+        mass <- fromMaybe 1 <$> getComponent cmpMass
+        size <- getSize
+        pose <- getPose
+        physProperties <- fromMaybe [] <$> getComponent cmpPhysicsProperties
+        collisionID <- CollisionObjectID <$> ask
+        let bodyInfo = mempty { rbPosition = pose ^. posPosition
                               , rbRotation = pose ^. posOrientation
                               , rbMass     = mass
                               }
@@ -79,7 +71,7 @@ deriveRigidBody dynamicsWorld entityID = do
         when (NoContactResponse `elem` physProperties) $ 
             setRigidBodyNoContactResponse rigidBody True
         
-        addComponent cmpRigidBody rigidBody entityID
+        cmpRigidBody ==> rigidBody
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
@@ -91,9 +83,9 @@ tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
     -- Sync rigid bodies with entity poses
     forEntitiesWithComponent cmpRigidBody $
-        \(entityID, rigidBody) -> do
+        \(entityID, rigidBody) -> runEntity entityID $ do
             pose <- uncurry Pose <$> getBodyState rigidBody
-            setComponent cmpPose pose entityID
+            setComponent cmpPose pose
 
 
 
@@ -104,11 +96,11 @@ createShapeCollider shapeType size = case shapeType of
     StaticPlaneShape -> createStaticPlaneShape (0 :: Int)
 
 withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
-withEntityRigidBody entityID = withComponent entityID cmpRigidBody
+withEntityRigidBody entityID = withEntityComponent entityID cmpRigidBody
 
 
 getEntityOverlapping :: (MonadState ECS m, MonadIO m) => EntityID -> m [Collision]
-getEntityOverlapping entityID = getComponent entityID cmpRigidBody  >>= \case
+getEntityOverlapping entityID = getEntityComponent entityID cmpRigidBody  >>= \case
     Nothing          -> return []
     Just rigidBody -> do
         fmap (fromMaybe []) $ 
@@ -125,25 +117,26 @@ getEntityOverlappingEntityIDs entityID =
 setEntitySize :: (MonadIO m, MonadState ECS m) => V3 GLfloat -> EntityID -> m ()
 setEntitySize newSize entityID = do
 
-    setComponent cmpSize newSize entityID
+    setEntityComponent cmpSize newSize entityID
 
     withEntityRigidBody entityID $ \rigidBody -> do 
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
-            mass       <- fromMaybe 1         <$> getComponent entityID cmpMass
-            shapeType  <- fromMaybe CubeShape <$> getComponent entityID cmpShapeType
+            mass       <- fromMaybe 1         <$> getEntityComponent entityID cmpMass
+            shapeType  <- fromMaybe CubeShape <$> getEntityComponent entityID cmpShapeType
 
             shape      <- createShapeCollider shapeType newSize
             setRigidBodyShape dynamicsWorld rigidBody shape mass
 
-
+setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Pose GLfloat -> m ()
+setPose newPose_ = setEntityPose newPose_ =<< ask
 
 setEntityPose :: (MonadState ECS m, MonadIO m) => Pose GLfloat -> EntityID -> m ()
 setEntityPose newPose_ entityID = do
 
-    setComponent cmpPose newPose_ entityID
+    setEntityComponent cmpPose newPose_ entityID
 
     withEntityRigidBody entityID $ \rigidBody -> 
         setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
 
 getEntityPhysProps :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
-getEntityPhysProps entityID = fromMaybe [] <$> getComponent entityID cmpPhysicsProperties
+getEntityPhysProps entityID = fromMaybe [] <$> getEntityComponent entityID cmpPhysicsProperties

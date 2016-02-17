@@ -66,22 +66,12 @@ main = do
             cmpName  ==> "Right Hand"
             cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
 
-        let recorderAt x = do
-                cmpPose ==> newPose & posPosition . _x .~ x
-                cmpSize  ==> 0.25
-                cmpPdPatchFile ==> "recorder"
-                cmpOnCollisionStart ==> \entityID _ _ -> do
-                    sendEntityPdPatch entityID "record-toggle" (Atom 1)
-                    hue <- liftIO randomIO
-                    setEntityColor (hslColor hue 0.8 0.4 1) entityID
-                cmpOnCollisionEnd ==> \entityID _ -> do
-                    sendEntityPdPatch entityID "record-toggle" (Atom 0)
-                cmpPhysicsProperties ==> [IsKinematic]
-        forM_ [-1,-0.75..1] $ \x -> spawnEntity Transient $ recorderAt x
+        
         -- testEntity <- spawnEntity Transient $ return ()
         -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart
         
         -- selectEntity testEntity
+        -- buildRecorderTestPatch
 
         whileVR vrPal $ \headM44 hands vrEvents -> do
             
@@ -101,5 +91,17 @@ main = do
             tickRenderSystem headM44
 
 
-
-
+buildRecorderTestPatch :: (MonadIO m, MonadState ECS m) => m ()
+buildRecorderTestPatch = do
+    let recorderAt x = do
+            cmpPose ==> newPose & posPosition . _x .~ x
+            cmpSize  ==> 0.25
+            cmpPdPatchFile ==> "recorder"
+            cmpOnCollisionStart ==> \_ _ -> do
+                sendPd "record-toggle" (Atom 1)
+                hue <- liftIO randomIO
+                setColor (hslColor hue 0.8 0.4 1)
+            cmpOnCollisionEnd ==> \_ -> do
+                sendPd "record-toggle" (Atom 0)
+            cmpPhysicsProperties ==> [IsKinematic]
+    forM_ [-1,-0.75..1] $ \x -> spawnEntity Transient $ recorderAt x

@@ -138,6 +138,10 @@ Demos:
 - Wind chimes
 - Bow&Arrow
 
+- Implement some of the examples from http://natureofcode.com/book/chapter-6-autonomous-agents/ !
+    - In particular, agent simulations where we can change the step function as things are moving
+        should be pretty damn rad.
+
 - Garage band mini based on sequencer idea. Simple sampler, simple synth.
     - Have done synth : D needs presets.
     - Simple sampler next!

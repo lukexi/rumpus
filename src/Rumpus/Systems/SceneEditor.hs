@@ -39,7 +39,7 @@ defineSystemKey ''SceneEditorSystem
 -- data Drag = Drag HandEntityID (Pose GLfloat)
 data Drag = Drag HandEntityID (V3 GLfloat)
 
-type OnDrag = EntityID -> V3 GLfloat -> ECSMonad ()
+type OnDrag = V3 GLfloat -> EntityMonad ()
 
 defineComponentKey ''Drag
 defineComponentKey ''OnDrag
@@ -70,34 +70,38 @@ selectEntity entityID = do
     modifySystemState sysSelection $ selSelectedEntityID ?= entityID
 
     editorFrame <- spawnEntity Transient $ do
-        removeComponent cmpShapeType =<< ask
+        removeComponent cmpShapeType
         cmpConstraint ==> (RelativePositionTo entityID 0)
     
     ------------------------
     -- Define a color editor
+    color <- getEntityColor entityID
     _colorEditor <- spawnEntity Transient $ do
         cmpParent            ==> editorFrame
         cmpShapeType         ==> SphereShape
-        cmpColor             ==> V4 1 0 0 1
+        cmpColor             ==> color
         cmpSize              ==> 0.1
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         cmpConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
-        cmpOnDrag            ==> \_colorEditorID dragDistance -> do
+        cmpOnDrag            ==> \dragDistance -> do
             let x = dragDistance ^. _x
-            setEntityColor (hslColor (mod' x 1) 0.9 0.6 1) entityID
+                newColor = hslColor (mod' x 1) 0.9 0.6 1
+            setColor newColor
+            setEntityColor newColor entityID
 
     -----------------------
     -- Define a size editor
-
+    
     _sizeEditor <- spawnEntity Transient $ do
         cmpParent            ==> editorFrame
-        cmpShapeType         ==> SphereShape
-        cmpColor             ==> V4 0 1 0 1
-        cmpSize              ==> 0.1
+        cmpShapeType         ==> CubeShape
+        cmpColor             ==> V4 0.3 0.3 1 1
+        cmpSize              ==> 0.2
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         cmpConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
-        cmpOnDrag            ==> \_sizeEditorID dragDistance -> do
+        cmpOnDrag            ==> \dragDistance -> do
             let size = max 0.05 (abs dragDistance)
+            -- Set the edited entity's size, not the editor-widget's : )
             setEntitySize size entityID
 
     modifySystemState sysSceneEditor $ sedCurrentEditorFrame ?= editorFrame
@@ -107,7 +111,7 @@ selectEntity entityID = do
 beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
     startPos <- view posPosition <$> getEntityPose handEntityID
-    setComponent cmpDrag (Drag handEntityID startPos) draggedID
+    setEntityComponent cmpDrag (Drag handEntityID startPos) draggedID
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
@@ -116,14 +120,15 @@ continueDrag draggingHandEntityID = do
             currentPose <- view posPosition <$> getEntityPose handEntityID
             let dragDistance = currentPose - startPos
 
-            withComponent entityID cmpOnDrag $ \onDrag ->
-                onDrag entityID dragDistance
+            runEntity entityID $ 
+                withComponent cmpOnDrag $ \onDrag ->
+                    onDrag dragDistance
 
 endDrag :: MonadState ECS m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
-    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID _) ->
+    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID _) -> runEntity entityID $ 
         when (handEntityID == endingDragHandEntityID) $
-            removeComponent cmpDrag entityID
+            removeComponent cmpDrag
 
 
 tickSceneEditorSystem :: ECSMonad ()
@@ -159,7 +164,7 @@ tickSceneEditorSystem = do
                             -- If so, it's a draggable object.
                             -- (we should just look to see if it has a drag function, actually!)
                             currentEditorFrame <- viewSystem sysSceneEditor sedCurrentEditorFrame
-                            touchedParentID <- getComponent touchedID cmpParent
+                            touchedParentID <- getEntityComponent touchedID cmpParent
                             if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
                                 then do
                                     beginDrag handEntityID touchedID

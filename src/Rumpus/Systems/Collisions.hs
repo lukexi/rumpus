@@ -8,6 +8,13 @@ import Data.ECS
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 
+type OnCollision        = CollidedWithID -> CollisionImpulse -> EntityMonad ()
+type OnCollisionStart   = OnCollision
+type OnCollisionEnd     = CollidedWithID -> EntityMonad ()
+
+type CollidedWithID     = EntityID
+type CollisionImpulse   = GLfloat
+
 defineComponentKey ''OnCollision
 defineComponentKey ''OnCollisionStart
 defineComponentKey ''OnCollisionEnd
@@ -38,17 +45,17 @@ tickCollisionsSystem = do
             forEntitiesWithComponent cmpOnCollision $ \(entityID, onCollision) -> do
                 (_, _, allCollisions) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ allCollisions $ \collidingID ->
-                    onCollision entityID collidingID 0.1
+                    runEntity entityID $ onCollision collidingID 0.1
 
             forEntitiesWithComponent cmpOnCollisionStart $ \(entityID, onCollisionStart) -> do
                 (newCollisions, _, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ newCollisions $ \collidingID ->
-                    onCollisionStart entityID collidingID 0.1
+                    runEntity entityID $ onCollisionStart collidingID 0.1
             
             forEntitiesWithComponent cmpOnCollisionEnd $ \(entityID, onCollisionEnd) -> do
                 (_, oldCollisions, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ oldCollisions $ \collidingID ->
-                    onCollisionEnd entityID collidingID
+                    runEntity entityID $ onCollisionEnd collidingID
         else do
             -- When not playing, do a collisions tick so we can still calculate intersections
             dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld

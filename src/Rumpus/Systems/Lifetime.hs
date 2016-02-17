@@ -33,10 +33,10 @@ tickLifetimeSystem = whenWorldPlaying $ do
             removeEntity entityID
         
 
-addLifetimeComponent :: (MonadIO m, MonadState ECS m) => EntityID -> DiffTime -> m ()
-addLifetimeComponent entityID lifetime = do
+setLifetime :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> m ()
+setLifetime lifetime = do
     birth <- liftIO getCurrentTime
-    addComponent cmpLifetime (Lifetime birth (realToFrac lifetime)) entityID
+    cmpLifetime ==> (Lifetime birth (realToFrac lifetime))
 
 
 
