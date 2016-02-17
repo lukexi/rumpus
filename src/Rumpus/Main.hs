@@ -55,13 +55,14 @@ main = do
 
         loadScene sceneName
 
+        let handColor = V4 0.6 0.6 0.9 1
         _ <- spawnEntity Transient $ do
-            cmpColor ==> V4 1 0 0 1
+            cmpColor ==> handColor
             cmpSize  ==> V3 0.2 0.2 0.6
             cmpName  ==> "Left Hand"
             cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         _ <- spawnEntity Transient $ do
-            cmpColor ==> V4 0 1 0 1
+            cmpColor ==> handColor
             cmpSize  ==> V3 0.2 0.2 0.6
             cmpName  ==> "Right Hand"
             cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
