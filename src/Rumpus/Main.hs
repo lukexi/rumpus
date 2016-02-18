@@ -33,7 +33,7 @@ main = do
     pd    <- reacquire 1 $ initLibPd
     
     args <- getArgs
-    let sceneName = fromMaybe "my-scene" (listToMaybe args)
+    let sceneName = fromMaybe "default-scene" (listToMaybe args)
 
     void . flip runStateT newECS $ do 
 
@@ -92,17 +92,4 @@ main = do
             tickRenderSystem headM44
 
 
-buildRecorderTestPatch :: (MonadIO m, MonadState ECS m) => m ()
-buildRecorderTestPatch = do
-    let recorderAt x = do
-            cmpPose ==> newPose & posPosition . _x .~ x
-            cmpSize  ==> 0.25
-            cmpPdPatchFile ==> "recorder"
-            cmpOnCollisionStart ==> \_ _ -> do
-                sendPd "record-toggle" (Atom 1)
-                hue <- liftIO randomIO
-                setColor (hslColor hue 0.8 0.4 1)
-            cmpOnCollisionEnd ==> \_ -> do
-                sendPd "record-toggle" (Atom 0)
-            cmpPhysicsProperties ==> [IsKinematic]
-    forM_ [-1,-0.75..1] $ \x -> spawnEntity Transient $ recorderAt x
+

@@ -16,22 +16,8 @@ import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Constraint
 
-data Scene = Scene
-    { _scnName     :: !String
-    -- , _scnEntities :: !(Map EntityID Entity)
-    }
-makeLenses ''Scene
-
-newScene :: Scene
-newScene = Scene 
-    { _scnName = "NewScene"
-    -- , _scnEntities = mempty 
-    }
-
 data SceneEditorSystem = SceneEditorSystem
-    { _sedScene              :: !Scene
-    , _sedCurrentEditorFrame :: !(Maybe EntityID)
-    -- , _sedEntityLibrary      :: !(Map String Entity)
+    { _sedCurrentEditorFrame :: !(Maybe EntityID)
     }
 makeLenses ''SceneEditorSystem
 defineSystemKey ''SceneEditorSystem
@@ -46,7 +32,7 @@ defineComponentKey ''OnDrag
 
 initSceneEditorSystem :: MonadState ECS m => m ()
 initSceneEditorSystem = do
-    registerSystem sysSceneEditor $ SceneEditorSystem newScene Nothing
+    registerSystem sysSceneEditor $ SceneEditorSystem Nothing
 
     registerComponent "Drag"   cmpDrag   (newComponentInterface cmpDrag)
     registerComponent "OnDrag" cmpOnDrag (newComponentInterface cmpOnDrag)
@@ -130,6 +116,12 @@ endDrag endingDragHandEntityID = do
         when (handEntityID == endingDragHandEntityID) $
             removeComponent cmpDrag
 
+spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => Pose GLfloat -> m EntityID
+spawnNewEntityAtPose pose = spawnEntity Persistent $ do
+    cmpPose          ==> pose 
+    cmpShapeType     ==> CubeShape
+    cmpSize          ==> 0.5
+    -- cmpOnUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
 
 tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
@@ -141,31 +133,22 @@ tickSceneEditorSystem = do
                     continueDrag handEntityID
                 HandButtonEvent HandButtonGrip ButtonDown -> do
                     handPose <- getEntityPose handEntityID
-                    _ <- spawnEntity Persistent $ do
-                        cmpPose          ==> handPose 
-                        cmpShapeType     ==> CubeShape
-                        cmpSize          ==> 0.5
-                        -- cmpOnUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
-                    
+                    _ <- spawnNewEntityAtPose handPose
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
 
                     didPlaceCursor <- raycastCursor handEntityID
                     when (not didPlaceCursor) $ do
                         -- Find the entities overlapping the hand, and attach them to it
-                        overlappingEntityIDs <- filterM (fmap (not . elem Static) . getEntityPhysProps)
+                        overlappingEntityIDs <- filterStaticEntityIDs
                                                     =<< getEntityOverlappingEntityIDs handEntityID
                         -- printIO overlappingEntityIDs
                         when (null overlappingEntityIDs) clearSelection
                         
                         forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
 
-                            -- See if the touched object has the current EditorFrame as a parent;
-                            -- If so, it's a draggable object.
-                            -- (we should just look to see if it has a drag function, actually!)
-                            currentEditorFrame <- viewSystem sysSceneEditor sedCurrentEditorFrame
-                            touchedParentID <- getEntityComponent touchedID cmpParent
-                            if (isJust currentEditorFrame && currentEditorFrame == touchedParentID) 
+                            hasDragFunction <- entityHasComponent touchedID cmpOnDrag
+                            if hasDragFunction
                                 then do
                                     beginDrag handEntityID touchedID
                                 else do
@@ -182,14 +165,14 @@ tickSceneEditorSystem = do
                         showHandKeyboard vrPal
 
                     
-                    saveEntities
+                    saveScene
 
                 _ -> return ()
 
     withLeftHandEvents  (editSceneWithHand "Left Hand")
     withRightHandEvents (editSceneWithHand "Right Hand")
 
+filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
+filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysProps)
 
-sceneFileNamed :: String -> FilePath
-sceneFileNamed sceneName = "scenes" </> sceneName </> "scene.yaml"
 

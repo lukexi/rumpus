@@ -24,6 +24,7 @@ tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
     forEntitiesWithComponent cmpOnStart $
         \(entityID, onStart) -> runEntity entityID $ do
+            printIO ("Running!" ++ show entityID)
             -- Only call OnStart once
             mScriptData <- onStart
             forM_ mScriptData $ \scriptData -> 

@@ -128,15 +128,15 @@ setEntitySize newSize entityID = do
             setRigidBodyShape dynamicsWorld rigidBody shape mass
 
 setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Pose GLfloat -> m ()
-setPose newPose_ = setEntityPose newPose_ =<< ask
+setPose pose = setEntityPose pose =<< ask
 
 setEntityPose :: (MonadState ECS m, MonadIO m) => Pose GLfloat -> EntityID -> m ()
-setEntityPose newPose_ entityID = do
+setEntityPose pose entityID = do
 
-    setEntityComponent cmpPose newPose_ entityID
+    setEntityComponent cmpPose pose entityID
 
     withEntityRigidBody entityID $ \rigidBody -> 
-        setRigidBodyWorldTransform rigidBody (newPose_ ^. posPosition) (newPose_ ^. posOrientation)
+        setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
 
 getEntityPhysProps :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
 getEntityPhysProps entityID = fromMaybe [] <$> getEntityComponent entityID cmpPhysicsProperties

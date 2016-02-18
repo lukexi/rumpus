@@ -54,9 +54,10 @@ addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
             -> Key (EntityMap a)
             -> m ()
 addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
+    sceneFolder <- viewSystem sysSelection (selScene . scnFolder)
     entityID <- ask
-    let defaultFile = "resources" </> "default-code" </> "Default" ++ fileName <.> ".hs"
-        entityFileName = show entityID ++ "-" ++ fileName ++ ".hs"
+    let defaultFile = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
+        entityFileName = sceneFolder </> (show entityID ++ "-" ++ fileName) <.> "hs"
         codeFile = (entityFileName, exprName)
     contents <- liftIO $ readFile defaultFile
     liftIO $ writeFile entityFileName contents
@@ -119,6 +120,7 @@ registerWithCodeEditor codeFile codeComponentKey = modifySystemState sysCodeEdit
                     , _cedErrorRenderer = errorRenderer
                     , _cedResultTChan = resultTChan 
                     , _cedDependents = Map.singleton entityID (\newValue -> do
+                        printIO "SETTING"
                         setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
                         )
                     }
