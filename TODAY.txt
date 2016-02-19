@@ -3,6 +3,12 @@
     - one widget type for sum types (e.g. ShapeType) 
     - one for list types (e.g. PhysicsProperties)
 
+- Make 3D icons out of primitives : )
+    e.g. oO for collision response or something
+    Would be nice to make these in-engine and just have them be .yaml files,
+    but we'd have to make sure to figure out how to not be re-parsing the yaml
+    on every creation!
+
 - [ ] Widgets for OnStart, OnCollision, OnUpdate code
     - OnSelect that detects raycasts
 
@@ -25,6 +31,14 @@
 
 - [x] Put script code in a reader monad so we can have an implicit self!
         then have all the code use that.
+
+- [ ] Handy note: we can use start function to define everything else by just setting properties on self.
+
+- [ ] Find a way to not leak derivedcomponents; e.g. if we want to change the shape of an object.
+        deriveComponent could remove any existing rigidbody, but if we can only derive components currently
+        by calling deriveComponent on everything then we'd have to drop and recreate everyhing even when editing a non-related component.
+
+- [ ] Fix readArray in pd-hs - it should return an unboxed Vector rather than a list
 
 GOAL FOR TODAY:
 Create an object that blows sound bubbles when you touch it

@@ -107,7 +107,7 @@ continueDrag draggingHandEntityID = do
             let dragDistance = currentPose - startPos
 
             runEntity entityID $ 
-                withComponent cmpOnDrag $ \onDrag ->
+                withComponent_ cmpOnDrag $ \onDrag ->
                     onDrag dragDistance
 
 endDrag :: MonadState ECS m => HandEntityID -> m ()

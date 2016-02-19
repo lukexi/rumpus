@@ -49,4 +49,4 @@ detachEntity entityID =
                 setRigidBodyKinematic rigidBody False
 
 withAttachment :: MonadState ECS m => EntityID -> (Attachment -> m b) -> m ()
-withAttachment entityID = withEntityComponent entityID cmpAttachment
+withAttachment entityID = withEntityComponent_ entityID cmpAttachment

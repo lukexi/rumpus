@@ -1,0 +1,8 @@
+Ideas for customizing rendering:
+
+Shader component. Give these a key and we can render everything with the same shader key at once.
+
+Uniform component; can just be an ECSMonad action that does whatever it wants in the closure right before rendering
+(could just name this PreRenderAction or something)
+
+RenderGroup? Could combine uniform plus shader?

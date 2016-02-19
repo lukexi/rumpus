@@ -16,7 +16,7 @@ initConstraintSystem = do
     registerComponent "Constraint" cmpConstraint $ (newComponentInterface cmpConstraint) { 
         -- Satisfy the constraint once upon resuscitation
         ciDeriveComponent = Just 
-            (withComponent cmpConstraint satisfyConstraint)
+            (withComponent_ cmpConstraint satisfyConstraint)
         }
 
 tickConstraintSystem :: (MonadState ECS m, MonadIO m) => m ()

@@ -38,7 +38,7 @@ tickScriptSystem = whenWorldPlaying $ do
 withScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => (a -> m ()) -> m ()
 withScriptData f = 
-    withComponent cmpScriptData $ \dynScriptData -> do
+    withComponent_ cmpScriptData $ \dynScriptData -> do
         case fromDynamic dynScriptData of
             Just scriptData -> f scriptData
             Nothing -> ask >>= \entityID -> putStrLnIO 

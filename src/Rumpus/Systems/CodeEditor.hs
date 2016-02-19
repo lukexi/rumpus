@@ -90,11 +90,11 @@ registerCodeExprComponent :: MonadState ECS m
 registerCodeExprComponent name codeFileComponentKey codeComponentKey = 
     registerComponent name codeFileComponentKey $ (savedComponentInterface codeFileComponentKey)
         { ciDeriveComponent  = Just (
-            withComponent codeFileComponentKey $ \codeFileKey -> 
+            withComponent_ codeFileComponentKey $ \codeFileKey -> 
                 registerWithCodeEditor codeFileKey codeComponentKey
             )
         , ciRemoveComponent = do
-            withComponent codeFileComponentKey $ \codeFileKey -> 
+            withComponent_ codeFileComponentKey $ \codeFileKey -> 
                 unregisterWithCodeEditor codeFileKey
             removeComponent codeFileComponentKey
         }
@@ -120,7 +120,7 @@ registerWithCodeEditor codeFile codeComponentKey = modifySystemState sysCodeEdit
                     , _cedErrorRenderer = errorRenderer
                     , _cedResultTChan = resultTChan 
                     , _cedDependents = Map.singleton entityID (\newValue -> do
-                        printIO "SETTING"
+                        putStrLnIO ("Setting " ++ show entityID ++ " " ++ show codeFile)
                         setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
                         )
                     }

@@ -17,7 +17,7 @@ data PhysicsSystem = PhysicsSystem
     } deriving Show
 makeLenses ''PhysicsSystem
 
-data PhysicsProperty = IsKinematic | NoContactResponse | Static 
+data PhysicsProperty = IsKinematic | NoContactResponse | Static | NoPhysicsShape
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type PhysicsProperties = [PhysicsProperty]
@@ -39,7 +39,7 @@ initPhysicsSystem = do
     registerComponent "RigidBody" cmpRigidBody $ (newComponentInterface cmpRigidBody)
         { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
         , ciRemoveComponent  = 
-                withComponent cmpRigidBody $ \rigidBody -> do
+                withComponent_ cmpRigidBody $ \rigidBody -> do
                     removeRigidBody dynamicsWorld rigidBody
                     removeComponent cmpRigidBody
         }
@@ -50,28 +50,30 @@ initPhysicsSystem = do
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do
-    mShapeType <- getComponent cmpShapeType
-    forM_ mShapeType $ \shapeType -> do
+    physProperties <- fromMaybe [] <$> getComponent cmpPhysicsProperties
+    unless (NoPhysicsShape `elem` physProperties) $ do
+        mShapeType <- getComponent cmpShapeType
+        forM_ mShapeType $ \shapeType -> do
 
-        mass <- fromMaybe 1 <$> getComponent cmpMass
-        size <- getSize
-        pose <- getPose
-        physProperties <- fromMaybe [] <$> getComponent cmpPhysicsProperties
-        collisionID <- CollisionObjectID <$> ask
-        let bodyInfo = mempty { rbPosition = pose ^. posPosition
-                              , rbRotation = pose ^. posOrientation
-                              , rbMass     = mass
-                              }
-        shape     <- createShapeCollider shapeType size
-        rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
-        
-        when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
-            setRigidBodyKinematic rigidBody True
+            mass <- fromMaybe 1 <$> getComponent cmpMass
+            size <- getSize
+            pose <- getPose
+            
+            collisionID <- CollisionObjectID <$> ask
+            let bodyInfo = mempty { rbPosition = pose ^. posPosition
+                                  , rbRotation = pose ^. posOrientation
+                                  , rbMass     = mass
+                                  }
+            shape     <- createShapeCollider shapeType size
+            rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+            
+            when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
+                setRigidBodyKinematic rigidBody True
 
-        when (NoContactResponse `elem` physProperties) $ 
-            setRigidBodyNoContactResponse rigidBody True
-        
-        cmpRigidBody ==> rigidBody
+            when (NoContactResponse `elem` physProperties) $ 
+                setRigidBodyNoContactResponse rigidBody True
+            
+            cmpRigidBody ==> rigidBody
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
@@ -96,7 +98,7 @@ createShapeCollider shapeType size = case shapeType of
     StaticPlaneShape -> createStaticPlaneShape (0 :: Int)
 
 withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
-withEntityRigidBody entityID = withEntityComponent entityID cmpRigidBody
+withEntityRigidBody entityID = void . withEntityComponent entityID cmpRigidBody
 
 
 getEntityOverlapping :: (MonadState ECS m, MonadIO m) => EntityID -> m [Collision]

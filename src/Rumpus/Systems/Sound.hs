@@ -52,7 +52,7 @@ dequeueOpenALSource = modifySystemState sysSound $ do
 
 derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => PureData -> m ()
 derivePdPatchComponent pd = 
-    withComponent cmpPdPatchFile $ \patchFile -> do
+    withComponent_ cmpPdPatchFile $ \patchFile -> do
         patch <- makePatch pd patchFile
         cmpPdPatch ==> patch
 
@@ -65,16 +65,16 @@ derivePdPatchComponent pd =
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()
 removePdPatchComponent = do
     pd <- viewSystem sysSound sdsPd
-    withPdPatch $ closePatch pd
+    _ <- withPdPatch $ closePatch pd
 
     removeComponent cmpPdPatch
     removeComponent cmpOpenALSource
 
-withPdPatch :: (MonadReader EntityID m, MonadState ECS m) => (Patch -> m b) -> m ()
+withPdPatch :: (MonadReader EntityID m, MonadState ECS m) => (Patch -> m b) -> m (Maybe b)
 withPdPatch = withComponent cmpPdPatch
 
 
-withEntityPdPatch :: (HasComponents s, MonadState s m) => EntityID -> (Patch -> m b) -> m ()
+withEntityPdPatch :: (HasComponents s, MonadState s m) => EntityID -> (Patch -> m b) -> m (Maybe b)
 withEntityPdPatch entityID = withEntityComponent entityID cmpPdPatch
 
 sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
@@ -83,10 +83,17 @@ sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem ->
 
 sendEntityPdPatch :: (MonadIO m, MonadState ECS m) => EntityID -> Receiver -> Message -> m ()
 sendEntityPdPatch entityID receiver message = 
-    withEntityPdPatch entityID $ \patch -> 
+    void . withEntityPdPatch entityID $ \patch -> 
         sendToPdPatch patch receiver message
 
 sendPd :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Receiver -> Message -> m ()
 sendPd receiver message = 
-    withPdPatch $ \patch -> 
+    void . withPdPatch $ \patch -> 
         sendToPdPatch patch receiver message
+
+
+readPdArray :: (MonadReader EntityID m, MonadIO m, MonadState ECS m, Integral a) => Receiver -> a -> a -> m [Double]
+readPdArray arrayName offset count = do
+    pd <- viewSystem sysSound sdsPd
+    fromMaybe [] . join <$> withPdPatch (\patch ->
+        readArray pd (local patch arrayName) offset count)
