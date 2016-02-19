@@ -1,0 +1,1 @@
+stack build --file-watch --exec "rumpus $1"

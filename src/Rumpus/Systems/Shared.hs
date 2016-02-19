@@ -28,12 +28,15 @@ initSharedSystem = do
     registerComponent "Color" cmpColor (defaultComponentInterface cmpColor (V4 1 1 1 1))
     registerComponent "ShapeType" cmpShapeType (defaultComponentInterface cmpShapeType CubeShape)
     registerComponent "Parent" cmpParent $ (newComponentInterface cmpParent)
-        { ciRemoveComponent = do
-            entityID <- ask
-            forEntitiesWithComponent cmpParent $ \(childID, parentID) -> do
-                when (parentID == entityID) $ 
-                    removeEntity childID
+        { ciRemoveComponent = removeChildren
         }
+
+removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
+removeChildren = do
+    entityID <- ask
+    forEntitiesWithComponent cmpParent $ \(childID, parentID) -> do
+        when (parentID == entityID) $ 
+            removeEntity childID
 
 setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
 setEntityColor newColor entityID = setEntityComponent cmpColor newColor entityID
