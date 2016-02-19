@@ -5,9 +5,9 @@ import Rumpus
 start :: OnStart
 start = do
     rootEntityID <- ask
-    let recorderAt x = do
-            cmpPose ==> newPose & posPosition . _x .~ x
-            cmpSize ==> 0.25
+    let recorderAt y = do
+            cmpPose ==> newPose & posPosition . _y .~ y
+            cmpSize ==> 0.01
             cmpPdPatchFile ==> "scenes/sampleverse/recorder"
             cmpOnCollisionStart ==> \_ _ -> do
                 sendPd "record-toggle" (Atom 1)
@@ -16,22 +16,24 @@ start = do
             cmpOnCollisionEnd ==> \_ -> do
                 sendPd "record-toggle" (Atom 0)
             cmpOnStart ==> do
-                children <- forM [0..512] $ \i -> do
-                    let x = fromIntegral i / 512 * 0.2
+                children <- forM [0..255] $ \i -> do
+                    let x = fromIntegral i / 255
                     spawnEntity Transient $ do
                         cmpSize ==> 0.1 * (realToFrac x)
                         cmpColor ==> V4 0.8 0.9 0.4 1
-                        cmpPose ==> (newPose & posPosition . _x .~ x)
+                        cmpPose ==> (newPose & posPosition . _x .~ x & posPosition . _y .~ y)
                         cmpPhysicsProperties ==> [NoPhysicsShape]
                 return (Just (toDyn children))
-            cmpOnUpdate ==> (withScriptData $ \children -> do
+            cmpOnUpdate ==> do
+                (withScriptData $ \children -> do
 
-                fftSample <- readPdArray "sample-fft" 0 512 -- should localize the array name
-                forM_ (zip children fftSample) $ \(childID, val) -> do
-                    runEntity childID $ (cmpSize ==> realToFrac val)
-                )
+                    fftSample <- readPdArray "sample-fft" 0 256 -- should localize the array name
+                    --printIO fftSample
+                    forM_ (zip children fftSample) $ \(childID, val) -> do
+                        runEntity childID $ (cmpSize ==> realToFrac val * 0.01)
+                    )
 
             cmpPhysicsProperties ==> [IsKinematic]
             cmpParent ==> rootEntityID
-    forM_ [-0.75, 0.5] $ \x -> spawnEntity Transient $ recorderAt x
+    forM_ [1, 0.5] $ \y -> spawnEntity Transient $ recorderAt y
     return Nothing

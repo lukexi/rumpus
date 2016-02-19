@@ -18,13 +18,14 @@ initScriptSystem :: MonadState ECS m => m ()
 initScriptSystem = do
     registerComponent "OnStart"  cmpOnStart  (newComponentInterface cmpOnStart)
     registerComponent "OnUpdate" cmpOnUpdate (newComponentInterface cmpOnUpdate)
+    registerComponent "ScriptData" cmpScriptData (newComponentInterface cmpScriptData)
 
 
 tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
     forEntitiesWithComponent cmpOnStart $
         \(entityID, onStart) -> runEntity entityID $ do
-            printIO ("Running!" ++ show entityID)
+            printIO ("Running! " ++ show entityID)
             -- Only call OnStart once
             mScriptData <- onStart
             forM_ mScriptData $ \scriptData -> 
