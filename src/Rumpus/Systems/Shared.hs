@@ -19,6 +19,7 @@ defineComponentKeyWithType "Pose"   [t|Pose GLfloat|]
 defineComponentKeyWithType "Size"   [t|V3 GLfloat|]
 defineComponentKeyWithType "Color"  [t|V4 GLfloat|]
 defineComponentKeyWithType "Parent" [t|EntityID|]
+defineComponentKeyWithType "InheritParentTransform" [t|Bool|]
 
 initSharedSystem :: MonadState ECS m => m ()
 initSharedSystem = do
@@ -30,6 +31,7 @@ initSharedSystem = do
     registerComponent "Parent" cmpParent $ (newComponentInterface cmpParent)
         { ciRemoveComponent = removeChildren
         }
+    registerComponent "InheritParentTransform" cmpInheritParentTransform (newComponentInterface cmpInheritParentTransform)
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren = do
@@ -71,3 +73,6 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID cmpColor
 
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
+
+getEntityInheritParentTransform entityID = fromMaybe False <$> getEntityComponent entityID cmpInheritParentTransform
+getInheritParentTransform entityID = getEntityInheritParentTransform =<< ask

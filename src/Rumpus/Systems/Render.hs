@@ -108,11 +108,12 @@ renderEntities projM44 viewM44 = do
         entityIDsForShape <- getEntityIDsForShapeType shapeType
         forM_ entityIDsForShape $ \entityID -> do
 
-            size  <- getEntitySize entityID
             color <- getEntityColor entityID
-            pose  <- getEntityPose entityID
+            --size  <- getEntitySize entityID
+            --pose  <- getEntityPose entityID
 
-            let model = transformationFromPose pose !*! scaleMatrix size
+            --let model = transformationFromPose pose !*! scaleMatrix size
+            model <- getEntityTotalModelMatrix entityID
             uniformM44 uModelViewProjection (projViewM44 !*! model)
             uniformM44 uInverseModel        (inv44 model)
             uniformM44 uModel               model
@@ -124,13 +125,21 @@ renderEntities projM44 viewM44 = do
 getEntityTotalModelMatrix :: MonadState ECS m => EntityID -> m (M44 GLfloat)
 getEntityTotalModelMatrix startEntityID = do
     
-    let go Nothing = return identity
-        go (Just entityID) = do
+    let go entityID = do
             pose   <- getEntityPose entityID
-            parent <- getEntityComponent entityID cmpParent
-            (transformationFromPose pose !*!) <$> go parent
+            size   <- getEntitySize entityID
+            let model = transformationFromPose pose !*! scaleMatrix size
+
+            inheritParent <- getEntityInheritParentTransform entityID
+            if inheritParent 
+                then do
+                    parent <- getEntityComponent entityID cmpParent
+                    case parent of
+                        Just parent -> (!*! model) <$> go parent
+                        Nothing -> return model
+                else return model
     
-    go (Just startEntityID)
+    go startEntityID
 
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType

@@ -69,6 +69,7 @@ selectEntity entityID = do
         cmpSize              ==> 0.1
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         cmpConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
+        --cmpPose              ==> (newPose & posPosition .~ V3 (-0.5) 0.5 0)
         cmpOnDrag            ==> \dragDistance -> do
             let x = dragDistance ^. _x
                 newColor = hslColor (mod' x 1) 0.9 0.6 1
@@ -85,6 +86,7 @@ selectEntity entityID = do
         cmpSize              ==> 0.2
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         cmpConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
+        --cmpPose              ==> (newPose & posPosition .~ V3 0.5 0.5 0)
         cmpOnDrag            ==> \dragDistance -> do
             let size = max 0.05 (abs dragDistance)
             -- Set the edited entity's size, not the editor-widget's : )

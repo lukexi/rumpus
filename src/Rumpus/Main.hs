@@ -56,11 +56,13 @@ main = do
         loadScene sceneName
 
         let handColor = V4 0.6 0.6 0.9 1
-        _ <- spawnEntity Transient $ do
-            cmpColor ==> handColor
-            cmpSize  ==> V3 0.2 0.2 0.6
-            cmpName  ==> "Left Hand"
-            cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        when (gpRoomScale vrPal == RoomScale) $ do
+            _ <- spawnEntity Transient $ do
+                cmpColor ==> handColor
+                cmpSize  ==> V3 0.2 0.2 0.6
+                cmpName  ==> "Left Hand"
+                cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+            return ()
         _ <- spawnEntity Transient $ do
             cmpColor ==> handColor
             cmpSize  ==> V3 0.2 0.2 0.6
