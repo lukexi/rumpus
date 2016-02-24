@@ -5,14 +5,13 @@
 module Rumpus.Main where
 import PreludeExtra
 
-import Data.ECS
-
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Constraint
 import Rumpus.Systems.Controls
+import Rumpus.Systems.Hands
 import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Render
@@ -53,22 +52,8 @@ main = do
         initSelectionSystem
         initSharedSystem
 
+        startHandsSystem
         loadScene sceneName
-
-        let handColor = V4 0.6 0.6 0.9 1
-        when (gpRoomScale vrPal == RoomScale) $ do
-            _ <- spawnEntity Transient $ do
-                cmpColor ==> handColor
-                cmpSize  ==> V3 0.2 0.2 0.6
-                cmpName  ==> "Left Hand"
-                cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
-            return ()
-        _ <- spawnEntity Transient $ do
-            cmpColor ==> handColor
-            cmpSize  ==> V3 0.2 0.2 0.6
-            cmpName  ==> "Right Hand"
-            cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
-
         
         -- testEntity <- spawnEntity Transient $ return ()
         -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart

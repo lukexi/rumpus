@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Script where
 import PreludeExtra
-import Data.ECS
 import Rumpus.Systems.PlayPause
 
 

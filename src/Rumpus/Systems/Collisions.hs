@@ -4,7 +4,6 @@ module Rumpus.Systems.Collisions where
 import PreludeExtra
 import Rumpus.Systems.Physics
 import Rumpus.Systems.PlayPause
-import Data.ECS
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 

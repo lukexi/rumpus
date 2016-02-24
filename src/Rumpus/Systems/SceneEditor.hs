@@ -6,7 +6,6 @@
 module Rumpus.Systems.SceneEditor where
 import PreludeExtra
 
-import Data.ECS
 import Rumpus.Types
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Shared
@@ -175,6 +174,6 @@ tickSceneEditorSystem = do
     withRightHandEvents (editSceneWithHand "Right Hand")
 
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
-filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysProps)
+filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysicsProperties)
 
 

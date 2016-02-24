@@ -5,8 +5,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 module Rumpus.Systems.Shared where
 import PreludeExtra
-
-import Data.ECS
 import qualified Data.Map as Map
 
 data ShapeType = CubeShape | SphereShape | StaticPlaneShape 

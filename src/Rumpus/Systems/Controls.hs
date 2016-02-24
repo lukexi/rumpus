@@ -5,7 +5,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Rumpus.Systems.Controls where
 import PreludeExtra
-import Data.ECS
 import Rumpus.Systems.PlayPause
 
 data WorldEvent = GLFWEvent Event
@@ -16,6 +15,7 @@ data ControlsSystem = ControlsSystem
     { _ctsVRPal   :: !VRPal
     , _ctsPlayer  :: !(Pose GLfloat)
     , _ctsEvents  :: ![WorldEvent]
+    , _ctsHeadPose :: !(Pose GLfloat) -- FIXME this should just update the entity in Hands
     }
 makeLenses ''ControlsSystem
 defineSystemKey ''ControlsSystem
@@ -28,11 +28,14 @@ initControlsSystem vrPal = do
                             then newPose
                             else newPose & posPosition .~ V3 0 1 3
             , _ctsEvents = []
+            , _ctsHeadPose = newPose
             }
 
 
 tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
 tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $ do
+    ctsHeadPose .= poseFromMatrix headM44
+
     vrPal@VRPal{..} <- use ctsVRPal
 
     -- Grab the old events for comparison

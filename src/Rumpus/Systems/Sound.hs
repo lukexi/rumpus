@@ -4,12 +4,11 @@ module Rumpus.Systems.Sound where
 import PreludeExtra
 
 import Rumpus.Systems.Shared
-import Data.ECS
 
 
 data SoundSystem = SoundSystem 
-    { _sdsPd               :: !PureData
-    , _sdsOpenALSourcePool :: ![(Int, OpenALSource)]
+    { _sndPd               :: !PureData
+    , _sndOpenALSourcePool :: ![(Int, OpenALSource)]
     }
 makeLenses ''SoundSystem
 defineSystemKey ''SoundSystem
@@ -23,11 +22,11 @@ initSoundSystem pd = do
     mapM_ (addToLibPdSearchPath pd)
         ["resources/pd-kit", "resources/pd-kit/list-abs"]
 
-    let soundSystem = SoundSystem { _sdsPd = pd, _sdsOpenALSourcePool = zip [1..] (pdSources pd) }
+    let soundSystem = SoundSystem { _sndPd = pd, _sndOpenALSourcePool = zip [1..] (pdSources pd) }
 
     registerSystem sysSound soundSystem
 
-    registerComponent "PdPatchFile" cmpPdPatchFile (newComponentInterface cmpPdPatchFile)
+    registerComponent "PdPatchFile" cmpPdPatchFile (savedComponentInterface cmpPdPatchFile)
     registerComponent "OpenALSource" cmpOpenALSource (newComponentInterface cmpOpenALSource)
     registerComponent "PdPatch" cmpPdPatch $ (newComponentInterface cmpPdPatch)
         { ciDeriveComponent = Just (derivePdPatchComponent pd) 
@@ -43,15 +42,15 @@ tickSoundSystem headM44 = do
 
 dequeueOpenALSource :: MonadState ECS m => m (Maybe (Int, OpenALSource))
 dequeueOpenALSource = modifySystemState sysSound $ do
-    openALSourcePool <- use sdsOpenALSourcePool
+    openALSourcePool <- use sndOpenALSourcePool
     case openALSourcePool of
         [] -> return Nothing
         (x:xs) -> do
-            sdsOpenALSourcePool .= xs ++ [x]
+            sndOpenALSourcePool .= xs ++ [x]
             return (Just x)
 
 derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => PureData -> m ()
-derivePdPatchComponent pd = 
+derivePdPatchComponent pd = do
     withComponent_ cmpPdPatchFile $ \patchFile -> do
         patch <- makePatch pd patchFile
         cmpPdPatch ==> patch
@@ -64,7 +63,7 @@ derivePdPatchComponent pd =
 
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()
 removePdPatchComponent = do
-    pd <- viewSystem sysSound sdsPd
+    pd <- viewSystem sysSound sndPd
     _ <- withPdPatch $ closePatch pd
 
     removeComponent cmpPdPatch
@@ -79,7 +78,7 @@ withEntityPdPatch entityID = withEntityComponent entityID cmpPdPatch
 
 sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
 sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem -> 
-    send (soundSystem ^. sdsPd) patch receiver message
+    send (soundSystem ^. sndPd) patch receiver message
 
 sendEntityPdPatch :: (MonadIO m, MonadState ECS m) => EntityID -> Receiver -> Message -> m ()
 sendEntityPdPatch entityID receiver message = 
@@ -94,6 +93,6 @@ sendPd receiver message =
 
 readPdArray :: (MonadReader EntityID m, MonadIO m, MonadState ECS m, Integral a) => Receiver -> a -> a -> m [Double]
 readPdArray arrayName offset count = do
-    pd <- viewSystem sysSound sdsPd
+    pd <- viewSystem sysSound sndPd
     fromMaybe [] . join <$> withPdPatch (\patch ->
         readArray pd (local patch arrayName) offset count)

@@ -1,5 +1,10 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Hands where
-
+import Rumpus.Systems.Controls
+import Rumpus.Systems.Physics
+import Rumpus.Systems.Shared
+import PreludeExtra
 data HandsSystem = HandsSystem 
     { _hndLeftHand  :: EntityID
     , _hndRightHand :: EntityID
@@ -9,4 +14,26 @@ makeLenses ''HandsSystem
 
 defineSystemKey ''HandsSystem
 
-tickHandsSystem
+--tickHandsSystem = do
+
+startHandsSystem :: (MonadState ECS m, MonadIO m) => m ()
+startHandsSystem = do
+    vrPal <- viewSystem sysControls ctsVRPal
+    let handColor = V4 0.6 0.6 0.9 1
+    when (gpRoomScale vrPal == RoomScale) $ do
+        _ <- spawnEntity Transient $ do
+            cmpColor ==> handColor
+            cmpSize  ==> V3 0.2 0.2 0.6
+            cmpName  ==> "Left Hand"
+            cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        return ()
+    _ <- spawnEntity Transient $ do
+        cmpColor ==> handColor
+        cmpSize  ==> V3 0.2 0.2 0.6
+        cmpName  ==> "Right Hand"
+        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+    return ()
+
+-- FIXME should update and get hndHead instead
+getHeadPose :: (MonadState ECS m) => m (Pose GLfloat)
+getHeadPose = viewSystem sysControls ctsHeadPose

@@ -26,6 +26,7 @@ type PhysicsProperties = [PhysicsProperty]
 defineSystemKey ''PhysicsSystem
 
 defineComponentKeyWithType "Mass" [t|GLfloat|]
+defineComponentKeyWithType "Gravity" [t|V3 GLfloat|]
 defineComponentKey ''RigidBody
 defineComponentKey ''SpringConstraint
 defineComponentKey ''PhysicsProperties
@@ -44,6 +45,7 @@ initPhysicsSystem = do
                     removeComponent cmpRigidBody
         }
     registerComponent "Mass" cmpMass (defaultComponentInterface cmpMass 1)
+    registerComponent "Gravity" cmpGravity (newComponentInterface cmpGravity)
     registerComponent "SpringConstraint" cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
     registerComponent "PhysicsProperties" cmpPhysicsProperties (savedComponentInterface cmpPhysicsProperties)
     
@@ -66,6 +68,12 @@ deriveRigidBody dynamicsWorld = do
                                   }
             shape     <- createShapeCollider shapeType size
             rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+
+            -- Must happen after addRigidBody
+            mGravity <- getComponent cmpGravity
+            forM_ mGravity $ \gravity -> do
+                setRigidBodyGravity rigidBody gravity
+                setRigidBodyDisableDeactivation rigidBody True
             
             when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
                 setRigidBodyKinematic rigidBody True
@@ -140,5 +148,11 @@ setEntityPose pose entityID = do
     withEntityRigidBody entityID $ \rigidBody -> 
         setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
 
-getEntityPhysProps :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
-getEntityPhysProps entityID = fromMaybe [] <$> getEntityComponent entityID cmpPhysicsProperties
+getEntityPhysicsProperties :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
+getEntityPhysicsProperties entityID = fromMaybe [] <$> getEntityComponent entityID cmpPhysicsProperties
+
+applyForce force = applyForceToEntity force =<< ask
+
+applyForceToEntity force entityID = do
+    withEntityRigidBody entityID $ \rigidBody -> do
+        applyCentralImpulse rigidBody force

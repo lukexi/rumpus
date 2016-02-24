@@ -3,8 +3,6 @@
 module Rumpus.Systems.PlayPause where
 import PreludeExtra
 
-import Data.ECS
-
 data PlayPauseSystem = PlayPauseSystem
     { _plyPlaying :: !Bool
     }

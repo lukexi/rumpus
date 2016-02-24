@@ -1,6 +1,5 @@
 module Rumpus.Systems.Text where
 import PreludeExtra hiding (Key)
-import Data.ECS
 import TinyRick
 import Graphics.GL.Freetype
 

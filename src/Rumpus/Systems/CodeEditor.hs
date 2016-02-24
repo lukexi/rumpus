@@ -5,7 +5,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.CodeEditor where
 import PreludeExtra hiding (Key)
-import Data.ECS
 
 import Graphics.GL.Freetype
 import Halive.SubHalive

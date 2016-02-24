@@ -3,7 +3,6 @@
 module Rumpus.Systems.Attachment where
 import PreludeExtra
 
-import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 
@@ -43,7 +42,7 @@ detachEntity entityID =
 
         removeEntityComponent cmpAttachment entityID
 
-        physProps <- fromMaybe [] <$> getEntityComponent attachedEntityID cmpPhysicsProperties
+        physProps <- getEntityPhysicsProperties attachedEntityID
         unless (IsKinematic `elem` physProps) $ 
             withEntityRigidBody attachedEntityID $ \rigidBody ->
                 setRigidBodyKinematic rigidBody False

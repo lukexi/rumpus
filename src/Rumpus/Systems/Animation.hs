@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Animation where
 import PreludeExtra hiding (Key)
-import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Data.Vault.Strict
