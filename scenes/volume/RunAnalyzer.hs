@@ -15,7 +15,7 @@ update = do
                     cmpParent  ==> rootID
                     cmpPose    ==> headPose
                     cmpGravity ==> 0
-                    cmpColor ==> hslColor (realToFrac note / 100) 0.8 0.6 1
+                    cmpColor   ==> hslColor (realToFrac note / 100) 0.8 0.6 1
                 let headOrient = headPose ^. posOrientation
                 applyForceToEntity (rotate headOrient (V3 0 0 (-2))) childID
             _ -> return ()
