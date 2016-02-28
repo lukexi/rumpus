@@ -13,7 +13,7 @@ data SoundSystem = SoundSystem
 makeLenses ''SoundSystem
 defineSystemKey ''SoundSystem
 
-defineComponentKeyWithType "PdPatch" [t|Patch|]
+defineComponentKeyWithType "PdPatch"     [t|Patch|]
 defineComponentKeyWithType "PdPatchFile" [t|FilePath|]
 defineComponentKey ''OpenALSource
 

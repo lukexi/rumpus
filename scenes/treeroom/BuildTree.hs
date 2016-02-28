@@ -4,9 +4,7 @@ import Rumpus
 
 start :: OnStart
 start = do
-    putStrLnIO "Removing children..."
     removeChildren
-    putStrLnIO "Done removing children."
     
     let branch parentID n pos = do
             childID <- spawnEntity Transient $ do
@@ -21,8 +19,9 @@ start = do
                 cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5 1
                 cmpOnUpdate ==> do
                     now <- sin <$> getNow
-                    cmpPose ==> (newPose & posPosition .~ pos
-                             & posOrientation .~ axisAngle (V3 0 0 1) now)
+                    cmpPose ==> 
+                        (newPose & posPosition .~ pos
+                                 & posOrientation .~ axisAngle (V3 0 1 1) now)
             when (n > 0) $ do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)

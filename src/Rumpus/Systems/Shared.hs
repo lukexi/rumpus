@@ -3,6 +3,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE LambdaCase #-}
 module Rumpus.Systems.Shared where
 import PreludeExtra
 import qualified Data.Map as Map
@@ -17,6 +18,7 @@ defineComponentKeyWithType "Pose"   [t|Pose GLfloat|]
 defineComponentKeyWithType "Size"   [t|V3 GLfloat|]
 defineComponentKeyWithType "Color"  [t|V4 GLfloat|]
 defineComponentKeyWithType "Parent" [t|EntityID|]
+defineComponentKeyWithType "Children" [t|[EntityID]|]
 defineComponentKeyWithType "InheritParentTransform" [t|Bool|]
 
 initSharedSystem :: MonadState ECS m => m ()
@@ -27,16 +29,22 @@ initSharedSystem = do
     registerComponent "Color" cmpColor (defaultComponentInterface cmpColor (V4 1 1 1 1))
     registerComponent "ShapeType" cmpShapeType (defaultComponentInterface cmpShapeType CubeShape)
     registerComponent "Parent" cmpParent $ (newComponentInterface cmpParent)
+        { ciDeriveComponent = Just $ do
+            withComponent_ cmpParent $ \parentID -> do
+                childID <- ask
+                getEntityComponent parentID cmpChildren >>= \case
+                    Nothing -> setEntityComponent cmpChildren [childID] parentID
+                    Just _ ->  modifyEntityComponent parentID cmpChildren (return . (childID:))
+        }
+    registerComponent "Children" cmpChildren $ (newComponentInterface cmpChildren)
         { ciRemoveComponent = removeChildren
         }
     registerComponent "InheritParentTransform" cmpInheritParentTransform (newComponentInterface cmpInheritParentTransform)
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
-removeChildren = do
-    entityID <- ask
-    forEntitiesWithComponent cmpParent $ \(childID, parentID) -> do
-        when (parentID == entityID) $ 
-            removeEntity childID
+removeChildren = 
+    withComponent_ cmpChildren (mapM_ removeEntity)
+
 
 setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
 setEntityColor newColor entityID = setEntityComponent cmpColor newColor entityID
