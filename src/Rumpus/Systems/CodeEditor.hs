@@ -41,9 +41,9 @@ makeLenses ''CodeEditorSystem
 
 defineSystemKey ''CodeEditorSystem
 
-defineComponentKeyWithType "OnStartExpr"     [t|CodeFile|]
-defineComponentKeyWithType "OnUpdateExpr"    [t|CodeFile|]
-defineComponentKeyWithType "OnCollisionExpr" [t|CodeFile|]
+defineComponentKeyWithType "OnStartExpr"          [t|CodeFile|]
+defineComponentKeyWithType "OnUpdateExpr"         [t|CodeFile|]
+defineComponentKeyWithType "OnCollisionExpr"      [t|CodeFile|]
 defineComponentKeyWithType "OnCollisionStartExpr" [t|CodeFile|]
 
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
@@ -103,8 +103,16 @@ registerWithCodeEditor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                        -> Key (EntityMap a)
                        -> m ()
 registerWithCodeEditor codeFile codeComponentKey = modifySystemState sysCodeEditor $ do
+
+    entityID <- ask
+    let updateCompiledCode newValue = do
+            putStrLnIO ("Setting " ++ show entityID ++ " " ++ show codeFile)
+            setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
+                
     use (cesCodeEditors . at codeFile) >>= \case
-        Just _ -> return ()
+        Just _ -> do
+            cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCompiledCode
+            return ()
         Nothing -> do
             ghcChan <- use cesGHCChan
             font    <- use cesFont
@@ -113,17 +121,16 @@ registerWithCodeEditor codeFile codeComponentKey = modifySystemState sysCodeEdit
             resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
             codeRenderer  <- textRendererFromFile font scriptPath
             errorRenderer <- createTextRenderer font (textBufferFromString "noFile" "")
-            entityID <- ask
+            
             let codeEditor = CodeEditor 
                     { _cedCodeRenderer = codeRenderer
                     , _cedErrorRenderer = errorRenderer
                     , _cedResultTChan = resultTChan 
-                    , _cedDependents = Map.singleton entityID (\newValue -> do
-                        putStrLnIO ("Setting " ++ show entityID ++ " " ++ show codeFile)
-                        setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
-                        )
+                    , _cedDependents = Map.singleton entityID updateCompiledCode
                     }
             cesCodeEditors . at codeFile ?= codeEditor
+
+--createCodeEditor = 
 
 unregisterWithCodeEditor :: (MonadReader EntityID m, MonadState ECS m) => CodeFile -> m ()
 unregisterWithCodeEditor codeFile = modifySystemState sysCodeEditor $ do

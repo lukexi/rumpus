@@ -12,10 +12,10 @@ start = do
                 cmpPose   ==> 
                     (newPose & posPosition .~ pos
                              & posOrientation .~ axisAngle (V3 0 0 1) 0.3)
-                cmpShapeType              ==> CubeShape
+                cmpShapeType              ==> SphereShape
                 cmpPhysicsProperties      ==> [NoPhysicsShape]
                 cmpInheritParentTransform ==> True
-                cmpSize ==> (V3 0.5 0.6 0.5)
+                cmpSize                   ==> V3 0.5 0.6 0.6
                 cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5 1
                 cmpOnUpdate ==> do
                     now <- sin <$> getNow

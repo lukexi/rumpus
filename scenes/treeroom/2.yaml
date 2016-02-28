@@ -1,8 +1,4 @@
 ShapeType: CubeShape
-Size:
-- 0.8858861
-- 0.9990786
-- 0.3394575
 Pose:
   Orientation:
   - 1
@@ -10,9 +6,9 @@ Pose:
     - 0.0
     - 0.0
   Position:
-  - -1.0649397
-  - 1.177288
-  - -0.21302652
+  - 0.4717945
+  - 1.3322599
+  - -0.2560575
 PhysicsProperties:
 - IsKinematic
 - NoContactResponse
