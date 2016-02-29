@@ -13,12 +13,12 @@ data ShapeType = CubeShape | SphereShape | StaticPlaneShape
 defineComponentKey ''ShapeType
 
 
-defineComponentKeyWithType "Name"   [t|String|]
-defineComponentKeyWithType "Pose"   [t|Pose GLfloat|]
-defineComponentKeyWithType "Size"   [t|V3 GLfloat|]
-defineComponentKeyWithType "Color"  [t|V4 GLfloat|]
-defineComponentKeyWithType "Parent" [t|EntityID|]
-defineComponentKeyWithType "Children" [t|[EntityID]|]
+defineComponentKeyWithType "Name"                   [t|String|]
+defineComponentKeyWithType "Pose"                   [t|Pose GLfloat|]
+defineComponentKeyWithType "Size"                   [t|V3 GLfloat|]
+defineComponentKeyWithType "Color"                  [t|V4 GLfloat|]
+defineComponentKeyWithType "Parent"                 [t|EntityID|]
+defineComponentKeyWithType "Children"               [t|[EntityID]|]
 defineComponentKeyWithType "InheritParentTransform" [t|Bool|]
 
 initSharedSystem :: MonadState ECS m => m ()

@@ -108,10 +108,7 @@ renderEntities projM44 viewM44 = do
         forM_ entityIDsForShape $ \entityID -> do
 
             color <- getEntityColor entityID
-            --size  <- getEntitySize entityID
-            --pose  <- getEntityPose entityID
 
-            --let model = transformationFromPose pose !*! scaleMatrix size
             model <- getEntityTotalModelMatrix entityID
             uniformM44 uModelViewProjection (projViewM44 !*! model)
             uniformM44 uInverseModel        (inv44 model)

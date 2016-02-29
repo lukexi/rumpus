@@ -6,3 +6,8 @@ Uniform component; can just be an ECSMonad action that does whatever it wants in
 (could just name this PreRenderAction or something)
 
 RenderGroup? Could combine uniform plus shader?
+
+
+
+
+https://forum.beyond3d.com/threads/modern-textureless-deferred-rendering-techniques.57611/
