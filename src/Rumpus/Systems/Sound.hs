@@ -17,6 +17,10 @@ defineComponentKeyWithType "PdPatch"     [t|Patch|]
 defineComponentKeyWithType "PdPatchFile" [t|FilePath|]
 defineComponentKey ''OpenALSource
 
+addPdPatchSearchPath path = do
+    pd <- viewSystem sysSound sndPd
+    addToLibPdSearchPath pd path
+
 initSoundSystem :: (MonadState ECS m, MonadIO m) => PureData -> m ()
 initSoundSystem pd = do
     mapM_ (addToLibPdSearchPath pd)
@@ -80,8 +84,8 @@ sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -
 sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem -> 
     send (soundSystem ^. sndPd) patch receiver message
 
-sendEntityPdPatch :: (MonadIO m, MonadState ECS m) => EntityID -> Receiver -> Message -> m ()
-sendEntityPdPatch entityID receiver message = 
+sendEntityPd :: (MonadIO m, MonadState ECS m) => EntityID -> Receiver -> Message -> m ()
+sendEntityPd entityID receiver message = 
     void . withEntityPdPatch entityID $ \patch -> 
         sendToPdPatch patch receiver message
 

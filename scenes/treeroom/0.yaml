@@ -10,9 +10,9 @@ Pose:
     - 0.0
     - 0.0
   Position:
-  - -1.0649397
-  - 1.177288
-  - -0.21302652
+  - -1.1107923
+  - 1.1116099
+  - -6.2873125e-2
 PhysicsProperties:
 - IsKinematic
 - NoContactResponse

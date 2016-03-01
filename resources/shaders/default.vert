@@ -2,7 +2,6 @@
 
 uniform mat4 uModel;
 uniform mat4 uModelViewProjection;
-uniform mat4 uInverseModel;
 
 in      vec3 aPosition;
 in      vec3 aNormal;

@@ -198,3 +198,7 @@ https://www.youtube.com/user/johnChapman
 NETWORKING:
 http://enet.bespin.org/Features.html
 
+http://gameprogrammingpatterns.com/game-loop.html
+
+
+http://graphics.cs.williams.edu/papers/TransparencyI3D16/

@@ -6,6 +6,7 @@
 module Rumpus.Systems.Selection where
 import Data.ECS
 import PreludeExtra
+import Rumpus.Systems.Sound
 
 data Scene = Scene
     { _scnFolder :: !FilePath
@@ -36,8 +37,9 @@ initSelectionSystem = do
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneName = do
     let sceneFolder = scenesRoot </> sceneName
-    printIO sceneFolder
+    putStrLnIO $ "Loading scene: " ++ sceneFolder
     modifySystemState sysSelection (selScene . scnFolder .= sceneFolder)
+    addPdPatchSearchPath sceneFolder
     loadEntities sceneFolder
 
 saveScene :: ECSMonad ()

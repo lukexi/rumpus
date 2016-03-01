@@ -4,5 +4,5 @@ import Rumpus
 collision :: OnCollision
 collision entityID _collidedID impulse = when (impulse > 0.1) $ do
     
-    sendEntityPdPatch entityID "note"    (Atom 48)
-    sendEntityPdPatch entityID "trigger" (Atom (realToFrac impulse))
+    sendEntityPd entityID "note"    (Atom 48)
+    sendEntityPd entityID "trigger" (Atom (realToFrac impulse))

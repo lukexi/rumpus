@@ -16,7 +16,6 @@ import TinyRick
 
 data Uniforms = Uniforms
     { uModelViewProjection :: UniformLocation (M44 GLfloat)
-    , uInverseModel        :: UniformLocation (M44 GLfloat)
     , uModel               :: UniformLocation (M44 GLfloat)
     , uCamera              :: UniformLocation (V3  GLfloat)
     , uDiffuse             :: UniformLocation (V4  GLfloat)
@@ -111,7 +110,6 @@ renderEntities projM44 viewM44 = do
 
             model <- getEntityTotalModelMatrix entityID
             uniformM44 uModelViewProjection (projViewM44 !*! model)
-            uniformM44 uInverseModel        (inv44 model)
             uniformM44 uModel               model
             uniformV4  uDiffuse             color
 

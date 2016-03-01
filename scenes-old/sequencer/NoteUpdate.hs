@@ -7,4 +7,4 @@ update entityID = do
     let height = pose ^. posPosition . _y
         note = floor (height * 24 + 48) :: Int
     
-    sendEntityPdPatch entityID "note" (Atom (fromIntegral note))
+    sendEntityPd entityID "note" (Atom (fromIntegral note))
