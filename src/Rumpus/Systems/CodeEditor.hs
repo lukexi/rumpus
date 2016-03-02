@@ -104,33 +104,36 @@ registerWithCodeEditor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                        -> m ()
 registerWithCodeEditor codeFile codeComponentKey = modifySystemState sysCodeEditor $ do
 
-    entityID <- ask
-    let updateCompiledCode newValue = do
-            putStrLnIO ("Setting " ++ show entityID ++ " " ++ show codeFile)
-            setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
-                
     use (cesCodeEditors . at codeFile) >>= \case
-        Just _ -> do
-            cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCompiledCode
-            return ()
+        Just _ -> return ()
         Nothing -> do
-            ghcChan <- use cesGHCChan
-            font    <- use cesFont
-
-            let (scriptPath, exprString) = codeFile
-            resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
-            codeRenderer  <- textRendererFromFile font scriptPath
-            errorRenderer <- createTextRenderer font (textBufferFromString "noFile" "")
-            
-            let codeEditor = CodeEditor 
-                    { _cedCodeRenderer = codeRenderer
-                    , _cedErrorRenderer = errorRenderer
-                    , _cedResultTChan = resultTChan 
-                    , _cedDependents = Map.singleton entityID updateCompiledCode
-                    }
+            codeEditor <- createCodeEditor codeFile
             cesCodeEditors . at codeFile ?= codeEditor
+    addCodeEditorDependency codeFile codeComponentKey
 
---createCodeEditor = 
+
+addCodeEditorDependency codeFile codeComponentKey = do
+    entityID <- ask
+    let updateCode newValue = do
+            putStrLnIO $ "Setting code  " ++ show codeFile ++ " on entity: " ++ show entityID
+            setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
+    cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCode
+
+createCodeEditor codeFile = do
+    ghcChan <- use cesGHCChan
+    font    <- use cesFont
+
+    let (scriptPath, exprString) = codeFile
+    resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
+    codeRenderer  <- textRendererFromFile font scriptPath
+    errorRenderer <- createTextRenderer font (textBufferFromString "noFile" "")
+    
+    return CodeEditor 
+            { _cedCodeRenderer = codeRenderer
+            , _cedErrorRenderer = errorRenderer
+            , _cedResultTChan = resultTChan 
+            , _cedDependents = mempty
+            }  
 
 unregisterWithCodeEditor :: (MonadReader EntityID m, MonadState ECS m) => CodeFile -> m ()
 unregisterWithCodeEditor codeFile = modifySystemState sysCodeEditor $ do
@@ -175,6 +178,7 @@ tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
                 errorRenderer <- createTextRenderer font (textBufferFromString "errorMessage" "")
                 cesCodeEditors . ix codeFileKey . cedErrorRenderer .= errorRenderer
 
+                -- Pass the compiled value to each registered "dependent" of the code editor
                 dependents <- use (cesCodeEditors . ix codeFileKey . cedDependents)
                 lift $ forM_ dependents ($ compiledValue)
 
