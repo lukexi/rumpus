@@ -133,6 +133,7 @@ Demos:
 - Fractal Flower room
 - Drum machine
 - Fireworks (!)
+    Fire streamers from hands that explode when hitting a surface, all with positional sound
 - Mandelbox
     https://vimeo.com/152795080
 - Wind chimes
@@ -202,3 +203,4 @@ http://gameprogrammingpatterns.com/game-loop.html
 
 
 http://graphics.cs.williams.edu/papers/TransparencyI3D16/
+https://tel.github.io/posts/mutable_algorithms_in_immutable_languages_part_3/

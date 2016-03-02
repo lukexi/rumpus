@@ -34,11 +34,12 @@ initSoundSystem pd = do
     registerComponent "OpenALSource" cmpOpenALSource (newComponentInterface cmpOpenALSource)
     registerComponent "PdPatch" cmpPdPatch $ (newComponentInterface cmpPdPatch)
         { ciDeriveComponent = Just (derivePdPatchComponent pd) 
-        , ciRemoveComponent = removePdPatchComponent }
+        , ciRemoveComponent = removePdPatchComponent 
+        }
 
 tickSoundSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickSoundSystem headM44 = do
-    -- Update souce and listener poitions
+    -- Update source and listener positions
     alListenerPose (poseFromMatrix headM44)
     forEntitiesWithComponent cmpOpenALSource $ \(entityID, sourceID) -> do
         position <- view posPosition <$> getEntityPose entityID

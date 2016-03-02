@@ -12,10 +12,10 @@ data WorldEvent = GLFWEvent Event
                 deriving Show
 
 data ControlsSystem = ControlsSystem
-    { _ctsVRPal   :: !VRPal
-    , _ctsPlayer  :: !(Pose GLfloat)
-    , _ctsEvents  :: ![WorldEvent]
-    , _ctsHeadPose :: !(Pose GLfloat) -- FIXME this should just update the entity in Hands
+    { _ctsVRPal    :: !VRPal
+    , _ctsPlayer   :: !(Pose GLfloat)
+    , _ctsEvents   :: ![WorldEvent]
+    , _ctsHeadPose :: !(Pose GLfloat) -- FIXME this should just update the entity representing the head in Hands
     }
 makeLenses ''ControlsSystem
 defineSystemKey ''ControlsSystem

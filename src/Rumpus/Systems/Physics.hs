@@ -25,7 +25,7 @@ type PhysicsProperties = [PhysicsProperty]
 
 defineSystemKey ''PhysicsSystem
 
-defineComponentKeyWithType "Mass" [t|GLfloat|]
+defineComponentKeyWithType "Mass"    [t|GLfloat|]
 defineComponentKeyWithType "Gravity" [t|V3 GLfloat|]
 defineComponentKey ''RigidBody
 defineComponentKey ''SpringConstraint
@@ -44,9 +44,9 @@ initPhysicsSystem = do
                     removeRigidBody dynamicsWorld rigidBody
                     removeComponent cmpRigidBody
         }
-    registerComponent "Mass" cmpMass (defaultComponentInterface cmpMass 1)
-    registerComponent "Gravity" cmpGravity (newComponentInterface cmpGravity)
-    registerComponent "SpringConstraint" cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
+    registerComponent "Mass"              cmpMass (defaultComponentInterface cmpMass 1)
+    registerComponent "Gravity"           cmpGravity (newComponentInterface cmpGravity)
+    registerComponent "SpringConstraint"  cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
     registerComponent "PhysicsProperties" cmpPhysicsProperties (savedComponentInterface cmpPhysicsProperties)
     
 

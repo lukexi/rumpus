@@ -23,8 +23,8 @@ Need to support:
 - [x] Move Selection to its own system so CodeEditor and SceneEditor can use it
 
 - [ ] Add FocusedCodeEditor to CodeEditor to use rather than selectedEntity
-- [ ] Improve "editable code" structure to let systems register code with the CodeEditor
-      rather than manually updating everything in there.
+- [ ] Improve "editable code" structure to let systems register code components 
+      with the CodeEditor rather than manually listing and updating everything in there.
 - [ ] HandSystem that simply spawns (transiently) and records the IDs of the hands
 
 - [x] PlayPause -> System?
@@ -43,7 +43,7 @@ Need to support:
 
 Must distinguish between derived and persistent properties.
 E.g. rigidBody, animation, codeEditor, etc. are derived.
-We need a descriptor for animations.
+We need a descriptor for animations so they can be saved.
 
 We also want a way to define a default set of properties.
 Size, Color, Position, Shape (eventually, Shader)

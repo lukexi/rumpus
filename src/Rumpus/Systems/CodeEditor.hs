@@ -76,9 +76,9 @@ initCodeEditorSystem = do
         }
 
     -- Will require (scriptPath, "start") (or "update" or "collision") to be added somewhere!
-    registerCodeExprComponent "OnStartExpr"     cmpOnStartExpr     cmpOnStart
-    registerCodeExprComponent "OnUpdateExpr"    cmpOnUpdateExpr    cmpOnUpdate
-    registerCodeExprComponent "OnCollisionExpr" cmpOnCollisionExpr cmpOnCollision
+    registerCodeExprComponent "OnStartExpr"          cmpOnStartExpr          cmpOnStart
+    registerCodeExprComponent "OnUpdateExpr"         cmpOnUpdateExpr         cmpOnUpdate
+    registerCodeExprComponent "OnCollisionExpr"      cmpOnCollisionExpr      cmpOnCollision
     registerCodeExprComponent "OnCollisionStartExpr" cmpOnCollisionStartExpr cmpOnCollisionStart
 
 registerCodeExprComponent :: MonadState ECS m 
