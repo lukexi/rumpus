@@ -81,6 +81,7 @@ initCodeEditorSystem = do
     registerCodeExprComponent "OnCollisionExpr"      cmpOnCollisionExpr      cmpOnCollision
     registerCodeExprComponent "OnCollisionStartExpr" cmpOnCollisionStartExpr cmpOnCollisionStart
 
+
 registerCodeExprComponent :: MonadState ECS m 
                           => String
                           -> Key (EntityMap CodeFile) 
@@ -111,7 +112,8 @@ registerWithCodeEditor codeFile codeComponentKey = modifySystemState sysCodeEdit
             cesCodeEditors . at codeFile ?= codeEditor
     addCodeEditorDependency codeFile codeComponentKey
 
-
+addCodeEditorDependency :: (MonadState CodeEditorSystem m, MonadReader EntityID m) 
+                        => (FilePath, String) -> Key (EntityMap a) -> m ()
 addCodeEditorDependency codeFile codeComponentKey = do
     entityID <- ask
     let updateCode newValue = do
@@ -119,6 +121,8 @@ addCodeEditorDependency codeFile codeComponentKey = do
             setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
     cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCode
 
+createCodeEditor :: (MonadIO m, MonadState CodeEditorSystem m) 
+                 => (FilePath, String) -> m CodeEditor
 createCodeEditor codeFile = do
     ghcChan <- use cesGHCChan
     font    <- use cesFont
