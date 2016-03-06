@@ -5,7 +5,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 module Rumpus.Systems.Physics where
 import PreludeExtra
-import Data.ECS
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 

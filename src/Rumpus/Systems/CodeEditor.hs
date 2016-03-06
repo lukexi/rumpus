@@ -130,7 +130,7 @@ createCodeEditor codeFile = do
     let (scriptPath, exprString) = codeFile
     resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
     codeRenderer  <- textRendererFromFile font scriptPath
-    errorRenderer <- createTextRenderer font (textBufferFromString "noFile" "")
+    errorRenderer <- createTextRenderer font (textBufferFromString "")
     
     return CodeEditor 
             { _cedCodeRenderer = codeRenderer
@@ -175,11 +175,11 @@ tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
             Just (Left errors) -> do
                 let allErrors = unlines errors
                 putStrLnIO allErrors
-                errorRenderer <- createTextRenderer font (textBufferFromString "errorMessage" allErrors)
+                errorRenderer <- createTextRenderer font (textBufferFromString allErrors)
                 cesCodeEditors . ix codeFileKey . cedErrorRenderer .= errorRenderer
             Just (Right compiledValue) -> do
                 -- Clear the error renderer
-                errorRenderer <- createTextRenderer font (textBufferFromString "errorMessage" "")
+                errorRenderer <- createTextRenderer font (textBufferFromString "")
                 cesCodeEditors . ix codeFileKey . cedErrorRenderer .= errorRenderer
 
                 -- Pass the compiled value to each registered "dependent" of the code editor
@@ -203,8 +203,8 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     let model44 = transformationFromPose pose
         codeRenderer = editor ^. cedCodeRenderer
         handRay = poseToRay handPose (V3 0 0 (-1))
-    updatedRenderer  <- MaybeT $ castRayToTextRenderer handRay codeRenderer model44
-    
+    updatedRenderer  <- setCursorTextRendererWithRay handRay codeRenderer model44
+
     modifySystemState sysCodeEditor $ 
         cesCodeEditors . ix codeFileKey . cedCodeRenderer .= updatedRenderer
     

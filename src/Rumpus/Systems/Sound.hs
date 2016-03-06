@@ -17,6 +17,7 @@ defineComponentKeyWithType "PdPatch"     [t|Patch|]
 defineComponentKeyWithType "PdPatchFile" [t|FilePath|]
 defineComponentKey ''OpenALSource
 
+addPdPatchSearchPath :: (MonadIO m, MonadState ECS m) => String -> m ()
 addPdPatchSearchPath path = do
     pd <- viewSystem sysSound sndPd
     addToLibPdSearchPath pd path

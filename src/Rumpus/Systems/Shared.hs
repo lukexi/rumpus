@@ -80,5 +80,8 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID cmpColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
+getEntityInheritParentTransform :: (HasComponents s, MonadState s f) => EntityID -> f Bool
 getEntityInheritParentTransform entityID = fromMaybe False <$> getEntityComponent entityID cmpInheritParentTransform
-getInheritParentTransform entityID = getEntityInheritParentTransform =<< ask
+
+getInheritParentTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m Bool
+getInheritParentTransform = getEntityInheritParentTransform =<< ask

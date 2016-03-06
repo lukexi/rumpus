@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase #-}
 module Rumpus.Systems.Render where
 import PreludeExtra
 
@@ -127,8 +128,7 @@ getEntityTotalModelMatrix startEntityID = do
             inheritParent <- getEntityInheritParentTransform entityID
             if inheritParent 
                 then do
-                    parent <- getEntityComponent entityID cmpParent
-                    case parent of
+                    getEntityComponent entityID cmpParent >>= \case
                         Just parent -> (!*! model) <$> go parent
                         Nothing -> return model
                 else return model
