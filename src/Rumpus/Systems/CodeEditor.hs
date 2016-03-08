@@ -18,8 +18,7 @@ import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import qualified Data.Map as Map
 import Control.Monad.Trans.Maybe
-import Data.Vault.Strict (Key)
-
+import Data.ECS.Vault
 -- | Pairs a filename along with an expression 
 -- to evaluate in that filename's environment once compiled
 type CodeFile = (FilePath, String)

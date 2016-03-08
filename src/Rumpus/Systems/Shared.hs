@@ -10,9 +10,8 @@ import qualified Data.Map as Map
 
 data ShapeType = CubeShape | SphereShape | StaticPlaneShape 
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
+
 defineComponentKey ''ShapeType
-
-
 defineComponentKeyWithType "Name"                   [t|String|]
 defineComponentKeyWithType "Pose"                   [t|Pose GLfloat|]
 defineComponentKeyWithType "Size"                   [t|V3 GLfloat|]
@@ -21,7 +20,7 @@ defineComponentKeyWithType "Parent"                 [t|EntityID|]
 defineComponentKeyWithType "Children"               [t|[EntityID]|]
 defineComponentKeyWithType "InheritParentTransform" [t|Bool|]
 
-initSharedSystem :: MonadState ECS m => m ()
+initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
     registerComponent "Name" cmpName (defaultComponentInterface cmpName "New Entity")
     registerComponent "Pose" cmpPose (defaultComponentInterface cmpPose newPose)

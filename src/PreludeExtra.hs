@@ -33,7 +33,7 @@ import Graphics.VR.Pal as Exports
 import Sound.Pd as Exports
 import Physics.Bullet as Exports
 import Animation.Pal as Exports hiding (getNow)
-import Data.ECS as Exports
+import Data.ECS as Exports hiding (Key)
 
 import qualified Data.Map as Map
 

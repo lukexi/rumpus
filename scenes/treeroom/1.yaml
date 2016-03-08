@@ -6,9 +6,9 @@ Pose:
     - 0.0
     - 0.0
   Position:
-  - 1.5611804
-  - 1.5686654
-  - -4.481101e-2
+  - 1.4539758
+  - 0.45146215
+  - -1.7645597e-2
 PhysicsProperties:
 - IsKinematic
 - NoContactResponse

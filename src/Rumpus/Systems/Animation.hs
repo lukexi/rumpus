@@ -4,7 +4,7 @@ module Rumpus.Systems.Animation where
 import PreludeExtra hiding (Key)
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
-import Data.Vault.Strict
+import Data.ECS.Vault
 
 defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
 defineComponentKeyWithType "SizeAnimation"  [t|Animation (V3 GLfloat)|]
