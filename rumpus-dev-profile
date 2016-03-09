@@ -1,0 +1,1 @@
+stack build --executable-profiling --library-profiling --file-watch --exec "rumpus $1 +RTS -hc"

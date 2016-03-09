@@ -57,7 +57,8 @@ deriveRigidBody dynamicsWorld = do
 
             mass <- fromMaybe 1 <$> getComponent cmpMass
             size <- getSize
-            pose <- getPose
+            poseM44 <- getPose
+            let pose = poseFromMatrix poseM44
             
             collisionID <- CollisionObjectID <$> ask
             let bodyInfo = mempty { rbPosition = pose ^. posPosition
@@ -93,7 +94,7 @@ tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
     forEntitiesWithComponent cmpRigidBody $
         \(entityID, rigidBody) -> runEntity entityID $ do
             pose <- uncurry Pose <$> getBodyState rigidBody
-            setComponent cmpPose pose
+            setComponent cmpPose (transformationFromPose pose)
 
 
 
@@ -135,22 +136,25 @@ setEntitySize newSize entityID = do
             shape      <- createShapeCollider shapeType newSize
             setRigidBodyShape dynamicsWorld rigidBody shape mass
 
-setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Pose GLfloat -> m ()
+setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => M44 GLfloat -> m ()
 setPose pose = setEntityPose pose =<< ask
 
-setEntityPose :: (MonadState ECS m, MonadIO m) => Pose GLfloat -> EntityID -> m ()
-setEntityPose pose entityID = do
+setEntityPose :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> EntityID -> m ()
+setEntityPose poseM44 entityID = do
 
-    setEntityComponent cmpPose pose entityID
+    setEntityComponent cmpPose poseM44 entityID
 
-    withEntityRigidBody entityID $ \rigidBody -> 
+    withEntityRigidBody entityID $ \rigidBody -> do
+        let pose = poseFromMatrix poseM44
         setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
 
 getEntityPhysicsProperties :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
 getEntityPhysicsProperties entityID = fromMaybe [] <$> getEntityComponent entityID cmpPhysicsProperties
 
+applyForce :: (Real a, MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 a -> m ()
 applyForce force = applyForceToEntity force =<< ask
 
+applyForceToEntity :: (Real a, MonadIO m, MonadState ECS m) => V3 a -> EntityID -> m ()
 applyForceToEntity force entityID = do
     withEntityRigidBody entityID $ \rigidBody -> do
         applyCentralImpulse rigidBody force

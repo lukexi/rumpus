@@ -6,7 +6,7 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 
-data Attachment = Attachment EntityID (Pose GLfloat)
+data Attachment = Attachment EntityID (M44 GLfloat)
 
 defineComponentKey ''Attachment
 
@@ -19,7 +19,7 @@ tickAttachmentSystem =
     forEntitiesWithComponent cmpAttachment $
         \(entityID, Attachment toEntityID offset) -> do
             pose <- getEntityPose entityID
-            setEntityPose (pose `addPose` offset) toEntityID
+            setEntityPose (pose `addMatrix` offset) toEntityID
 
 
 attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
@@ -29,12 +29,15 @@ attachEntity entityID toEntityID = do
 
     entityPose   <- getEntityPose entityID
     toEntityPose <- getEntityPose toEntityID
-    let offset = toEntityPose `subtractPose` entityPose
+    let offset = toEntityPose `subtractMatrix` entityPose
     addEntityComponent cmpAttachment (Attachment toEntityID offset) entityID
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
-
+addMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
+addMatrix a b = a !*! b
+subtractMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
+subtractMatrix a b = inv44 b !*! a
 
 detachEntity :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
 detachEntity entityID =

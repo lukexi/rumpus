@@ -97,14 +97,14 @@ selectEntity entityID = do
 
 beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
-    startPos <- view posPosition <$> getEntityPose handEntityID
+    startPos <- view translation <$> getEntityPose handEntityID
     setEntityComponent cmpDrag (Drag handEntityID startPos) draggedID
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
     forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID startPos) ->
         when (handEntityID == draggingHandEntityID) $ do
-            currentPose <- view posPosition <$> getEntityPose handEntityID
+            currentPose <- view translation <$> getEntityPose handEntityID
             let dragDistance = currentPose - startPos
 
             runEntity entityID $ 
@@ -117,7 +117,7 @@ endDrag endingDragHandEntityID = do
         when (handEntityID == endingDragHandEntityID) $
             removeComponent cmpDrag
 
-spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => Pose GLfloat -> m EntityID
+spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity Persistent $ do
     cmpPose          ==> pose 
     cmpShapeType     ==> CubeShape
@@ -130,7 +130,7 @@ tickSceneEditorSystem = do
             mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
             forM_ mHandEntityID $ \handEntityID -> case event of
                 HandStateEvent hand -> do
-                    setEntityPose (poseFromMatrix (hand ^. hndMatrix)) handEntityID
+                    setEntityPose (hand ^. hndMatrix) handEntityID
                     continueDrag handEntityID
                 HandButtonEvent HandButtonGrip ButtonDown -> do
                     handPose <- getEntityPose handEntityID
@@ -163,7 +163,8 @@ tickSceneEditorSystem = do
                     -- If we've selected something, show the keyboard on grip-up
                     traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \_selectedID -> do
                         vrPal <- viewSystem sysControls ctsVRPal
-                        showHandKeyboard vrPal
+                        -- showHandKeyboard vrPal
+                        return ()
 
                     
                     saveScene

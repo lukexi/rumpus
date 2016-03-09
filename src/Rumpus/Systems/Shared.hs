@@ -13,7 +13,7 @@ data ShapeType = CubeShape | SphereShape | StaticPlaneShape
 
 defineComponentKey ''ShapeType
 defineComponentKeyWithType "Name"                   [t|String|]
-defineComponentKeyWithType "Pose"                   [t|Pose GLfloat|]
+defineComponentKeyWithType "Pose"                   [t|M44 GLfloat|]
 defineComponentKeyWithType "Size"                   [t|V3 GLfloat|]
 defineComponentKeyWithType "Color"                  [t|V4 GLfloat|]
 defineComponentKeyWithType "Parent"                 [t|EntityID|]
@@ -23,7 +23,7 @@ defineComponentKeyWithType "InheritParentTransform" [t|Bool|]
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
     registerComponent "Name" cmpName (defaultComponentInterface cmpName "New Entity")
-    registerComponent "Pose" cmpPose (defaultComponentInterface cmpPose newPose)
+    registerComponent "Pose" cmpPose (newComponentInterface cmpPose)
     registerComponent "Size" cmpSize (defaultComponentInterface cmpSize (V3 1 1 1))
     registerComponent "Color" cmpColor (defaultComponentInterface cmpColor (V4 1 1 1 1))
     registerComponent "ShapeType" cmpShapeType (defaultComponentInterface cmpShapeType CubeShape)
@@ -61,10 +61,10 @@ getEntityName entityID = fromMaybe "No Name" <$> getEntityComponent entityID cmp
 getName :: (MonadReader EntityID m, MonadState ECS m) => m String
 getName = getEntityName =<< ask
 
-getEntityPose :: MonadState ECS m => EntityID -> m (Pose GLfloat)
-getEntityPose entityID = fromMaybe newPose <$> getEntityComponent entityID cmpPose
+getEntityPose :: MonadState ECS m => EntityID -> m (M44 GLfloat)
+getEntityPose entityID = fromMaybe identity <$> getEntityComponent entityID cmpPose
 
-getPose :: (MonadReader EntityID m, MonadState ECS m) => m (Pose GLfloat)
+getPose :: (MonadReader EntityID m, MonadState ECS m) => m (M44 GLfloat)
 getPose = getEntityPose =<< ask
 
 getEntitySize :: MonadState ECS m => EntityID -> m (V3 GLfloat)

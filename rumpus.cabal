@@ -70,6 +70,7 @@ executable rumpus
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -O2 -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -s"
   -- Fixes unknown ___dso_handle symbol
   -- A different bug than what halive was hitting (https://ghc.haskell.org/trac/ghc/ticket/9278)
   -- but maybe just masking it and that one would pop up later.

@@ -43,7 +43,7 @@ tickSoundSystem headM44 = do
     -- Update source and listener positions
     alListenerPose (poseFromMatrix headM44)
     forEntitiesWithComponent cmpOpenALSource $ \(entityID, sourceID) -> do
-        position <- view posPosition <$> getEntityPose entityID
+        position <- view translation <$> getEntityPose entityID
         alSourcePosition sourceID position
 
 dequeueOpenALSource :: MonadState ECS m => m (Maybe (Int, OpenALSource))

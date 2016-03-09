@@ -15,7 +15,7 @@ data ControlsSystem = ControlsSystem
     { _ctsVRPal    :: !VRPal
     , _ctsPlayer   :: !(Pose GLfloat)
     , _ctsEvents   :: ![WorldEvent]
-    , _ctsHeadPose :: !(Pose GLfloat) -- FIXME this should just update the entity representing the head in Hands
+    , _ctsHeadPose :: !(M44 GLfloat) -- FIXME this should just update the entity representing the head in Hands
     }
 makeLenses ''ControlsSystem
 defineSystemKey ''ControlsSystem
@@ -28,13 +28,13 @@ initControlsSystem vrPal = do
                             then newPose
                             else newPose & posPosition .~ V3 0 1 3
             , _ctsEvents = []
-            , _ctsHeadPose = newPose
+            , _ctsHeadPose = identity
             }
 
 
 tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
 tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $ do
-    ctsHeadPose .= poseFromMatrix headM44
+    ctsHeadPose .= headM44
 
     vrPal@VRPal{..} <- use ctsVRPal
 

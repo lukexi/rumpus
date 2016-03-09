@@ -9,22 +9,18 @@ start = do
     let branch parentID n pos = do
             childID <- spawnEntity Transient $ do
                 cmpParent ==> parentID
-                cmpPose   ==> 
-                    (newPose & posPosition .~ pos
-                             & posOrientation .~ axisAngle (V3 0 0 1) 0.3)
-                cmpShapeType              ==> SphereShape
+                cmpPose   ==> mkTransformation (axisAngle (V3 0 0 1) 0.3) pos
+                cmpShapeType              ==> CubeShape
                 cmpPhysicsProperties      ==> [NoPhysicsShape]
                 cmpInheritParentTransform ==> True
                 cmpSize                   ==> V3 0.5 0.6 0.6
                 cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5 1
                 cmpOnUpdate ==> do
                     now <- sin <$> getNow
-                    cmpPose ==> 
-                        (newPose & posPosition .~ pos
-                                 & posOrientation .~ axisAngle (V3 0 1 1) now)
+                    cmpPose ==> mkTransformation (axisAngle (V3 0 1 1) now) pos
             when (n > 0) $ do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
-    branch rootEntityID 5 0
+    branch rootEntityID (3::Int) 0
     return Nothing

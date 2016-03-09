@@ -23,17 +23,17 @@ startHandsSystem = do
     when (gpRoomScale vrPal == RoomScale) $ do
         _ <- spawnEntity Transient $ do
             cmpColor ==> handColor
-            cmpSize  ==> V3 0.2 0.2 0.6
+            cmpSize  ==> V3 0.1 0.1 0.3
             cmpName  ==> "Left Hand"
             cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         return ()
     _ <- spawnEntity Transient $ do
         cmpColor ==> handColor
-        cmpSize  ==> V3 0.2 0.2 0.6
+        cmpSize  ==> V3 0.1 0.1 0.3
         cmpName  ==> "Right Hand"
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
     return ()
 
 -- FIXME should update and get hndHead instead
-getHeadPose :: (MonadState ECS m) => m (Pose GLfloat)
+getHeadPose :: (MonadState ECS m) => m (M44 GLfloat)
 getHeadPose = viewSystem sysControls ctsHeadPose

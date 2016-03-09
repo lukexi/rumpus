@@ -1,2 +1,5 @@
 .stack-work
 .DS_Store
+*.prof
+*.svg
+*.hp

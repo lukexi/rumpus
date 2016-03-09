@@ -199,9 +199,9 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     -- We currently render code editors directly matched with the pose
     -- of the entity; update this when we make code editors into their own entities
     -- like the editorFrame children are
-    let model44 = transformationFromPose pose
+    let model44 = pose
         codeRenderer = editor ^. cedCodeRenderer
-        handRay = poseToRay handPose (V3 0 0 (-1))
+        handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1))
     updatedRenderer  <- setCursorTextRendererWithRay handRay codeRenderer model44
 
     modifySystemState sysCodeEditor $ 

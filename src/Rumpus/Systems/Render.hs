@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns #-}
 module Rumpus.Systems.Render where
 import PreludeExtra
 
@@ -12,6 +13,7 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
+import Rumpus.Systems.Hands
 
 import TinyRick
 
@@ -58,18 +60,16 @@ tickRenderSystem headM44 = do
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
-            renderEntities projM44 viewM44
-            renderEditors projM44 viewM44
+            let projViewM44 = projM44 !*! viewM44
+            renderEntities projViewM44
+            renderEditors projViewM44
             )
 
 
-renderEditors :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> M44 GLfloat -> m ()
-renderEditors projM44 viewM44 = do
+renderEditors :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> m ()
+renderEditors projViewM44  = do
     glEnable GL_BLEND
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
-
-    let projViewM44 = projM44 !*! viewM44
-
 
     traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \entityID -> do
         parentPose <- getEntityPose entityID
@@ -78,7 +78,7 @@ renderEditors projM44 viewM44 = do
         traverseM_ (getEntityComponent entityID cmpOnUpdateExpr) $ \codeExprKey -> 
             traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
 
-                let codeModelM44 = transformationFromPose parentPose
+                let codeModelM44 = parentPose
 
                 -- Render code in white
                 renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
@@ -92,16 +92,16 @@ renderEditors projM44 viewM44 = do
 
 
 renderEntities :: (MonadIO m, MonadState ECS m) 
-               => M44 GLfloat -> M44 GLfloat -> m ()
-renderEntities projM44 viewM44 = do
+               => M44 GLfloat -> m ()
+renderEntities projViewM44 = do
     
-    let projViewM44 = projM44 !*! viewM44
+    headM44 <- getHeadPose
 
     shapes <- viewSystem sysRender rdsShapes
     forM_ shapes $ \(shapeType, shape) -> withShape shape $ do
 
         Uniforms{..} <- asks sUniforms
-        uniformV3 uCamera (inv44 viewM44 ^. translation)
+        uniformV3 uCamera (headM44 ^. translation)
 
         -- Batch by entities sharing the same shape type
         entityIDsForShape <- getEntityIDsForShapeType shapeType
@@ -123,13 +123,13 @@ getEntityTotalModelMatrix startEntityID = do
     let go entityID = do
             pose   <- getEntityPose entityID
             size   <- getEntitySize entityID
-            let model = transformationFromPose pose !*! scaleMatrix size
+            let !model = pose !*! scaleMatrix size
 
             inheritParent <- getEntityInheritParentTransform entityID
             if inheritParent 
                 then do
                     getEntityComponent entityID cmpParent >>= \case
-                        Just parent -> (!*! model) <$> go parent
+                        Just parent -> (!*! model) <$!> go parent
                         Nothing -> return model
                 else return model
     

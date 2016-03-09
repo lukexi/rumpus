@@ -8,16 +8,6 @@ Color:
 - 0.56893843
 - 0.24000007
 - 1
-Pose:
-  Orientation:
-  - 1
-  - - 0.0
-    - 0.0
-    - 0.0
-  Position:
-  - -0.71577746
-  - 0.8366371
-  - -2.364707e-2
 PhysicsProperties:
 - IsKinematic
 - NoContactResponse

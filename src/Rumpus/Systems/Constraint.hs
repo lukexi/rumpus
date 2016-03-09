@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Constraint where
 import Rumpus.Systems.Shared
@@ -27,8 +28,7 @@ satisfyConstraint constraint =
     case constraint of
         RelativePositionTo parentEntityID relativePosition -> do
             parentPose <- getEntityPose parentEntityID
-            let newPosition = newPose 
-                    & posPosition .~ parentPose ^. posPosition + relativePosition
+            let !newPosition = parentPose !*! translateMatrix relativePosition
             setPose newPosition
 
 setEntityConstraint :: (MonadState ECS m, MonadIO m) => Constraint -> EntityID -> m ()

@@ -8,13 +8,13 @@ import Data.ECS.Vault
 
 defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
 defineComponentKeyWithType "SizeAnimation"  [t|Animation (V3 GLfloat)|]
-defineComponentKeyWithType "PoseAnimation"  [t|Animation (Pose GLfloat)|]
+-- defineComponentKeyWithType "PoseAnimation"  [t|Animation (Pose GLfloat)|]
 
 initAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAnimationSystem = do
     registerComponent "ColorAnimation" cmpColorAnimation (newComponentInterface cmpColorAnimation)
     registerComponent "SizeAnimation"  cmpSizeAnimation  (newComponentInterface cmpSizeAnimation)
-    registerComponent "PoseAnimation"  cmpPoseAnimation  (newComponentInterface cmpPoseAnimation)
+    -- registerComponent "PoseAnimation"  cmpPoseAnimation  (newComponentInterface cmpPoseAnimation)
 
 tickAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAnimationSystem = whenWorldPlaying $ do
@@ -22,7 +22,7 @@ tickAnimationSystem = whenWorldPlaying $ do
     
     tickComponentAnimation now cmpColorAnimation cmpColor
     tickComponentAnimation now cmpSizeAnimation  cmpSize
-    tickComponentAnimation now cmpPoseAnimation  cmpPose
+    -- tickComponentAnimation now cmpPoseAnimation  cmpPose
 
 tickComponentAnimation :: MonadState ECS m 
                        => DiffTime
