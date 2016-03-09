@@ -11,3 +11,5 @@ RenderGroup? Could combine uniform plus shader?
 
 
 https://forum.beyond3d.com/threads/modern-textureless-deferred-rendering-techniques.57611/
+
+http://computergraphics.stackexchange.com/questions/306/sharp-corners-with-signed-distance-fields-fonts/2151#2151

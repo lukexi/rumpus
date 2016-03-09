@@ -124,7 +124,8 @@ Modules
 
     UPDATE: I've got a sketch of this in Projects/extensible-systems/
 
-
+- [ ] Add texture library?
+    https://community.renderman.pixar.com/article/114/library-pixar-one-twenty-eight.html
 
 
 Demos:
@@ -142,6 +143,9 @@ Demos:
 - Implement some of the examples from http://natureofcode.com/book/chapter-6-autonomous-agents/ !
     - In particular, agent simulations where we can change the step function as things are moving
         should be pretty damn rad.
+
+- Cellular growth
+    c.f. Andy Lomas https://vimeo.com/82989945
 
 - Garage band mini based on sequencer idea. Simple sampler, simple synth.
     - Have done synth : D needs presets.
@@ -204,3 +208,16 @@ http://gameprogrammingpatterns.com/game-loop.html
 
 http://graphics.cs.williams.edu/papers/TransparencyI3D16/
 https://tel.github.io/posts/mutable_algorithms_in_immutable_languages_part_3/
+
+
+Add Subhalive API based on StringBuffer so we don't need files at runtime anymore
+See:
+targetContents :: Maybe (StringBuffer, UTCTime)
+https://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc/GHC.html
+https://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc/StringBuffer.html#t:StringBuffer
+
+NOTE: also reconsider the idea of a pure haskell markup file, interpreted by Subhalive.
+Basically use a quasiquoter to capture haskell code as a string, which should play well with
+external editors' syntax highlighting. 
+(at first I thought this would enable using control structures in object defs, but that wouldn't be re-serializable)
+Or, just add a different extension for the YAML, embed the Haskell code and tell Sublime that it is Haskell.

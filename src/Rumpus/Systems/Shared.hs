@@ -22,11 +22,11 @@ defineComponentKeyWithType "InheritParentTransform" [t|Bool|]
 
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
-    registerComponent "Name" cmpName (defaultComponentInterface cmpName "New Entity")
+    registerComponent "Name" cmpName (newComponentInterface cmpName)
     registerComponent "Pose" cmpPose (newComponentInterface cmpPose)
-    registerComponent "Size" cmpSize (defaultComponentInterface cmpSize (V3 1 1 1))
-    registerComponent "Color" cmpColor (defaultComponentInterface cmpColor (V4 1 1 1 1))
-    registerComponent "ShapeType" cmpShapeType (defaultComponentInterface cmpShapeType CubeShape)
+    registerComponent "Size" cmpSize (newComponentInterface cmpSize)
+    registerComponent "Color" cmpColor (newComponentInterface cmpColor)
+    registerComponent "ShapeType" cmpShapeType (newComponentInterface cmpShapeType)
     registerComponent "Parent" cmpParent $ (newComponentInterface cmpParent)
         { ciDeriveComponent = Just $ do
             withComponent_ cmpParent $ \parentID -> do
