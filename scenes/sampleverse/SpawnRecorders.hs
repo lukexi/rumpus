@@ -8,8 +8,9 @@ start = do
     rootEntityID <- ask
     let recorderAt y = do
             cmpParent            ==> rootEntityID
+            cmpShapeType         ==> CubeShape
             cmpPhysicsProperties ==> [IsKinematic]
-            cmpPose              ==> (newPose & posPosition . _y .~ y)
+            cmpPose              ==> (identity & translation . _y .~ y)
             cmpSize              ==> 0.1
             cmpPdPatchFile       ==> "scenes/sampleverse/recorder"
             cmpOnCollisionStart  ==> \_ _ -> do
@@ -24,9 +25,10 @@ start = do
                     let x = fromIntegral i / 8 + 1
                     spawnEntity Transient $ do
                         cmpParent                 ==> samplerEntityID
+                        cmpShapeType              ==> CubeShape
                         cmpSize                   ==> 1
                         cmpColor                  ==> V4 0.8 0.9 0.4 1
-                        cmpPose                   ==> (newPose & posPosition . _x .~ x)
+                        cmpPose                   ==> (identity & translation . _x .~ x)
                         cmpPhysicsProperties      ==> [NoPhysicsShape]
                         cmpInheritParentTransform ==> True
                 return (Just (toDyn children))

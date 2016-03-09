@@ -15,7 +15,7 @@ pianokey parentID n = do
         x = fromIntegral n / 1.5 - 3
     cmpParent            ==> parentID
     cmpPhysicsProperties ==> [IsKinematic]
-    cmpPose              ==> (newPose & posPosition . _x .~ x)
+    cmpPose              ==> (identity & translation . _x .~ x)
     cmpSize              ==> 0.5
     cmpOnCollisionStart  ==> \_ _ -> do
         hue <- liftIO randomIO

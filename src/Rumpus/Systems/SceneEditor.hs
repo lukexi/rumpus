@@ -162,7 +162,7 @@ tickSceneEditorSystem = do
 
                     -- If we've selected something, show the keyboard on grip-up
                     traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \_selectedID -> do
-                        vrPal <- viewSystem sysControls ctsVRPal
+                        -- vrPal <- viewSystem sysControls ctsVRPal
                         -- showHandKeyboard vrPal
                         return ()
 
