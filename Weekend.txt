@@ -1,0 +1,10 @@
+SHELVING UNIT:
+
+[x] Build a floor and 4 walls and shelf
+
+Build: 
+    bubbling thing
+    trees
+    sphere of cubes from cubensis
+    wavy thing from cubensis
+    wind chimes or other ambient sounds

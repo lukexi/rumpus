@@ -1,16 +1,3 @@
-ShapeType: CubeShape
-Size:
-- 0.1733439
-- 0.3041197
-- 0.23648691
-Color:
-- 0.5227212
-- 0.24000007
-- 0.96
-- 1
-PhysicsProperties:
-- IsKinematic
-- NoContactResponse
 OnStartExpr:
-- scenes/treeroom/BuildTree.hs
+- scenes/treeroom/BuildRoom.hs
 - start

@@ -1,0 +1,22 @@
+ShapeType: SphereShape
+Color:
+- 0.5227212
+- 0.24000007
+- 0.96
+- 1
+Pose:
+  Orientation:
+  - 1
+  - - 0.0
+    - 0.0
+    - 0.0
+  Position:
+  - 0.0
+  - 0.0
+  - 0.0
+PhysicsProperties:
+- IsKinematic
+- NoContactResponse
+OnStartExpr:
+- scenes/basic/BasicStart.hs
+- start

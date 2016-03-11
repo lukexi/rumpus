@@ -1,7 +1,4 @@
 ShapeType: CubeShape
-PhysicsProperties:
-- IsKinematic
-- NoContactResponse
 OnStartExpr:
 - scenes/treeroom/BuildTree.hs
 - start
