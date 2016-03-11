@@ -1,4 +1,21 @@
 ShapeType: CubeShape
+Pose:
+- - 1
+  - 0.0
+  - 0.0
+  - 0
+- - 0.0
+  - 1
+  - 0.0
+  - 2
+- - 0.0
+  - 0.0
+  - 1
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+  - 1
 OnStartExpr:
 - scenes/treeroom/BuildTree.hs
 - start

@@ -8,7 +8,8 @@
 module Rumpus.Systems.Render where
 import PreludeExtra
 
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
@@ -97,6 +98,8 @@ renderEntities projViewM44 = do
     
     headM44 <- getHeadPose
 
+    finalMatricesByEntityID <- getFinalMatrices
+
     shapes <- viewSystem sysRender rdsShapes
     forM_ shapes $ \(shapeType, shape) -> withShape shape $ do
 
@@ -109,21 +112,43 @@ renderEntities projViewM44 = do
 
             color <- getEntityColor entityID
 
-            model <- getEntityTotalModelMatrix entityID
+            --model <- getEntityTotalModelMatrix entityID
+            let model = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID 
             uniformM44 uModelViewProjection (projViewM44 !*! model)
             uniformM44 uModel               model
             uniformV4  uDiffuse             color
 
             drawShape
 
+-- Perform a breadth-first traversal of entities with no parents, 
+-- accumulating their matrix mults all the way down into any children.
+-- This avoids duplicate matrix multiplications.
+getFinalMatrices :: MonadState ECS m => m (Map.Map EntityID (M44 GLfloat))
+getFinalMatrices = do
+    entityIDs           <- Map.keysSet <$> getComponentMap cmpPose
+    entityIDsWithChild  <- Map.keysSet <$> getComponentMap cmpChildren
+    entityIDsWithParent <- Map.keysSet <$> getComponentMap cmpParent
+
+    let rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
+        go mParentMatrix accum entityID = do
+            childMatrix <- case mParentMatrix of
+                Just parentMatrix -> (parentMatrix !*!) <$!> getScaledMatrix entityID
+                Nothing           -> getScaledMatrix entityID
+            children <- fromMaybe [] <$> getEntityComponent entityID cmpChildren
+            foldM (go (Just childMatrix)) (Map.insert entityID childMatrix accum) children
+    foldM (go Nothing) mempty rootIDs
+
+getScaledMatrix entityID = do
+    pose <- getEntityPose entityID
+    size <- getEntitySize entityID
+    return $! pose !*! scaleMatrix size
+
 -- | Accumulate a matrix stack by walking up to the parent
 getEntityTotalModelMatrix :: MonadState ECS m => EntityID -> m (M44 GLfloat)
 getEntityTotalModelMatrix startEntityID = do
     
     let go entityID = do
-            pose   <- getEntityPose entityID
-            size   <- getEntitySize entityID
-            let !model = pose !*! scaleMatrix size
+            model <- getScaledMatrix entityID
 
             inheritParent <- getEntityInheritParentTransform entityID
             if inheritParent 
