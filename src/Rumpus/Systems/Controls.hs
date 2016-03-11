@@ -26,7 +26,7 @@ initControlsSystem vrPal = do
             { _ctsVRPal = vrPal
             , _ctsPlayer = if gpRoomScale vrPal == RoomScale
                             then newPose
-                            else newPose & posPosition .~ V3 0 1 3
+                            else newPose & posPosition .~ V3 0 0 3
             , _ctsEvents = []
             , _ctsHeadPose = identity
             }
