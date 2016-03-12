@@ -98,7 +98,7 @@ renderEntities projViewM44 = do
     
     headM44 <- getHeadPose
 
-    finalMatricesByEntityID <- getFinalMatrices
+    finalMatricesByEntityID <- profileMS "getFinalMatrices" 2 $ getFinalMatrices
 
     shapes <- viewSystem sysRender rdsShapes
     forM_ shapes $ \(shapeType, shape) -> withShape shape $ do

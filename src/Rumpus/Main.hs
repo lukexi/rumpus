@@ -64,22 +64,22 @@ main = withPd $ \pd -> do
         --     cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         --     return ()
 
-        whileVR vrPal $ \headM44 hands vrEvents -> do
+        whileVR vrPal $ \headM44 hands vrEvents -> profileFPS "frame" 0 $ do
         
-            tickControlEventsSystem headM44 hands vrEvents
-            tickCodeEditorSystem
-            tickSyncCodeEditorSystem
-            tickAttachmentSystem
-            tickConstraintSystem
-            tickScriptSystem
-            tickLifetimeSystem
-            tickAnimationSystem
-            tickPhysicsSystem
-            tickSyncPhysicsPosesSystem
-            tickCollisionsSystem
-            tickSceneEditorSystem
-            tickSoundSystem headM44
-            tickRenderSystem headM44
+            profileMS "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
+            --tickCodeEditorInputSystem
+            profileMS "codeupdate" 1 $ tickCodeEditorResultsSystem
+            --tickAttachmentSystem
+            --tickConstraintSystem
+            profileMS "script" 1 $ tickScriptSystem
+            --tickLifetimeSystem
+            --tickAnimationSystem
+            profileMS "physicsRun" 1 $ tickPhysicsSystem
+            profileMS "physicsCopy" 1 $ tickSyncPhysicsPosesSystem
+            --tickCollisionsSystem
+            --tickSceneEditorSystem
+            --tickSoundSystem headM44
+            profileMS "render" 1 $ tickRenderSystem headM44
         -- whileVR vrPal $ \headM44 hands vrEvents -> profile "frame" 0 $ do
             
             -- profile "tickControlEventsSystem" 1 $ tickControlEventsSystem headM44 hands vrEvents

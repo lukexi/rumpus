@@ -143,9 +143,9 @@ unregisterWithCodeEditor codeFile = modifySystemState sysCodeEditor $ do
     entityID <- ask
     cesCodeEditors . ix codeFile . cedDependents . at entityID .= Nothing
 
-tickCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickCodeEditorSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
-    -- Pass keyboard events to the selected entity's text editor, if it has one
+-- | Passes keyboard events to the active code editor
+tickCodeEditorInputSystem :: (MonadIO m, MonadState ECS m) => m ()
+tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     let events = _ctsEvents
         window = gpWindow _ctsVRPal
 
@@ -164,8 +164,8 @@ tickCodeEditorSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
-tickSyncCodeEditorSystem :: ECSMonad ()
-tickSyncCodeEditorSystem = modifySystemState sysCodeEditor $ do
+tickCodeEditorResultsSystem :: ECSMonad ()
+tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ do
     font <- use cesFont
 
     traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeFileKey, editor) -> do
