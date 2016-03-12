@@ -36,19 +36,19 @@ main = withPd $ \pd -> do
 
     void . flip runStateT newECS $ do 
 
-        initAnimationSystem
-        initAttachmentSystem
-        initCodeEditorSystem
-        initCollisionsSystem
-        initConstraintSystem
+        -- initAnimationSystem
+        -- initAttachmentSystem
+        -- initCodeEditorSystem
+        -- initCollisionsSystem
+        -- initConstraintSystem
         initControlsSystem vrPal
-        initLifetimeSystem
+        -- initLifetimeSystem
         initPhysicsSystem
         initPlayPauseSystem
         initRenderSystem
-        initSceneEditorSystem
+        -- initSceneEditorSystem
         initScriptSystem
-        initSoundSystem pd
+        -- initSoundSystem pd
         initSelectionSystem
         initSharedSystem
 
@@ -69,7 +69,7 @@ main = withPd $ \pd -> do
         
             profileMS "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
             --tickCodeEditorInputSystem
-            profileMS "codeupdate" 1 $ tickCodeEditorResultsSystem
+            -- profileMS "codeupdate" 1 $ tickCodeEditorResultsSystem
             --tickAttachmentSystem
             --tickConstraintSystem
             profileMS "script" 1 $ tickScriptSystem
@@ -120,5 +120,5 @@ start2 = do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
-    branch rootEntityID (3::Int) 0
+    branch rootEntityID (9::Int) 0
     return Nothing

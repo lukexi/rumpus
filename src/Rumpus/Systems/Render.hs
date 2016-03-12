@@ -57,12 +57,14 @@ tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
     vrPal  <- viewSystem sysControls ctsVRPal
     player <- viewSystem sysControls ctsPlayer
+
+    finalMatricesByEntityID <- profileMS "getFinalMatrices" 2 $ getFinalMatrices
     -- Render the scene
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
             let projViewM44 = projM44 !*! viewM44
-            renderEntities projViewM44
+            renderEntities projViewM44 finalMatricesByEntityID
             renderEditors projViewM44
             )
 
@@ -92,13 +94,11 @@ renderEditors projViewM44  = do
     glDisable GL_BLEND
 
 
-renderEntities :: (MonadIO m, MonadState ECS m) 
-               => M44 GLfloat -> m ()
-renderEntities projViewM44 = do
+-- renderEntities :: (MonadIO m, MonadState ECS m) 
+--                => M44 GLfloat -> m ()
+renderEntities projViewM44 finalMatricesByEntityID = do
     
     headM44 <- getHeadPose
-
-    finalMatricesByEntityID <- profileMS "getFinalMatrices" 2 $ getFinalMatrices
 
     shapes <- viewSystem sysRender rdsShapes
     forM_ shapes $ \(shapeType, shape) -> withShape shape $ do
