@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module DefaultStart where
+module BuildTree where
 import Rumpus
 
 start :: OnStart
@@ -22,5 +22,5 @@ start = do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
-    branch rootEntityID (5::Int) 0
+    branch rootEntityID (3::Int) 0
     return Nothing
