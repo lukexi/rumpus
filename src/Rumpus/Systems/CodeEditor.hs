@@ -7,9 +7,9 @@ module Rumpus.Systems.CodeEditor where
 import PreludeExtra hiding (Key)
 
 import Graphics.GL.Freetype
+import Graphics.GL.TextBuffer
 import Halive.SubHalive
 import Halive.Recompiler
-import TinyRick
 
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection

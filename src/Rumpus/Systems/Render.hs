@@ -15,8 +15,8 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
-
-import TinyRick
+import Graphics.GL.Freetype
+import Graphics.GL.TextBuffer
 
 data Uniforms = Uniforms
     { uModelViewProjection :: UniformLocation (M44 GLfloat)

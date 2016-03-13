@@ -36,19 +36,19 @@ main = withPd $ \pd -> do
 
     void . flip runStateT newECS $ do 
 
-        -- initAnimationSystem
-        -- initAttachmentSystem
-        -- initCodeEditorSystem
-        -- initCollisionsSystem
-        -- initConstraintSystem
+        initAnimationSystem
+        initAttachmentSystem
+        initCodeEditorSystem
+        initCollisionsSystem
+        initConstraintSystem
         initControlsSystem vrPal
-        -- initLifetimeSystem
+        initLifetimeSystem
         initPhysicsSystem
         initPlayPauseSystem
         initRenderSystem
-        -- initSceneEditorSystem
+        initSceneEditorSystem
         initScriptSystem
-        -- initSoundSystem pd
+        initSoundSystem pd
         initSelectionSystem
         initSharedSystem
 
@@ -60,29 +60,33 @@ main = withPd $ \pd -> do
         -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart        
         -- selectEntity testEntity
 
-        _ <- spawnEntity Transient $ do
-            cmpOnStart ==> start2
-            cmpPhysicsProperties ==> [IsKinematic]
-            return ()
+        --_ <- spawnEntity Transient $ do
+        --    cmpOnStart ==> start2
+        --    cmpPhysicsProperties ==> [IsKinematic]
+        --    return ()
 
         whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do
-            liftIO performGC
+
+            -- Perform a minor GC to just get the young objects created during the last frame
+            -- without traversing all of memory
+            liftIO performMinorGC
             
             profileMS' "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
-            --tickCodeEditorInputSystem
-            -- profileMS "codeupdate" 1 $ tickCodeEditorResultsSystem
-            --tickAttachmentSystem
-            --tickConstraintSystem
+            profileMS' "codeinput" 1 $ tickCodeEditorInputSystem
+            profileMS' "codeupdate" 1 $ tickCodeEditorResultsSystem
+            tickAttachmentSystem
+            tickConstraintSystem
             profileMS' "script" 1 $ tickScriptSystem
-            --tickLifetimeSystem
-            --tickAnimationSystem
+            tickLifetimeSystem
+            tickAnimationSystem
             profileMS' "physicsRun" 1 $ tickPhysicsSystem
             profileMS' "physicsCopy" 1 $ tickSyncPhysicsPosesSystem
-            --tickCollisionsSystem
-            --tickSceneEditorSystem
-            --tickSoundSystem headM44
+            tickCollisionsSystem
+            tickSceneEditorSystem
+            tickSoundSystem headM44
             profileMS' "render" 1 $ tickRenderSystem headM44
         -- whileVR vrPal $ \headM44 hands vrEvents -> profile "frame" 0 $ do
+            -- liftIO performGC
             
             -- profile "tickControlEventsSystem" 1 $ tickControlEventsSystem headM44 hands vrEvents
             -- profile "tickCodeEditorSystem" 1 $ tickCodeEditorSystem
