@@ -3,3 +3,5 @@
 *.prof
 *.svg
 *.hp
+*.ps
+*.aux

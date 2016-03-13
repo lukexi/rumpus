@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# -hc cost-center
+# -hd closure
+# -hy type
+# -hm module
+# -hr retainer
+# -hb biographical
+
+PROFTYPE=$1
+if [ -z "$1" ]
+  then
+    PROFTYPE=-hc    
+fi
+
+stack build --executable-profiling --library-profiling
+
+# We need to use this odd method of running rather than: 
+# stack exec rumpus -- +RTS -hy
+# as the -- doesn't seem to be triggering RTS options correctly on Windows
+`stack exec which rumpus` +RTS $PROFTYPE
+
+# -M = 2 page output with a page for the key
+# -c = color
+hp2ps -c -M rumpus.hp
+mv rumpus.ps rumpus$PROFTYPE.ps
+explorer rumpus$PROFTYPE.ps
