@@ -16,7 +16,7 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.Script
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
-import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as Map
 import Control.Monad.Trans.Maybe
 import Data.ECS.Vault
 -- | Pairs a filename along with an expression 

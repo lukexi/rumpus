@@ -8,7 +8,7 @@
 module Rumpus.Systems.Render where
 import PreludeExtra
 
-import qualified Data.Map.Strict as Map
+import qualified Data.HashMap.Strict as Map
 import qualified Data.Set as Set
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Selection
@@ -58,13 +58,14 @@ tickRenderSystem headM44 = do
     vrPal  <- viewSystem sysControls ctsVRPal
     player <- viewSystem sysControls ctsPlayer
 
-    finalMatricesByEntityID <- profileMS "getFinalMatrices" 2 $ getFinalMatrices
+    --finalMatricesByEntityID <- profileMS "getFinalMatrices" 2 $ getFinalMatrices
+    --finalMatricesByEntityID <- getFinalMatrices
     -- Render the scene
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
             let projViewM44 = projM44 !*! viewM44
-            renderEntities projViewM44 finalMatricesByEntityID
+            --renderEntities projViewM44 finalMatricesByEntityID
             renderEditors projViewM44
             )
 
@@ -123,11 +124,11 @@ renderEntities projViewM44 finalMatricesByEntityID = do
 -- Perform a breadth-first traversal of entities with no parents, 
 -- accumulating their matrix mults all the way down into any children.
 -- This avoids duplicate matrix multiplications.
-getFinalMatrices :: MonadState ECS m => m (Map.Map EntityID (M44 GLfloat))
+getFinalMatrices :: MonadState ECS m => m (Map EntityID (M44 GLfloat))
 getFinalMatrices = do
-    entityIDs           <- Map.keysSet <$> getComponentMap cmpPose
-    entityIDsWithChild  <- Map.keysSet <$> getComponentMap cmpChildren
-    entityIDsWithParent <- Map.keysSet <$> getComponentMap cmpParent
+    entityIDs           <- Set.fromList . Map.keys <$> getComponentMap cmpPose
+    entityIDsWithChild  <- Set.fromList . Map.keys <$> getComponentMap cmpChildren
+    entityIDsWithParent <- Set.fromList . Map.keys <$> getComponentMap cmpParent
 
     let rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
         go mParentMatrix accum entityID = do

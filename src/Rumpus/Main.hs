@@ -65,22 +65,23 @@ main = withPd $ \pd -> do
             cmpPhysicsProperties ==> [IsKinematic]
             return ()
 
-        whileVR vrPal $ \headM44 hands vrEvents -> profileFPS "frame" 0 $ do
-        
-            profileMS "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
+        whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do
+            performGC
+            
+            profileMS' "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
             --tickCodeEditorInputSystem
             -- profileMS "codeupdate" 1 $ tickCodeEditorResultsSystem
             --tickAttachmentSystem
             --tickConstraintSystem
-            profileMS "script" 1 $ tickScriptSystem
+            profileMS' "script" 1 $ tickScriptSystem
             --tickLifetimeSystem
             --tickAnimationSystem
-            profileMS "physicsRun" 1 $ tickPhysicsSystem
-            profileMS "physicsCopy" 1 $ tickSyncPhysicsPosesSystem
+            profileMS' "physicsRun" 1 $ tickPhysicsSystem
+            profileMS' "physicsCopy" 1 $ tickSyncPhysicsPosesSystem
             --tickCollisionsSystem
             --tickSceneEditorSystem
             --tickSoundSystem headM44
-            profileMS "render" 1 $ tickRenderSystem headM44
+            profileMS' "render" 1 $ tickRenderSystem headM44
         -- whileVR vrPal $ \headM44 hands vrEvents -> profile "frame" 0 $ do
             
             -- profile "tickControlEventsSystem" 1 $ tickControlEventsSystem headM44 hands vrEvents
@@ -97,7 +98,8 @@ main = withPd $ \pd -> do
             -- profile "tickSceneEditorSystem" 1 $ tickSceneEditorSystem
             -- profile "tickSoundSystem" 1 $ tickSoundSystem headM44
             -- profile "tickRenderSystem" 1 $ tickRenderSystem headM44
-
+profileMS' _ _ = id
+profileFPS' _ _ = id
 
 
 start2 :: OnStart

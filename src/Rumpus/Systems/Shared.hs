@@ -6,7 +6,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Rumpus.Systems.Shared where
 import PreludeExtra
-import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as Map
 
 data ShapeType = CubeShape | SphereShape | StaticPlaneShape 
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)

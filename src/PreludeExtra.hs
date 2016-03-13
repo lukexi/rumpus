@@ -10,7 +10,7 @@ import Data.Maybe as Exports
 import Data.Foldable as Exports
 import Control.Concurrent as Exports
 import Control.Concurrent.STM as Exports
-import Data.Map as Exports (Map)
+--import Data.Map as Exports (Map)
 import Data.Set as Exports (Set)
 import System.Random as Exports
 import System.Directory as Exports
@@ -48,5 +48,5 @@ useTraverseM_ :: (MonadState s m, Foldable t) => Lens' s (t a) -> (a -> m b) -> 
 useTraverseM_ aLens f = traverseM_ (use aLens) f
 
 
-useMapM_ :: (MonadState s m) => Lens' s (Map k v) -> ((k,v) -> m b) -> m ()
-useMapM_ aLens f = traverseM_ (Map.toList <$> use aLens) f
+-- useMapM_ :: (MonadState s m) => Lens' s (Map k v) -> ((k,v) -> m b) -> m ()
+-- useMapM_ aLens f = traverseM_ (Map.toList <$> use aLens) f

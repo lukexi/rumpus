@@ -48,6 +48,7 @@ library
                      , lens-extra
                      , linear-extra
                      , containers
+                     , unordered-containers
                      , MonadRandom
                      , pd
                      , yaml
@@ -72,7 +73,7 @@ executable rumpus
   -- -s/-S prints GC info (-S as it happens)
   ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -S -H512M -A4M"
   -- -T collects runtime stats for use with GHC.Stats
-  ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -s -H128M -A4M"
+  ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -S -H512M -A4M"
 
   build-depends:       base, rumpus
   default-language:    Haskell2010
