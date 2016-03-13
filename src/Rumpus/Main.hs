@@ -66,7 +66,7 @@ main = withPd $ \pd -> do
             return ()
 
         whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do
-            performGC
+            liftIO performGC
             
             profileMS' "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
             --tickCodeEditorInputSystem
@@ -98,7 +98,9 @@ main = withPd $ \pd -> do
             -- profile "tickSceneEditorSystem" 1 $ tickSceneEditorSystem
             -- profile "tickSoundSystem" 1 $ tickSoundSystem headM44
             -- profile "tickRenderSystem" 1 $ tickRenderSystem headM44
+profileMS' :: String -> Int -> a -> a
 profileMS' _ _ = id
+profileFPS' :: String -> Int -> a -> a
 profileFPS' _ _ = id
 
 
@@ -122,5 +124,5 @@ start2 = do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
-    branch rootEntityID (9::Int) 0
+    branch rootEntityID (5::Int) 0
     return Nothing

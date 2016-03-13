@@ -59,13 +59,13 @@ tickRenderSystem headM44 = do
     player <- viewSystem sysControls ctsPlayer
 
     --finalMatricesByEntityID <- profileMS "getFinalMatrices" 2 $ getFinalMatrices
-    --finalMatricesByEntityID <- getFinalMatrices
+    finalMatricesByEntityID <- getFinalMatrices
     -- Render the scene
     renderWith vrPal player headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
             let projViewM44 = projM44 !*! viewM44
-            --renderEntities projViewM44 finalMatricesByEntityID
+            renderEntities projViewM44 finalMatricesByEntityID
             renderEditors projViewM44
             )
 
@@ -95,8 +95,8 @@ renderEditors projViewM44  = do
     glDisable GL_BLEND
 
 
--- renderEntities :: (MonadIO m, MonadState ECS m) 
---                => M44 GLfloat -> m ()
+renderEntities :: (MonadIO m, MonadState ECS m) 
+               => M44 GLfloat -> Map EntityID (M44 GLfloat) -> m ()
 renderEntities projViewM44 finalMatricesByEntityID = do
     
     headM44 <- getHeadPose
@@ -139,6 +139,7 @@ getFinalMatrices = do
             foldM (go (Just childMatrix)) (Map.insert entityID childMatrix accum) children
     foldM (go Nothing) mempty rootIDs
 
+getScaledMatrix :: MonadState ECS m => EntityID -> m (M44 GLfloat)
 getScaledMatrix entityID = do
     pose <- getEntityPose entityID
     size <- getEntitySize entityID
