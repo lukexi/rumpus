@@ -36,19 +36,19 @@ main = withPd $ \pd -> do
 
     void . flip runStateT newECS $ do 
 
-        -- initAnimationSystem
-        -- initAttachmentSystem
-        -- initCodeEditorSystem
-        -- initCollisionsSystem
-        -- initConstraintSystem
+        initAnimationSystem
+        initAttachmentSystem
+        initCodeEditorSystem
+        initCollisionsSystem
+        initConstraintSystem
         initControlsSystem vrPal
-        -- initLifetimeSystem
+        initLifetimeSystem
         initPhysicsSystem
         initPlayPauseSystem
         initRenderSystem
-        -- initSceneEditorSystem
+        initSceneEditorSystem
         initScriptSystem
-        -- initSoundSystem pd
+        initSoundSystem pd
         initSelectionSystem
         initSharedSystem
 
@@ -60,29 +60,33 @@ main = withPd $ \pd -> do
         -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart        
         -- selectEntity testEntity
 
-        _ <- spawnEntity Transient $ do
-            cmpOnStart ==> start2
-            cmpPhysicsProperties ==> [IsKinematic]
-            return ()
+        --_ <- spawnEntity Transient $ do
+        --    cmpOnStart ==> start2
+        --    cmpPhysicsProperties ==> [IsKinematic]
+        --    return ()
 
         whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do
-            performGC
+
+            -- Perform a minor GC to just get the young objects created during the last frame
+            -- without traversing all of memory
+            liftIO performMinorGC
             
             profileMS' "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
-            --tickCodeEditorInputSystem
-            -- profileMS "codeupdate" 1 $ tickCodeEditorResultsSystem
-            --tickAttachmentSystem
-            --tickConstraintSystem
+            profileMS' "codeinput" 1 $ tickCodeEditorInputSystem
+            profileMS' "codeupdate" 1 $ tickCodeEditorResultsSystem
+            tickAttachmentSystem
+            tickConstraintSystem
             profileMS' "script" 1 $ tickScriptSystem
-            --tickLifetimeSystem
-            --tickAnimationSystem
+            tickLifetimeSystem
+            tickAnimationSystem
             profileMS' "physicsRun" 1 $ tickPhysicsSystem
             profileMS' "physicsCopy" 1 $ tickSyncPhysicsPosesSystem
-            --tickCollisionsSystem
-            --tickSceneEditorSystem
-            --tickSoundSystem headM44
+            tickCollisionsSystem
+            tickSceneEditorSystem
+            tickSoundSystem headM44
             profileMS' "render" 1 $ tickRenderSystem headM44
         -- whileVR vrPal $ \headM44 hands vrEvents -> profile "frame" 0 $ do
+            -- liftIO performGC
             
             -- profile "tickControlEventsSystem" 1 $ tickControlEventsSystem headM44 hands vrEvents
             -- profile "tickCodeEditorSystem" 1 $ tickCodeEditorSystem
@@ -98,7 +102,9 @@ main = withPd $ \pd -> do
             -- profile "tickSceneEditorSystem" 1 $ tickSceneEditorSystem
             -- profile "tickSoundSystem" 1 $ tickSoundSystem headM44
             -- profile "tickRenderSystem" 1 $ tickRenderSystem headM44
+profileMS' :: String -> Int -> a -> a
 profileMS' _ _ = id
+profileFPS' :: String -> Int -> a -> a
 profileFPS' _ _ = id
 
 
@@ -122,5 +128,5 @@ start2 = do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
-    branch rootEntityID (9::Int) 0
+    branch rootEntityID (5::Int) 0
     return Nothing

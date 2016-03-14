@@ -21,11 +21,12 @@ import Debug.Trace as Exports
 import Data.Fixed as Exports
 import Data.Time as Exports
 import Data.IORef as Exports
+import System.Mem as Exports
 
 import Data.Yaml as Exports hiding ((.=), String)
 import GHC.Generics as Exports (Generic)
 
-import Control.Lens.Extra as Exports hiding (List, (<.>))
+import Control.Lens.Extra as Exports hiding (List, (<.>), children)
 import Linear.Extra as Exports hiding (trace)
 import Graphics.UI.GLFW.Pal as Exports
 import Graphics.GL.Pal as Exports hiding (trace)
@@ -35,7 +36,11 @@ import Physics.Bullet as Exports
 import Animation.Pal as Exports hiding (getNow)
 import Data.ECS as Exports hiding (Key)
 
-import qualified Data.Map as Map
+-- import qualified Data.Map as Map
+
+
+-- useMapM_ :: (MonadState s m) => Lens' s (Map k v) -> ((k,v) -> m b) -> m ()
+-- useMapM_ aLens f = traverseM_ (Map.toList <$> use aLens) f
 
 
 traverseM :: (Monad m, Traversable t) => m (t a) -> (a -> m b) -> m (t b)
@@ -48,5 +53,3 @@ useTraverseM_ :: (MonadState s m, Foldable t) => Lens' s (t a) -> (a -> m b) -> 
 useTraverseM_ aLens f = traverseM_ (use aLens) f
 
 
--- useMapM_ :: (MonadState s m) => Lens' s (Map k v) -> ((k,v) -> m b) -> m ()
--- useMapM_ aLens f = traverseM_ (Map.toList <$> use aLens) f
