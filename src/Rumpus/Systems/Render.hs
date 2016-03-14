@@ -15,7 +15,6 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
-import Graphics.GL.Freetype
 import Graphics.GL.TextBuffer
 
 data Uniforms = Uniforms
@@ -141,7 +140,7 @@ getFinalMatrices = do
                 (InheritPose, Just (parentID, _))     -> do
                     parentPose <- getEntityPose parentID
                     return (parentPose !*! entityMatrixRaw) 
-                (InheritNone, _)                      -> return entityMatrixRaw
+                _                                     -> return entityMatrixRaw
 
             -- Pass the calculated matrix down to each child so it can calculate its own final matrix
             children <- getEntityChildren entityID

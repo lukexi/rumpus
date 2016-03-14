@@ -72,7 +72,7 @@ executable rumpus
   -- -s/-S prints GC info (-S as it happens)
   -- -L50 changes length of cost center profile names in the .prof/.hp files
   -- ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -S -H512M -A4M"
-  ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -S -H512M"
+  ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -s -H512M"
   -- -T collects runtime stats for use with GHC.Stats
   ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -S -H512M -A4M -L100"
 

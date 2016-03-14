@@ -118,7 +118,7 @@ start2 = do
                 cmpPose   ==> mkTransformation (axisAngle (V3 0 0 1) 0.3) pos
                 cmpShapeType              ==> CubeShape
                 cmpPhysicsProperties      ==> [NoPhysicsShape]
-                cmpInheritParentTransform ==> True
+                cmpInheritParentTransform ==> InheritFull
                 cmpSize                   ==> V3 0.5 0.6 0.6
                 cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5 1
                 cmpOnUpdate ==> do
