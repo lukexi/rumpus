@@ -11,14 +11,16 @@ import qualified Data.HashMap.Strict as Map
 data ShapeType = CubeShape | SphereShape | StaticPlaneShape 
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
+data InheritParentTransform = InheritNone | InheritFull | InheritPose
+
 defineComponentKey ''ShapeType
+defineComponentKey ''InheritParentTransform
 defineComponentKeyWithType "Name"                   [t|String|]
 defineComponentKeyWithType "Pose"                   [t|M44 GLfloat|]
 defineComponentKeyWithType "Size"                   [t|V3 GLfloat|]
 defineComponentKeyWithType "Color"                  [t|V4 GLfloat|]
 defineComponentKeyWithType "Parent"                 [t|EntityID|]
 defineComponentKeyWithType "Children"               [t|[EntityID]|]
-defineComponentKeyWithType "InheritParentTransform" [t|Bool|]
 
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
@@ -79,8 +81,11 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID cmpColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
-getEntityInheritParentTransform :: (HasComponents s, MonadState s f) => EntityID -> f Bool
-getEntityInheritParentTransform entityID = fromMaybe False <$> getEntityComponent entityID cmpInheritParentTransform
+getEntityInheritParentTransform :: (HasComponents s, MonadState s m) => EntityID -> m InheritParentTransform
+getEntityInheritParentTransform entityID = fromMaybe InheritNone <$> getEntityComponent entityID cmpInheritParentTransform
 
-getInheritParentTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m Bool
+getInheritParentTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m InheritParentTransform
 getInheritParentTransform = getEntityInheritParentTransform =<< ask
+
+getEntityChildren :: (HasComponents s, MonadState s m) => EntityID -> m [EntityID]
+getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID cmpChildren

@@ -21,7 +21,6 @@ tickAttachmentSystem =
             pose <- getEntityPose entityID
             setEntityPose (pose `addMatrix` offset) toEntityID
 
-
 attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 attachEntity entityID toEntityID = do
     -- Detach any current attachments
@@ -33,11 +32,6 @@ attachEntity entityID toEntityID = do
     addEntityComponent cmpAttachment (Attachment toEntityID offset) entityID
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
-
-addMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
-addMatrix a b = a !*! b
-subtractMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
-subtractMatrix a b = inv44 b !*! a
 
 detachEntity :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
 detachEntity entityID =
@@ -52,3 +46,9 @@ detachEntity entityID =
 
 withAttachment :: MonadState ECS m => EntityID -> (Attachment -> m b) -> m ()
 withAttachment entityID = withEntityComponent_ entityID cmpAttachment
+
+addMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
+addMatrix a b = a !*! b
+
+subtractMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
+subtractMatrix a b = inv44 b !*! a

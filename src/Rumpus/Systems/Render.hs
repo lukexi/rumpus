@@ -132,34 +132,26 @@ getFinalMatrices = do
 
     let rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
         go mParentMatrix accum entityID = do
-            childMatrix <- case mParentMatrix of
-                Just parentMatrix -> (parentMatrix !*!) <$!> getScaledMatrix entityID
-                Nothing           -> getScaledMatrix entityID
-            children <- fromMaybe [] <$> getEntityComponent entityID cmpChildren
-            foldM (go (Just childMatrix)) (Map.insert entityID childMatrix accum) children
+            -- See if we want to inherit our parent's matrix
+            inherit <- getEntityInheritParentTransform entityID
+            -- 
+            entityMatrixRaw <- getScaledMatrix entityID
+            entityMatrix <- case (inherit, mParentMatrix) of
+                (InheritFull, Just (_ ,parentMatrix)) -> return (parentMatrix !*! entityMatrixRaw)
+                (InheritPose, Just (parentID, _))     -> do
+                    parentPose <- getEntityPose parentID
+                    return (parentPose !*! entityMatrixRaw) 
+                (InheritNone, _)                      -> return entityMatrixRaw
+
+            -- Pass the calculated matrix down to each child so it can calculate its own final matrix
+            children <- getEntityChildren entityID
+            foldM (go (Just (entityID, entityMatrix))) (Map.insert entityID entityMatrix accum) children
     foldM (go Nothing) mempty rootIDs
 
 getScaledMatrix entityID = do
     pose <- getEntityPose entityID
     size <- getEntitySize entityID
     return $! pose !*! scaleMatrix size
-
--- | Accumulate a matrix stack by walking up to the parent
-getEntityTotalModelMatrix :: MonadState ECS m => EntityID -> m (M44 GLfloat)
-getEntityTotalModelMatrix startEntityID = do
-    
-    let go entityID = do
-            model <- getScaledMatrix entityID
-
-            inheritParent <- getEntityInheritParentTransform entityID
-            if inheritParent 
-                then do
-                    getEntityComponent entityID cmpParent >>= \case
-                        Just parent -> (!*! model) <$!> go parent
-                        Nothing -> return model
-                else return model
-    
-    go startEntityID
 
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType
