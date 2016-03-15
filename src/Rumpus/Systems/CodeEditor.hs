@@ -10,6 +10,7 @@ import Graphics.GL.Freetype
 import Graphics.GL.TextBuffer
 import Halive.SubHalive
 import Halive.Recompiler
+import Halive.FileListener
 
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection
@@ -128,7 +129,7 @@ createCodeEditor codeFile = do
 
     let (scriptPath, exprString) = codeFile
     resultTChan   <- recompilerForExpression ghcChan scriptPath exprString
-    codeRenderer  <- textRendererFromFile font scriptPath
+    codeRenderer  <- textRendererFromFile font scriptPath WatchFile
     errorRenderer <- createTextRenderer font (textBufferFromString "")
     
     return CodeEditor 
@@ -169,6 +170,10 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ do
     font <- use cesFont
 
     traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeFileKey, editor) -> do
+        -- Ensure the buffers have the latest code text from disk
+        refreshTextRendererFromFile (cesCodeEditors . ix codeFileKey . cedCodeRenderer)
+
+        -- Update entities with new code from the compiler
         tryReadTChanIO (editor ^. cedResultTChan) >>= \case
             Nothing -> return ()
             Just (Left errors) -> do

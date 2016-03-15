@@ -11,6 +11,8 @@ randomNote = do
     i <- liftIO (randomRIO (0, length scale - 1))
     return (scale !! i)
 
+
+
 start :: OnStart
 start = do
     removeChildren
