@@ -221,3 +221,20 @@ Basically use a quasiquoter to capture haskell code as a string, which should pl
 external editors' syntax highlighting. 
 (at first I thought this would enable using control structures in object defs, but that wouldn't be re-serializable)
 Or, just add a different extension for the YAML, embed the Haskell code and tell Sublime that it is Haskell.
+
+
+http://code.haskell.org/frag/src/
+
+http://hackage.haskell.org/package/ghc-gc-tune
+
+http://stackoverflow.com/questions/3171922/ghcs-rts-options-for-garbage-collection/3172704#3172704
+
+http://stackoverflow.com/questions/15236238/current-state-of-haskell-soft-real-time/15243682#15243682
+
+https://wiki.haskell.org/Numeric_Haskell:_A_Vector_Tutorial
+
+http://dis.um.es/~alberto/hmatrix/st.html
+See 
+mutable
+glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) `appMatrix` perspective 0.01 100 (pi/2) (4/3)
+https://hackage.haskell.org/package/hmatrix-0.17.0.1/docs/Numeric-LinearAlgebra-Devel.html

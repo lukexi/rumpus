@@ -28,14 +28,15 @@ tickLifetimeSystem = whenWorldPlaying $ do
             size <- getEntitySize entityID
             setEntitySize (size * realToFrac fadeProgress) entityID
 
-        when (age > lifetime) $ 
+        when (age > lifetime) $ do
             removeEntity entityID
         
 
 setLifetime :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> m ()
 setLifetime lifetime = do
+    entityID <- ask
     birth <- liftIO getCurrentTime
-    cmpLifetime ==> (Lifetime birth (realToFrac lifetime))
+    cmpLifetime ==> Lifetime birth (realToFrac lifetime)
 
 
 
