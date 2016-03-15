@@ -84,7 +84,7 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $
 
     use ctsEvents >>= mapM_ (\case
         VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> lift toggleWorldPlaying
-        GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
+        --GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
         _ -> return ())
 
 

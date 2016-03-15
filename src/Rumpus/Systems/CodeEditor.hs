@@ -153,7 +153,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 
     mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
     forM mSelectedEntityID $ \selectedEntityID ->
-        withEntityComponent selectedEntityID cmpOnUpdateExpr $ \codeFileKey ->
+        withEntityComponent selectedEntityID cmpOnStartExpr $ \codeFileKey ->
             modifySystemState sysCodeEditor $ 
                 forM_ events $ \case
                     GLFWEvent e -> handleTextBufferEvent window e 
@@ -196,7 +196,7 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     -- First, see if we can place a cursor into a text buffer.
     -- If not, then move onto the selection logic.
     selectedEntityID <- MaybeT $ viewSystem sysSelection selSelectedEntityID
-    codeFileKey      <- MaybeT $ getEntityComponent selectedEntityID cmpOnUpdateExpr
+    codeFileKey      <- MaybeT $ getEntityComponent selectedEntityID cmpOnStartExpr
     editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeFileKey)
     handPose         <- getEntityPose handEntityID
     pose             <- getEntityPose selectedEntityID

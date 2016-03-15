@@ -7,7 +7,8 @@ start = do
     removeChildren
     
     rootEntityID <- ask
-    setPose (identity & translation .~ V3 0.3 1.0 0)
+
+    --setPose (identity & translation .~ V3 0.3 1.0 0)
 
     let makeCelestialBody parentID radius hue = do
             cmpParent                   ==> parentID

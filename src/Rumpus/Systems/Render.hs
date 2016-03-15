@@ -11,7 +11,7 @@ import PreludeExtra
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Set as Set
 import Rumpus.Systems.Shared
---import Rumpus.Systems.Selection
+import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
@@ -70,7 +70,7 @@ tickRenderSystem headM44 = do
 
 
 renderEditors :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> m ()
-renderEditors projViewM44  = do
+renderEditors projViewM44 = do
     glEnable GL_BLEND
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
 
@@ -79,12 +79,12 @@ renderEditors projViewM44  = do
         traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
             parentPose <- getEntityPose entityID
 
-            let codeModelM44 = parentPose !*! (identity & translation .~ V3 0 0 (0.2)) !*! scaleMatrix 0.2
+            let codeModelM44 = parentPose !*! (identity & translation .~ V3 (-0.04) (0.04) (0.151)) !*! scaleMatrix 0.2
 
             -- Render code in white
             renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
 
-            let errorsModelM44 = codeModelM44 !*! identity & translation .~ V3 1 0 0
+            let errorsModelM44 = codeModelM44 !*! (identity & translation .~ V3 1 0 0)
 
             -- Render errors in light red
             renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
@@ -92,11 +92,23 @@ renderEditors projViewM44  = do
     glDisable GL_BLEND
 
 
+
+
 renderEntities :: (MonadIO m, MonadState ECS m) 
                => M44 GLfloat -> Map EntityID (M44 GLfloat) -> m ()
 renderEntities projViewM44 finalMatricesByEntityID = do
     
     headM44 <- getHeadPose
+
+    -- Pulse the currently selected entity in blue
+    selectedEntityID <- getSelectedEntityID
+    let getEntityColorOrSelectedColor entityID = do
+            if Just entityID == selectedEntityID
+                then do
+                    now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
+                    return $ hslColor 0.6 0.9 now 1
+                else getEntityColor entityID
+
 
     shapes <- viewSystem sysRender rdsShapes
     forM_ shapes $ \(shapeType, shape) -> withShape shape $ do
@@ -108,9 +120,8 @@ renderEntities projViewM44 finalMatricesByEntityID = do
         entityIDsForShape <- getEntityIDsForShapeType shapeType
         forM_ entityIDsForShape $ \entityID -> do
 
-            color <- getEntityColor entityID
+            color <- getEntityColorOrSelectedColor entityID
 
-            --model <- getEntityTotalModelMatrix entityID
             let model = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID 
             uniformM44 uModelViewProjection (projViewM44 !*! model)
             uniformM44 uModel               model

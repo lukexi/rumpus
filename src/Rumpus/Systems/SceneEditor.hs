@@ -40,12 +40,12 @@ initSceneEditorSystem = do
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
 
-    vrPal <- viewSystem sysControls ctsVRPal
-    hideHandKeyboard vrPal
+    --vrPal <- viewSystem sysControls ctsVRPal
+    --hideHandKeyboard vrPal
 
-    traverseM_ (viewSystem sysSceneEditor sedCurrentEditorFrame) removeEntity
+    removeCurrentEditorFrame
     
-    modifySystem_ sysSelection $ return . (selSelectedEntityID .~ Nothing)
+    clearSelectedEntityID
 
 
 selectEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
@@ -53,8 +53,17 @@ selectEntity entityID = do
 
     clearSelection
 
-    modifySystemState sysSelection $ selSelectedEntityID ?= entityID
+    setSelectedEntityID entityID
 
+    --addEditorFrame entityID
+
+    return ()
+
+removeCurrentEditorFrame :: (MonadIO m, MonadState ECS m) => m ()
+removeCurrentEditorFrame = traverseM_ (viewSystem sysSceneEditor sedCurrentEditorFrame) removeEntity
+
+addEditorFrame :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+addEditorFrame entityID = do
     editorFrame <- spawnEntity Transient $ do
         removeComponent cmpShapeType
         cmpConstraint ==> (RelativePositionTo entityID 0)
@@ -92,9 +101,7 @@ selectEntity entityID = do
             -- Set the edited entity's size, not the editor-widget's : )
             setEntitySize size entityID
 
-    modifySystemState sysSceneEditor $ sedCurrentEditorFrame ?= editorFrame
-
-    return ()
+    modifySystemState sysSceneEditor $ sedCurrentEditorFrame ?= editorFrame 
 
 beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
@@ -137,7 +144,8 @@ tickSceneEditorSystem = do
                     return ()
                 HandButtonEvent HandButtonTrigger ButtonDown -> do
 
-                    didPlaceCursor <- raycastCursor handEntityID
+                    --didPlaceCursor <- raycastCursor handEntityID
+                    let didPlaceCursor = False
                     when (not didPlaceCursor) $ do
                         -- Find the entities overlapping the hand, and attach them to it
                         overlappingEntityIDs <- filterStaticEntityIDs
@@ -152,7 +160,7 @@ tickSceneEditorSystem = do
                                 then do
                                     beginDrag handEntityID touchedID
                                 else do
-                                    --selectEntity touchedID
+                                    selectEntity touchedID
 
                                     attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
@@ -160,7 +168,7 @@ tickSceneEditorSystem = do
                     detachEntity handEntityID
 
                     -- If we've selected something, show the keyboard on grip-up
-                    traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \_selectedID -> do
+                    traverseM_ getSelectedEntityID $ \_selectedID -> do
                         -- vrPal <- viewSystem sysControls ctsVRPal
                         -- showHandKeyboard vrPal
                         return ()
