@@ -4,6 +4,7 @@ module Rumpus.Systems.Animation where
 import PreludeExtra hiding (Key)
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
+import Rumpus.Systems.Controls
 import Data.ECS.Vault
 
 defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
@@ -18,7 +19,7 @@ initAnimationSystem = do
 
 tickAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAnimationSystem = whenWorldPlaying $ do
-    now <- getNow
+    now <- realToFrac <$> getNow
     
     tickComponentAnimation now cmpColorAnimation cmpColor
     tickComponentAnimation now cmpSizeAnimation  cmpSize

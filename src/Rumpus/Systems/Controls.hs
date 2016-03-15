@@ -6,7 +6,7 @@
 module Rumpus.Systems.Controls where
 import PreludeExtra
 import Rumpus.Systems.PlayPause
-
+import qualified Graphics.VR.Pal as VRPal
 data WorldEvent = GLFWEvent Event
                 | VREvent VREvent
                 deriving Show
@@ -19,6 +19,11 @@ data ControlsSystem = ControlsSystem
     }
 makeLenses ''ControlsSystem
 defineSystemKey ''ControlsSystem
+
+getNow :: (MonadState ECS m, MonadIO m) => m GLfloat
+getNow = do
+    vrPal <- viewSystem sysControls ctsVRPal
+    realToFrac . utctDayTime <$> VRPal.getNow vrPal 
 
 initControlsSystem :: MonadState ECS m => VRPal -> m ()
 initControlsSystem vrPal = do
