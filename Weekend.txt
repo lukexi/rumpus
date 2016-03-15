@@ -11,7 +11,6 @@ Tree Room
 
 [ ] Add sound to new balls
 
-[ ] Update OpenVR to get tron mode? Should be easy enough to reverse if it gets hairy...
 
 Models: 
     [ ] trees
@@ -23,3 +22,5 @@ Models:
 
 Later
 - add check to bullet-mini to make sure we never create collider shapes of 0 size - it breaks all dynamic bodies!
+- Update OpenVR to get tron mode? Should be easy enough to reverse if it gets hairy...
+    (UPDATE: it got hairy!)

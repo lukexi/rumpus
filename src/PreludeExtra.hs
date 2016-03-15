@@ -29,8 +29,8 @@ import GHC.Generics as Exports (Generic)
 import Control.Lens.Extra as Exports hiding (List, (<.>), children)
 import Linear.Extra as Exports hiding (trace)
 import Graphics.UI.GLFW.Pal as Exports
-import Graphics.GL.Pal as Exports hiding (trace)
-import Graphics.VR.Pal as Exports
+import Graphics.GL.Pal as Exports hiding (trace, getNow) -- using a faster getNow in Types
+import Graphics.VR.Pal as Exports hiding (getNow)
 import Sound.Pd as Exports
 import Physics.Bullet as Exports
 import Animation.Pal as Exports hiding (getNow)
@@ -51,5 +51,3 @@ traverseM_ f x = f >>= traverse_ x
 
 useTraverseM_ :: (MonadState s m, Foldable t) => Lens' s (t a) -> (a -> m b) -> m ()
 useTraverseM_ aLens f = traverseM_ (use aLens) f
-
-
