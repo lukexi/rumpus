@@ -61,7 +61,7 @@ main = withPd $ \pd -> do
         -- selectEntity testEntity
 
         --_ <- spawnEntity Transient $ do
-        --    cmpOnStart ==> start2
+        --    cmpOnStart ==> testBuildTreeStart
         --    cmpPhysicsProperties ==> [IsKinematic]
         --    return ()
 
@@ -108,8 +108,8 @@ profileFPS' :: String -> Int -> a -> a
 profileFPS' _ _ = id
 
 
-start2 :: OnStart
-start2 = do
+testBuildTreeStart :: OnStart
+testBuildTreeStart = do
     removeChildren
     
     let branch parentID n pos = do

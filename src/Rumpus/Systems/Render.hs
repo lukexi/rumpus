@@ -79,7 +79,7 @@ renderEditors projViewM44  = do
         traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
             parentPose <- getEntityPose entityID
 
-            let codeModelM44 = parentPose !*! (identity & translation .~ V3 0 0 (-0.2)) !*! scaleMatrix 0.2
+            let codeModelM44 = parentPose !*! (identity & translation .~ V3 0 0 (0.2)) !*! scaleMatrix 0.2
 
             -- Render code in white
             renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
@@ -129,27 +129,35 @@ getFinalMatrices = do
 
     let rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
         go mParentMatrix accum entityID = do
+
+            entityMatrixLocalNoScale <- getEntityPose entityID
+
+            size <- getEntitySize entityID
+            let entityMatrixLocal = entityMatrixLocalNoScale !*! scaleMatrix size
+
+            
             -- See if we want to inherit our parent's matrix
             inherit <- getEntityInheritParentTransform entityID
-            -- 
-            entityMatrixRaw <- getScaledMatrix entityID
-            entityMatrix <- case (inherit, mParentMatrix) of
-                (InheritFull, Just (_ ,parentMatrix)) -> return (parentMatrix !*! entityMatrixRaw)
-                (InheritPose, Just (parentID, _))     -> do
-                    parentPose <- getEntityPose parentID
-                    return (parentPose !*! entityMatrixRaw) 
-                _                                     -> return entityMatrixRaw
+            let entityMatrix = case (inherit, mParentMatrix) of
+                    (InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocal
+                    (InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocal
+                    _                                            ->                         entityMatrixLocal
+                entityMatrixNoScale = case (inherit, mParentMatrix) of
+                    (InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocalNoScale
+                    (InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocalNoScale
+                    _                                            ->                         entityMatrixLocalNoScale
 
             -- Pass the calculated matrix down to each child so it can calculate its own final matrix
             children <- getEntityChildren entityID
-            foldM (go (Just (entityID, entityMatrix))) (Map.insert entityID entityMatrix accum) children
+            foldM (go (Just (entityMatrix, entityMatrixNoScale))) (Map.insert entityID entityMatrix accum) children
     foldM (go Nothing) mempty rootIDs
 
+{-
 getScaledMatrix :: MonadState ECS m => EntityID -> m (M44 GLfloat)
 getScaledMatrix entityID = do
     pose <- getEntityPose entityID
     size <- getEntitySize entityID
     return $! pose !*! scaleMatrix size
-
+-}
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType
