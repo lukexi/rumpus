@@ -6,21 +6,27 @@ createNewTimer = liftIO $ registerDelay (500 * 1000)
 
 checkTimer = liftIO . atomically . readTVar
 
+scale = [0,2,4,7,9]
+randomNote = do
+    i <- liftIO (randomRIO (0, length scale - 1))
+    return (scale !! i)
+
 start :: OnStart
 start = do
     removeChildren
-
-    --parentID <- ask
 
     cmpOnUpdate ==> withScriptData (\timer -> do
         shouldSpawn <- checkTimer timer
         if shouldSpawn 
             then do
+                note <- randomNote
+                sendPd "note" (Atom $ realToFrac note)
                 pose <- getPose
                 childID <- spawnEntity Transient $ do
                     cmpPose ==> pose & translation +~ (V3 0 0.3 0)
                     cmpShapeType ==> SphereShape
-                    cmpSize ==> 0.1
+                    cmpSize ==> 0.05
+                    cmpColor ==> hslColor (note / 12) 0.9 0.8 1
                 runEntity childID $ do
                     setLifetime 10
                     applyForce (V3 0 5 0)

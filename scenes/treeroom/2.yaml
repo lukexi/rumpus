@@ -28,3 +28,4 @@ Pose:
 OnStartExpr:
 - scenes/treeroom/BuildFountain.hs
 - start
+PdPatchFile: scenes/treeroom/fountain-voice

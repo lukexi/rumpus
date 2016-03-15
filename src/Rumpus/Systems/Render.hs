@@ -11,7 +11,7 @@ import PreludeExtra
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Set as Set
 import Rumpus.Systems.Shared
-import Rumpus.Systems.Selection
+--import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
