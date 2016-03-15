@@ -18,9 +18,9 @@ defineSystemKey ''HandsSystem
 
 startHandsSystem :: (MonadState ECS m, MonadIO m) => m ()
 startHandsSystem = do
-    vrPal <- viewSystem sysControls ctsVRPal
-    let handColor = V4 0.6 0.6 0.9 1
+    --vrPal <- viewSystem sysControls ctsVRPal
     --when (gpRoomScale vrPal == RoomScale) $ do
+    let handColor = V4 0.6 0.6 0.9 1
 
     leftHandID <- spawnEntity Transient $ do
         cmpColor             ==> handColor

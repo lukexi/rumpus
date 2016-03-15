@@ -8,6 +8,7 @@ import PreludeExtra
 
 import Rumpus.Types
 import Rumpus.Systems.Controls
+import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment

@@ -28,8 +28,5 @@ start = do
     rootEntityID <- ask
     sun <- spawnEntity Transient $ makeCelestialBody rootEntityID 0.1 0.5
     setEntityPose (identity & translation .~ V3 0 1 0) sun
-    planet <- makePlanet sun 1 1 0.5 0.7
-    putStrLnIO $ "Root ID: " ++ show rootEntityID
-    putStrLnIO $ "Sun ID: " ++ show sun
-    putStrLnIO $ "Planet ID: " ++ show planet
+    planet <- makePlanet sun 0.1 0.1 0.5 0.7
     return Nothing
