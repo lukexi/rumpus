@@ -126,9 +126,7 @@ spawnNewEntityAtPose pose = spawnEntity Persistent $ do
 
 tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
-    let editSceneWithHand handName event = do
-            mHandEntityID <- listToMaybe <$> getEntityIDsWithName handName
-            forM_ mHandEntityID $ \handEntityID -> case event of
+    let editSceneWithHand handEntityID event = case event of
                 HandStateEvent hand -> do
                     setEntityPose (hand ^. hndMatrix) handEntityID
                     continueDrag handEntityID
@@ -172,8 +170,10 @@ tickSceneEditorSystem = do
 
                 _ -> return ()
 
-    withLeftHandEvents  (editSceneWithHand "Left Hand")
-    withRightHandEvents (editSceneWithHand "Right Hand")
+    leftHandID  <- getLeftHandID
+    rightHandID <- getRightHandID
+    withLeftHandEvents  (editSceneWithHand leftHandID)
+    withRightHandEvents (editSceneWithHand rightHandID)
 
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysicsProperties)

@@ -1,15 +1,17 @@
 Tree Room
 
 
-[x] Fix physics bugs
-
 [ ] Get ready to edit room colors
+
+[ ] Add access to hand entities
+
+[x] Fix physics bugs
 
 [x] Increase zfar
 
 [x] Build a floor and 4 walls and shelf
 
-[ ] Add sound to new balls
+[x] Add sound to new balls
 
 
 Models: 
