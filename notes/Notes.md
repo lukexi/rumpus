@@ -221,3 +221,6 @@ Basically use a quasiquoter to capture haskell code as a string, which should pl
 external editors' syntax highlighting. 
 (at first I thought this would enable using control structures in object defs, but that wouldn't be re-serializable)
 Or, just add a different extension for the YAML, embed the Haskell code and tell Sublime that it is Haskell.
+
+
+Could use https://github.com/well-typed/binary-serialise-cbor to create a lightweight editor for scenes, or possibly even a sublime text plugin if I want to get extra crazy.
