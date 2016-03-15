@@ -153,7 +153,7 @@ tickSceneEditorSystem = do
                                 then do
                                     beginDrag handEntityID touchedID
                                 else do
-                                    selectEntity touchedID
+                                    --selectEntity touchedID
 
                                     attachEntity handEntityID touchedID
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
@@ -166,8 +166,9 @@ tickSceneEditorSystem = do
                         -- showHandKeyboard vrPal
                         return ()
 
-                    
-                    saveScene
+                    -- WARNING!!! 
+                    -- NOT SAVING TO AVOID SCREWING UP DEMO!!
+                    --saveScene
 
                 _ -> return ()
 

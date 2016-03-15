@@ -1,10 +1,25 @@
-SHELVING UNIT:
+Tree Room
+
+
+[x] Fix physics bugs
+
+[ ] Get ready to edit room colors
+
+[x] Increase zfar
 
 [x] Build a floor and 4 walls and shelf
 
-Build: 
-    bubbling thing
-    trees
-    sphere of cubes from cubensis
-    wavy thing from cubensis
-    wind chimes or other ambient sounds
+[ ] Add sound to new balls
+
+[ ] Update OpenVR to get tron mode? Should be easy enough to reverse if it gets hairy...
+
+Models: 
+    [ ] trees
+    [ ] fountain
+    [ ] sphere of cubes from cubensis
+    [ ] wavy thing from cubensis
+    [ ] wind chimes or other ambient sounds
+
+
+Later
+- add check to bullet-mini to make sure we never create collider shapes of 0 size - it breaks all dynamic bodies!

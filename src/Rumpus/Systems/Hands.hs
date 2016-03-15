@@ -27,6 +27,7 @@ startHandsSystem = do
             cmpShapeType ==> CubeShape
             cmpName  ==> "Left Hand"
             cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+            cmpMass ==> 0
         return ()
     _ <- spawnEntity Transient $ do
         cmpColor ==> handColor
@@ -34,6 +35,7 @@ startHandsSystem = do
         cmpShapeType ==> CubeShape
         cmpName  ==> "Right Hand"
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        cmpMass ==> 0
     return ()
 
 -- FIXME should update and get hndHead instead

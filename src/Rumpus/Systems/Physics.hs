@@ -7,6 +7,7 @@ module Rumpus.Systems.Physics where
 import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
+import Rumpus.Systems.Controls
 
 
 
@@ -85,7 +86,9 @@ deriveRigidBody dynamicsWorld = do
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
     dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
-    stepSimulation dynamicsWorld 60
+    vrPal <- viewSystem sysControls ctsVRPal
+    dt <- getDeltaTime vrPal
+    stepSimulationSimple dynamicsWorld dt
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components
 tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -133,7 +136,7 @@ setEntitySize newSize entityID = do
             mass       <- fromMaybe 1         <$> getEntityComponent entityID cmpMass
             shapeType  <- fromMaybe CubeShape <$> getEntityComponent entityID cmpShapeType
 
-            shape      <- createShapeCollider shapeType newSize
+            shape      <- createShapeCollider shapeType (max 0.01 newSize)
             setRigidBodyShape dynamicsWorld rigidBody shape mass
 
 setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => M44 GLfloat -> m ()

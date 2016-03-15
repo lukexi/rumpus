@@ -74,22 +74,20 @@ renderEditors projViewM44  = do
     glEnable GL_BLEND
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
 
-    traverseM_ (viewSystem sysSelection selSelectedEntityID) $ \entityID -> do
-        parentPose <- getEntityPose entityID
+    entitiesWithOnStart <- Map.toList <$> getComponentMap cmpOnStartExpr
+    forM_ entitiesWithOnStart $ \(entityID, codeExprKey) -> 
+        traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
+            parentPose <- getEntityPose entityID
 
-        
-        traverseM_ (getEntityComponent entityID cmpOnUpdateExpr) $ \codeExprKey -> 
-            traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
+            let codeModelM44 = parentPose !*! (identity & translation .~ V3 0 0 (-0.2)) !*! scaleMatrix 0.2
 
-                let codeModelM44 = parentPose
+            -- Render code in white
+            renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
 
-                -- Render code in white
-                renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
+            let errorsModelM44 = codeModelM44 !*! identity & translation .~ V3 1 0 0
 
-                let errorsModelM44 = codeModelM44 !*! identity & translation .~ V3 1 0 0
-
-                -- Render errors in light red
-                renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
+            -- Render errors in light red
+            renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
 
     glDisable GL_BLEND
 
