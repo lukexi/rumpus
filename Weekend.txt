@@ -21,5 +21,8 @@ Models:
     [ ] wind chimes or other ambient sounds
 
 
+Grip to attach to hand (grip again to release), then trigger can send trigger message to object?? Could build a cannon that way...
+
+
 Later
 - add check to bullet-mini to make sure we never create collider shapes of 0 size - it breaks all dynamic bodies!
