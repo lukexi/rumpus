@@ -3,7 +3,7 @@ Tree Room
 
 [ ] Get ready to edit room colors
 
-[ ] Add access to hand entities
+[x] Add access to hand entities
 
 [x] Fix physics bugs
 
@@ -13,6 +13,7 @@ Tree Room
 
 [x] Add sound to new balls
 
+[ ] Pedastals around room to put things on!
 
 Models: 
     [ ] trees
