@@ -5,10 +5,10 @@ import Rumpus
 createNewTimer = liftIO $ registerDelay (500 * 1000)
 checkTimer = liftIO . atomically . readTVar
 
-scale = [0,2,4,7,9]
+majorScale = map (+60) [0,2,4,7,9]
 randomNote = do
-    i <- liftIO (randomRIO (0, length scale - 1))
-    return (scale !! i)
+    i <- liftIO (randomRIO (0, length majorScale - 1))
+    return (majorScale !! i)
 
 start :: OnStart
 start = do
