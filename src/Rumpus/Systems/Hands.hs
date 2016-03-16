@@ -36,7 +36,7 @@ startHandsSystem = do
         cmpName              ==> "Right Hand"
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         cmpMass              ==> 0
-
+    printIO (leftHandID, rightHandID)
     registerSystem sysHands $ HandsSystem
             { _hndLeftHand  = leftHandID
             , _hndRightHand = rightHandID
@@ -50,5 +50,6 @@ getHeadPose = viewSystem sysControls ctsHeadPose
 
 getLeftHandID :: (MonadState ECS m) => m EntityID
 getLeftHandID  = viewSystem sysHands hndLeftHand
+
 getRightHandID :: (MonadState ECS m) => m EntityID
-getRightHandID = viewSystem sysHands hndLeftHand
+getRightHandID = viewSystem sysHands hndRightHand
