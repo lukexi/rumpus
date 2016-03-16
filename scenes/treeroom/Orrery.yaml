@@ -26,6 +26,5 @@ Pose:
   - 0.0
   - 1
 OnStartExpr:
-- scenes/treeroom/BuildFountain.hs
+- scenes/treeroom/Orrery.hs
 - start
-PdPatchFile: scenes/treeroom/fountain-voice

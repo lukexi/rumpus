@@ -12,7 +12,7 @@ Pose:
 - - -1
   - 0.0
   - 0.0
-  - 1
+  - -1
 - - 0.0
   - 1
   - 0.0
@@ -26,5 +26,5 @@ Pose:
   - 0.0
   - 1
 OnStartExpr:
-- scenes/treeroom/BuildOrrery.hs
+- scenes/treeroom/Tree.hs
 - start

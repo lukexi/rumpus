@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module BuildTree where
+module Fountain where
 import Rumpus
 
 createNewTimer = liftIO $ registerDelay (100 * 1000)

@@ -19,7 +19,6 @@ initScriptSystem = do
     registerComponent "OnUpdate" cmpOnUpdate (newComponentInterface cmpOnUpdate)
     registerComponent "ScriptData" cmpScriptData (newComponentInterface cmpScriptData)
 
-
 tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
     forEntitiesWithComponent cmpOnStart $

@@ -12,7 +12,7 @@ Pose:
 - - -1
   - 0.0
   - 0.0
-  - -1
+  - 1
 - - 0.0
   - 1
   - 0.0
@@ -26,5 +26,6 @@ Pose:
   - 0.0
   - 1
 OnStartExpr:
-- scenes/treeroom/BuildTree.hs
+- scenes/treeroom/Fountain.hs
 - start
+PdPatchFile: scenes/treeroom/fountain-voice

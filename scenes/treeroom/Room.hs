@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module BuildRoom where
+module Room where
 import Rumpus
 
 roomCube = 4

@@ -12,14 +12,17 @@ import Halive.SubHalive
 import Halive.Recompiler
 import Halive.FileListener
 
+import qualified Data.HashMap.Strict as Map
+import Control.Monad.Trans.Maybe
+import Data.ECS.Vault
+
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Script
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
-import qualified Data.HashMap.Strict as Map
-import Control.Monad.Trans.Maybe
-import Data.ECS.Vault
+import Rumpus.Systems.PlayPause
+
 -- | Pairs a filename along with an expression 
 -- to evaluate in that filename's environment once compiled
 type CodeFile = (FilePath, String)
@@ -45,6 +48,16 @@ defineComponentKeyWithType "OnStartExpr"          [t|CodeFile|]
 defineComponentKeyWithType "OnUpdateExpr"         [t|CodeFile|]
 defineComponentKeyWithType "OnCollisionExpr"      [t|CodeFile|]
 defineComponentKeyWithType "OnCollisionStartExpr" [t|CodeFile|]
+
+defineComponentKeyWithType "PlayWhenReady" [t|Bool|]
+
+getPlayWhenReady :: (MonadState ECS m, MonadReader EntityID m) => m Bool
+getPlayWhenReady = fromMaybe False <$> getComponent cmpPlayWhenReady
+
+getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
+getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID cmpPlayWhenReady
+
+
 
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
             => FilePath
@@ -80,6 +93,8 @@ initCodeEditorSystem = do
     registerCodeExprComponent "OnUpdateExpr"         cmpOnUpdateExpr         cmpOnUpdate
     registerCodeExprComponent "OnCollisionExpr"      cmpOnCollisionExpr      cmpOnCollision
     registerCodeExprComponent "OnCollisionStartExpr" cmpOnCollisionStartExpr cmpOnCollisionStart
+
+    registerComponent "PlayWhenReady" cmpPlayWhenReady (savedComponentInterface cmpPlayWhenReady)
 
 
 registerCodeExprComponent :: MonadState ECS m 
@@ -119,6 +134,13 @@ addCodeEditorDependency codeFile codeComponentKey = do
     let updateCode newValue = do
             putStrLnIO $ "Setting code  " ++ show codeFile ++ " on entity: " ++ show entityID
             setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
+
+            -- FIXME: scratch pass at a "PlayWhenReady" system
+            -- to begin play when a file has PlayWhenReady set
+            -- and its start function finished compiling
+            when (snd codeFile == "start") $ do
+                playWhenReady <- getEntityPlayWhenReady entityID
+                when playWhenReady $ setWorldPlaying True
     cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCode
 
 createCodeEditor :: (MonadIO m, MonadState CodeEditorSystem m) 

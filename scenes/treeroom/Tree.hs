@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module BuildTree where
+module Tree where
 import Rumpus
 
 start :: OnStart
