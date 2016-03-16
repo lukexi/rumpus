@@ -162,10 +162,10 @@ tickSceneEditorSystem = do
                                 else do
                                     selectEntity touchedID
 
-                                    attachEntity handEntityID touchedID
+                                    attachEntity handEntityID touchedID True
                 HandButtonEvent HandButtonTrigger ButtonUp -> do
                     endDrag handEntityID
-                    detachEntity handEntityID
+                    detachAttachedEntities handEntityID
 
                     -- If we've selected something, show the keyboard on grip-up
                     traverseM_ getSelectedEntityID $ \_selectedID -> do

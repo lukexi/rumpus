@@ -1,0 +1,31 @@
+ShapeType: CubeShape
+Size:
+- 0.3
+- 0.3
+- 0.3
+Color:
+- 0.1
+- 0.1
+- 0.2
+- 1.0
+Pose:
+- - -1
+  - 0.0
+  - 0.0
+  - 1
+- - 0.0
+  - 1
+  - 0.0
+  - 2
+- - 0.0
+  - 0.0
+  - -1
+  - 1.8
+- - 0.0   
+  - 0.0   
+  - 0.0
+  - 1
+PdPatchFile: scenes/treeroom/verylogue
+OnStartExpr:
+- scenes/treeroom/Verylogue.hs
+- start

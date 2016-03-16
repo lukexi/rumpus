@@ -15,9 +15,11 @@ start = do
             cmpShapeType                ==> SphereShape
             cmpPhysicsProperties        ==> [NoPhysicsShape]
 
-    let makePlanet parentID radius hue orbitRadius orbitRate = spawnEntity Transient $ do
+    let makePlanet parentID radius hue orbitRadius orbitRate = 
+          spawnEntity Transient $ do
             makeCelestialBody parentID radius hue
-            cmpPose                     ==> (identity & translation .~ V3 orbitRadius 0 0)
+            cmpPose                     ==> 
+                (identity & translation .~ V3 orbitRadius 0 0)
             cmpOnUpdate                 ==> do
                 n <- (orbitRate *) <$> getNow
                 let x = orbitRadius * cos n
@@ -37,7 +39,9 @@ start = do
         cmpPhysicsProperties        ==> [NoPhysicsShape]
 
     sun <- spawnEntity Transient $ makeCelestialBody scaler 0.1 0.5
-    setEntityPose (mkTransformation (axisAngle (V3 1 0 0) 0.4) (V3 0 1 0)) sun
+    setEntityPose (mkTransformation 
+        (axisAngle (V3 1 0 0) 0.4) 
+        (V3 0 1 0)) sun
     sun2 <- makePlanet sun 0.03 0.68 0.4 0.1
     p1 <- makePlanet sun2 0.1 0.1 0.22 0.7
     p2 <- makePlanet sun2 0.06 0.18 0.55 0.4

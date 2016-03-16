@@ -1,51 +1,62 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 module Rumpus.Systems.Attachment where
 import PreludeExtra
 
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
+import qualified Data.Set as Set
+data Attachment = Attachment EntityID (M44 GLfloat) deriving (Ord, Eq)
+type Attachments = Set Attachment
 
-data Attachment = Attachment EntityID (M44 GLfloat)
-
-defineComponentKey ''Attachment
+defineComponentKey ''Attachments
 
 initAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAttachmentSystem = do
-    registerComponent "Attachment" cmpAttachment (newComponentInterface cmpAttachment)
+    registerComponent "Attachments" cmpAttachments (newComponentInterface cmpAttachments)
 
 tickAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAttachmentSystem =
-    forEntitiesWithComponent cmpAttachment $
-        \(entityID, Attachment toEntityID offset) -> do
-            pose <- getEntityPose entityID
-            setEntityPose (pose `addMatrix` offset) toEntityID
+    forEntitiesWithComponent cmpAttachments $
+        \(entityID, attachments) -> 
+            forM_ attachments $ \(Attachment toEntityID offset) -> do
+                pose <- getEntityPose entityID
+                setEntityPose (pose `addMatrix` offset) toEntityID
 
-attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
-attachEntity entityID toEntityID = do
+attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> Bool -> m ()
+attachEntity entityID toEntityID exclusive = do
     -- Detach any current attachments
-    detachEntity entityID
+    when exclusive $ 
+        detachAttachedEntities entityID
 
     entityPose   <- getEntityPose entityID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractMatrix` entityPose
-    addEntityComponent cmpAttachment (Attachment toEntityID offset) entityID
+    
+    addAttachmentToSet entityID (Attachment toEntityID offset)
+
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
-detachEntity :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
-detachEntity entityID =
-    withAttachment entityID $ \(Attachment attachedEntityID _offset) -> do
+detachAttachedEntities :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
+detachAttachedEntities entityID =
+    withAttachments entityID $ \attachments -> do
+        forM_ attachments $ \(Attachment attachedEntityID _offset) -> do
 
-        removeEntityComponent cmpAttachment entityID
+            physProps <- getEntityPhysicsProperties attachedEntityID
+            unless (IsKinematic `elem` physProps) $ 
+                withEntityRigidBody attachedEntityID $ \rigidBody ->
+                    setRigidBodyKinematic rigidBody False
 
-        physProps <- getEntityPhysicsProperties attachedEntityID
-        unless (IsKinematic `elem` physProps) $ 
-            withEntityRigidBody attachedEntityID $ \rigidBody ->
-                setRigidBodyKinematic rigidBody False
+        removeEntityComponent cmpAttachments entityID
 
-withAttachment :: MonadState ECS m => EntityID -> (Attachment -> m b) -> m ()
-withAttachment entityID = withEntityComponent_ entityID cmpAttachment
+addAttachmentToSet entityID attachment = getEntityComponent entityID cmpAttachments >>= \case
+    Nothing          -> setEntityComponent cmpAttachments (Set.singleton attachment) entityID
+    Just attachments -> setEntityComponent cmpAttachments (Set.insert attachment attachments) entityID
+
+withAttachments :: MonadState ECS m => EntityID -> (Attachments -> m b) -> m ()
+withAttachments entityID = withEntityComponent_ entityID cmpAttachments
 
 addMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
 addMatrix a b = a !*! b

@@ -1,4 +1,4 @@
 PdPatchFile: scenes/verylogue/verylogue
 OnStartExpr:
-- scenes/verylogue/StartVerylogue.hs
+- scenes/verylogue/Verylogue.hs
 - start
