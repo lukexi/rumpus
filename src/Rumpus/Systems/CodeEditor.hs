@@ -78,7 +78,10 @@ addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
 
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
-    ghcChan   <- startGHC []
+
+
+
+    ghcChan   <- startGHC [] ["ac57757a" </> "pkgdb", "d2307617" </> "pkgdb"]
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
     font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
 

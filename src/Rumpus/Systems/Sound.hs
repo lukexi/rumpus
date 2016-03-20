@@ -63,7 +63,7 @@ derivePdPatchComponent pd = do
 
         -- Assign the patch's output DAC index to route it to the the SourceID
         traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
-            putStrLnIO $ "loaded " ++ patchFile ++ " sending " ++ show sourceChannel
+            putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show sourceChannel
             send pd patch "dac" $ Atom (fromIntegral sourceChannel)
             cmpOpenALSource ==> sourceID
 

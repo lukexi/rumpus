@@ -1,0 +1,36 @@
+#!/bin/sh
+
+rm -rf .release/
+
+stack install rumpus:rumpus --local-bin-path=.release
+
+echo "Copying package dbs..."
+
+snapshot_db=`stack path --snapshot-pkg-db`;
+snapshot_db=${snapshot_db%pkgdb}
+local_db=`stack path --local-pkg-db`;
+local_db=${local_db%pkgdb}
+echo $snapshot_db
+echo $local_db
+cp -R $local_db .release/
+cp -R $snapshot_db .release/
+
+echo "Copying resources..."
+cp -r resources/ .release/
+cp -r scenes/ .release/
+
+echo "Copying dlls..."
+cp `which libfreetype-6.dll` .release
+cp `which libpd.dll` .release
+cp `which libwinpthread-1.dll` .release
+cp `which OpenAL32.dll` .release
+cp `which openvr_api.dll` .release
+cp `which libstdc++-6.dll` .release
+cp `which libbz2-1.dll` .release
+cp `which libharfbuzz-0.dll` .release
+cp `which zlib1.dll` .release
+cp `which libpng16-16.dll` .release
+cp `which libgcc_s_seh-1.dll` .release
+cp `which libglib-2.0-0.dll` .release
+cp `which libintl-8.dll` .release
+cp `which libiconv-2.dll` .release

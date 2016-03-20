@@ -2,7 +2,7 @@
 module Room where
 import Rumpus
 
-roomCube = 40
+roomCube = 4
 (roomW, roomH, roomD) = (roomCube,roomCube,roomCube)
 wallD = 1
 shelfH = 0.15

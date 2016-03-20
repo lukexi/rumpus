@@ -36,7 +36,6 @@ startHandsSystem = do
         cmpName              ==> "Right Hand"
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
         cmpMass              ==> 0
-    printIO (leftHandID, rightHandID)
     registerSystem sysHands $ HandsSystem
             { _hndLeftHand  = leftHandID
             , _hndRightHand = rightHandID

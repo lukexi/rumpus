@@ -30,9 +30,9 @@ main = withPd $ \pd -> do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
     -- pd    <- reacquire 1 $ initLibPd
     
-    args <- getArgs
-    -- let sceneName = fromMaybe "default-scene" (listToMaybe args)
-    let sceneName = listToMaybe args
+    --args <- getArgs
+    --let sceneName = listToMaybe args
+    let sceneName = Just "treeroom"
 
     void . flip runStateT newECS $ do 
 

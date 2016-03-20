@@ -21,10 +21,10 @@ start = do
                     let V3 pX pY pZ = pos
                     cmpPose ==> mkTransformation 
                         (axisAngle (V3 0 1 1) (now*2)) 
-                        (V3 (pX) pY pZ)
+                        (V3 (pX+now) pY pZ)
             when (n > 0) $ do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
-    branch rootEntityID (4::Int) (V3 0 1 0)
+    branch rootEntityID (5::Int) (V3 0 1 0)
     return Nothing

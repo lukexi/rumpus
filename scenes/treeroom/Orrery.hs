@@ -19,7 +19,7 @@ start = do
           spawnEntity Transient $ do
             makeCelestialBody parentID radius hue
             cmpPose                     ==> 
-                (identity & translation .~ V3 orbitRadius 0 0)
+                (identity & translation .~ V3 (orbitRadius*3) 0 0)
             cmpOnUpdate                 ==> do
                 n <- (orbitRate *) <$> getNow
                 let x = orbitRadius * cos n
@@ -29,13 +29,13 @@ start = do
     container <- spawnEntity Transient $ do
         cmpParent                   ==> rootEntityID
         cmpInheritParentTransform   ==> InheritPose
-        cmpSize                     ==> V3 0.3 0.3 0.3
+        cmpSize                     ==> 0.3
         cmpPhysicsProperties        ==> [NoPhysicsShape]
 
     scaler <- spawnEntity Transient $ do 
         cmpParent                   ==> container
         cmpInheritParentTransform   ==> InheritFull
-        cmpSize                     ==> V3 1 1 1
+        cmpSize                     ==> 1
         cmpPhysicsProperties        ==> [NoPhysicsShape]
 
     sun <- spawnEntity Transient $ makeCelestialBody scaler 0.1 0.5

@@ -24,7 +24,7 @@ start = do
                 childID <- spawnEntity Transient $ do
                     cmpPose ==> pose & translation +~ 
                         (pose ^. _m33) !* (V3 0 0.3 0)
-                    cmpShapeType ==> SphereShape
+                    cmpShapeType ==> CubeShape
                     cmpSize ==> 0.03
                     cmpMass ==> 0.1
                     cmpColor ==> hslColor (note / 12) 0.9 0.8 1

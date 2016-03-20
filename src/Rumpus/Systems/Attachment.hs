@@ -51,6 +51,7 @@ detachAttachedEntities entityID =
 
         removeEntityComponent cmpAttachments entityID
 
+addAttachmentToSet :: (MonadState s m, HasComponents s) => EntityID -> Attachment -> m ()
 addAttachmentToSet entityID attachment = getEntityComponent entityID cmpAttachments >>= \case
     Nothing          -> setEntityComponent cmpAttachments (Set.singleton attachment) entityID
     Just attachments -> setEntityComponent cmpAttachments (Set.insert attachment attachments) entityID

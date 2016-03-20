@@ -12,7 +12,7 @@ import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
-import Rumpus.Systems.CodeEditor
+--import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Constraint
 
