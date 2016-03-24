@@ -4,16 +4,27 @@ rm -rf .release/
 
 stack install rumpus:rumpus --local-bin-path=.release
 
+mkdir -p .release/packages/mingw/bin
+mkdir -p .release/packages/snapshot
+mkdir -p .release/packages/local
+
+echo "Compiling fake GCC..."
+ghc util/fakeGCC.hs -o .release/packages/mingw/bin/gcc.exe
+
 echo "Copying package dbs..."
 
-snapshot_db=`stack path --snapshot-pkg-db`;
-snapshot_db=${snapshot_db%pkgdb}
-local_db=`stack path --local-pkg-db`;
-local_db=${local_db%pkgdb}
-echo $snapshot_db
-echo $local_db
-cp -R $local_db .release/
-cp -R $snapshot_db .release/
+echo "Copying snapshot package db..."
+result=`stack path --snapshot-install-root`; snapshot_install_root=${result%pkgdb}
+cp -R $snapshot_install_root/lib .release/packages/snapshot
+cp -R $snapshot_install_root/pkgdb .release/packages/snapshot
+
+echo "Copying local package db..."
+result=`stack path --local-install-root`; local_install_root=${result%pkgdb}
+cp -R $local_install_root/lib .release/packages/local
+cp -R $local_install_root/pkgdb .release/packages/local
+
+result=`stack path --global-pkg-db`; global_pkg_db_path=${result%package.conf.d}
+cp -R $global_pkg_db_path .release/packages/
 
 echo "Copying resources..."
 cp -r resources/ .release/

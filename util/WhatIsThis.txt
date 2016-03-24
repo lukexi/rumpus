@@ -1,0 +1,4 @@
+This is a fake version of gcc that exists solely to satisfy GHC's usage
+of gcc's --print-file-name flag to get .dll locations.
+
+The source is at https://github.com/lukexi/rumpus/util/fakeGCC.hs.

@@ -239,3 +239,11 @@ See
 mutable
 glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) `appMatrix` perspective 0.01 100 (pi/2) (4/3)
 https://hackage.haskell.org/package/hmatrix-0.17.0.1/docs/Numeric-LinearAlgebra-Devel.html
+
+
+
+Only need to render shadows once! Obviously, and awesome : )
+Also great ideas for multithreaded rendering, and making the render thread independent of CPU
+These are very good ideas!! Can also use something like Par monad to render groups of objects in parallel
+http://www.roadtovr.com/gdc-2016-valve-software-advanced-vr-rendering-performance-live-blog-4pm-pst/
+Rewatch last years too...
