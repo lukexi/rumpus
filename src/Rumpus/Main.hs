@@ -24,9 +24,9 @@ import Rumpus.Systems.PlayPause
 
 import Halive.Utils
 
-main :: IO ()
-main = withPd $ \pd -> do
--- main = do
+rumpusMain :: IO ()
+rumpusMain = withPd $ \pd -> do
+-- rumpusMain = do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
     -- pd    <- reacquire 1 $ initLibPd
     

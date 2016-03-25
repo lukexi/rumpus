@@ -17,7 +17,9 @@ cabal-version:       >=1.10
 library 
   hs-source-dirs:      src
   
-  exposed-modules:     Rumpus.Types
+  exposed-modules:     Rumpus
+                       PreludeExtra
+                       Rumpus.Types
                        Rumpus.Main
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
@@ -35,8 +37,6 @@ library
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound
                        Rumpus.Systems.Selection
-                       Rumpus
-                       PreludeExtra
   ghc-options:         -O2 -Wall 
   build-depends:       base
                      , bullet-mini

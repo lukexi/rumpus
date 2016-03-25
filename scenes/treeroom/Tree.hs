@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Tree where
+import Data.HashMap.Strict as Map
 import Rumpus
 
 start :: OnStart
