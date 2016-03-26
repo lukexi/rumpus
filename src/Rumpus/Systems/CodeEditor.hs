@@ -218,13 +218,11 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ do
             Just (Left errors) -> do
                 let allErrors = unlines errors
                 putStrLnIO allErrors
-                errorRenderer <- createTextRenderer font (textBufferFromString allErrors)
-                cesCodeEditors . ix codeFileKey . cedErrorRenderer .= errorRenderer
+                setTextRendererText (cesCodeEditors . ix codeFileKey . cedErrorRenderer) allErrors
             Just (Right compiledValue) -> do
                 -- Clear the error renderer
-                errorRenderer <- createTextRenderer font (textBufferFromString "")
-                cesCodeEditors . ix codeFileKey . cedErrorRenderer .= errorRenderer
-
+                setTextRendererText (cesCodeEditors . ix codeFileKey . cedErrorRenderer) ""
+                
                 -- Pass the compiled value to each registered "dependent" of the code editor
                 dependents <- use (cesCodeEditors . ix codeFileKey . cedDependents)
                 lift $ forM_ dependents ($ compiledValue)

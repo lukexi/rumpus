@@ -7,7 +7,10 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import qualified Data.Set as Set
-data Attachment = Attachment EntityID (M44 GLfloat) deriving (Ord, Eq)
+data Attachment = Attachment 
+    { atcToEntityID :: !EntityID
+    , atcOffset     :: !(M44 GLfloat) 
+    } deriving (Ord, Eq)
 type Attachments = Set Attachment
 
 defineComponentKey ''Attachments
@@ -58,6 +61,13 @@ addAttachmentToSet entityID attachment = getEntityComponent entityID cmpAttachme
 
 withAttachments :: MonadState ECS m => EntityID -> (Attachments -> m b) -> m ()
 withAttachments entityID = withEntityComponent_ entityID cmpAttachments
+
+getEntityAttachments :: (HasComponents s, MonadState s m) => EntityID -> m (Maybe Attachments)
+getEntityAttachments entityID = getEntityComponent entityID cmpAttachments
+
+isEntityAttachedTo :: (HasComponents s, MonadState s m) => EntityID -> EntityID -> m Bool
+isEntityAttachedTo childID parentID = maybe False (Set.member childID . Set.map atcToEntityID) <$> getEntityAttachments parentID
+
 
 addMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
 addMatrix a b = a !*! b

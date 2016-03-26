@@ -19,6 +19,9 @@
 [ ] Fix mirror window
     Go fullscreen by default and set GLFW_CURSOR_DISABLED for VR (and GLFW_CURSOR_HIDDEN for nonVR? we want the window-bounding but no cursor)
 
+[ ] A few more object types: whatever bullet makes easy. Cone, tetra, cylinder, etc.
+
+[ ] Teleporting!
 
 New later thoughts:
 - Clean up GLFW gamepad API for local multiplayer games!

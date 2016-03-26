@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 module Rumpus.Systems.SceneEditor where
@@ -101,7 +102,8 @@ addEditorFrame entityID = do
             -- Set the edited entity's size, not the editor-widget's : )
             setEntitySize size entityID
 
-    modifySystemState sysSceneEditor $ sedCurrentEditorFrame ?= editorFrame 
+    modifySystemState sysSceneEditor $ 
+        sedCurrentEditorFrame ?= editorFrame 
 
 beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
@@ -134,57 +136,61 @@ spawnNewEntityAtPose pose = spawnEntity Persistent $ do
 
 tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
-    let editSceneWithHand handEntityID event = case event of
-                HandStateEvent hand -> do
-                    setEntityPose (hand ^. hndMatrix) handEntityID
-                    continueDrag handEntityID
-                HandButtonEvent HandButtonGrip ButtonDown -> do
-                    handPose <- getEntityPose handEntityID
-                    _ <- spawnNewEntityAtPose handPose
+    let editSceneWithHand handEntityID otherHandEntityID event = case event of
+            HandStateEvent hand -> do
+                setEntityPose (hand ^. hndMatrix) handEntityID
+                continueDrag handEntityID
+            HandButtonEvent HandButtonGrip ButtonDown -> do
+                handPose <- getEntityPose handEntityID
+                _ <- spawnNewEntityAtPose handPose
+                return ()
+            HandButtonEvent HandButtonTrigger ButtonDown -> do
+
+                --didPlaceCursor <- raycastCursor handEntityID
+                let didPlaceCursor = False
+                when (not didPlaceCursor) $ do
+                    -- Find the entities overlapping the hand, and attach them to it
+                    overlappingEntityIDs <- filterStaticEntityIDs
+                                                =<< getEntityOverlappingEntityIDs handEntityID
+
+                    when (null overlappingEntityIDs) clearSelection
+                    
+                    forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
+
+                        hasDragFunction <- entityHasComponent grabbedID cmpOnDrag
+                        isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
+                        if 
+                            | isBeingHeldByOtherHand -> do
+                                duplicateID <- duplicateEntity Persistent grabbedID
+                                selectEntity duplicateID
+                                attachEntity handEntityID duplicateID True
+                            | hasDragFunction -> 
+                                beginDrag handEntityID grabbedID
+                            | otherwise -> do
+                                selectEntity grabbedID
+                                attachEntity handEntityID grabbedID True
+            HandButtonEvent HandButtonTrigger ButtonUp -> do
+                endDrag handEntityID
+                detachAttachedEntities handEntityID
+
+                -- If we've selected something, show the keyboard on grip-up
+                traverseM_ getSelectedEntityID $ \_selectedID -> do
+                    -- vrPal <- viewSystem sysControls ctsVRPal
+                    -- showHandKeyboard vrPal
                     return ()
-                HandButtonEvent HandButtonTrigger ButtonDown -> do
 
-                    --didPlaceCursor <- raycastCursor handEntityID
-                    let didPlaceCursor = False
-                    when (not didPlaceCursor) $ do
-                        -- Find the entities overlapping the hand, and attach them to it
-                        overlappingEntityIDs <- filterStaticEntityIDs
-                                                    =<< getEntityOverlappingEntityIDs handEntityID
-                        -- printIO overlappingEntityIDs
-                        when (null overlappingEntityIDs) clearSelection
-                        
-                        forM_ (listToMaybe overlappingEntityIDs) $ \touchedID -> do
+                -- WARNING!!! 
+                -- NOT SAVING TO AVOID SCREWING UP DEMO!!
+                --saveScene
 
-                            hasDragFunction <- entityHasComponent touchedID cmpOnDrag
-                            if hasDragFunction
-                                then do
-                                    beginDrag handEntityID touchedID
-                                else do
-                                    selectEntity touchedID
-
-                                    attachEntity handEntityID touchedID True
-                HandButtonEvent HandButtonTrigger ButtonUp -> do
-                    endDrag handEntityID
-                    detachAttachedEntities handEntityID
-
-                    -- If we've selected something, show the keyboard on grip-up
-                    traverseM_ getSelectedEntityID $ \_selectedID -> do
-                        -- vrPal <- viewSystem sysControls ctsVRPal
-                        -- showHandKeyboard vrPal
-                        return ()
-
-                    -- WARNING!!! 
-                    -- NOT SAVING TO AVOID SCREWING UP DEMO!!
-                    --saveScene
-
-                _ -> return ()
+            _ -> return ()
 
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
-    withLeftHandEvents  (editSceneWithHand leftHandID)
-    withRightHandEvents (editSceneWithHand rightHandID)
+    withLeftHandEvents  (editSceneWithHand leftHandID  rightHandID)
+    withRightHandEvents (editSceneWithHand rightHandID leftHandID)
+
 
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysicsProperties)
-
 

@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Tree where
-import Data.HashMap.Strict as Map
 import Rumpus
 
 start :: OnStart
@@ -27,5 +26,5 @@ start = do
                 branch childID (n - 1) (V3 1 1 0)
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
-    branch rootEntityID (5::Int) (V3 0 1 0)
+    branch rootEntityID (3::Int) (V3 0 1 0)
     return Nothing

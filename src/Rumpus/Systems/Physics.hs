@@ -44,10 +44,10 @@ initPhysicsSystem = do
                     removeRigidBody dynamicsWorld rigidBody
                     removeComponent cmpRigidBody
         }
-    registerComponent "Mass"              cmpMass (defaultComponentInterface cmpMass 1)
-    registerComponent "Gravity"           cmpGravity (newComponentInterface cmpGravity)
-    registerComponent "SpringConstraint"  cmpSpringConstraint (newComponentInterface cmpSpringConstraint)
-    registerComponent "PhysicsProperties" cmpPhysicsProperties (savedComponentInterface cmpPhysicsProperties)
+    registerComponent "Mass"              cmpMass               (defaultComponentInterface cmpMass 1)
+    registerComponent "Gravity"           cmpGravity            (newComponentInterface cmpGravity)
+    registerComponent "SpringConstraint"  cmpSpringConstraint   (newComponentInterface cmpSpringConstraint)
+    registerComponent "PhysicsProperties" cmpPhysicsProperties  (savedComponentInterface cmpPhysicsProperties)
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do

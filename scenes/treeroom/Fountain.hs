@@ -2,7 +2,7 @@
 module Fountain where
 import Rumpus
 
-createNewTimer = liftIO $ registerDelay (500 * 1000)
+createNewTimer = liftIO $ registerDelay (250 * 1000)
 checkTimer = liftIO . atomically . readTVar
 
 majorScale = map (+60) [0,2,4,7,9]
@@ -24,7 +24,7 @@ start = do
                 childID <- spawnEntity Transient $ do
                     cmpPose ==> pose & translation +~ 
                         (pose ^. _m33) !* (V3 0 0.3 0)
-                    cmpShapeType ==> CubeShape
+                    cmpShapeType ==> SphereShape
                     cmpSize ==> 0.03
                     cmpMass ==> 0.1
                     cmpColor ==> hslColor (note / 12) 0.9 0.8 1
