@@ -1,4 +1,27 @@
+[ ] Implement the larger scene plan with 
+        [ ] Sequencer room
+                Playheads could have handles they move relative to so they could be picked up and moved
+                Play/pause? Or just code it as demo
+                Precompose some sequences and then duplicate the playhead and carry it over to the next sequence
+                to increase intensity of music
+                    (maybe need to think of how to quantize/synchronize playheads effectively; 
+                    have handle snap-to-grid on release?)
+                Could do sampler here too
+
+        [ ] Tutorial room
+                Game of life sim?
+                Volume helmet?
+        [ ] Shooter game room
+        [ ] Outdoor patio
+                This holds a city builder and demos editing of a large scale environemnt
+                Animated windows turning on and off, stars in the sky.
+
+
 [ ] Teleporting!
+        [ ] I think I like predefined teleport balls that exist in each room when you're not in them.
+
+        We want to move the player's view and hands, not the world, 
+        so just add that to the hands and head when updating them
 
 [ ] SteamVR keyboard
 
@@ -13,8 +36,10 @@
 
 [ ] Try to rebuild space pirate trainer! Use that to inform further improvements...
 	[ ] Object-to-hand attachment
-		Double click trigger (good for attach, but not detach because we want to use trigger) 
-		Grip Button? Move teleport to above thumbpad
+		Grip Button? Move teleport to above thumbpad.
+        Could be grip button only when already holding, then grip again to release?
+        That way I don't have to tell people "put it down then grab it again with the grip button",
+        but rather the grip button is like a lock. Or maybe just make sure grip works when already holding with trigger?
 
 [x] Object duplication
         If holding with one hand, grab with other hand and pull out a copy. Simple!
@@ -22,6 +47,10 @@
         	Should copy the CompiledValue from the CodeEditor to avoid delay when cloning.
 	        Name by just incrementing a counter?
 	        Put the name on one side of the cube??
+        [ ] "Make Independent" option after cloning that does the copying of the code files. 
+            I think this fits what you'd want most of the time?
+            E.g. in the sequencer I definitely want all notes to share behavior,
+            and when spawning a new object (e.g. a bullet) we want to share behavior.
 
 [ ] Blank object creation
 
