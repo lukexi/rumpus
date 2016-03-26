@@ -1,29 +1,50 @@
+[ ] Teleporting!
+
+[ ] SteamVR keyboard
+
 [ ] Framerate pass
         Consider how hard doing a basic multithreaded renderer would be... could be great!!
+        [i] Seems to be much better since fixing the error renderers recreating themselves
+        	on each keypress!
 
 [ ] Audio latency pass
 
-[ ] Try to rebuild space pirate trainer! Use that to inform further improvements...
+[ ] BUG: Fix audio not working in standalone executable!
 
-[ ] Object duplication
+[ ] Try to rebuild space pirate trainer! Use that to inform further improvements...
+	[ ] Object-to-hand attachment
+		Double click trigger (good for attach, but not detach because we want to use trigger) 
+		Grip Button? Move teleport to above thumbpad
+
+[x] Object duplication
         If holding with one hand, grab with other hand and pull out a copy. Simple!
-        Name by just incrementing a counter?
-        Put the name on one side of the cube??
+        [ ] Figure out getting new instance of code.
+        	Should copy the CompiledValue from the CodeEditor to avoid delay when cloning.
+	        Name by just incrementing a counter?
+	        Put the name on one side of the cube??
 
 [ ] Blank object creation
 
-[ ] Fix undo memory pressure
+[ ] Fix undo, check if it was the culprit in causing judder and switch design if so
 
 [ ] Object & scene management
+		Swipeable button to access advanced features? Swipe to the button you want and then click down?
+		Or do SPT-style menu?
+		Obviously find way to make hand editable so we can implement new hands while inside
+		Delete with a laser ray that slowly vaporizes the object so you can change your mind
+		Blank object creation
+		Open object library
+		Multiselect by swiping through a bunch of objects or lasering
+		Play/Pause
 
 [ ] Fix mirror window
     Go fullscreen by default and set GLFW_CURSOR_DISABLED for VR (and GLFW_CURSOR_HIDDEN for nonVR? we want the window-bounding but no cursor)
 
 [ ] A few more object types: whatever bullet makes easy. Cone, tetra, cylinder, etc.
 
-[ ] Teleporting!
 
-New later thoughts:
+Later thoughts:
 - Clean up GLFW gamepad API for local multiplayer games!
-- Think about registering components at runtime, this would be probably handier than the ScriptData system.
+- Think about registering components at runtime in user scripts. 
+	This would be probably handier than the ScriptData system.
     (Perhaps just have files that are automatically loaded like a Types.hs?)
