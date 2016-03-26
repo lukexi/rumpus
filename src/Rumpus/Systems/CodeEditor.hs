@@ -79,15 +79,22 @@ addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
 
+    -- Check for the existence of a "packages" directory to see if we're
+    -- inside of a standalone distrubtion of rumpus versus building from the repo.
+    isStandaloneRelease <- liftIO $ doesDirectoryExist "packages"
 
-    let ghcSessionConfig = GHCSessionConfig 
-            { gscPackageDBs = [ "packages"</>"snapshot"</>"pkgdb"
-                              , "packages"</>"local"</>"pkgdb"
-                              ]
-            , gscLibDir = "packages"</>"lib"
-            , gscFixDebounce = DebounceFix
-            , gscImportPaths = []
-            }
+    let ghcSessionConfig = if isStandaloneRelease 
+            then defaultGHCSessionConfig 
+                { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
+                                  , "packages"</>"snapshot"</>"pkgdb"
+                                  ]
+                , gscLibDir = "packages"</>"ghc"</>"lib"
+                , gscFixDebounce = DebounceFix
+                }
+            else defaultGHCSessionConfig 
+                { gscFixDebounce = DebounceFix 
+                }
+
     ghcChan   <- startGHC ghcSessionConfig
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
     font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg

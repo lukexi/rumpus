@@ -4,31 +4,53 @@ rm -rf .release/
 
 stack install rumpus:rumpus --local-bin-path=.release
 
-mkdir -p .release/packages/mingw/bin
+mkdir -p .release/packages/ghc/mingw/bin
 mkdir -p .release/packages/snapshot
 mkdir -p .release/packages/local
 
-echo "Compiling fake GCC..."
-ghc util/fakeGCC.hs -o .release/packages/mingw/bin/gcc.exe
+snapshot_libs=$(stack path --snapshot-install-root | sed 's|\\|\\\\|g')
+local_libs=$(stack path --local-install-root | sed 's|\\|\\\\|g')
+ghc_libs=$(stack path --global-pkg-db|  sed 's|package.conf.d||g' | sed 's|\\|\\\\|g')
 
-echo "Copying package dbs..."
+echo "Compiling fake GCC..."
+ghc util/fakeGCC.hs -o .release/packages/ghc/mingw/bin/gcc.exe
+
+
+echo "Copying ghc package db..."
+cp -R $ghc_libs .release/packages/ghc
+
 
 echo "Copying snapshot package db..."
-result=`stack path --snapshot-install-root`; snapshot_install_root=${result%pkgdb}
-cp -R $snapshot_install_root/lib .release/packages/snapshot
-cp -R $snapshot_install_root/pkgdb .release/packages/snapshot
+cp -R $snapshot_libs/lib .release/packages/snapshot
+cp -R $snapshot_libs/pkgdb .release/packages/snapshot
+
 
 echo "Copying local package db..."
-result=`stack path --local-install-root`; local_install_root=${result%pkgdb}
-cp -R $local_install_root/lib .release/packages/local
-cp -R $local_install_root/pkgdb .release/packages/local
+cp -R $local_libs/lib .release/packages/local
+cp -R $local_libs/pkgdb .release/packages/local
 
-result=`stack path --global-pkg-db`; global_pkg_db_path=${result%package.conf.d}
-cp -R $global_pkg_db_path .release/packages/
+
+echo "Fixing absolute references in package DBs..."
+# in snapshot, replace all mentions of the absolute snapshot pkg dir with ${pkgroot}
+find .release/packages/snapshot -name "*.conf" | xargs sed -i -e 's|'$snapshot_libs'|${pkgroot}|g'
+ghc-pkg \
+   --package-db .release/packages/ghc/lib/package.conf.d \
+   --package-db .release/packages/snapshot/pkgdb \
+   recache
+
+# in local, replace all mentions of the absolute local pkg dir with ${pkgroot}
+find .release/packages/local -name "*.conf" | xargs sed -i -e 's|'$local_libs'|${pkgroot}|g'
+ghc-pkg \
+   --package-db .release/packages/ghc/lib/package.conf.d \
+   --package-db .release/packages/snapshot/pkgdb \
+   --package-db .release/packages/local/pkgdb \
+   recache
+
 
 echo "Copying resources..."
 cp -r resources/ .release/
 cp -r scenes/ .release/
+
 
 echo "Copying dlls..."
 cp `which libfreetype-6.dll` .release
@@ -45,3 +67,8 @@ cp `which libgcc_s_seh-1.dll` .release
 cp `which libglib-2.0-0.dll` .release
 cp `which libintl-8.dll` .release
 cp `which libiconv-2.dll` .release
+
+# DEV ONLY
+# echo "DEV: MOVING STACK WORK DIR AND RUNNING RUMPUS..."
+# rm -rf .stack-work
+# (cd .release/ && ./rumpus.exe)

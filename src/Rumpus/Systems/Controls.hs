@@ -6,6 +6,7 @@
 module Rumpus.Systems.Controls where
 import PreludeExtra
 import Rumpus.Systems.PlayPause
+import Rumpus.Systems.Selection
 import qualified Graphics.VR.Pal as VRPal
 data WorldEvent = GLFWEvent Event
                 | VREvent VREvent
@@ -31,7 +32,7 @@ initControlsSystem vrPal = do
             { _ctsVRPal = vrPal
             , _ctsPlayer = if gpRoomScale vrPal == RoomScale
                             then newPose
-                            else newPose & posPosition .~ V3 0 0 3
+                            else newPose & posPosition .~ V3 0 1 (-1) & posOrientation .~ axisAngle (V3 0 1 0) (pi)
             , _ctsEvents = []
             , _ctsHeadPose = identity
             }
@@ -58,9 +59,15 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $
     hands' <- if gpRoomScale == RoomScale
         then return hands
         else do
+            hasSelection <- isJust <$> lift getSelectedEntityID
+            unless hasSelection $ 
+                applyWASD gpWindow ctsPlayer
+            
             player <- use ctsPlayer
             events <- use ctsEvents
             emulateRightHand vrPal player events
+
+            
 
     -- Generate ButtonDown and ButtonUp events for Hand controllers. This should go in VRPal.
     let lastHands = mapMaybe (\case
@@ -98,7 +105,7 @@ emulateRightHand VRPal{..} player events  = do
 
     forM_ events $ \case
         GLFWEvent e -> onScroll e $ \_x y ->
-            liftIO $ modifyIORef' gpEmulatedHandDepthRef (+ y)
+            liftIO $ modifyIORef' gpEmulatedHandDepthRef (+ (y*0.1))
         _ -> return ()
     handZ <- liftIO (readIORef gpEmulatedHandDepthRef)
     -- a <- getNow -- swap with line below to rotate hand for testing
