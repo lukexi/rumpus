@@ -28,10 +28,11 @@ import Rumpus.Systems.PlayPause
 type CodeFile = (FilePath, String)
 
 data CodeEditor = CodeEditor
-    { _cedResultTChan   :: TChan CompilationResult
-    , _cedCodeRenderer  :: TextRenderer
-    , _cedErrorRenderer :: TextRenderer
-    , _cedDependents    :: Map EntityID (CompiledValue -> ECSMonad ())
+    { _cedResultTChan   :: !(TChan CompilationResult)
+    , _cedCompiledValue :: !(Maybe CompiledValue)
+    , _cedCodeRenderer  :: !TextRenderer
+    , _cedErrorRenderer :: !TextRenderer
+    , _cedDependents    :: !(Map EntityID (CompiledValue -> ECSMonad ()))
     }
 makeLenses ''CodeEditor
 
@@ -138,7 +139,9 @@ registerWithCodeEditor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
 registerWithCodeEditor codeFile codeComponentKey = modifySystemState sysCodeEditor $ do
 
     use (cesCodeEditors . at codeFile) >>= \case
-        Just _ -> return ()
+        Just existingEditor -> do
+            forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> 
+                lift $ setComponent codeComponentKey (getCompiledValue compiledValue)
         Nothing -> do
             codeEditor <- createCodeEditor codeFile
             cesCodeEditors . at codeFile ?= codeEditor
@@ -148,7 +151,7 @@ addCodeEditorDependency :: (MonadState CodeEditorSystem m, MonadReader EntityID 
                         => (FilePath, String) -> Key (EntityMap a) -> m ()
 addCodeEditorDependency codeFile codeComponentKey = do
     entityID <- ask
-    let updateCode newValue = do
+    let updateCodeAction newValue = do
             putStrLnIO $ "Setting code  " ++ show codeFile ++ " on entity: " ++ show entityID
             setEntityComponent codeComponentKey (getCompiledValue newValue) entityID
 
@@ -158,7 +161,7 @@ addCodeEditorDependency codeFile codeComponentKey = do
             when (snd codeFile == "start") $ do
                 playWhenReady <- getEntityPlayWhenReady entityID
                 when playWhenReady $ setWorldPlaying True
-    cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCode
+    cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCodeAction
 
 createCodeEditor :: (MonadIO m, MonadState CodeEditorSystem m) 
                  => (FilePath, String) -> m CodeEditor
@@ -174,7 +177,8 @@ createCodeEditor codeFile = do
     return CodeEditor 
             { _cedCodeRenderer = codeRenderer
             , _cedErrorRenderer = errorRenderer
-            , _cedResultTChan = resultTChan 
+            , _cedResultTChan = resultTChan
+            , _cedCompiledValue = Nothing 
             , _cedDependents = mempty
             }  
 
@@ -222,6 +226,9 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ do
             Just (Right compiledValue) -> do
                 -- Clear the error renderer
                 setTextRendererText (cesCodeEditors . ix codeFileKey . cedErrorRenderer) ""
+
+                -- Cache the compiled value for use by new objects using this same codeFileKey
+                cesCodeEditors . ix codeFileKey . cedCompiledValue ?= compiledValue
                 
                 -- Pass the compiled value to each registered "dependent" of the code editor
                 dependents <- use (cesCodeEditors . ix codeFileKey . cedDependents)
