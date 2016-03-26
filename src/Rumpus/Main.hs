@@ -64,7 +64,7 @@ main = withPd $ \pd -> do
         --    cmpOnStart ==> testBuildTreeStart
         --    cmpPhysicsProperties ==> [IsKinematic]
         --    return ()
-
+        
         whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do
 
             -- Perform a minor GC to just get the young objects created during the last frame

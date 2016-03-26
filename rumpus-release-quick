@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Only installs the rumpus.exe, local DB, scenes, and resources
+# (i.e. ignore things that are unlikely to change between runs)
+
+stack install rumpus:rumpus --local-bin-path=.release
+
+echo "Copying package dbs..."
+
+echo "Copying local package db..."
+result=`stack path --local-install-root`; local_install_root=${result%pkgdb}
+cp -R $local_install_root/lib .release/packages/local
+cp -R $local_install_root/pkgdb .release/packages/local
+
+echo "Copying resources..."
+cp -r resources/ .release/
+cp -r scenes/ .release/

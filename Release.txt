@@ -1,0 +1,26 @@
+[ ] Framerate pass
+        Consider how hard doing a basic multithreaded renderer would be... could be great!!
+
+[ ] Audio latency pass
+
+[ ] Try to rebuild space pirate trainer! Use that to inform further improvements...
+
+[ ] Object duplication
+        If holding with one hand, grab with other hand and pull out a copy. Simple!
+        Name by just incrementing a counter?
+        Put the name on one side of the cube??
+
+[ ] Blank object creation
+
+[ ] Fix undo memory pressure
+
+[ ] Object & scene management
+
+[ ] Fix mirror window
+    Go fullscreen by default and set GLFW_CURSOR_DISABLED for VR (and GLFW_CURSOR_HIDDEN for nonVR? we want the window-bounding but no cursor)
+
+
+New later thoughts:
+- Clean up GLFW gamepad API for local multiplayer games!
+- Think about registering components at runtime, this would be probably handier than the ScriptData system.
+    (Perhaps just have files that are automatically loaded like a Types.hs?)

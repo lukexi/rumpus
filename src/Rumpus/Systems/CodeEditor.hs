@@ -87,7 +87,7 @@ initCodeEditorSystem = do
             , gscLibDir = "packages"</>"lib"
             , gscFixDebounce = DebounceFix
             , gscImportPaths = []
-            }        
+            }
     ghcChan   <- startGHC ghcSessionConfig
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
     font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
