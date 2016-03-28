@@ -162,7 +162,7 @@ tickSceneEditorSystem = do
                         if 
                             | isBeingHeldByOtherHand -> do
                                 duplicateID <- duplicateEntity Persistent grabbedID
-                                forkCode grabbedID duplicateID
+                                --forkCode grabbedID duplicateID
                                 selectEntity duplicateID
                                 attachEntity handEntityID duplicateID True
                             | hasDragFunction -> 
