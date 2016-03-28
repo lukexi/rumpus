@@ -3,4 +3,4 @@ import Rumpus
 
 collision :: OnCollisionEnd
 collision entityID withEntityID = do
-    setEntityColor (hslColor 0 0.8 0.4 1) entityID
+    setEntityColor (hslColor 0 0.8 0.4) entityID

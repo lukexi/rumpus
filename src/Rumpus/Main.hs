@@ -30,9 +30,8 @@ rumpusMain = withPd $ \pd -> do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
     -- pd    <- reacquire 1 $ initLibPd
     
-    --args <- getArgs
-    --let sceneName = listToMaybe args
-    let sceneName = Just "treeroom"
+    args <- getArgs
+    let sceneName = fromMaybe "treeroom" $ listToMaybe args
 
     void . flip runStateT newECS $ do 
 
@@ -53,8 +52,7 @@ rumpusMain = withPd $ \pd -> do
         initSharedSystem
 
         startHandsSystem
-        forM_ sceneName loadScene
-        -- loadScene sceneName
+        loadScene sceneName
         
         -- testEntity <- spawnEntity Transient $ return ()
         -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart        
@@ -120,7 +118,7 @@ testBuildTreeStart = do
                 cmpPhysicsProperties      ==> [NoPhysicsShape]
                 cmpInheritParentTransform ==> InheritFull
                 cmpSize                   ==> V3 0.5 0.6 0.6
-                cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5 1
+                cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5
                 cmpOnUpdate ==> do
                     now <- sin <$> getNow
                     cmpPose ==> mkTransformation (axisAngle (V3 0 1 1) now) pos

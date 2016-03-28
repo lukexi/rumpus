@@ -44,10 +44,10 @@ initPhysicsSystem = do
                     removeRigidBody dynamicsWorld rigidBody
                     removeComponent cmpRigidBody
         }
-    registerComponent "Mass"              cmpMass               (defaultComponentInterface cmpMass 1)
-    registerComponent "Gravity"           cmpGravity            (newComponentInterface cmpGravity)
-    registerComponent "SpringConstraint"  cmpSpringConstraint   (newComponentInterface cmpSpringConstraint)
+    registerComponent "Mass"              cmpMass               (savedComponentInterface cmpMass)
+    registerComponent "Gravity"           cmpGravity            (savedComponentInterface cmpGravity)
     registerComponent "PhysicsProperties" cmpPhysicsProperties  (savedComponentInterface cmpPhysicsProperties)
+    registerComponent "SpringConstraint"  cmpSpringConstraint   (newComponentInterface cmpSpringConstraint)
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do
@@ -86,8 +86,8 @@ deriveRigidBody dynamicsWorld = do
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
     dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
-    vrPal <- viewSystem sysControls ctsVRPal
-    dt <- getDeltaTime vrPal
+    vrPal         <- viewSystem sysControls ctsVRPal
+    dt            <- getDeltaTime vrPal
     stepSimulationSimple dynamicsWorld dt
 
 -- | Copy poses from Bullet's DynamicsWorld into our own cmpPose components

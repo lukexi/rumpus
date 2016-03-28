@@ -22,8 +22,8 @@ newScene = Scene
     }
 
 data SelectionSystem = SelectionSystem 
-    { _selSelectedEntityID   :: !(Maybe EntityID) 
-    , _selScene :: !Scene
+    { _selSelectedEntityID :: !(Maybe EntityID) 
+    , _selScene            :: !Scene
     }
 makeLenses ''SelectionSystem
 

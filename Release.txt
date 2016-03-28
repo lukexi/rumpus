@@ -1,4 +1,30 @@
+[ ] Implement the larger scene plan with 
+        [ ] Sequencer room
+                Playheads could have handles they move relative to so they could be picked up and moved
+                Play/pause? Or just code it as demo
+                Precompose some sequences and then duplicate the playhead and carry it over to the next sequence
+                to increase intensity of music
+                    (maybe need to think of how to quantize/synchronize playheads effectively; 
+                    have handle snap-to-grid on release?)
+                Could do sampler here too
+
+        [ ] Tutorial room
+                Pedastal sequence of how to use rumpus (or should this be in the main room)
+                then how to build things in the language,
+                how to add sound, how to add physics
+                Game of life sim?
+                Volume helmet?
+        [ ] Shooter game room
+        [ ] Outdoor patio
+                This holds a city builder and demos editing of a large scale environemnt
+                Animated windows turning on and off, stars in the sky.
+
+
 [ ] Teleporting!
+        [ ] I think I like predefined teleport balls that exist in each room when you're not in them.
+
+        We want to move the player's view and hands, not the world, 
+        so just add that to the hands and head when updating them
 
 [ ] Entity registry for non-local communication making scoreboards etc.
 	registerName "scoreboard"
@@ -15,11 +41,38 @@
 [ ] Audio latency pass
 
 [ ] BUG: Fix audio not working in standalone executable!
+[x] BUG: Fix OpenAL Invalid Operation
 
 [ ] Try to rebuild space pirate trainer! Use that to inform further improvements...
 	[ ] Object-to-hand attachment
-		Double click trigger (good for attach, but not detach because we want to use trigger) 
-		Grip Button? Move teleport to above thumbpad
+		Grip Button? Move teleport to above thumbpad.
+        Could be grip button only when already holding, then grip again to release?
+        That way I don't have to tell people "put it down then grab it again with the grip button",
+        but rather the grip button is like a lock. Or maybe just make sure grip works when already holding with trigger?
+
+[ ] Simplify language
+    
+        Use tutorial as an opportunity to simplify lang examples as much as possible
+        e.g. pull out 'align-vector-to-entity' code from fountain; we'll need it for guns!
+        should cmpSize etc. be selfSize or cSize or eSize or thisSize or 
+        s'size e_color?
+
+        s'size  ==> V3 1 2 4
+        s'color ==> V3 1 2 4
+        e'color ==> V3 1 2 4
+        s_size  ==> V3 1 4 5
+        e_size  ==> V3 1 2 4
+        e_color ==> V3 1 2 4
+        pColor  ==> V3 1 3 2
+        eColor  ==> V4 1 3 2 5
+        eSize   ==> V3 1 3 2 -- I think I like eNames best, they feel friendly and Haskelly. As does ==>. := looks too other-languagey.
+
+        Think of what protection we can put in for users - we can protect against exceptions easily enough,
+        but non-termination is a little more difficult. 
+        An idea: run the code in a thread sandbox for a single frame and deny it if it takes longer than 10ms??
+            That would be preeeeetty cool and helpful even when coding intelligently to force VR compatability : ))
+            Obviously this won't help once you start forking off your own threads but at that point you're advanced
+            enough that it's OK! 
 
 [x] Object duplication
         If holding with one hand, grab with other hand and pull out a copy. Simple!
@@ -27,6 +80,10 @@
         	Should copy the CompiledValue from the CodeEditor to avoid delay when cloning.
 	        Name by just incrementing a counter?
 	        Put the name on one side of the cube??
+        [ ] "Make Independent" option after cloning that does the copying of the code files. 
+            I think this fits what you'd want most of the time?
+            E.g. in the sequencer I definitely want all notes to share behavior,
+            and when spawning a new object (e.g. a bullet) we want to share behavior.
 
 [ ] Blank object creation
 
