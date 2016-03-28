@@ -37,7 +37,7 @@ start = do
                 forM_ (zip children fftSample) $ \(childID, sample) -> runEntity childID $ do
                     let val = sample * 2
                     cmpSize  ==> (0.1 & _yz .~ realToFrac val)
-                    cmpColor ==> hslColor (realToFrac val) 0.8 0.4 1
+                    cmpColor ==> hslColor (realToFrac val) 0.8 0.4
                 )
                 
 

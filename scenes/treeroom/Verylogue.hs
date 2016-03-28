@@ -25,8 +25,8 @@ pianokey parentID parentPose i noteDegree = do
         x = (1/12) * fromIntegral i - 0.27
         pose = V3 x 0.4 0
         hue  = fromIntegral i / fromIntegral (length majorScale)
-        colorOn = hslColor hue 0.8 0.8 1
-        colorOff = hslColor hue 0.8 0.4 1
+        colorOn = hslColor hue 0.8 0.8
+        colorOff = hslColor hue 0.8 0.4
     cmpColor ==> colorOff
     cmpParent            ==> parentID
     cmpShapeType         ==> CubeShape

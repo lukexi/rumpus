@@ -27,7 +27,7 @@ start = do
                     cmpShapeType ==> SphereShape
                     cmpSize ==> 0.03
                     cmpMass ==> 0.1
-                    cmpColor ==> hslColor (note / 12) 0.9 0.8 1
+                    cmpColor ==> hslColor (note / 12) 0.9 0.8
                 runEntity childID $ do
                     setLifetime 10
                     applyForce $ (pose ^. _m33) !* (V3 0 0.3 0)

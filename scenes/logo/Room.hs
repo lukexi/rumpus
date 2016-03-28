@@ -50,7 +50,7 @@ start = do
         cmpShapeType         ==> SphereShape
         cmpPhysicsProperties ==> [IsKinematic, Static]
         cmpSize              ==> 0.8
-        cmpColor             ==> hslColor 0.2 0.7 0.6 1
+        cmpColor             ==> hslColor 0.2 0.7 0.6
         cmpMass              ==> 0
 
     return Nothing

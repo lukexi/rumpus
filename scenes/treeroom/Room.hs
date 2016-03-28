@@ -21,7 +21,7 @@ start = do
             cmpShapeType         ==> CubeShape
             cmpPhysicsProperties ==> [IsKinematic, Static]
             cmpSize              ==> size
-            cmpColor             ==> hslColor hue 0.8 0.6 1
+            cmpColor             ==> hslColor hue 0.8 0.6
             cmpMass              ==> 0
     makeWall (V3 0 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 -- back
     makeWall (V3 0 0 (roomD/2))  (V3 roomW roomH wallD) 0.2 -- front
