@@ -106,7 +106,7 @@ renderEntities projViewM44 finalMatricesByEntityID = do
             if Just entityID == selectedEntityID
                 then do
                     now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
-                    return $ hslColor 0.6 0.9 now 1
+                    return $ hslColor 0.6 0.9 now
                 else getEntityColor entityID
 
 

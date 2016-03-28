@@ -11,7 +11,7 @@ start = do
             cmpParent                   ==> parentID
             cmpInheritParentTransform   ==> InheritPose
             cmpSize                     ==> V3 radius radius radius
-            cmpColor                    ==> hslColor hue 0.8 0.5 1
+            cmpColor                    ==> hslColor hue 0.8 0.5
             cmpShapeType                ==> SphereShape
             cmpPhysicsProperties        ==> [NoPhysicsShape]
 

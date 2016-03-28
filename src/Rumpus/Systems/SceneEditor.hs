@@ -13,7 +13,7 @@ import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
---import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Constraint
 
@@ -67,7 +67,7 @@ addEditorFrame :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 addEditorFrame entityID = do
     editorFrame <- spawnEntity Transient $ do
         removeComponent cmpShapeType
-        cmpConstraint ==> (RelativePositionTo entityID 0)
+        cmpConstraint ==> RelativePositionTo entityID 0
     
     ------------------------
     -- Define a color editor
@@ -82,7 +82,7 @@ addEditorFrame entityID = do
         --cmpPose              ==> (newPose & posPosition .~ V3 (-0.5) 0.5 0)
         cmpOnDrag            ==> \dragDistance -> do
             let x = dragDistance ^. _x
-                newColor = hslColor (mod' x 1) 0.9 0.6 1
+                newColor = hslColor (mod' x 1) 0.9 0.6
             setColor newColor
             setEntityColor newColor entityID
 
@@ -162,6 +162,7 @@ tickSceneEditorSystem = do
                         if 
                             | isBeingHeldByOtherHand -> do
                                 duplicateID <- duplicateEntity Persistent grabbedID
+                                forkCode grabbedID duplicateID
                                 selectEntity duplicateID
                                 attachEntity handEntityID duplicateID True
                             | hasDragFunction -> 

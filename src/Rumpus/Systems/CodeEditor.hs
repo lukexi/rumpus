@@ -22,7 +22,7 @@ import Rumpus.Systems.Script
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
-
+import Data.Time.Clock.POSIX
 -- | Pairs a filename along with an expression 
 -- to evaluate in that filename's environment once compiled
 type CodeFile = (FilePath, String)
@@ -69,13 +69,37 @@ addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
 addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
     sceneFolder <- viewSystem sysSelection (selScene . scnFolder)
     entityID <- ask
-    let defaultFile = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
+    let defaultFileName = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
         entityFileName = sceneFolder </> (show entityID ++ "-" ++ fileName) <.> "hs"
         codeFile = (entityFileName, exprName)
-    contents <- liftIO $ readFile defaultFile
-    liftIO $ writeFile entityFileName contents
+    liftIO $ copyFile defaultFileName entityFileName
     codeFileComponentKey ==> codeFile
     registerWithCodeEditor codeFile codeComponentKey
+
+forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
+forkCode fromEntityID toEntityID = do
+    let codeFileComponentKey = cmpOnStartExpr
+    mCodeExpr <- getEntityComponent fromEntityID codeFileComponentKey
+
+    forM_ mCodeExpr $ \(fullPath, expr) -> do
+        let (path, fileName) = splitFileName fullPath
+            (name, ext)      = splitExtension fileName
+        -- Slightly tricky to get right without overwriting files; need to enumerate directory and find unused name
+        -- so using getPosixTime for now. 
+        --fileNum          = succ . fromMaybe 1 . readMaybe . reverse . takeWhile isDigit . reverse $ fileName
+        now <- liftIO $ getPOSIXTime
+        let newName = name ++ show now
+            newFullPath = path </> newName <.> ext
+        liftIO $ copyFile fullPath newFullPath
+
+        let newCodeFile = (newFullPath, expr)
+        runEntity toEntityID $ do
+            withComponent_ codeFileComponentKey unregisterWithCodeEditor
+            codeFileComponentKey ==> newCodeFile
+            registerWithCodeEditor newCodeFile codeFileComponentKey
+
+
+
 
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
@@ -158,9 +182,9 @@ addCodeEditorDependency codeFile codeComponentKey = do
             -- FIXME: scratch pass at a "PlayWhenReady" system
             -- to begin play when a file has PlayWhenReady set
             -- and its start function finished compiling
-            when (snd codeFile == "start") $ do
-                playWhenReady <- getEntityPlayWhenReady entityID
-                when playWhenReady $ setWorldPlaying True
+            playWhenReady <- getEntityPlayWhenReady entityID
+            when (playWhenReady && snd codeFile == "start") $
+                setWorldPlaying True
     cesCodeEditors . at codeFile . traverse . cedDependents . at entityID ?= updateCodeAction
 
 createCodeEditor :: (MonadIO m, MonadState CodeEditorSystem m) 
@@ -175,17 +199,20 @@ createCodeEditor codeFile = do
     errorRenderer <- createTextRenderer font (textBufferFromString "")
     
     return CodeEditor 
-            { _cedCodeRenderer = codeRenderer
+            { _cedCodeRenderer  = codeRenderer
             , _cedErrorRenderer = errorRenderer
-            , _cedResultTChan = resultTChan
+            , _cedResultTChan   = resultTChan
             , _cedCompiledValue = Nothing 
-            , _cedDependents = mempty
+            , _cedDependents    = mempty
             }  
 
 unregisterWithCodeEditor :: (MonadReader EntityID m, MonadState ECS m) => CodeFile -> m ()
 unregisterWithCodeEditor codeFile = modifySystemState sysCodeEditor $ do
     entityID <- ask
-    cesCodeEditors . ix codeFile . cedDependents . at entityID .= Nothing
+    unregisterEntityWithCodeEditor entityID codeFile
+
+unregisterEntityWithCodeEditor :: (MonadState CodeEditorSystem m) => EntityID -> CodeFile -> m ()
+unregisterEntityWithCodeEditor entityID codeFile = cesCodeEditors . ix codeFile . cedDependents . at entityID .= Nothing
 
 -- | Passes keyboard events to the active code editor
 tickCodeEditorInputSystem :: (MonadIO m, MonadState ECS m) => m ()

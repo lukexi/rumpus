@@ -27,14 +27,14 @@ startHandsSystem = do
         cmpSize              ==> V3 0.1 0.1 0.3
         cmpShapeType         ==> CubeShape
         cmpName              ==> "Left Hand"
-        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse, Static]
         cmpMass              ==> 0
     rightHandID <- spawnEntity Transient $ do
         cmpColor             ==> handColor
         cmpSize              ==> V3 0.1 0.1 0.3
         cmpShapeType         ==> CubeShape
         cmpName              ==> "Right Hand"
-        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse, Static]
         cmpMass              ==> 0
     registerSystem sysHands $ HandsSystem
             { _hndLeftHand  = leftHandID

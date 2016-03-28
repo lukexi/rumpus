@@ -9,6 +9,9 @@
                 Could do sampler here too
 
         [ ] Tutorial room
+                Pedastal sequence of how to use rumpus (or should this be in the main room)
+                then how to build things in the language,
+                how to add sound, how to add physics
                 Game of life sim?
                 Volume helmet?
         [ ] Shooter game room
@@ -33,6 +36,7 @@
 [ ] Audio latency pass
 
 [ ] BUG: Fix audio not working in standalone executable!
+[x] BUG: Fix OpenAL Invalid Operation
 
 [ ] Try to rebuild space pirate trainer! Use that to inform further improvements...
 	[ ] Object-to-hand attachment
@@ -40,6 +44,30 @@
         Could be grip button only when already holding, then grip again to release?
         That way I don't have to tell people "put it down then grab it again with the grip button",
         but rather the grip button is like a lock. Or maybe just make sure grip works when already holding with trigger?
+
+[ ] Simplify language
+    
+        Use tutorial as an opportunity to simplify lang examples as much as possible
+        e.g. pull out 'align-vector-to-entity' code from fountain; we'll need it for guns!
+        should cmpSize etc. be selfSize or cSize or eSize or thisSize or 
+        s'size e_color?
+
+        s'size  ==> V3 1 2 4
+        s'color ==> V3 1 2 4
+        e'color ==> V3 1 2 4
+        s_size  ==> V3 1 4 5
+        e_size  ==> V3 1 2 4
+        e_color ==> V3 1 2 4
+        pColor  ==> V3 1 3 2
+        eColor  ==> V4 1 3 2 5
+        eSize   ==> V3 1 3 2 -- I think I like eNames best, they feel friendly and Haskelly. As does ==>. := looks too other-languagey.
+
+        Think of what protection we can put in for users - we can protect against exceptions easily enough,
+        but non-termination is a little more difficult. 
+        An idea: run the code in a thread sandbox for a single frame and deny it if it takes longer than 10ms??
+            That would be preeeeetty cool and helpful even when coding intelligently to force VR compatability : ))
+            Obviously this won't help once you start forking off your own threads but at that point you're advanced
+            enough that it's OK! 
 
 [x] Object duplication
         If holding with one hand, grab with other hand and pull out a copy. Simple!

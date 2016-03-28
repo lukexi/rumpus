@@ -1,0 +1,33 @@
+[ ] Get the SteamVR keyboard working
+        Try this, see how we can show hide it easily, transform it to match box, etc.
+
+[ ] Create intro object
+        TRY EDITING ME
+
+
+
+import Rumpus
+
+-- This is the code that generates the shape you see above.
+
+-- These variables change how the object looks and behaves
+rotationSpeed = 1
+
+-- Try changing the colors!
+objectColor = colorRGB (1,2,3)
+
+-- Here's where we actually set up the object!
+start = do
+    myColor ==> objectColor
+
+    -- This is the "Update" function, which gets run 90 times per second to
+    -- to define how the object behaves.
+    -- In this case, we're having the object change 
+    -- its rotation and color 
+    -- based on what time it is.
+    myUpdate ==> do
+        now <- getNow
+        myPose ==> toPose def { posePosition = V3 0 1 0
+                              , poseOrientation = axisAngle (V3 0 1 0) (now * rotationSpeed) 
+                              }
+
