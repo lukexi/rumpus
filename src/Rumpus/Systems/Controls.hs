@@ -178,6 +178,15 @@ onRightHandEvent :: Monad m => WorldEvent -> (HandEvent -> m ()) -> m ()
 onRightHandEvent (VREvent (HandEvent RightHand handEvent)) f = f handEvent
 onRightHandEvent _ _ = return ()
 
+onHandEvent :: Monad m => WhichHand -> WorldEvent -> (HandEvent -> m ()) -> m ()
+onHandEvent desiredHand (VREvent (HandEvent eventHand handEvent)) f 
+    | desiredHand == eventHand = f handEvent
+onHandEvent _ _ _ = return ()
+
+withHandEvents :: MonadState ECS m => WhichHand -> (HandEvent -> m ()) -> m ()
+withHandEvents hand f = withSystem_ sysControls $ \controlSystem -> do
+  let events = controlSystem ^. ctsEvents
+  forM_ events (\e -> onHandEvent hand e f)
 
 raycastCursorHits :: (MonadIO m, MonadState ECS m)
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()

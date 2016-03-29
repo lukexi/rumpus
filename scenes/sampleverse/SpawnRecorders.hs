@@ -39,7 +39,6 @@ start = do
                     cmpSize  ==> (0.1 & _yz .~ realToFrac val)
                     cmpColor ==> hslColor (realToFrac val) 0.8 0.4
                 )
-                
-
+    
     forM_ [1, 2] $ \y -> spawnEntity Transient $ recorderAt y
     return Nothing

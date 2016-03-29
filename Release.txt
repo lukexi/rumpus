@@ -1,3 +1,6 @@
+[ ] BUG: Fix audio not working in standalone executable!
+
+
 [ ] Implement the larger scene plan with 
         [ ] Sequencer room
                 Playheads could have handles they move relative to so they could be picked up and moved
@@ -27,20 +30,19 @@
         so just add that to the hands and head when updating them
 
 [ ] Entity registry for non-local communication making scoreboards etc.
-	registerName "scoreboard"
-	getEntityNamed "scoreboard"
-	getScriptDataNamed "scoreboard"
+    registerName "scoreboard"
+    getEntityNamed "scoreboard"
+    getScriptDataNamed "scoreboard"
 
 [ ] SteamVR keyboard
 
 [ ] Framerate pass
         Consider how hard doing a basic multithreaded renderer would be... could be great!!
         [i] Seems to be much better since fixing the error renderers recreating themselves
-        	on each keypress!
+            on each keypress!
 
 [ ] Audio latency pass
 
-[ ] BUG: Fix audio not working in standalone executable!
 [x] BUG: Fix OpenAL Invalid Operation
 
 [ ] Try to rebuild space pirate trainer! Use that to inform further improvements...
@@ -99,12 +101,13 @@
 		Multiselect by swiping through a bunch of objects or lasering
 		Play/Pause
 
-[ ] Fix mirror window
+[x] Fix mirror window
     Go fullscreen by default and set GLFW_CURSOR_DISABLED for VR (and GLFW_CURSOR_HIDDEN for nonVR? we want the window-bounding but no cursor)
 
 [ ] A few more object types: whatever bullet makes easy. Cone, tetra, pyramid, cylinder, capsule, etc.
 		(btConvexHullShape should do the trick for polyhedra!)
 
+[ ] BUG: Collisions always pass 0.1 for their impulse strength. Why's it hard to get?
 
 Later thoughts:
 - Clean up GLFW gamepad API for local multiplayer games!

@@ -14,6 +14,10 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 
+Flag Logging
+  Description: Enable console log output
+  Default:     True
+
 library 
   hs-source-dirs:      src
   
@@ -76,7 +80,7 @@ executable rumpus
   -- -T collects runtime stats for use with GHC.Stats
   ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -S -H512M -A4M -L100"
 
-  build-depends:       base, rumpus
+  build-depends:       base, rumpus, glfw-pal
   default-language:    Haskell2010
   
   -- -dynamic on OS X fixes an "unknown ___dso_handle symbol" error
@@ -84,6 +88,12 @@ executable rumpus
   -- but maybe just masking it and that one would pop up later.
   if os(osx)
     ghc-options: -dynamic
+
+  if flag(Logging)
+    cpp-options: -DENABLE_LOGGING
+  else
+    if os(windows)
+      ghc-options:       -optl-mwindows
 
 source-repository head
   type:     git

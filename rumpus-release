@@ -2,7 +2,7 @@
 
 rm -rf .release/
 
-stack install rumpus:rumpus --local-bin-path=.release
+stack install --flag rumpus:-Logging rumpus:rumpus --local-bin-path=.release
 
 mkdir -p .release/packages/ghc/mingw/bin
 mkdir -p .release/packages/snapshot
