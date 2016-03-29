@@ -114,3 +114,16 @@ Later thoughts:
 - Think about registering components at runtime in user scripts. 
 	This would be probably handier than the ScriptData system.
     (Perhaps just have files that are automatically loaded like a Types.hs?)
+
+
+
+Look-to-set-cursor on touchpad - hold a button, and a beam comes out of your forehead?
+    (basically, raycast along headpose, get hit point, then move up from head and orient a line down to the hitpoint.)
+
+Fun ideas with top-level definitions!!!
+
+Parse top-level definitions like x = 40.
+
+Two things we can do with that:
+One, we can turn them into automatic interfaces for the object - e.g. sliders along the side, or levers coming out of the code, etc.
+Two, we can replace the YAML storage with just writing values directly into the file. It'll be super easy since we just need to check the starts of each line.
