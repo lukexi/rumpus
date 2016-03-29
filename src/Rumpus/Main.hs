@@ -28,6 +28,7 @@ rumpusMain :: IO ()
 rumpusMain = withPd $ \pd -> do
 -- rumpusMain = do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
+    --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
     -- pd    <- reacquire 1 $ initLibPd
     
     args <- getArgs

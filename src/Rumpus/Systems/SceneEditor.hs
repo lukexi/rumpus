@@ -136,9 +136,13 @@ spawnNewEntityAtPose pose = spawnEntity Persistent $ do
 
 tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
-    let editSceneWithHand handEntityID otherHandEntityID event = case event of
+    -- FIXME: This player transformation stuff is a mess;
+    -- check out vrPal and clean it up!
+    player <- viewSystem sysControls ctsPlayer
+    let playerM44 = transformationFromPose player
+        editSceneWithHand handEntityID otherHandEntityID event = case event of
             HandStateEvent hand -> do
-                setEntityPose (hand ^. hndMatrix) handEntityID
+                setEntityPose (inv44 playerM44 !*! hand ^. hndMatrix) handEntityID
                 continueDrag handEntityID
             HandButtonEvent HandButtonGrip ButtonDown -> do
                 handPose <- getEntityPose handEntityID

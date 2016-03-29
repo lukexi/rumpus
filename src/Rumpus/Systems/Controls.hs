@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ViewPatterns #-}
 module Rumpus.Systems.Controls where
 import PreludeExtra
 import Rumpus.Systems.PlayPause
@@ -29,13 +30,13 @@ getNow = do
 initControlsSystem :: MonadState ECS m => VRPal -> m ()
 initControlsSystem vrPal = do
     registerSystem sysControls $ ControlsSystem
-            { _ctsVRPal = vrPal
-            , _ctsPlayer = if gpRoomScale vrPal == RoomScale
-                            then newPose
-                            else newPose & posPosition .~ V3 0 1 (-1) & posOrientation .~ axisAngle (V3 0 1 0) (pi)
-            , _ctsEvents = []
-            , _ctsHeadPose = identity
-            }
+        { _ctsVRPal = vrPal
+        , _ctsPlayer = if gpRoomScale vrPal == RoomScale
+                        then newPose
+                        else newPose & posPosition .~ V3 0 1 (-1) & posOrientation .~ axisAngle (V3 0 1 0) (pi)
+        , _ctsEvents = []
+        , _ctsHeadPose = identity
+        }
 
 
 tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
@@ -57,6 +58,7 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $
         ctsEvents %= (GLFWEvent e:)
 
     hands' <- if gpRoomScale == RoomScale
+    --hands' <- if False
         then return hands
         else do
             hasSelection <- isJust <$> lift getSelectedEntityID
@@ -65,7 +67,7 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $
             
             player <- use ctsPlayer
             events <- use ctsEvents
-            emulateRightHand vrPal player events
+            emulateRightHandVR vrPal player events
 
             
 
@@ -96,7 +98,7 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $
 
 
 emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [WorldEvent] -> m [Hand]
-emulateRightHand VRPal{..} player events  = do
+emulateRightHand VRPal{..} player events = do
 
     projM44     <- getWindowProjection gpWindow 45 0.1 1000
     mouseRay    <- cursorPosToWorldRay gpWindow projM44 player
@@ -123,7 +125,31 @@ emulateRightHand VRPal{..} player events  = do
     return [emptyHand, rightHand]
 
 
+emulateRightHandVR VRPal{..} player events = do
+    mouseState1 <- getMouseButton gpWindow MouseButton'1
+    mouseState2 <- getMouseButton gpWindow MouseButton'2
 
+    forM_ events $ \case
+        GLFWEvent e -> onScroll e $ \_x y ->
+            liftIO $ modifyIORef' gpEmulatedHandDepthRef (+ (y*0.1))
+        _ -> return ()
+    z <- liftIO (readIORef gpEmulatedHandDepthRef)
+
+    (fromIntegral -> w, fromIntegral -> h) <- getWindowSize gpWindow
+    (x, y) <- getCursorPos gpWindow
+    -- a <- getNow -- swap with line below to rotate hand for testing
+    let a = 0
+        trigger      = if mouseState1 == MouseButtonState'Pressed then 1 else 0
+        grip         = mouseState2 == MouseButtonState'Pressed
+        handPosition = V3 (-x/w * 0.1) z (-y/h * 0.1)
+        handMatrix   = transformationFromPose $ newPose
+                                              & posPosition .~ handPosition
+                                              & posOrientation .~ axisAngle (V3 0 1 0) a
+        rightHand = emptyHand
+                & hndMatrix  .~ handMatrix
+                & hndTrigger .~ trigger
+                & hndGrip    .~ grip
+    return [emptyHand, rightHand]
 
 buttonPairs :: [(HandButton, Hand -> Bool)]
 buttonPairs = [ (HandButtonGrip,    view hndGrip)
