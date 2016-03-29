@@ -1,6 +1,20 @@
-[ ] Get the SteamVR keyboard working
-        Try this, see how we can show hide it easily, transform it to match box, etc.
+[ ] Finish faster code-update system.
+        Basic idea: we want to pass char buffers to the GHC API.
+        Maybe premature optimization, but could have TextBuffer store each line in parallel as a char buffer and a Seq, 
+        rebuilding the char buffer on each change to a line, and just gluing the buffers together when dumping its contents as a single char buffer.
 
+        While passing it off, also save the file on a background queue thread.
+        We also want to pause the file watcher while we save our version of the file so it doesn't resubmit it for recompilation.
+
+        Right now, have selected code hook into CodeEditor and pass a String to Halive via a CompilationRequest. 
+        Disable code loading from files to ensure that this fixes things, then implement the filewatcher pausing.
+        Switch file saving to be async.
+
+[ ] Finish keyboard
+[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
+[ ] Add exception handler to update and start functions. See older cubensis code for instructions..
+
+[ ] Add microphone-reactive object
 [ ] Create intro object
         TRY EDITING ME
 

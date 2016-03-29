@@ -224,14 +224,35 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
     forM mSelectedEntityID $ \selectedEntityID ->
         withEntityComponent selectedEntityID cmpOnStartExpr $ \codeFileKey ->
-            modifySystemState sysCodeEditor $ 
-                forM_ events $ \case
+            modifySystemState sysCodeEditor $ do
+                didSave <- fmap or . forM events $ \case
                     GLFWEvent e -> handleTextBufferEvent window e 
                         (cesCodeEditors . ix codeFileKey . cedCodeRenderer)
-                    VREvent (VRKeyboardInputEvent chars) -> forM_ chars $ \char -> do
-                        handleTextBufferEvent window (Character char)
-                            (cesCodeEditors . ix codeFileKey . cedCodeRenderer)
-                    _ -> return ()
+                    VREvent (VRKeyboardInputEvent chars) -> do 
+                        forM_ chars $ \char -> do
+                            handleTextBufferEvent window (Character char)
+                                (cesCodeEditors . ix codeFileKey . cedCodeRenderer)
+                        return True
+                    _ -> return False
+                when didSave $ do
+                    recompileCodeFile codeFileKey
+
+recompileCodeFile codeFileKey = useTraverseM_ (cesCodeEditors . at codeFileKey) $ \codeEditor -> do
+    ghcChan <- use cesGHCChan
+    let textBuffer = codeEditor ^. cedCodeRenderer . txrTextBuffer 
+        resultsChan = codeEditor ^. cedResultTChan
+        newString = stringFromTextBuffer textBuffer
+        (scriptPath, exprString) = codeFileKey
+        compilationRequest = CompilationRequest
+            { crResultTChan      = resultsChan
+            -- NOTE: we want to make sure this isn't evaluated on this thread. Let the SubHalive thread do it:
+            , crFileContents     = Just (stringFromTextBuffer textBuffer)
+            , crFilePath         = scriptPath
+            , crExpressionString = exprString
+            }
+    writeTChanIO ghcChan compilationRequest
+
+
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
