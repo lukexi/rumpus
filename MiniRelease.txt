@@ -1,4 +1,23 @@
-[ ] Finish faster code-update system.
+[ ] Fix audio on release builds! Try updating to latest OpenAL! That could be the difference
+    (more path stuff, our OpenAL being overridden...)
+
+[ ] Finish keyboard
+[ ] Add exception handler to update and start functions. See older cubensis code for instructions..
+
+[ ] Add microphone-reactive object
+[ ] Create intro object
+        TRY EDITING ME
+[ ] Build city
+
+
+[x] Find Windows documents directory, copy scenes there and load from there
+    getUserDocumentsDirectory
+    copy scenes 
+
+[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
+
+
+[x] Finish faster code-update system.
         Basic idea: we want to pass char buffers to the GHC API.
         Maybe premature optimization, but could have TextBuffer store each line in parallel as a char buffer and a Seq, 
         rebuilding the char buffer on each change to a line, and just gluing the buffers together when dumping its contents as a single char buffer.
@@ -10,13 +29,14 @@
         Disable code loading from files to ensure that this fixes things, then implement the filewatcher pausing.
         Switch file saving to be async.
 
-[ ] Finish keyboard
-[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
-[ ] Add exception handler to update and start functions. See older cubensis code for instructions..
+        [ ] I've commented out refreshTextRendererFromFile in CodeEditor.hs:264
+            (since it's the cause of the pauses while typing!) while I figure out
+            the right way to refresh the text - should do the readFile call 
+            in the background upon receiving the FileEvent, but also want to be able
+            to pause that when we are making edits.
 
-[ ] Add microphone-reactive object
-[ ] Create intro object
-        TRY EDITING ME
+            (something something file modification date?? How to communicate this to this different bits though...)
+
 
 
 

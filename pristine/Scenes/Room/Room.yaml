@@ -1,5 +1,5 @@
 OnStartExpr:
-- scenes/treeroom/Room.hs
+- Room.hs
 - start
 PlayWhenReady: true
 ShapeType: CubeShape

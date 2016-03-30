@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 module Orrery where
 import Rumpus
 

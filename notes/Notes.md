@@ -4,7 +4,7 @@
 
 [x] Fix OpenAL positioning
 
-[ ] Enable multisampling
+[x] Enable multisampling
     https://www.opengl.org/wiki/Multisampling
 
 [ ] See if calling swapBuffers every other frame fixes skips!

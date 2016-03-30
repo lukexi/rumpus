@@ -26,5 +26,5 @@ Pose:
   - 0.0
   - 1
 OnStartExpr:
-- scenes/treeroom/Keyhands.hs
+- Keyhands.hs
 - start

@@ -34,7 +34,7 @@
     getEntityNamed "scoreboard"
     getScriptDataNamed "scoreboard"
 
-[ ] SteamVR keyboard
+[x] SteamVR keyboard
 
 [ ] Framerate pass
         Consider how hard doing a basic multithreaded renderer would be... could be great!!

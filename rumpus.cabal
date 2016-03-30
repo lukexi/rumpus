@@ -41,6 +41,7 @@ library
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound
                        Rumpus.Systems.Selection
+                       Rumpus.Systems.Text
   ghc-options:         -O2 -Wall 
   build-depends:       base
                      , bullet-mini

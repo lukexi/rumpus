@@ -14,15 +14,34 @@ import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Physics
+import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Render
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Script
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Sound
-import Rumpus.Systems.PlayPause
+import Rumpus.Systems.Text
 
 import Halive.Utils
+
+developerMode = True
+
+copyScenes :: IO FilePath
+copyScenes = do
+    userDocsDir <- getUserDocumentsDirectory
+    let userRoomDir    = userDocsDir </> "Rumpus" </> "Scenes" </> "Room"
+        pristineScenes = "pristine" </> "Scenes" </> "Room"
+    exists  <- doesDirectoryExist userRoomDir
+    when (not exists) $ do
+        createDirectoryIfMissing True userRoomDir
+        roomFiles <- filter (not . (`elem` [".", ".."])) <$> getDirectoryContents pristineScenes
+
+        forM_ roomFiles $ \roomFile -> 
+            copyFile (pristineScenes </> roomFile) (userRoomDir </> roomFile)
+    
+    return $ if developerMode then pristineScenes else userRoomDir
+
 
 rumpusMain :: IO ()
 rumpusMain = withPd $ \pd -> do
@@ -31,8 +50,9 @@ rumpusMain = withPd $ \pd -> do
     --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
     -- pd    <- reacquire 1 $ initLibPd
     
-    args <- getArgs
-    let sceneName = fromMaybe "treeroom" $ listToMaybe args
+    sceneFolder <- copyScenes
+    --args <- getArgs
+    --let sceneName = fromMaybe "room" $ listToMaybe args
 
     void . flip runStateT newECS $ do 
 
@@ -49,11 +69,12 @@ rumpusMain = withPd $ \pd -> do
         initSceneEditorSystem
         initScriptSystem
         initSoundSystem pd
-        initSelectionSystem
+        initSelectionSystem sceneFolder
         initSharedSystem
+        initTextSystem
 
         startHandsSystem
-        loadScene sceneName
+        loadScene sceneFolder
         
         -- testEntity <- spawnEntity Transient $ return ()
         -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart        
@@ -68,42 +89,29 @@ rumpusMain = withPd $ \pd -> do
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory
-            liftIO performMinorGC
+            profileMS' "gc"          1 $ liftIO performMinorGC
             
-            profileMS' "controls" 1 $ tickControlEventsSystem headM44 hands vrEvents
-            profileMS' "codeinput" 1 $ tickCodeEditorInputSystem
-            profileMS' "codeupdate" 1 $ tickCodeEditorResultsSystem
-            tickAttachmentSystem
-            tickConstraintSystem
-            profileMS' "script" 1 $ tickScriptSystem
-            tickLifetimeSystem
-            tickAnimationSystem
-            profileMS' "physicsRun" 1 $ tickPhysicsSystem
+            profileMS' "controls"    1 $ tickControlEventsSystem headM44 hands vrEvents
+            profileMS' "codeinput"   1 $ tickCodeEditorInputSystem
+            profileMS' "codeupdate"  1 $ tickCodeEditorResultsSystem
+            profileMS' "attachments" 1 $ tickAttachmentSystem
+            profileMS' "constraints" 1 $ tickConstraintSystem
+            profileMS' "script"      1 $ tickScriptSystem
+            profileMS' "lifetime"    1 $ tickLifetimeSystem
+            profileMS' "animation"   1 $ tickAnimationSystem
+            profileMS' "physicsRun"  1 $ tickPhysicsSystem
             profileMS' "physicsCopy" 1 $ tickSyncPhysicsPosesSystem
-            tickCollisionsSystem
-            tickSceneEditorSystem
-            tickSoundSystem headM44
-            profileMS' "render" 1 $ tickRenderSystem headM44
-        -- whileVR vrPal $ \headM44 hands vrEvents -> profile "frame" 0 $ do
-            -- liftIO performGC
-            
-            -- profile "tickControlEventsSystem" 1 $ tickControlEventsSystem headM44 hands vrEvents
-            -- profile "tickCodeEditorSystem" 1 $ tickCodeEditorSystem
-            -- profile "tickSyncCodeEditorSystem" 1 $ tickSyncCodeEditorSystem
-            -- profile "tickAttachmentSystem" 1 $ tickAttachmentSystem
-            -- profile "tickConstraintSystem" 1 $ tickConstraintSystem
-            -- profile "tickScriptSystem" 1 $ tickScriptSystem
-            -- profile "tickLifetimeSystem" 1 $ tickLifetimeSystem
-            -- profile "tickAnimationSystem" 1 $ tickAnimationSystem
-            -- profile "tickPhysicsSystem" 1 $ tickPhysicsSystem
-            -- profile "tickSyncPhysicsPosesSystem" 1 $ tickSyncPhysicsPosesSystem
-            -- profile "tickCollisionsSystem" 1 $ tickCollisionsSystem
-            -- profile "tickSceneEditorSystem" 1 $ tickSceneEditorSystem
-            -- profile "tickSoundSystem" 1 $ tickSoundSystem headM44
-            -- profile "tickRenderSystem" 1 $ tickRenderSystem headM44
-profileMS' :: String -> Int -> a -> a
+            profileMS' "collisions"  1 $ tickCollisionsSystem
+            profileMS' "sceneEditor" 1 $ tickSceneEditorSystem
+            profileMS' "sound"       1 $ tickSoundSystem headM44
+            profileMS' "render"      1 $ tickRenderSystem headM44
+
+profileMS' :: (MonadIO m) => String -> Int -> m a -> m a
+--profileMS' = profileMS
 profileMS' _ _ = id
-profileFPS' :: String -> Int -> a -> a
+
+profileFPS' :: (MonadIO m) => String -> Int -> m a -> m a
+--profileFPS' = profileFPS
 profileFPS' _ _ = id
 
 

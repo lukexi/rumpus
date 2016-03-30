@@ -15,6 +15,7 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
+import Rumpus.Systems.Text
 import Graphics.GL.TextBuffer
 
 data Uniforms = Uniforms
@@ -64,27 +65,40 @@ tickRenderSystem headM44 = do
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
             let projViewM44 = projM44 !*! viewM44
-            renderEntities projViewM44 finalMatricesByEntityID
-            renderEditors projViewM44
+            renderEntities     projViewM44 finalMatricesByEntityID
+            renderEntitiesText projViewM44 finalMatricesByEntityID
             )
 
 
-renderEditors :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> m ()
-renderEditors projViewM44 = do
+renderEntitiesText :: (MonadState ECS m, MonadIO m) 
+                   => M44 GLfloat -> Map EntityID (M44 GLfloat) -> m ()
+renderEntitiesText projViewM44 finalMatricesByEntityID = do
     glEnable GL_BLEND
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+
+    entitiesWithText <- Map.toList <$> getComponentMap cmpTextRenderer
+    forM_ entitiesWithText $ \(entityID, textRenderer) -> do
+        color <- getEntityTextColor entityID 
+        
+        textM44 <- getEntityTextPose entityID
+        let entityM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
+            finalM44 = entityM44 !*! textM44
+
+        renderText textRenderer (projViewM44 !*! finalM44) (color ^. _xyz)
 
     entitiesWithOnStart <- Map.toList <$> getComponentMap cmpOnStartExpr
     forM_ entitiesWithOnStart $ \(entityID, codeExprKey) -> 
         traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
             parentPose <- getEntityPose entityID
+            V3 _ _ sizeZ <- getEntitySize entityID
 
-            let codeModelM44 = parentPose !*! (identity & translation .~ V3 (-0.04) (0.04) (0.151)) !*! scaleMatrix 0.2
+            --let codeModelM44 = parentPose !*! (identity & translation .~ V3 (-0.04) (0.04) (0.151)) !*! scaleMatrix 0.2
+            let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 sizeZ) !*! scaleMatrix 0.01 
 
             -- Render code in white
             renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
 
-            let errorsModelM44 = codeModelM44 !*! (identity & translation .~ V3 1 0 0)
+            let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 1 0 0)
 
             -- Render errors in light red
             renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)

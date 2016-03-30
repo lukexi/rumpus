@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 module Room where
 import Rumpus
 

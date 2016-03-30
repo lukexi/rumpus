@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
 -- Note: run updae ticks in exception handler 
 module DefaultStart where
 import Rumpus
@@ -7,11 +5,12 @@ import Rumpus
 -------------------
 -- MORE COMING SOON
 -- AFTER I FIX THESE
--- RECOMPILATION PAUSES
+-- ROMAIPUS
 --------------------
 
 keyNames = 
-    [ "qwertyuiop"
+    [ "1234567890"
+    , "qwertyuiop"
     , "asdfghjkl;"
     , "zxcvbnm,./"
     ]
@@ -72,8 +71,11 @@ makeKeyboardKey whichHand parentID x y numKeys keyName = do
         keyOffsetX = -keyWidthT * pred numKeys / 2
         keyOffsetY = -0.2
         pose = V3 keyX 0.1 keyY
-        colorOn = hslColor 0.1 0.8 0.8
-        colorOff = hslColor 0.4 0.8 0.4
+        colorOn = hslColor 0.2 0.8 0.8
+        colorOff = hslColor 0.3 0.8 0.4
+    cmpText                   ==> [keyName]
+    cmpTextPose               ==> mkTransformation 
+                                      (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0)
     cmpColor                  ==> colorOff
     cmpParent                 ==> parentID
     cmpShapeType              ==> CubeShape

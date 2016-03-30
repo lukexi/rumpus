@@ -12,6 +12,7 @@ import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
+import Rumpus.Systems.Sound
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Selection
@@ -199,3 +200,14 @@ tickSceneEditorSystem = do
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysicsProperties)
 
+loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
+loadScene sceneFolder = do
+    putStrLnIO $ "Loading scene: " ++ sceneFolder
+    modifySystemState sysSelection (selScene . scnFolder .= sceneFolder)
+    addPdPatchSearchPath sceneFolder
+    loadEntities sceneFolder
+
+saveScene :: ECSMonad ()
+saveScene = do
+    sceneFolder <- viewSystem sysSelection (selScene . scnFolder)
+    saveEntities sceneFolder

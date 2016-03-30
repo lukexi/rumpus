@@ -4,7 +4,7 @@ module Rumpus.Systems.Sound where
 import PreludeExtra
 
 import Rumpus.Systems.Shared
-
+import Rumpus.Systems.Selection
 
 data SoundSystem = SoundSystem 
     { _sndPd               :: !PureData
@@ -58,7 +58,8 @@ dequeueOpenALSource = modifySystemState sysSound $ do
 derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => PureData -> m ()
 derivePdPatchComponent pd = do
     withComponent_ cmpPdPatchFile $ \patchFile -> do
-        patch <- makePatch pd patchFile
+        sceneFolder <- getSceneFolder
+        patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
         cmpPdPatch ==> patch
 
         -- Assign the patch's output DAC index to route it to the the SourceID
