@@ -13,7 +13,7 @@ local_libs=$(stack path --local-install-root | sed 's|\\|\\\\|g')
 ghc_libs=$(stack path --global-pkg-db|  sed 's|package.conf.d||g' | sed 's|\\|\\\\|g')
 
 echo "Compiling fake GCC..."
-ghc util/fakeGCC.hs -o .release/packages/ghc/mingw/bin/gcc.exe
+ghc util/fakeGCC.hs -optl-mwindows -o .release/packages/ghc/mingw/bin/gcc.exe
 
 
 echo "Copying ghc package db..."
