@@ -22,10 +22,10 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Sound
 import Rumpus.Systems.Text
+import Rumpus.Types
 
 import Halive.Utils
 
-developerMode = True
 
 copyScenes :: IO FilePath
 copyScenes = do
@@ -39,8 +39,9 @@ copyScenes = do
 
         forM_ roomFiles $ \roomFile -> 
             copyFile (pristineScenes </> roomFile) (userRoomDir </> roomFile)
-    
-    return $ if developerMode then pristineScenes else userRoomDir
+    -- When not in release mode, we want to edit the pristine folder directly
+    -- so we can track changes in git.
+    return $ if isInReleaseMode then userRoomDir else pristineScenes 
 
 
 rumpusMain :: IO ()

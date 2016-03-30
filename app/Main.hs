@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 
 import Rumpus.Main
-#if !defined(ENABLE_LOGGING)
+#if defined(RUMPUS_RELEASE)
 import Graphics.UI.GLFW.Pal
 #endif
 -- We structure things this way so that this 
@@ -11,7 +11,8 @@ import Graphics.UI.GLFW.Pal
 
 main :: IO ()
 main = do
-#if !defined(ENABLE_LOGGING)
+-- When building a release, route all console messages into rumpus.log
+#if defined(RUMPUS_RELEASE)
     suppressConsole "rumpus.log"
 #endif
     rumpusMain

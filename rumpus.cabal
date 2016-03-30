@@ -14,13 +14,18 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 
-Flag Logging
-  Description: Enable console log output
-  Default:     True
+Flag RumpusRelease
+  Description:
+    Configures Rumpus for release mode. 
+    * Routes console output to rumpus.log 
+    * Instructs rumpus to copy and use the user document version of Scenes
+    * Tells the CodeEditor system to use embedded versions of the package databases.
+  Default:     False
 
 library 
   hs-source-dirs:      src
-  
+  if flag(RumpusRelease)
+    cpp-options: -DRUMPUS_RELEASE
   exposed-modules:     Rumpus
                        PreludeExtra
                        Rumpus.Types
@@ -90,9 +95,8 @@ executable rumpus
   if os(osx)
     ghc-options: -dynamic
 
-  if flag(Logging)
-    cpp-options: -DENABLE_LOGGING
-  else
+  if flag(RumpusRelease)
+    cpp-options: -DRUMPUS_RELEASE
     if os(windows)
       ghc-options:       -optl-mwindows
 

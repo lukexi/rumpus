@@ -6,7 +6,6 @@
 module Rumpus.Systems.CodeEditor where
 import PreludeExtra hiding (Key)
 
-import Graphics.GL.Freetype
 import Graphics.GL.TextBuffer
 import Halive.SubHalive
 import Halive.Recompiler
@@ -23,6 +22,7 @@ import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Text
+import Rumpus.Types
 
 import Data.Time.Clock.POSIX
 
@@ -104,11 +104,9 @@ forkCode fromEntityID toEntityID = do
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
 
-    -- Check for the existence of a "packages" directory to see if we're
-    -- inside of a standalone distrubtion of rumpus versus building from the repo.
-    isStandaloneRelease <- liftIO $ doesDirectoryExist "packages"
-
-    let ghcSessionConfig = if isStandaloneRelease 
+    -- When in release mode, use the embedded "packages" directory,
+    -- otherwise use MSYS2's copy in /usr/local/ghc
+    let ghcSessionConfig = if isInReleaseMode 
             then defaultGHCSessionConfig 
                 { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
                                   , "packages"</>"snapshot"</>"pkgdb"
@@ -190,7 +188,8 @@ fullPathForCodeInFile (fileName, exprString) = do
     sceneFolder <- getSceneFolder
     return (sceneFolder </> fileName, exprString)
 
-
+createCodeEditor :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m)) 
+                 => CodeInFile -> t m CodeEditor
 createCodeEditor codeInFile = do
     ghcChan <- use cesGHCChan
     font <- lift getFont
@@ -241,6 +240,8 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                 when didSave $ do
                     recompileCodeInFile codeInFile
 
+recompileCodeInFile :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m)) 
+                    => CodeInFile -> t m ()
 recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
     ghcChan <- use cesGHCChan
 
@@ -261,9 +262,7 @@ recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
 tickCodeEditorResultsSystem :: ECSMonad ()
-tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ do
-    font <- lift getFont
-
+tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ 
     traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeInFile, editor) -> do
         -- Ensure the buffers have the latest code text from disk
         -- FIXME this was causing huge pauses since it was reading the file on every keystroke.

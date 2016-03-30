@@ -2,7 +2,7 @@
 
 rm -rf .release/
 
-stack install --flag rumpus:-Logging rumpus:rumpus --local-bin-path=.release
+stack install --flag rumpus:RumpusRelease rumpus:rumpus --local-bin-path=.release
 
 mkdir -p .release/packages/ghc/mingw/bin
 mkdir -p .release/packages/snapshot
@@ -49,7 +49,7 @@ ghc-pkg \
 
 echo "Copying resources..."
 cp -r resources/ .release/
-cp -r scenes/ .release/
+cp -r pristine/ .release/
 
 
 echo "Copying dlls..."

@@ -125,7 +125,7 @@ emulateRightHand VRPal{..} player events = do
     return [emptyHand, rightHand]
 
 emulateRightHandVR :: (MonadIO m) => VRPal -> Pose Float -> [WorldEvent] -> m [Hand]
-emulateRightHandVR VRPal{..} player events = do
+emulateRightHandVR VRPal{..} _player events = do
     mouseState1 <- getMouseButton gpWindow MouseButton'1
     mouseState2 <- getMouseButton gpWindow MouseButton'2
 
