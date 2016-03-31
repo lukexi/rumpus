@@ -1,4 +1,4 @@
-[ ] Finish faster code-update system.
+[~] Finish faster code-update system.
         Basic idea: we want to pass char buffers to the GHC API.
         Maybe premature optimization, but could have TextBuffer store each line in parallel as a char buffer and a Seq, 
         rebuilding the char buffer on each change to a line, and just gluing the buffers together when dumping its contents as a single char buffer.
@@ -18,6 +18,10 @@
 [ ] Create intro object
         TRY EDITING ME
 
+[ ] 1080p render for video? 
+    This would be possibly quite easy with a threaded render that takes the last world state and renders it!
+    This is where we can let our immutable structures shine :)
+    (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
 
 
 import Rumpus

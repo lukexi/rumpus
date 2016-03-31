@@ -4,10 +4,10 @@
 
 [x] Fix OpenAL positioning
 
-[ ] Enable multisampling
+[x] Enable multisampling
     https://www.opengl.org/wiki/Multisampling
 
-[ ] See if calling swapBuffers every other frame fixes skips!
+[x] See if calling swapBuffers every other frame fixes skips!
     (i.e., thinking that maybe it is because the vive is triggering us at 90hz 
     and that upsets something when blitting to the screen at 60hz.)
 
@@ -95,7 +95,7 @@ Features
 Efficiency
 - [ ] Resource pooling - rather than deleting resources, return them to a pool to be pulled out by new entities.
         Allocate a big chunk of these at startup.
-- [ ] Convert to just using matrices rather than poses
+- [x] Convert to just using matrices rather than poses
 
 Modules
 - [ ] Animation component
@@ -247,3 +247,6 @@ Also great ideas for multithreaded rendering, and making the render thread indep
 These are very good ideas!! Can also use something like Par monad to render groups of objects in parallel
 http://www.roadtovr.com/gdc-2016-valve-software-advanced-vr-rendering-performance-live-blog-4pm-pst/
 Rewatch last years too...
+
+
+http://www.covariant.me/notes/ghcapi.html
