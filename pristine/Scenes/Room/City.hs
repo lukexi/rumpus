@@ -1,4 +1,4 @@
-module Sphere where
+module City where
 import Rumpus
 
 -- Golden Section Spiral 
@@ -29,11 +29,4 @@ start = do
         cmpInheritParentTransform ==> InheritFull
         cmpSize                   ==> V3 0.5 0.5 0.5
         cmpColor                  ==> hslColor hue 0.8 0.5
-        cmpOnUpdate ==> do
-            now <- sin <$> getNow
-            setSize (realToFrac ((sin now + 1) * 0.1 + 0.01))
-            --let V3 pX pY pZ = pos
-            --cmpPose ==> mkTransformation 
-            --    (axisAngle (V3 0 1 1) (now*2)) 
-            --    (V3 (pX+now) pY pZ)
     return Nothing
