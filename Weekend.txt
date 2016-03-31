@@ -38,4 +38,4 @@ Later
 
 
 
-./pd.exe -path C:/msys64/home/lukex_000/Projects/rumpus/resources/pd-kit -open C:/msys64/home/lukex_000/Projects/rumpus/scenes/treeroom/fountain-voice.pd
+/c/Program\ Files/pd-0.46-6.msw/pd/bin/pd.exe -path C:/msys64/home/lukex_000/Projects/rumpus/resources/pd-kit -open /c/Users/lukex_000/Documents/Rumpus/Scenes/Room/fountain-voice.pd

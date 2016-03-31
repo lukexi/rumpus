@@ -17,9 +17,17 @@ cabal-version:       >=1.10
 Flag RumpusRelease
   Description:
     Configures Rumpus for release mode. 
+    For executable:
     * Routes console output to rumpus.log 
+    For library:
     * Instructs rumpus to copy and use the user document version of Scenes
     * Tells the CodeEditor system to use embedded versions of the package databases.
+  Default:     False
+
+Flag RumpusReleaseWithLogs
+  Description:
+    Overrides the logging portion of RumpusRelease so we can still 
+    see realtime console output from a release build of Rumpus.
   Default:     False
 
 library 
@@ -95,7 +103,7 @@ executable rumpus
   if os(osx)
     ghc-options: -dynamic
 
-  if flag(RumpusRelease)
+  if flag(RumpusRelease) && !flag(RumpusReleaseWithLogs)
     cpp-options: -DRUMPUS_RELEASE
     if os(windows)
       ghc-options:       -optl-mwindows

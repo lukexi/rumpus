@@ -31,35 +31,54 @@ start = do
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
 
+
+
     runEntity leftHandID $ do
         cmpOnCollisionStart  ==> \_ impulse -> do
             triggerHandHapticPulse vrPal LeftHand 0 (floor $ impulse * 10000)
+
 
     runEntity rightHandID $ do
         cmpOnCollisionStart  ==> \_ impulse -> 
             triggerHandHapticPulse vrPal RightHand 0 (floor $ impulse * 10000)
         
-
+    thisID <- ask
     let handsWithIDs = [ (LeftHand, leftHandID)
                        , (RightHand, rightHandID)
                        ]
+        eventDestinationID = thisID
     forM_ handsWithIDs $ \(whichHand, handID) -> do
-      runEntity handID removeChildren
-      spawnKeysForHand whichHand handID
-    
+        runEntity handID removeChildren
+        spawnKeysForHand whichHand handID eventDestinationID
+    putStrLnIO "HELLO"
+    cmpOnUpdate ==> (forM_ [LeftHand, RightHand] $ \whichHand -> do
+        --putStrLnIO "updatte"
+        withHandEvents whichHand $ \case
+            HandButtonEvent HandButtonGrip ButtonDown -> do
+                putStrLnIO "GRIPPP"
+                withScriptData $ \case
+                    Just pendingEvent -> do
+                        putStrLnIO ("SENDING EVENT! " ++ show pendingEvent)
+                        --sendInternalEvent (GLFWEvent (Key pendingEventKey _ keyState modifierKeyBools))
+                        sendInternalEvent (GLFWEvent pendingEvent)
+                        setScriptData (Nothing :: Maybe Event)
+                    Nothing -> do
+                        putStrLnIO "No event :*((("
+                        return ()
+            _ -> return ())
     return Nothing
 
-spawnKeysForHand whichHand handID = do
+spawnKeysForHand whichHand handID eventDestinationID = do
     forM_ (zip [0..] keyNames) $ \(y, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM_ (zip [0..] keyRow) $ \(x, keyName) -> do
             void $ spawnEntity Transient $ 
-                makeKeyboardKey whichHand handID x y numKeys keyName
+                makeKeyboardKey whichHand handID eventDestinationID x y numKeys keyName
 
 inRect x y w h (V2 ptX ptY) =
     ptX > x && ptX < x + w && ptY > y && ptY < y + h
 
-makeKeyboardKey whichHand parentID x y numKeys keyName = do
+makeKeyboardKey whichHand parentHandID eventDestinationID x y numKeys keyName = do
     let (xF, yF) = (fromIntegral x, fromIntegral y)
         keyProgX = xF / numKeys 
         keyProgY = yF / numRows
@@ -77,7 +96,7 @@ makeKeyboardKey whichHand parentID x y numKeys keyName = do
     cmpTextPose               ==> mkTransformation 
                                       (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0)
     cmpColor                  ==> colorOff
-    cmpParent                 ==> parentID
+    cmpParent                 ==> parentHandID
     cmpShapeType              ==> CubeShape
     cmpPhysicsProperties      ==> [NoPhysicsShape]
     cmpPose                   ==> (identity & translation .~ pose)
@@ -87,6 +106,11 @@ makeKeyboardKey whichHand parentID x y numKeys keyName = do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do
                 let handXY = (hand ^. hndXY & _y *~ (-1)) + 0.5
-                    color = if pointIsInKey handXY then colorOn else colorOff
+                    isInKey = pointIsInKey handXY
+                    color = if isInKey then colorOn else colorOff
                 cmpColor ==> color
+                when isInKey $ do
+                    runEntity eventDestinationID $ 
+                        setScriptData (Just (Character keyName))
+            
             _ -> return ()

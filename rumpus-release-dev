@@ -3,7 +3,7 @@
 # Only installs the rumpus.exe, local DB, scenes, and resources
 # (i.e. ignore things that are unlikely to change between runs)
 
-stack install rumpus:rumpus --local-bin-path=.release
+stack install rumpus:rumpus --flag rumpus:RumpusRelease --flag rumpus:RumpusReleaseWithLogs --local-bin-path=.release
 
 echo "Copying package dbs..."
 

@@ -1,5 +1,17 @@
-[ ] Fix audio on release builds! Try updating to latest OpenAL! That could be the difference
-    (more path stuff, our OpenAL being overridden...)
+[x] Fix audio on release builds! 
+    Make sure HRTFs are working, we might need to include the openal folder in the release,
+    or figure out the openal api
+    NOTES: what have I learned:
+    The problem is in communication between libpd and the pd patches...
+    The pd patches don't seem to get anything from libpd when I send values.
+    I am able to print, but print only works if it is a string.
+
+    GOOD NEWS:
+    It seems to be linked to the msys64 directory again. I renamed it and it works perfectly again.
+    MYSTERY: things work fine with the testz folder on the desktop that I built from pd-haskell tests.
+    Why are they not affected? What is the remaining link to msys64? msys64 is not in the windows path...
+    But regardless, I can probably just ignore this issue since most people won't have an msys64 path to begin with!
+    but I do need to fix it so I can develop...
 
 [ ] Finish keyboard
 [ ] Add exception handler to update and start functions. See older cubensis code for instructions..

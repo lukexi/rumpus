@@ -57,3 +57,7 @@ editScriptData f =
                         ++ "'s script data of type " ++ show dynScriptData 
                         ++ " with a function that accepts a different type.")
                 return dynScriptData
+
+setScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
+               => a -> m ()
+setScriptData scriptData = cmpScriptData ==> toDyn scriptData
