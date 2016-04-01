@@ -2,7 +2,7 @@
 
 rm -rf .release/
 
-stack install rumpus:rumpus --local-bin-path=.release
+stack install --flag rumpus:RumpusRelease rumpus:rumpus --local-bin-path=.release
 
 mkdir -p .release/packages/ghc/mingw/bin
 mkdir -p .release/packages/snapshot
@@ -13,7 +13,7 @@ local_libs=$(stack path --local-install-root | sed 's|\\|\\\\|g')
 ghc_libs=$(stack path --global-pkg-db|  sed 's|package.conf.d||g' | sed 's|\\|\\\\|g')
 
 echo "Compiling fake GCC..."
-ghc util/fakeGCC.hs -o .release/packages/ghc/mingw/bin/gcc.exe
+ghc util/fakeGCC.hs -optl-mwindows -o .release/packages/ghc/mingw/bin/gcc.exe
 
 
 echo "Copying ghc package db..."
@@ -49,7 +49,7 @@ ghc-pkg \
 
 echo "Copying resources..."
 cp -r resources/ .release/
-cp -r scenes/ .release/
+cp -r pristine/ .release/
 
 
 echo "Copying dlls..."

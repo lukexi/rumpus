@@ -25,7 +25,7 @@ Pose:
   - 0.0   
   - 0.0
   - 1
-PdPatchFile: scenes/treeroom/verylogue
+PdPatchFile: verylogue.pd
 OnStartExpr:
-- scenes/treeroom/Verylogue.hs
+- Verylogue.hs
 - start

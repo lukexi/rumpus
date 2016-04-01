@@ -1,4 +1,37 @@
-[~] Finish faster code-update system.
+
+[x] Fix audio on release builds! 
+    Make sure HRTFs are working, we might need to include the openal folder in the release,
+    or figure out the openal api
+    NOTES: what have I learned:
+    The problem is in communication between libpd and the pd patches...
+    The pd patches don't seem to get anything from libpd when I send values.
+    I am able to print, but print only works if it is a string.
+
+    GOOD NEWS:
+    It seems to be linked to the msys64 directory again. I renamed it and it works perfectly again.
+    MYSTERY: things work fine with the testz folder on the desktop that I built from pd-haskell tests.
+    Why are they not affected? What is the remaining link to msys64? msys64 is not in the windows path...
+    But regardless, I can probably just ignore this issue since most people won't have an msys64 path to begin with!
+    but I do need to fix it so I can develop...
+    Try a tool to see what files are being opened. 
+
+[ ] Finish keyboard
+[ ] Add exception handler to update and start functions. See older cubensis code for instructions..
+
+[ ] Add microphone-reactive object
+[ ] Create intro object
+        TRY EDITING ME
+[ ] Build city
+
+
+[x] Find Windows documents directory, copy scenes there and load from there
+    getUserDocumentsDirectory
+    copy scenes 
+
+[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
+
+
+[x] Finish faster code-update system.
         Basic idea: we want to pass char buffers to the GHC API.
         Maybe premature optimization, but could have TextBuffer store each line in parallel as a char buffer and a Seq, 
         rebuilding the char buffer on each change to a line, and just gluing the buffers together when dumping its contents as a single char buffer.
@@ -10,13 +43,14 @@
         Disable code loading from files to ensure that this fixes things, then implement the filewatcher pausing.
         Switch file saving to be async.
 
-[ ] Finish keyboard
-[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
-[ ] Add exception handler to update and start functions. See older cubensis code for instructions..
+        [ ] I've commented out refreshTextRendererFromFile in CodeEditor.hs:264
+            (since it's the cause of the pauses while typing!) while I figure out
+            the right way to refresh the text - should do the readFile call 
+            in the background upon receiving the FileEvent, but also want to be able
+            to pause that when we are making edits.
 
-[ ] Add microphone-reactive object
-[ ] Create intro object
-        TRY EDITING ME
+            (something something file modification date?? How to communicate this to this different bits though...)
+
 
 [ ] 1080p render for video? 
     This would be possibly quite easy with a threaded render that takes the last world state and renders it!

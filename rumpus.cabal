@@ -14,9 +14,26 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 
+Flag RumpusRelease
+  Description:
+    Configures Rumpus for release mode. 
+    For executable:
+    * Routes console output to rumpus.log 
+    For library:
+    * Instructs rumpus to copy and use the user document version of Scenes
+    * Tells the CodeEditor system to use embedded versions of the package databases.
+  Default:     False
+
+Flag RumpusReleaseWithLogs
+  Description:
+    Overrides the logging portion of RumpusRelease so we can still 
+    see realtime console output from a release build of Rumpus.
+  Default:     False
+
 library 
   hs-source-dirs:      src
-  
+  if flag(RumpusRelease)
+    cpp-options: -DRUMPUS_RELEASE
   exposed-modules:     Rumpus
                        PreludeExtra
                        Rumpus.Types
@@ -37,6 +54,7 @@ library
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound
                        Rumpus.Systems.Selection
+                       Rumpus.Systems.Text
   ghc-options:         -O2 -Wall 
   build-depends:       base
                      , bullet-mini
@@ -76,7 +94,7 @@ executable rumpus
   -- -T collects runtime stats for use with GHC.Stats
   ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -S -H512M -A4M -L100"
 
-  build-depends:       base, rumpus
+  build-depends:       base, rumpus, glfw-pal
   default-language:    Haskell2010
   
   -- -dynamic on OS X fixes an "unknown ___dso_handle symbol" error
@@ -84,6 +102,11 @@ executable rumpus
   -- but maybe just masking it and that one would pop up later.
   if os(osx)
     ghc-options: -dynamic
+
+  if flag(RumpusRelease) && !flag(RumpusReleaseWithLogs)
+    cpp-options: -DRUMPUS_RELEASE
+    if os(windows)
+      ghc-options:       -optl-mwindows
 
 source-repository head
   type:     git

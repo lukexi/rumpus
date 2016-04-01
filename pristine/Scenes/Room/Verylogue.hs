@@ -8,7 +8,6 @@ start :: OnStart
 start = do
     removeChildren
 
-
     forM_ majorScale $ \n -> do
         let note = fromIntegral $ n + 60
         sendPd "piano-key" (List [note, 0])
@@ -16,11 +15,11 @@ start = do
     rootPose <- getPose
     forM_ (zip [0..] majorScale) $ \(i, note) -> do
         keyID <- spawnEntity Transient $ 
-            pianokey rootEntityID rootPose i note
+            makePianoKey rootEntityID rootPose i note
         attachEntity rootEntityID keyID False
     return Nothing
 
-pianokey parentID parentPose i noteDegree = do
+makePianoKey parentID parentPose i noteDegree = do
     let note = fromIntegral $ noteDegree + 60
         x = (1/12) * fromIntegral i - 0.27
         pose = V3 x 0.4 0

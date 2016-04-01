@@ -15,8 +15,8 @@ defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
 initScriptSystem :: MonadState ECS m => m ()
 initScriptSystem = do
-    registerComponent "OnStart"  cmpOnStart  (newComponentInterface cmpOnStart)
-    registerComponent "OnUpdate" cmpOnUpdate (newComponentInterface cmpOnUpdate)
+    registerComponent "OnStart"  cmpOnStart      (newComponentInterface cmpOnStart)
+    registerComponent "OnUpdate" cmpOnUpdate     (newComponentInterface cmpOnUpdate)
     registerComponent "ScriptData" cmpScriptData (newComponentInterface cmpScriptData)
 
 tickScriptSystem :: ECSMonad ()
@@ -57,3 +57,7 @@ editScriptData f =
                         ++ "'s script data of type " ++ show dynScriptData 
                         ++ " with a function that accepts a different type.")
                 return dynScriptData
+
+setScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
+               => a -> m ()
+setScriptData scriptData = cmpScriptData ==> toDyn scriptData

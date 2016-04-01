@@ -12,8 +12,9 @@ import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
+import Rumpus.Systems.Sound
 import Rumpus.Systems.Attachment
-import Rumpus.Systems.CodeEditor
+--import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Constraint
 
@@ -145,8 +146,9 @@ tickSceneEditorSystem = do
                 setEntityPose (inv44 playerM44 !*! hand ^. hndMatrix) handEntityID
                 continueDrag handEntityID
             HandButtonEvent HandButtonGrip ButtonDown -> do
-                handPose <- getEntityPose handEntityID
-                _ <- spawnNewEntityAtPose handPose
+                putStrLnIO "GRIP"
+                --handPose <- getEntityPose handEntityID
+                --_ <- spawnNewEntityAtPose handPose
                 return ()
             HandButtonEvent HandButtonTrigger ButtonDown -> do
 
@@ -179,10 +181,10 @@ tickSceneEditorSystem = do
                 detachAttachedEntities handEntityID
 
                 -- If we've selected something, show the keyboard on grip-up
-                traverseM_ getSelectedEntityID $ \_selectedID -> do
-                    -- vrPal <- viewSystem sysControls ctsVRPal
-                    -- showHandKeyboard vrPal
-                    return ()
+                --traverseM_ getSelectedEntityID $ \_selectedID -> do
+                --    vrPal <- viewSystem sysControls ctsVRPal
+                --    showHandKeyboard vrPal
+                --    return ()
 
                 -- WARNING!!! 
                 -- NOT SAVING TO AVOID SCREWING UP DEMO!!
@@ -199,3 +201,14 @@ tickSceneEditorSystem = do
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysicsProperties)
 
+loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
+loadScene sceneFolder = do
+    putStrLnIO $ "Loading scene: " ++ sceneFolder
+    modifySystemState sysSelection (selScene . scnFolder .= sceneFolder)
+    addPdPatchSearchPath sceneFolder
+    loadEntities sceneFolder
+
+saveScene :: ECSMonad ()
+saveScene = do
+    sceneFolder <- viewSystem sysSelection (selScene . scnFolder)
+    saveEntities sceneFolder

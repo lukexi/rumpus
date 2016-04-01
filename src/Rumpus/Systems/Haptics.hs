@@ -31,7 +31,7 @@ continueHapticDrag whichHand pose = do
 
 tickWithPose whichHand pose = do
     modifySystem sysHaptics $ hptLastHandTick . at whichHand ?= pose
-    triggerHapticPulse whichHand 0.1 100
+    triggerHapticPulse whichHand 0.1 10000
 
 endHapticDrag whichHand = do
     modifySystem sysHaptics $ hptLastHandTick . at whichHand ?= pose

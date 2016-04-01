@@ -12,11 +12,11 @@ Pose:
 - - -1
   - 0.0
   - 0.0
-  - -0.5
+  - 1
 - - 0.0
   - 1
   - 0.0
-  - 2
+  - 1
 - - 0.0
   - 0.0
   - -1
@@ -26,5 +26,6 @@ Pose:
   - 0.0
   - 1
 OnStartExpr:
-- scenes/treeroom/Tree.hs
+- Fountain.hs
 - start
+PdPatchFile: fountain-voice.pd

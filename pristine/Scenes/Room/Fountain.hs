@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleContexts #-}
+-------
 module Fountain where
 import Rumpus
 
-createNewTimer = liftIO $ registerDelay (050 * 1000)
+
+createNewTimer = liftIO $ registerDelay (500 * 1000)
 checkTimer = liftIO . atomically . readTVar
 
 majorScale = map (+60) [0,2,4,7,9]
@@ -12,6 +13,7 @@ randomNote = do
 
 start :: OnStart
 start = do
+    setSelectedEntityID =<< ask
     removeChildren
 
     cmpOnUpdate ==> withScriptData (\timer -> do

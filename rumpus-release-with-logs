@@ -1,0 +1,3 @@
+#!/bin/sh
+
+stack install --flag rumpus:RumpusRelease --flag rumpus:RumpusReleaseWithLogs rumpus:rumpus --local-bin-path=.release

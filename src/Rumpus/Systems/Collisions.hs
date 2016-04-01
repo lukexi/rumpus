@@ -8,7 +8,7 @@ import qualified Data.Set as Set
 import qualified Data.HashMap.Strict as Map
 
 type OnCollision        = CollidedWithID -> CollisionImpulse -> EntityMonad ()
-type OnCollisionStart   = OnCollision
+type OnCollisionStart   = CollidedWithID -> CollisionImpulse -> EntityMonad ()
 type OnCollisionEnd     = CollidedWithID -> EntityMonad ()
 
 type CollidedWithID     = EntityID

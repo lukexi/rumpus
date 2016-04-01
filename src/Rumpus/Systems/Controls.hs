@@ -14,10 +14,11 @@ data WorldEvent = GLFWEvent Event
                 deriving Show
 
 data ControlsSystem = ControlsSystem
-    { _ctsVRPal    :: !VRPal
-    , _ctsPlayer   :: !(Pose GLfloat)
-    , _ctsEvents   :: ![WorldEvent]
-    , _ctsHeadPose :: !(M44 GLfloat) -- FIXME this should just update the entity representing the head in Hands
+    { _ctsVRPal          :: !VRPal
+    , _ctsPlayer         :: !(Pose GLfloat)
+    , _ctsEvents         :: ![WorldEvent]
+    , _ctsHeadPose       :: !(M44 GLfloat) -- FIXME this should just update the entity representing the head in Hands
+    , _ctsInternalEvents :: !(TChan WorldEvent)
     }
 makeLenses ''ControlsSystem
 defineSystemKey ''ControlsSystem
@@ -27,8 +28,9 @@ getNow = do
     vrPal <- viewSystem sysControls ctsVRPal
     realToFrac . utctDayTime <$> VRPal.getNow vrPal 
 
-initControlsSystem :: MonadState ECS m => VRPal -> m ()
+initControlsSystem :: (MonadState ECS m, MonadIO m) => VRPal -> m ()
 initControlsSystem vrPal = do
+    internalEvents <- liftIO newTChanIO
     registerSystem sysControls $ ControlsSystem
         { _ctsVRPal = vrPal
         , _ctsPlayer = if gpRoomScale vrPal == RoomScale
@@ -36,8 +38,13 @@ initControlsSystem vrPal = do
                         else newPose & posPosition .~ V3 0 1 (-1) & posOrientation .~ axisAngle (V3 0 1 0) (pi)
         , _ctsEvents = []
         , _ctsHeadPose = identity
+        , _ctsInternalEvents = internalEvents
         }
 
+
+sendInternalEvent event = do
+    internalEvents <- viewSystem sysControls ctsInternalEvents
+    liftIO . atomically $ writeTChan internalEvents event
 
 tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [Hand] -> [VREvent] -> m ()
 tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $ do
@@ -51,6 +58,11 @@ tickControlEventsSystem headM44 hands vrEvents = modifySystemState sysControls $
     
     -- Clear the events list
     ctsEvents .= map VREvent vrEvents
+
+    -- Gather internal events
+    internalEventsChan <- use ctsInternalEvents
+    internalEvents <- liftIO . atomically $ exhaustTChan internalEventsChan
+    ctsEvents <>= internalEvents
 
     -- Gather GLFW Pal events
     processEvents gpEvents $ \e -> do
@@ -125,7 +137,7 @@ emulateRightHand VRPal{..} player events = do
     return [emptyHand, rightHand]
 
 emulateRightHandVR :: (MonadIO m) => VRPal -> Pose Float -> [WorldEvent] -> m [Hand]
-emulateRightHandVR VRPal{..} player events = do
+emulateRightHandVR VRPal{..} _player events = do
     mouseState1 <- getMouseButton gpWindow MouseButton'1
     mouseState2 <- getMouseButton gpWindow MouseButton'2
 
@@ -178,6 +190,15 @@ onRightHandEvent :: Monad m => WorldEvent -> (HandEvent -> m ()) -> m ()
 onRightHandEvent (VREvent (HandEvent RightHand handEvent)) f = f handEvent
 onRightHandEvent _ _ = return ()
 
+onHandEvent :: Monad m => WhichHand -> WorldEvent -> (HandEvent -> m ()) -> m ()
+onHandEvent desiredHand (VREvent (HandEvent eventHand handEvent)) f 
+    | desiredHand == eventHand = f handEvent
+onHandEvent _ _ _ = return ()
+
+withHandEvents :: MonadState ECS m => WhichHand -> (HandEvent -> m ()) -> m ()
+withHandEvents hand f = withSystem_ sysControls $ \controlSystem -> do
+  let events = controlSystem ^. ctsEvents
+  forM_ events (\e -> onHandEvent hand e f)
 
 raycastCursorHits :: (MonadIO m, MonadState ECS m)
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
