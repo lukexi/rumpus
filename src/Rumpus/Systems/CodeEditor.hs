@@ -31,7 +31,7 @@ import Data.Time.Clock.POSIX
 type CodeInFile = (FilePath, String)
 
 data CodeEditor = CodeEditor
-    { _cedResultTChan   :: !(TChan CompilationResult)
+    { _cedRecompiler    :: !Recompiler
     , _cedCompiledValue :: !(Maybe CompiledValue)
     , _cedCodeRenderer  :: !TextRenderer
     , _cedErrorRenderer :: !TextRenderer
@@ -195,7 +195,7 @@ createCodeEditor codeInFile = do
     font <- lift getFont
     (scriptFullPath, exprString) <- lift $ fullPathForCodeInFile codeInFile
      
-    resultTChan   <- recompilerForExpression ghcChan scriptFullPath exprString
+    recompiler   <- recompilerForExpression ghcChan scriptFullPath exprString
 
     -- FIXME this should be async...
     codeRenderer  <- textRendererFromFile font scriptFullPath WatchFile
@@ -204,7 +204,7 @@ createCodeEditor codeInFile = do
     return CodeEditor 
             { _cedCodeRenderer  = codeRenderer
             , _cedErrorRenderer = errorRenderer
-            , _cedResultTChan   = resultTChan
+            , _cedRecompiler    = recompiler
             , _cedCompiledValue = Nothing 
             , _cedDependents    = mempty
             }
@@ -228,6 +228,8 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     forM mSelectedEntityID $ \selectedEntityID ->
         withEntityComponent selectedEntityID cmpOnStartExpr $ \codeInFile ->
             modifySystemState sysCodeEditor $ do
+                -- Make sure our events don't trigger reloading/recompilation
+                pauseFileWatchers codeInFile
                 didSave <- fmap or . forM events $ \case
                     GLFWEvent e -> handleTextBufferEvent window e 
                         (cesCodeEditors . ix codeInFile . cedCodeRenderer)
@@ -240,14 +242,19 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                 when didSave $ do
                     recompileCodeInFile codeInFile
 
+pauseFileWatchers codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
+    setIgnoreTimeNow (codeEditor ^. cedRecompiler . to recFileEventListener)
+    forM_ (codeEditor ^. cedCodeRenderer . txrFileEventListener) setIgnoreTimeNow 
+
 recompileCodeInFile :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m)) 
                     => CodeInFile -> t m ()
 recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
     ghcChan <- use cesGHCChan
 
     (fullPath, exprString) <- lift $ fullPathForCodeInFile codeInFile
-    let textBuffer = codeEditor ^. cedCodeRenderer . txrTextBuffer 
-        resultsChan = codeEditor ^. cedResultTChan
+
+    let resultsChan = codeEditor ^. cedRecompiler . to recResultTChan
+        textBuffer  = codeEditor ^. cedCodeRenderer . txrTextBuffer
         compilationRequest = CompilationRequest
             { crResultTChan      = resultsChan
             -- NOTE: we want to make sure this isn't evaluated on this thread. Let the SubHalive thread do it:
@@ -255,6 +262,7 @@ recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) 
             , crFilePath         = fullPath
             , crExpressionString = exprString
             }
+
     writeTChanIO ghcChan compilationRequest
 
 
@@ -270,7 +278,7 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
         --refreshTextRendererFromFile (cesCodeEditors . ix codeInFile . cedCodeRenderer)
 
         -- Update entities with new code from the compiler
-        tryReadTChanIO (editor ^. cedResultTChan) >>= \case
+        tryReadTChanIO (editor ^. cedRecompiler . to recResultTChan) >>= \case
             Nothing -> return ()
             Just (Left errors) -> do
                 let allErrors = unlines errors

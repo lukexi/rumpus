@@ -1,21 +1,15 @@
--- Note: run updae ticks in exception handler 
+-- Note: run update ticks in exception handler 
 module DefaultStart where
 import Rumpus
 
--------------------
--- MORE COMING SOON
--- AFTER I FIX THESE
--- ROMAIPUS
---------------------
 
-keyNames = 
-    [ "1234567890"
-    , "qwertyuiop"
-    , "asdfghjkl;"
-    , "zxcvbnm,./"
-    ]
-
-numRows = fromIntegral (length keyNames)
+(leftHandKeys, rightHandKeys) = 
+    map fst &&& map snd $
+        [ ("12345", "67890")
+        , ("qwert", "yuiop")
+        , ("asdfg", "hjkl;")
+        , ("zxcvb", "nm,./")
+        ]
 
 keyWidth = 0.05
 keyHeight = 0.05
@@ -43,19 +37,18 @@ start = do
             triggerHandHapticPulse vrPal RightHand 0 (floor $ impulse * 10000)
         
     thisID <- ask
-    let handsWithIDs = [ (LeftHand, leftHandID)
-                       , (RightHand, rightHandID)
+    let handsWithIDs = [ (LeftHand, leftHandID, leftHandKeys)
+                       , (RightHand, rightHandID, rightHandKeys)
                        ]
         eventDestinationID = thisID
-    forM_ handsWithIDs $ \(whichHand, handID) -> do
+    forM_ handsWithIDs $ \(whichHand, handID, keyRows) -> do
         runEntity handID removeChildren
-        spawnKeysForHand whichHand handID eventDestinationID
-    putStrLnIO "HELLO"
+        spawnKeysForHand whichHand handID keyRows eventDestinationID 
+    
     cmpOnUpdate ==> (forM_ [LeftHand, RightHand] $ \whichHand -> do
         --putStrLnIO "updatte"
         withHandEvents whichHand $ \case
             HandButtonEvent HandButtonGrip ButtonDown -> do
-                putStrLnIO "GRIPPP"
                 withScriptData $ \case
                     Just pendingEvent -> do
                         putStrLnIO ("SENDING EVENT! " ++ show pendingEvent)
@@ -68,17 +61,18 @@ start = do
             _ -> return ())
     return Nothing
 
-spawnKeysForHand whichHand handID eventDestinationID = do
+spawnKeysForHand whichHand handID keyRows eventDestinationID = do
+    let numRows = length keyRows
     forM_ (zip [0..] keyNames) $ \(y, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM_ (zip [0..] keyRow) $ \(x, keyName) -> do
             void $ spawnEntity Transient $ 
-                makeKeyboardKey whichHand handID eventDestinationID x y numKeys keyName
+                makeKeyboardKey whichHand handID eventDestinationID x y numKeys numRows keyName
 
 inRect x y w h (V2 ptX ptY) =
     ptX > x && ptX < x + w && ptY > y && ptY < y + h
 
-makeKeyboardKey whichHand parentHandID eventDestinationID x y numKeys keyName = do
+makeKeyboardKey whichHand parentHandID eventDestinationID x y numKeys numRows keyName = do
     let (xF, yF) = (fromIntegral x, fromIntegral y)
         keyProgX = xF / numKeys 
         keyProgY = yF / numRows
