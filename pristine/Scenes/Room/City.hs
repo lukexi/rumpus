@@ -23,10 +23,10 @@ start = do
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
         cmpParent                 ==> rootEntityID
         cmpPose                   ==> mkTransformation 
-                                        (axisAngle (V3 0 0 1) 0.3) pos
+                                        (axisAngle (V3 0 0 1) 0.3) (pos * 100)
         cmpShapeType              ==> SphereShape
         cmpPhysicsProperties      ==> [NoPhysicsShape]
         cmpInheritParentTransform ==> InheritFull
         cmpSize                   ==> V3 0.5 0.5 0.5
-        cmpColor                  ==> hslColor hue 0.8 0.5
+        cmpColor                  ==> hslColor hue 0.8 0.8
     return Nothing
