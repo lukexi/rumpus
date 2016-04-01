@@ -1,11 +1,11 @@
 #version 330 core
 
 uniform vec3 uCamera;
-uniform vec4 uDiffuse;
 
 in      vec3 vPosition;
 in      vec3 vNormal;
 in      vec2 vUV;
+in      vec4 vDiffuse;
 
 out     vec4 fragColor;
 
@@ -14,7 +14,7 @@ const   float ambient = 0.2;
 
 void main() {
 
-    vec4 color = uDiffuse;
+    vec4 color = vDiffuse;
 
     // color.r += sin(vUV.x*30)*0.1;
     // color.g += sin(vUV.y*40)*0.1;
@@ -41,5 +41,5 @@ void main() {
     float diffuseCoefficient = max(ambient, dot(normal, surfaceToLight));
     vec3 diffuseLit = diffuseCoefficient * surfaceColor.rgb * lightColor;
     
-    fragColor = vec4(diffuseLit, uDiffuse.a);
+    fragColor = vec4(diffuseLit, vDiffuse.a);
 }

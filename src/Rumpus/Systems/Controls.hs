@@ -42,6 +42,7 @@ initControlsSystem vrPal = do
         }
 
 
+sendInternalEvent :: (MonadIO m, MonadState ECS m) => WorldEvent -> m ()
 sendInternalEvent event = do
     internalEvents <- viewSystem sysControls ctsInternalEvents
     liftIO . atomically $ writeTChan internalEvents event
