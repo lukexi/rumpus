@@ -84,7 +84,7 @@ Core
 
 Features
 - [x] "Immovable" tag so we don't have to filter for the floor
-- [ ] Instanced rendering
+- [x] Instanced rendering
 - [ ] Transparency
 - [ ] Shadows
         - proof of concept in shadow-pal, integrate

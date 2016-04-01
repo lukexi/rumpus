@@ -248,6 +248,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                 when didSave $ do
                     recompileCodeInFile codeInFile
 
+pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => (FilePath, String) -> m ()
 pauseFileWatchers codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
     setIgnoreTimeNow (codeEditor ^. cedRecompiler . to recFileEventListener)
     forM_ (codeEditor ^. cedCodeRenderer . txrFileEventListener) setIgnoreTimeNow 
