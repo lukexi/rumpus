@@ -15,6 +15,7 @@
     but I do need to fix it so I can develop...
     Try a tool to see what files are being opened. 
 
+[ ] Fix error messages (add line numbers?? any way to do that easily??)
 [ ] Finish keyboard
 [ ] Add exception handler to update and start functions. See older cubensis code for instructions..
 

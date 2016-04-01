@@ -198,6 +198,7 @@ createCodeEditor codeInFile = do
     recompiler   <- recompilerForExpression ghcChan scriptFullPath exprString
 
     -- FIXME this should be async...
+    -- (note: could implement that using WatchFile/refreshText by writing a phony event)
     codeRenderer  <- textRendererFromFile font scriptFullPath WatchFile
     errorRenderer <- createTextRenderer font (textBufferFromString "")
     
@@ -228,13 +229,18 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     forM mSelectedEntityID $ \selectedEntityID ->
         withEntityComponent selectedEntityID cmpOnStartExpr $ \codeInFile ->
             modifySystemState sysCodeEditor $ do
-                -- Make sure our events don't trigger reloading/recompilation
-                pauseFileWatchers codeInFile
+                
                 didSave <- fmap or . forM events $ \case
-                    GLFWEvent e -> handleTextBufferEvent window e 
-                        (cesCodeEditors . ix codeInFile . cedCodeRenderer)
+                    GLFWEvent e -> do
+                        -- Make sure our events don't trigger reloading/recompilation
+                        -- (fixme: should be able to ask text buffer whether event will trigger save and only pause if so)
+                        pauseFileWatchers codeInFile
+                        handleTextBufferEvent window e 
+                            (cesCodeEditors . ix codeInFile . cedCodeRenderer)
                     VREvent (VRKeyboardInputEvent chars) -> do 
                         forM_ chars $ \char -> do
+                            -- Make sure our events don't trigger reloading/recompilation
+                            pauseFileWatchers codeInFile
                             handleTextBufferEvent window (Character char)
                                 (cesCodeEditors . ix codeInFile . cedCodeRenderer)
                         return (not (null chars))
@@ -273,9 +279,7 @@ tickCodeEditorResultsSystem :: ECSMonad ()
 tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ 
     traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeInFile, editor) -> do
         -- Ensure the buffers have the latest code text from disk
-        -- FIXME this was causing huge pauses since it was reading the file on every keystroke.
-        -- Need to a) ignore local changes and b) read the file in the background
-        --refreshTextRendererFromFile (cesCodeEditors . ix codeInFile . cedCodeRenderer)
+        refreshTextRendererFromFile (cesCodeEditors . ix codeInFile . cedCodeRenderer)
 
         -- Update entities with new code from the compiler
         tryReadTChanIO (editor ^. cedRecompiler . to recResultTChan) >>= \case

@@ -17,16 +17,17 @@ keyPad = 0.01
 keyWidthT = keyWidth + keyPad
 keyHeightT = keyHeight + keyPad
 
+-- How far up the controllers the keyboard appears
+keyOffsetY = -0.2
+
 start :: OnStart
 start = do
-    vrPal <- viewSystem sysControls ctsVRPal
 
     removeChildren
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
-
-
-
+    
+    vrPal <- viewSystem sysControls ctsVRPal
     runEntity leftHandID $ do
         cmpOnCollisionStart  ==> \_ impulse -> do
             triggerHandHapticPulse vrPal LeftHand 0 (floor $ impulse * 10000)
@@ -35,18 +36,17 @@ start = do
     runEntity rightHandID $ do
         cmpOnCollisionStart  ==> \_ impulse -> 
             triggerHandHapticPulse vrPal RightHand 0 (floor $ impulse * 10000)
-        
-    thisID <- ask
+    
+    -- Have hands write their key events to this entityID
+    -- so we can pass them along on click to the InternalEvents channel
+    eventDestinationID <- ask
     let handsWithIDs = [ (LeftHand, leftHandID, leftHandKeys)
                        , (RightHand, rightHandID, rightHandKeys)
                        ]
-        eventDestinationID = thisID
     forM_ handsWithIDs $ \(whichHand, handID, keyRows) -> do
         runEntity handID removeChildren
         spawnKeysForHand whichHand handID keyRows eventDestinationID 
-    
     cmpOnUpdate ==> (forM_ [LeftHand, RightHand] $ \whichHand -> do
-        --putStrLnIO "updatte"
         withHandEvents whichHand $ \case
             HandButtonEvent HandButtonGrip ButtonDown -> do
                 withScriptData $ \case
@@ -62,10 +62,13 @@ start = do
     return Nothing
 
 spawnKeysForHand whichHand handID keyRows eventDestinationID = do
-    let numRows = length keyRows
-    forM_ (zip [0..] keyNames) $ \(y, keyRow) -> do
+    let numRows = fromIntegral (length keyRows)
+        maxNumKeys = fromIntegral $ maximum (map length keyRows)
+    void $ spawnEntity Transient $ makeThumbNub whichHand handID maxNumKeys numRows
+    forM_ (zip [0..] keyRows) $ \(y, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM_ (zip [0..] keyRow) $ \(x, keyName) -> do
+            
             void $ spawnEntity Transient $ 
                 makeKeyboardKey whichHand handID eventDestinationID x y numKeys numRows keyName
 
@@ -81,7 +84,7 @@ makeKeyboardKey whichHand parentHandID eventDestinationID x y numKeys numRows ke
         pointIsInKey = inRect keyProgX keyProgY keyProgW keyProgH
         keyX = keyOffsetX + xF * keyWidthT
         keyY = keyOffsetY + yF * keyHeightT
-        keyOffsetX = -keyWidthT * pred numKeys / 2
+        keyOffsetX = -keyWidthT * (numKeys - 1) / 2
         keyOffsetY = -0.2
         pose = V3 keyX 0.1 keyY
         colorOn = hslColor 0.2 0.8 0.8
@@ -107,4 +110,23 @@ makeKeyboardKey whichHand parentHandID eventDestinationID x y numKeys numRows ke
                     runEntity eventDestinationID $ 
                         setScriptData (Just (Character keyName))
             
+            _ -> return ()
+
+makeThumbNub whichHand parentHandID maxNumKeys numRows = do
+    let keyboardDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
+        colorOn = hslColor 0.2 0.8 0.8
+        colorOff = hslColor 0.3 0.8 0.4
+    cmpColor                  ==> colorOn
+    cmpParent                 ==> parentHandID
+    cmpShapeType              ==> SphereShape
+    cmpPhysicsProperties      ==> [NoPhysicsShape]
+    --cmpPose                   ==> (identity & translation .~ pose)
+    cmpSize                   ==> realToFrac 0.02
+    cmpInheritParentTransform ==> InheritPose
+    cmpOnUpdate ==> do
+        withHandEvents whichHand $ \case
+            HandStateEvent hand -> do                
+                let V2 x y  = (hand ^. hndXY & _y *~ (-1)) * keyboardDims
+                    pose = V3 x 0.1 (y + keyOffsetY + keyboardDims ^. _y / 2 - (keyHeightT / 2))
+                setPose (identity & translation .~ pose)
             _ -> return ()

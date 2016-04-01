@@ -14,7 +14,7 @@ start = do
                 cmpPhysicsProperties      ==> [NoPhysicsShape]
                 cmpInheritParentTransform ==> InheritFull
                 cmpSize                   ==> V3 0.5 0.5 0.5
-                cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5
+                cmpColor                  ==> hslColor (fromIntegral n/9) 0.8 0.5
                 cmpOnUpdate ==> do
                     now <- sin <$> getNow
                     let V3 pX pY pZ = pos

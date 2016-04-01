@@ -125,6 +125,8 @@ getEntityOverlappingEntityIDs entityID =
     . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)]) 
     <$> getEntityOverlapping entityID
 
+setSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
+setSize newSize = setEntitySize newSize =<< ask
 
 setEntitySize :: (MonadIO m, MonadState ECS m) => V3 GLfloat -> EntityID -> m ()
 setEntitySize newSize entityID = do
