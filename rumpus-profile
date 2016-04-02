@@ -13,7 +13,7 @@ if [ -z "$1" ]
     PROFTYPE=-hc    
 fi
 
-stack build --executable-profiling --library-profiling
+stack build --executable-profiling --library-profiling || exit 1
 
 # We need to use this odd method of running rather than: 
 # stack exec rumpus -- +RTS -hy
@@ -25,3 +25,7 @@ stack build --executable-profiling --library-profiling
 hp2ps -c -M rumpus.hp
 mv rumpus.ps rumpus$PROFTYPE.ps
 explorer rumpus$PROFTYPE.ps
+
+prof-to-flamegraph rumpus
+# prof-to-flamegraph-alloc rumpus # alternate mode for seeing allocations
+explorer rumpus.svg

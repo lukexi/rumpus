@@ -3,36 +3,37 @@
 module Rumpus.Systems.Script where
 import PreludeExtra
 import Rumpus.Systems.PlayPause
-
-
-type OnStart  = EntityMonad (Maybe Dynamic)
-type OnUpdate = EntityMonad ()
-
-defineComponentKey ''OnStart
-defineComponentKey ''OnUpdate
-
-defineComponentKeyWithType "ScriptData" [t|Dynamic|]
-
-initScriptSystem :: MonadState ECS m => m ()
-initScriptSystem = do
-    registerComponent "OnStart"  cmpOnStart      (newComponentInterface cmpOnStart)
-    registerComponent "OnUpdate" cmpOnUpdate     (newComponentInterface cmpOnUpdate)
-    registerComponent "ScriptData" cmpScriptData (newComponentInterface cmpScriptData)
+import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.Shared
+import Control.Monad.Catch
+--import Control.DeepSeq
 
 tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
     forEntitiesWithComponent cmpOnStart $
         \(entityID, onStart) -> runEntity entityID $ do
             putStrLnIO ("Running OnStart for " ++ show entityID)
-            -- Only call OnStart once
-            mScriptData <- onStart
+            -- Only call OnStart once. 
+            -- Handle any exceptions therein by writing them to the error pane.
+            (mScriptData, runtimeErrors) <- handleAll (\e -> return (Nothing, show e)) $ do
+                mScriptData <- onStart
+                -- We can't deepseq a dynamic value here, so
+                -- FIXME perhaps have scripts return via a helper 
+                -- function that deepseqs their script data?
+                (return (mScriptData, ""))
+
+            setErrorText entityID runtimeErrors
+            
             forM_ mScriptData $ \scriptData -> 
                 cmpScriptData ==> scriptData
             removeComponent cmpOnStart
 
     forEntitiesWithComponent cmpOnUpdate $
-        \(entityID, onUpdate) -> 
-            runEntity entityID onUpdate
+        \(entityID, onUpdate) -> do
+            runEntity entityID onUpdate 
+                `catchAll`
+                -- FIXME display this in world somewhere...
+                (\e -> putStrLnIO $ "Error in onUpdate for entity" ++ show entityID ++ ": " ++ show e)
 
 withScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => (a -> m ()) -> m ()

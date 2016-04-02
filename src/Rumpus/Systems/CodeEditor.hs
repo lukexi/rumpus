@@ -17,7 +17,6 @@ import Data.ECS.Vault
 
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection
-import Rumpus.Systems.Script
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
@@ -248,7 +247,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                 when didSave $ do
                     recompileCodeInFile codeInFile
 
-pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => (FilePath, String) -> m ()
+pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => CodeInFile -> m ()
 pauseFileWatchers codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
     setIgnoreTimeNow (codeEditor ^. cedRecompiler . to recFileEventListener)
     forM_ (codeEditor ^. cedCodeRenderer . txrFileEventListener) setIgnoreTimeNow 
@@ -273,6 +272,13 @@ recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) 
     writeTChanIO ghcChan compilationRequest
 
 
+-- | Allows Script system to pass runtime exceptions to the error pane, 
+-- assuming the given entityID has an onStartExpr.
+setErrorText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
+setErrorText entityID errors = do
+    traverseM_ (getEntityComponent entityID cmpOnStartExpr) $ \codeInFile ->
+        modifySystemState sysCodeEditor $ 
+            setTextRendererText (cesCodeEditors . ix codeInFile . cedErrorRenderer) errors
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures

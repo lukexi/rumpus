@@ -36,8 +36,9 @@ library
     cpp-options: -DRUMPUS_RELEASE
   exposed-modules:     Rumpus
                        PreludeExtra
-                       Rumpus.Types
                        Rumpus.Main
+                       Rumpus.TestScene
+                       Rumpus.Types
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
                        Rumpus.Systems.CodeEditor
@@ -83,6 +84,8 @@ library
                      , extensible-ecs
                      , transformers
                      , vector
+                     , deepseq
+                     , exceptions
   default-language:    Haskell2010
 
 executable rumpus

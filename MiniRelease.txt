@@ -15,14 +15,17 @@
     but I do need to fix it so I can develop...
     Try a tool to see what files are being opened. 
 
-[ ] Fix error messages (add line numbers?? any way to do that easily??)
+[ ] Fix error message positioning (add line numbers?? any way to do that easily??)
 [ ] Finish keyboard
+    [ ] Get touchpad down event from steamVR
+
 [ ] Add exception handler to update and start functions. See older cubensis code for instructions..
 
-[ ] Add microphone-reactive object
 [ ] Create intro object
         TRY EDITING ME
-[ ] Build city
+
+[x] Build city
+[ ] Add microphone-reactive object
 
 
 [x] Find Windows documents directory, copy scenes there and load from there

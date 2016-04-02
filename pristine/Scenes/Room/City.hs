@@ -22,20 +22,21 @@ start = do
 createBuildings :: EntityMonad ()
 createBuildings = do
     rootEntityID <- ask
-    let n = 10
-        buildSites = [V3 (x*20) (-100) (z*20) | x <- [-n..n], z <- [-n..n]]
+    let n = 5
+        dim = 200
+        height = dim * 5
+        buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
     forM_ buildSites $ \(V3 x y z) -> do
         hue <- liftIO randomIO
         
         when (x /= 0 && z /= 0) $ void . spawnEntity Transient $ do
-            cmpParent                 ==> rootEntityID
-            cmpPose                   ==> mkTransformation 
+            cmpParent               ==> rootEntityID
+            cmpPose                 ==> mkTransformation 
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
-            cmpShapeType              ==> CubeShape
-            cmpPhysicsProperties      ==> [NoPhysicsShape]
-            cmpSize                   ==> V3 10 100 10
-
-            cmpColor                  ==> hslColor hue 0.8 0.8
+            cmpShapeType            ==> CubeShape
+            cmpPhysicsProperties    ==> [NoPhysicsShape]
+            cmpSize                 ==> V3 dim height dim
+            cmpColor                ==> hslColor hue 0.8 0.8
 
 createStars :: EntityMonad ()
 createStars = do
@@ -50,6 +51,5 @@ createStars = do
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
         cmpShapeType              ==> SphereShape
         cmpPhysicsProperties      ==> [NoPhysicsShape]
-        cmpInheritParentTransform ==> InheritFull
         cmpSize                   ==> 5
         cmpColor                  ==> hslColor hue 0.8 0.8

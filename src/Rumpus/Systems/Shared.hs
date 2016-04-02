@@ -22,6 +22,16 @@ defineComponentKeyWithType "Color"                  [t|V4 GLfloat|]
 defineComponentKeyWithType "Parent"                 [t|EntityID|]
 defineComponentKeyWithType "Children"               [t|[EntityID]|]
 
+-- Script System components (shared by Script and CodeEditor systems)
+type OnStart  = EntityMonad (Maybe Dynamic)
+type OnUpdate = EntityMonad ()
+
+defineComponentKey ''OnStart
+defineComponentKey ''OnUpdate
+
+defineComponentKeyWithType "ScriptData" [t|Dynamic|]
+
+
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
     registerComponent "Name" cmpName (savedComponentInterface cmpName)
@@ -41,6 +51,11 @@ initSharedSystem = do
         { ciRemoveComponent = removeChildren
         }
     registerComponent "InheritParentTransform" cmpInheritParentTransform (newComponentInterface cmpInheritParentTransform)
+
+    -- Allows Script and CodeEditor to access these
+    registerComponent "OnStart"  cmpOnStart      (newComponentInterface cmpOnStart)
+    registerComponent "OnUpdate" cmpOnUpdate     (newComponentInterface cmpOnUpdate)
+    registerComponent "ScriptData" cmpScriptData (newComponentInterface cmpScriptData)
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren = 

@@ -2,7 +2,6 @@ module Rumpus (module Exports) where
 
 import PreludeExtra as Exports
 
-import Rumpus.Main as Exports
 import Rumpus.Types as Exports
 import Rumpus.Systems.Animation as Exports
 import Rumpus.Systems.Attachment as Exports

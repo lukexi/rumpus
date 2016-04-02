@@ -41,7 +41,8 @@ data RenderSystem = RenderSystem
 makeLenses ''RenderSystem
 defineSystemKey ''RenderSystem
 
-numInstances = 10000
+maxInstances :: Int
+maxInstances = 1000
 
 initRenderSystem :: (MonadIO m, MonadState ECS m) => m ()
 initRenderSystem = do
@@ -50,23 +51,24 @@ initRenderSystem = do
 
     basicProg   <- createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
 
+    --planeGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     cubeGeo     <- cubeGeometry (V3 1 1 1) 1
-    sphereGeo   <- icosahedronGeometry 1 5 -- radius subdivisions
-    planeGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
+    sphereGeo   <- icosahedronGeometry 1 3 -- radius subdivisions
     
-    planeShape  <- makeShape planeGeo  basicProg
+    --planeShape  <- makeShape planeGeo  basicProg
     cubeShape   <- makeShape cubeGeo   basicProg
     sphereShape <- makeShape sphereGeo basicProg
 
-    let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
+    --let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
+    let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape)]
 
     shapesWithBuffers <- forM shapes $ \(shapeType, shape) -> do
         withShape shape $ do
-            modelM44sVector <- liftIO $ VM.replicate numInstances (identity :: M44 GLfloat)
-            colorsVector    <- liftIO $ VM.replicate numInstances (0        :: V4 GLfloat)
+            modelM44sVector <- liftIO $ VM.replicate maxInstances (identity :: M44 GLfloat)
+            colorsVector    <- liftIO $ VM.replicate maxInstances (0        :: V4 GLfloat)
 
-            modelM44sBuffer    <- bufferDataV GL_DYNAMIC_DRAW modelM44sVector
-            colorsBuffer       <- bufferDataV GL_DYNAMIC_DRAW colorsVector
+            modelM44sBuffer <- bufferDataV GL_DYNAMIC_DRAW modelM44sVector
+            colorsBuffer    <- bufferDataV GL_DYNAMIC_DRAW colorsVector
             shader <- asks sProgram
             withArrayBuffer modelM44sBuffer $ 
                 assignMatrixAttributeInstanced shader "aInstanceTransform" GL_FLOAT
@@ -104,18 +106,20 @@ tickRenderSystem headM44 = do
 
     shapes      <- viewSystem sysRender rdsShapes
     shapeCounts <- forM shapes $ \RenderShape{..} -> withShape rshShape $ do
-        entityIDsForShape <- profileMS' "getEntityIDsForShapeType" 3 $ getEntityIDsForShapeType rshShapeType
-        count <- profileMS' "writeVectors" 3 $ foldM (\i entityID -> do
+        let shapeName = show rshShapeType ++ " "
+        entityIDsForShape <- profileMS' (shapeName ++ "getEntityIDsForShapeType") 3 $ getEntityIDsForShapeType rshShapeType
+        count <- profileMS' (shapeName ++ "writeVectors") 3 $ foldM (\i entityID -> do
             color <- getEntityColorOrSelectedColor entityID
             let modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
             liftIO $ do
-                VM.write rshInstanceColorsMVector    i color
-                VM.write rshInstanceModelM44sMVector i modelM44
+                VM.unsafeWrite rshInstanceColorsMVector    i color
+                VM.unsafeWrite rshInstanceModelM44sMVector i modelM44
             return (i+1)
-            ) 0 entityIDsForShape 
-        profileMS' "bufCols" 3 $ bufferSubDataV rshInstanceColorsBuffer    rshInstanceColorsMVector
-        profileMS' "bufM44s" 3 $ bufferSubDataV rshInstanceModelM44sBuffer rshInstanceModelM44sMVector
-
+            ) 0 entityIDsForShape
+        let countStr = "("++show count++") "
+        profileMS' (shapeName ++ countStr ++ "bufCols") 3 $ bufferSubDataV rshInstanceColorsBuffer    rshInstanceColorsMVector
+        profileMS' (shapeName ++ countStr ++ "bufM44s") 3 $ bufferSubDataV rshInstanceModelM44sBuffer rshInstanceModelM44sMVector
+        --printIO (rshShapeType, count)
         return (rshShape, count)
 
     -- Render the scene
@@ -123,10 +127,9 @@ tickRenderSystem headM44 = do
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
             let projViewM44 = projM44 !*! viewM44
-            profileMS' "entities" 2     $ renderEntities     projViewM44 shapeCounts
-            profileMS' "entitiesText" 2 $ renderEntitiesText projViewM44 finalMatricesByEntityID
+            profileMS' "renderEntities" 2     $ renderEntities     projViewM44 shapeCounts
+            profileMS' "renderEntitiesText" 2 $ renderEntitiesText projViewM44 finalMatricesByEntityID
             )
-
 
 renderEntities :: (MonadIO m, MonadState ECS m) 
                => M44 GLfloat -> [(Shape Uniforms, Int)] -> m ()
@@ -152,12 +155,12 @@ getFinalMatrices = do
     entityIDsWithParent <- Set.fromList . Map.keys <$> getComponentMap cmpParent
 
     let rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
-        go mParentMatrix accum entityID = do
+        go mParentMatrix !accum entityID = do
 
             entityMatrixLocalNoScale <- getEntityPose entityID
 
             size <- getEntitySize entityID
-            let entityMatrixLocal = entityMatrixLocalNoScale !*! scaleMatrix size
+            let !entityMatrixLocal = entityMatrixLocalNoScale !*! scaleMatrix size
 
             
             -- See if we want to inherit our parent's matrix
@@ -176,13 +179,6 @@ getFinalMatrices = do
             foldM (go (Just (entityMatrix, entityMatrixNoScale))) (Map.insert entityID entityMatrix accum) children
     foldM (go Nothing) mempty rootIDs
 
-{-
-getScaledMatrix :: MonadState ECS m => EntityID -> m (M44 GLfloat)
-getScaledMatrix entityID = do
-    pose <- getEntityPose entityID
-    size <- getEntitySize entityID
-    return $! pose !*! scaleMatrix size
--}
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType
 

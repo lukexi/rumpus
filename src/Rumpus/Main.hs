@@ -3,29 +3,9 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Rumpus.Main where
-import PreludeExtra
-
-import Rumpus.Systems.Animation
-import Rumpus.Systems.Attachment
-import Rumpus.Systems.CodeEditor
-import Rumpus.Systems.Collisions
-import Rumpus.Systems.Constraint
-import Rumpus.Systems.Controls
-import Rumpus.Systems.Hands
-import Rumpus.Systems.Lifetime
-import Rumpus.Systems.Physics
-import Rumpus.Systems.PlayPause
-import Rumpus.Systems.Render
-import Rumpus.Systems.SceneEditor
-import Rumpus.Systems.Script
-import Rumpus.Systems.Selection
-import Rumpus.Systems.Shared
-import Rumpus.Systems.Sound
-import Rumpus.Systems.Text
-import Rumpus.Types
-
+import Rumpus
+import Rumpus.TestScene
 import Halive.Utils
-
 
 copyScenes :: IO FilePath
 copyScenes = do
@@ -68,7 +48,6 @@ rumpusMain = withPd $ \pd -> do
         initPlayPauseSystem
         initRenderSystem
         initSceneEditorSystem
-        initScriptSystem
         initSoundSystem pd
         initSelectionSystem sceneFolder
         initSharedSystem
@@ -76,15 +55,10 @@ rumpusMain = withPd $ \pd -> do
 
         startHandsSystem
         loadScene sceneFolder
-        
-        -- testEntity <- spawnEntity Transient $ return ()
-        -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart        
-        -- selectEntity testEntity
 
-        --_ <- spawnEntity Transient $ do
-        --    cmpOnStart ==> testBuildTreeStart
-        --    cmpPhysicsProperties ==> [IsKinematic]
-        --    return ()
+        unless isInReleaseMode loadTestScene
+        
+        
         
         whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do
 
@@ -108,25 +82,3 @@ rumpusMain = withPd $ \pd -> do
             profileMS' "render"      1 $ tickRenderSystem headM44
 
 
-testBuildTreeStart :: OnStart
-testBuildTreeStart = do
-    removeChildren
-    
-    let branch parentID n pos = do
-            childID <- spawnEntity Transient $ do
-                cmpParent ==> parentID
-                cmpPose   ==> mkTransformation (axisAngle (V3 0 0 1) 0.3) pos
-                cmpShapeType              ==> CubeShape
-                cmpPhysicsProperties      ==> [NoPhysicsShape]
-                cmpInheritParentTransform ==> InheritFull
-                cmpSize                   ==> V3 0.5 0.6 0.6
-                cmpColor ==> hslColor (fromIntegral n/9) 0.8 0.5
-                cmpOnUpdate ==> do
-                    now <- sin <$> getNow
-                    cmpPose ==> mkTransformation (axisAngle (V3 0 1 1) now) pos
-            when (n > 0) $ do
-                branch childID (n - 1) (V3 1 1 0)
-                branch childID (n - 1) (V3 (-1) 1 0)
-    rootEntityID <- ask
-    branch rootEntityID (5::Int) 0
-    return Nothing
