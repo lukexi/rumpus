@@ -16,6 +16,7 @@ import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Text
+import Rumpus.Types
 import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Storable.Mutable as VM
@@ -89,23 +90,7 @@ tickRenderSystem headM44 = do
     vrPal  <- viewSystem sysControls ctsVRPal
     player <- viewSystem sysControls ctsPlayer
 
-    --finalMatricesByEntityID <- profileMS "getFinalMatrices" 2 $ getFinalMatrices
-    finalMatricesByEntityID <- getFinalMatrices
-    -- Render the scene
-    renderWith vrPal player headM44
-        (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
-        (\projM44 viewM44 -> do
-            let projViewM44 = projM44 !*! viewM44
-            renderEntities     projViewM44 finalMatricesByEntityID
-            renderEntitiesText projViewM44 finalMatricesByEntityID
-            )
-
-
-renderEntities :: (MonadIO m, MonadState ECS m) 
-               => M44 GLfloat -> Map EntityID (M44 GLfloat) -> m ()
-renderEntities projViewM44 finalMatricesByEntityID = do
-    
-    headM44 <- getHeadPose
+    finalMatricesByEntityID <- profileMS' "getFinalMatrices" 2 $ getFinalMatrices
 
     -- Pulse the currently selected entity in blue
     selectedEntityID <- getSelectedEntityID
@@ -115,19 +100,12 @@ renderEntities projViewM44 finalMatricesByEntityID = do
                     now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
                     return $ hslColor 0.6 0.9 now
                 else getEntityColor entityID
+    -- Batch by entities sharing the same shape type
 
-
-    shapes <- viewSystem sysRender rdsShapes
-    forM_ shapes $ \RenderShape{..} -> withShape rshShape $ do
-
-        Uniforms{..} <- asks sUniforms
-        uniformV3  uCamera (headM44 ^. translation)
-        uniformM44 uProjectionView projViewM44
-
-        -- Batch by entities sharing the same shape type
-        entityIDsForShape <- getEntityIDsForShapeType rshShapeType
-        putStrLnIO "A"
-        count <- foldM (\i entityID -> do
+    shapes      <- viewSystem sysRender rdsShapes
+    shapeCounts <- forM shapes $ \RenderShape{..} -> withShape rshShape $ do
+        entityIDsForShape <- profileMS' "getEntityIDsForShapeType" 3 $ getEntityIDsForShapeType rshShapeType
+        count <- profileMS' "writeVectors" 3 $ foldM (\i entityID -> do
             color <- getEntityColorOrSelectedColor entityID
             let modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
             liftIO $ do
@@ -135,13 +113,34 @@ renderEntities projViewM44 finalMatricesByEntityID = do
                 VM.write rshInstanceModelM44sMVector i modelM44
             return (i+1)
             ) 0 entityIDsForShape 
-        putStrLnIO "B"
-        bufferSubDataV rshInstanceColorsBuffer    rshInstanceColorsMVector
-        putStrLnIO "C"
-        bufferSubDataV rshInstanceModelM44sBuffer rshInstanceModelM44sMVector
-        putStrLnIO "D"
-        putStrLnIO ("Rendering " ++ show (fromIntegral count, length entityIDsForShape) ++ " " ++ show rshShapeType)
-        drawShapeInstanced (fromIntegral count)
+        profileMS' "bufCols" 3 $ bufferSubDataV rshInstanceColorsBuffer    rshInstanceColorsMVector
+        profileMS' "bufM44s" 3 $ bufferSubDataV rshInstanceModelM44sBuffer rshInstanceModelM44sMVector
+
+        return (rshShape, count)
+
+    -- Render the scene
+    renderWith vrPal player headM44
+        (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
+        (\projM44 viewM44 -> do
+            let projViewM44 = projM44 !*! viewM44
+            profileMS' "entities" 2     $ renderEntities     projViewM44 shapeCounts
+            profileMS' "entitiesText" 2 $ renderEntitiesText projViewM44 finalMatricesByEntityID
+            )
+
+
+renderEntities :: (MonadIO m, MonadState ECS m) 
+               => M44 GLfloat -> [(Shape Uniforms, Int)] -> m ()
+renderEntities projViewM44 shapes = do
+    
+    headM44 <- getHeadPose
+
+    forM_ shapes $ \(shape, shapeCount) -> withShape shape $ do
+
+        Uniforms{..} <- asks sUniforms
+        uniformV3  uCamera (headM44 ^. translation)
+        uniformM44 uProjectionView projViewM44
+
+        profileMS' "Draw" 3 $ drawShapeInstanced (fromIntegral shapeCount)
 
 -- Perform a breadth-first traversal of entities with no parents, 
 -- accumulating their matrix mults all the way down into any children.

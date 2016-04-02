@@ -41,7 +41,7 @@ copyScenes = do
             copyFile (pristineScenes </> roomFile) (userRoomDir </> roomFile)
     -- When not in release mode, we want to edit the pristine folder directly
     -- so we can track changes in git.
-    return $ if isInReleaseMode then userRoomDir else pristineScenes 
+    return $ if isInReleaseMode then userRoomDir else pristineScenes
 
 
 rumpusMain :: IO ()
@@ -106,15 +106,6 @@ rumpusMain = withPd $ \pd -> do
             profileMS' "sceneEditor" 1 $ tickSceneEditorSystem
             profileMS' "sound"       1 $ tickSoundSystem headM44
             profileMS' "render"      1 $ tickRenderSystem headM44
-
-profileMS' :: (MonadIO m) => String -> Int -> m a -> m a
---profileMS' = profileMS
---profileMS' _ _ = id
-profileMS' name _ act = putStrLnIO ("About to run " ++ name ++ "...") >> act 
-
-profileFPS' :: (MonadIO m) => String -> Int -> m a -> m a
---profileFPS' = profileFPS
-profileFPS' _ _ = id
 
 
 testBuildTreeStart :: OnStart
