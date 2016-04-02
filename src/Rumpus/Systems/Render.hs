@@ -18,18 +18,29 @@ import Rumpus.Systems.Hands
 import Rumpus.Systems.Text
 import Graphics.GL.TextBuffer
 
+import qualified Data.Vector.Storable.Mutable as VM
+
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
     , uCamera         :: UniformLocation (V3  GLfloat)
     } deriving (Data)
 
+data RenderShape = RenderShape
+    { rshShapeType                :: ShapeType
+    , rshShape                    :: Shape Uniforms
+    , rshInstanceColorsBuffer     :: ArrayBuffer --FIXME add a phantom type for these!!
+    , rshInstanceColorsMVector    :: VM.IOVector (V4 GLfloat)
+    , rshInstanceModelM44sBuffer  :: ArrayBuffer 
+    , rshInstanceModelM44sMVector :: VM.IOVector (M44 GLfloat)
+    }
+
 data RenderSystem = RenderSystem 
-    { _rdsShapes :: ![(ShapeType, Shape Uniforms, ArrayBuffer, ArrayBuffer)]
+    { _rdsShapes :: ![RenderShape]
     }
 makeLenses ''RenderSystem
 defineSystemKey ''RenderSystem
 
-numInstances = 1000
+numInstances = 10000
 
 initRenderSystem :: (MonadIO m, MonadState ECS m) => m ()
 initRenderSystem = do
@@ -50,15 +61,25 @@ initRenderSystem = do
 
     shapesWithBuffers <- forM shapes $ \(shapeType, shape) -> do
         withShape shape $ do
-            modelM44sBuffer    <- bufferData GL_DYNAMIC_DRAW (concatMap toList (replicate numInstances identity :: [M44 GLfloat]))
-            colorsBuffer       <- bufferData GL_DYNAMIC_DRAW (concatMap toList (replicate numInstances (V4 0 0 0 0) :: [V4 GLfloat]))
+            modelM44sVector <- liftIO $ VM.replicate numInstances (identity :: M44 GLfloat)
+            colorsVector    <- liftIO $ VM.replicate numInstances (0        :: V4 GLfloat)
+
+            modelM44sBuffer    <- bufferDataV GL_DYNAMIC_DRAW modelM44sVector
+            colorsBuffer       <- bufferDataV GL_DYNAMIC_DRAW colorsVector
             shader <- asks sProgram
             withArrayBuffer modelM44sBuffer $ 
                 assignMatrixAttributeInstanced shader "aInstanceTransform" GL_FLOAT
             withArrayBuffer colorsBuffer $ 
                 assignFloatAttributeInstanced shader "aInstanceColor" GL_FLOAT 4
-            return (shapeType, shape, modelM44sBuffer, colorsBuffer)
-    
+
+            return RenderShape 
+                { rshShapeType                 = shapeType
+                , rshShape                     = shape
+                , rshInstanceColorsMVector     = colorsVector
+                , rshInstanceColorsBuffer      = colorsBuffer
+                , rshInstanceModelM44sMVector  = modelM44sVector
+                , rshInstanceModelM44sBuffer   = modelM44sBuffer
+                }
 
     registerSystem sysRender (RenderSystem shapesWithBuffers)
 
@@ -97,26 +118,30 @@ renderEntities projViewM44 finalMatricesByEntityID = do
 
 
     shapes <- viewSystem sysRender rdsShapes
-    forM_ shapes $ \(shapeType, shape, modelM44sBuffer, colorsBuffer) -> withShape shape $ do
+    forM_ shapes $ \RenderShape{..} -> withShape rshShape $ do
 
         Uniforms{..} <- asks sUniforms
         uniformV3  uCamera (headM44 ^. translation)
         uniformM44 uProjectionView projViewM44
 
-
         -- Batch by entities sharing the same shape type
-        entityIDsForShape <- getEntityIDsForShapeType shapeType
-
-        (m44s, colors) <- foldM (\(m44sAcc, colorsAcc) entityID -> do
+        entityIDsForShape <- getEntityIDsForShapeType rshShapeType
+        putStrLnIO "A"
+        count <- foldM (\i entityID -> do
             color <- getEntityColorOrSelectedColor entityID
             let modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
-            return (modelM44:m44sAcc, color:colorsAcc)
-            ) mempty entityIDsForShape 
-
-        bufferSubData modelM44sBuffer (concatMap (toList . transpose) m44s)
-        bufferSubData colorsBuffer    (concatMap toList colors)
-
-        drawShapeInstanced (fromIntegral $ length entityIDsForShape)
+            liftIO $ do
+                VM.write rshInstanceColorsMVector    i color
+                VM.write rshInstanceModelM44sMVector i modelM44
+            return (i+1)
+            ) 0 entityIDsForShape 
+        putStrLnIO "B"
+        bufferSubDataV rshInstanceColorsBuffer    rshInstanceColorsMVector
+        putStrLnIO "C"
+        bufferSubDataV rshInstanceModelM44sBuffer rshInstanceModelM44sMVector
+        putStrLnIO "D"
+        putStrLnIO ("Rendering " ++ show (fromIntegral count, length entityIDsForShape) ++ " " ++ show rshShapeType)
+        drawShapeInstanced (fromIntegral count)
 
 -- Perform a breadth-first traversal of entities with no parents, 
 -- accumulating their matrix mults all the way down into any children.
