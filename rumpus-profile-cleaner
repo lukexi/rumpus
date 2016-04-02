@@ -1,0 +1,7 @@
+#!/bin/sh
+# A workaround for missing .p_a files
+stack clean pd 
+stack clean bindings-GLFW 
+stack clean bullet-mini 
+stack clean openvr-hs
+stack clean freetype-gl-mini
