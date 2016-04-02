@@ -5,7 +5,12 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BangPatterns #-}
-module Rumpus.Systems.Render where
+
+-- Restricting exports to help GHC optimizer
+module Rumpus.Systems.Render 
+    ( initRenderSystem
+    , tickRenderSystem
+    ) where
 import PreludeExtra
 
 import qualified Data.HashMap.Strict as Map
@@ -20,7 +25,7 @@ import Rumpus.Types
 import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Storable.Mutable as VM
-
+import Control.Parallel.Strategies
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
     , uCamera         :: UniformLocation (V3  GLfloat)
@@ -93,7 +98,6 @@ tickRenderSystem headM44 = do
     player <- viewSystem sysControls ctsPlayer
 
     finalMatricesByEntityID <- profileMS' "getFinalMatrices" 2 $ getFinalMatrices
-
     -- Pulse the currently selected entity in blue
     selectedEntityID <- getSelectedEntityID
     let getEntityColorOrSelectedColor entityID = do
@@ -163,28 +167,37 @@ getFinalMatrices = do
         rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
         go mParentMatrix !accum entityID = 
 
-            let entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
-                size = Map.lookupDefault 1 entityID sizeMap
-                !entityMatrixLocal = entityMatrixLocalNoScale !*! scaleMatrix size
-                -- See if we want to inherit our parent's matrix
-                inherit = Map.lookup entityID inheritParentTransformMap
+            let size                     = Map.lookupDefault 1 entityID sizeMap
+                inherit                  = Map.lookup entityID inheritParentTransformMap
+                entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
+                entityMatrixLocal        = entityMatrixLocalNoScale !*! scaleMatrix size
 
+                parentTransform          = case (inherit, mParentMatrix) of
+                    (Just InheritFull, Just (parentMatrix, _))        -> (parentMatrix        !*!) 
+                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!) 
+                    _                                                 -> id
 
-                entityMatrix = case (inherit, mParentMatrix) of
-                    (Just InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocal
-                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocal
-                    _                                                 ->                         entityMatrixLocal
-                entityMatrixNoScale = case (inherit, mParentMatrix) of
-                    (Just InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocalNoScale
-                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocalNoScale
-                    _                                                 ->                         entityMatrixLocalNoScale
+                entityMatrix        = parentTransform entityMatrixLocal
+                entityMatrixNoScale = parentTransform entityMatrixLocalNoScale
 
-                children = Map.lookupDefault [] entityID childrenMap
+                children            = Map.lookupDefault [] entityID childrenMap
             -- Pass the calculated matrix down to each child so it can calculate its own final matrix
             in foldl' (go (Just (entityMatrix, entityMatrixNoScale))) (Map.insert entityID entityMatrix accum) children
-        finalMatricesByEntityID = foldl' (go Nothing) mempty rootIDs
+        calcMatricesForRootIDs = foldl' (go Nothing) mempty
+
+        -- !finalMatricesByEntityID = parMapChunks 128 calcMatricesForRootIDs rootIDs
+
+        !finalMatricesByEntityID = calcMatricesForRootIDs rootIDs
 
     return finalMatricesByEntityID
+
+parMapChunks n f xs = mconcat $ parMap rdeepseq f (chunkInto n (toList xs))
+
+chunkInto n l = go l
+    where 
+        go [] = []
+        go xs = let (x,xs') = splitAt n xs
+                in x:go xs' 
 
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType

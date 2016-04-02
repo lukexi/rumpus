@@ -7,6 +7,8 @@ import Rumpus
 import Rumpus.TestScene
 import Halive.Utils
 
+-- | Copy the 'pristine' Scenes folder into the user's Documents/Rumpus directory on startup
+-- if the Documents/Rumpus folder is missing.  
 copyScenes :: IO FilePath
 copyScenes = do
     userDocsDir <- getUserDocumentsDirectory

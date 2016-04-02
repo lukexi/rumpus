@@ -83,6 +83,7 @@ pointsOnSphere (fromIntegral -> n) =
 
 city :: OnStart
 city = do
+    printIO "CITY"
     removeChildren
     createBuildings
     createStars
@@ -115,10 +116,10 @@ createStars = do
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
-        cmpParent                 ==> rootEntityID
-        cmpPose                   ==> mkTransformation 
+        cmpParent               ==> rootEntityID
+        cmpPose                 ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
-        cmpShapeType              ==> SphereShape
-        cmpPhysicsProperties      ==> [NoPhysicsShape]
-        cmpSize                   ==> 5
-        cmpColor                  ==> hslColor hue 0.8 0.8
+        cmpShapeType            ==> SphereShape
+        cmpPhysicsProperties    ==> [NoPhysicsShape]
+        cmpSize                 ==> 5
+        cmpColor                ==> hslColor hue 0.8 0.8
