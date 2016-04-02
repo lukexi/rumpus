@@ -120,7 +120,6 @@ makeThumbNub whichHand parentHandID maxNumKeys numRows = do
     cmpParent                 ==> parentHandID
     cmpShapeType              ==> SphereShape
     cmpPhysicsProperties      ==> [NoPhysicsShape]
-    --cmpPose                   ==> (identity & translation .~ pose)
     cmpSize                   ==> realToFrac 0.02
     cmpInheritParentTransform ==> InheritPose
     cmpOnUpdate ==> do
