@@ -54,10 +54,11 @@ rumpusMain = withPd $ \pd -> do
         initTextSystem
 
         startHandsSystem
-        loadScene sceneFolder
+
+        -- XXXXXXXXXXXXXXXX Turning off scene loading in dev mode while testing profiled renderer.
+        when isInReleaseMode $ loadScene sceneFolder
 
         unless isInReleaseMode loadTestScene
-        
         
         
         whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do

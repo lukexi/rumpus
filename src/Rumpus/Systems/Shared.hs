@@ -11,7 +11,7 @@ import qualified Data.HashMap.Strict as Map
 data ShapeType = CubeShape | SphereShape | StaticPlaneShape 
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
-data InheritParentTransform = InheritNone | InheritFull | InheritPose
+data InheritParentTransform = InheritFull | InheritPose
 
 defineComponentKey ''ShapeType
 defineComponentKey ''InheritParentTransform
@@ -96,10 +96,10 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID cmpColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
-getEntityInheritParentTransform :: (HasComponents s, MonadState s m) => EntityID -> m InheritParentTransform
-getEntityInheritParentTransform entityID = fromMaybe InheritNone <$> getEntityComponent entityID cmpInheritParentTransform
+getEntityInheritParentTransform :: (HasComponents s, MonadState s m) => EntityID -> m (Maybe InheritParentTransform)
+getEntityInheritParentTransform entityID = getEntityComponent entityID cmpInheritParentTransform
 
-getInheritParentTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m InheritParentTransform
+getInheritParentTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m (Maybe InheritParentTransform)
 getInheritParentTransform = getEntityInheritParentTransform =<< ask
 
 getEntityChildren :: (HasComponents s, MonadState s m) => EntityID -> m [EntityID]

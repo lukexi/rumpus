@@ -3,7 +3,7 @@
 module Rumpus.Types where
 import Data.ECS
 import Control.Monad.Trans
-import Graphics.GL.Pal
+--import Graphics.GL.Pal
 type HandEntityID = EntityID
 
 isInReleaseMode :: Bool

@@ -145,39 +145,46 @@ renderEntities projViewM44 shapes = do
 
         profileMS' "Draw" 3 $ drawShapeInstanced (fromIntegral shapeCount)
 
+
 -- Perform a breadth-first traversal of entities with no parents, 
 -- accumulating their matrix mults all the way down into any children.
 -- This avoids duplicate matrix multiplications.
 getFinalMatrices :: MonadState ECS m => m (Map EntityID (M44 GLfloat))
 getFinalMatrices = do
-    entityIDs           <- Set.fromList . Map.keys <$> getComponentMap cmpPose
-    entityIDsWithChild  <- Set.fromList . Map.keys <$> getComponentMap cmpChildren
-    entityIDsWithParent <- Set.fromList . Map.keys <$> getComponentMap cmpParent
+    poseMap                   <- getComponentMap cmpPose
+    childrenMap               <- getComponentMap cmpChildren
+    parentMap                 <- getComponentMap cmpParent
+    sizeMap                   <- getComponentMap cmpSize
+    inheritParentTransformMap <- getComponentMap cmpInheritParentTransform
+    
+    let entityIDs           = Set.fromList . Map.keys $ poseMap
+        entityIDsWithChild  = Set.fromList . Map.keys $ childrenMap
+        entityIDsWithParent = Set.fromList . Map.keys $ parentMap
+        rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
+        go mParentMatrix !accum entityID = 
 
-    let rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
-        go mParentMatrix !accum entityID = do
+            let entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
+                size = Map.lookupDefault 1 entityID sizeMap
+                !entityMatrixLocal = entityMatrixLocalNoScale !*! scaleMatrix size
+                -- See if we want to inherit our parent's matrix
+                inherit = Map.lookup entityID inheritParentTransformMap
 
-            entityMatrixLocalNoScale <- getEntityPose entityID
 
-            size <- getEntitySize entityID
-            let !entityMatrixLocal = entityMatrixLocalNoScale !*! scaleMatrix size
-
-            
-            -- See if we want to inherit our parent's matrix
-            inherit <- getEntityInheritParentTransform entityID
-            let entityMatrix = case (inherit, mParentMatrix) of
-                    (InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocal
-                    (InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocal
-                    _                                            ->                         entityMatrixLocal
+                entityMatrix = case (inherit, mParentMatrix) of
+                    (Just InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocal
+                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocal
+                    _                                                 ->                         entityMatrixLocal
                 entityMatrixNoScale = case (inherit, mParentMatrix) of
-                    (InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocalNoScale
-                    (InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocalNoScale
-                    _                                            ->                         entityMatrixLocalNoScale
+                    (Just InheritFull, Just (parentMatrix, _))        -> parentMatrix        !*! entityMatrixLocalNoScale
+                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> parentMatrixNoScale !*! entityMatrixLocalNoScale
+                    _                                                 ->                         entityMatrixLocalNoScale
 
+                children = Map.lookupDefault [] entityID childrenMap
             -- Pass the calculated matrix down to each child so it can calculate its own final matrix
-            children <- getEntityChildren entityID
-            foldM (go (Just (entityMatrix, entityMatrixNoScale))) (Map.insert entityID entityMatrix accum) children
-    foldM (go Nothing) mempty rootIDs
+            in foldl' (go (Just (entityMatrix, entityMatrixNoScale))) (Map.insert entityID entityMatrix accum) children
+        finalMatricesByEntityID = foldl' (go Nothing) mempty rootIDs
+
+    return finalMatricesByEntityID
 
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
 getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType

@@ -12,7 +12,6 @@ randomNote = do
 
 start :: OnStart
 start = do
-    setSelectedEntityID =<< ask
     removeChildren
 
     cmpOnUpdate ==> withScriptData (\timer -> do
