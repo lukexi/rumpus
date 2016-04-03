@@ -12,7 +12,7 @@ import qualified Graphics.VR.Pal as VRPal
 import Graphics.VR.Pal (VRPalEvent)
 data ControlsSystem = ControlsSystem
     { _ctsVRPal          :: !VRPal
-    , _ctsPlayer         :: !(Pose GLfloat)
+    , _ctsPlayer         :: !(M44 GLfloat)
     , _ctsEvents         :: ![VRPalEvent]
     , _ctsHeadPose       :: !(M44 GLfloat) -- FIXME this should just update the entity representing the head in Hands
     , _ctsInternalEvents :: !(TChan VRPalEvent)
@@ -31,8 +31,8 @@ initControlsSystem vrPal = do
     registerSystem sysControls $ ControlsSystem
         { _ctsVRPal = vrPal
         , _ctsPlayer = if gpRoomScale vrPal == RoomScale
-                        then newPose
-                        else newPose & posPosition .~ V3 0 1 (-1) & posOrientation .~ axisAngle (V3 0 1 0) (pi)
+                        then identity
+                        else mkTransformation (axisAngle (V3 0 1 0) (pi)) (V3 0 1 (-1)) 
         , _ctsEvents = []
         , _ctsHeadPose = identity
         , _ctsInternalEvents = internalEvents
@@ -78,7 +78,7 @@ tickControlEventsSystem headM44 vrEvents = modifySystemState sysControls $ do
         --GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
         _ -> return ())
 
-setPlayerPosition position = modifySystemState sysControls (ctsPlayer . posPosition .= position)
+setPlayerPosition position = modifySystemState sysControls (ctsPlayer .= mkTransformation (axisAngle (V3 0 1 0) 0) position)
 
 emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [VRPalEvent] -> m [Hand]
 emulateRightHand VRPal{..} player events = do
@@ -166,7 +166,7 @@ raycastCursorHits :: (MonadIO m, MonadState ECS m)
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
 raycastCursorHits window dynamicsWorld projMat = withSystem_ sysControls $ \controlSystem -> do
     let playerPose = controlSystem ^. ctsPlayer
-    cursorRay <- cursorPosToWorldRay window projMat playerPose
+    cursorRay <- cursorPosToWorldRay window projMat (poseFromMatrix playerPose)
 
     mRayResult <- rayTestClosest dynamicsWorld cursorRay
     forM_ mRayResult $ \rayResult -> do

@@ -64,7 +64,9 @@ rumpusMain = withPd $ \pd -> do
             | not useTestScene -> loadScene sceneFolder
             | otherwise        -> loadTestScene
         
-        whileVR vrPal $ \headM44 vrEvents -> profileFPS' "frame" 0 $ do
+        whileWindow (gpWindow vrPal) $ profileFPS' "frame" 0 $ do
+            playerM44 <- viewSystem sysControls ctsPlayer
+            (headM44, vrEvents) <- tickVR vrPal playerM44
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory

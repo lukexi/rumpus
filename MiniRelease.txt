@@ -1,7 +1,8 @@
-[ ] Teleporting
-    [ ] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
-    [ ] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
-    [ ] If doing head, do hands too.
+[x] Teleporting
+    [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
+    [x] If doing head, do hands too.
+    [x] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
+    
     [ ] Add a ray and visual feedback for what you'll teleport to.
     [ ] Could possibly do an animation...
 
@@ -23,6 +24,9 @@
 
 [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
     (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
+
+[ ] Add notes to Early Access notes about the intentions of rumpus to become something that "normal people" can use, 
+    but is itself the tool in which such a friendlier and more powerful environment is to be created.
 
 [x] Fix hands swapping for haptics
 [x] Fix error message positioning 

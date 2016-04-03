@@ -130,7 +130,7 @@ tickRenderSystem headM44 = do
         return (rshShape, count)
 
     -- Render the scene
-    renderWith vrPal player headM44
+    renderWith vrPal headM44
         (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
         (\projM44 viewM44 -> do
             let projViewM44 = projM44 !*! viewM44
