@@ -31,6 +31,9 @@ start = do
     makeWall (V3 (10) (-roomH/2) 0) (V3 roomW wallD roomD) 0.5 [Teleportable] -- floor2
     makeWall (V3 0 (-roomH/2) (-10)) (V3 roomW wallD roomD) 0.5 [Teleportable] -- floor2
     makeWall (V3 0 (-roomH/2) (10)) (V3 roomW wallD roomD) 0.5 [Teleportable] -- floor2
+
+    makeWall (V3 0 (-roomH/2 + 10) (-20)) (V3 roomW wallD roomD) 0.5 [Teleportable] -- floor2
+
     makeWall (V3 0 (roomH/2)  0) (V3 roomW wallD roomD) 0.6 [] -- ceiling
     
     let numShelves = 4

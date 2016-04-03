@@ -156,10 +156,10 @@ tickSceneEditorSystem = do
 
                     teleportable <- getIsTeleportable entityID
                     when teleportable $ do
-                        pose <- getEntityPose entityID
+                        pose          <- getEntityPose entityID
+                        V3 _ height _ <- getEntitySize entityID
                         let V3 x y z = pose ^. translation
-                        -- Add size y/2 here
-                        setPlayerPosition (V3 x y z)
+                        setPlayerPosition (V3 x (y+height/2) z)
 
 
                 return ()
