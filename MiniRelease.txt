@@ -1,22 +1,27 @@
 
 
-[ ] Fix hands swapping for haptics
-[ ] Fix error message positioning (add line numbers?? any way to do that easily??)
 [ ] Finish keyboard
-    [ ] Get touchpad down event from steamVR
+    [x] Get touchpad down event from steamVR
 
 
 [ ] Create intro object
         Have it be the only thing that you start out seeing, and have the other objects on other platforms?
         TRY EDITING ME
 
-[ ] Add microphone-reactive object
-
 
 [ ] 1080p render for video? 
     This would be possibly quite easy with a threaded render that takes the last world state and renders it!
     This is where we can let our immutable structures shine :)
     (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
+
+[ ] Add microphone-reactive object
+
+[ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
+    (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
+
+[x] Fix hands swapping for haptics
+[x] Fix error message positioning 
+        [ ] (add line numbers?? any way to do that easily??)
 
 [x] Build city
 
@@ -25,9 +30,6 @@
 [x] Find Windows documents directory, copy scenes there and load from there
     getUserDocumentsDirectory
     copy scenes 
-
-[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
-
 
 [x] Fix audio on release builds! 
     Make sure HRTFs are working, we might need to include the openal folder in the release,

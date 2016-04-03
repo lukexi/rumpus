@@ -257,13 +257,12 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
             parentPose <- getEntityPose entityID
             V3 _ _ sizeZ <- getEntitySize entityID
 
-            --let codeModelM44 = parentPose !*! (identity & translation .~ V3 (-0.04) (0.04) (0.151)) !*! scaleMatrix 0.2
-            let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 sizeZ) !*! scaleMatrix 0.01 
+            let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) !*! scaleMatrix 0.008
 
             -- Render code in white
             renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
 
-            let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 1 0 0)
+            let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 50 0 0)
 
             -- Render errors in light red
             renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
