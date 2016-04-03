@@ -47,7 +47,7 @@ room = do
             cmpPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
             cmpShapeType         ==> CubeShape
-            cmpPhysicsProperties ==> [IsKinematic, Static]
+            cmpPhysicsProperties ==> [Kinematic, Static]
             cmpSize              ==> size
             cmpColor             ==> hslColor hue 0.8 0.6
             cmpMass              ==> 0

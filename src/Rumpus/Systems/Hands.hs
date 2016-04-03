@@ -27,7 +27,7 @@ startHandsSystem = do
         cmpColor             ==> handColor
         cmpSize              ==> V3 0.1 0.1 0.3
         cmpShapeType         ==> CubeShape
-        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse, Static]
+        cmpPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
         cmpMass              ==> 0
         cmpOnCollisionStart  ==> \_ impulse -> do
             triggerHandHapticPulse vrPal LeftHand 0 (floor $ impulse * 10000)
@@ -35,7 +35,7 @@ startHandsSystem = do
         cmpColor             ==> handColor
         cmpSize              ==> V3 0.1 0.1 0.3
         cmpShapeType         ==> CubeShape
-        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse, Static]
+        cmpPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
         cmpMass              ==> 0
         cmpOnCollisionStart  ==> \_ impulse -> 
             triggerHandHapticPulse vrPal RightHand 0 (floor $ impulse * 10000)

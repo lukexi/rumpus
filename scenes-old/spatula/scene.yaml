@@ -133,7 +133,7 @@
       - -0.232716
     OnStart: scenes/spatula/SpatulaStart.hs
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
     Name: Spatula
     Shape: CubeShape
 - - 3216010645

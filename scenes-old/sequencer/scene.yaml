@@ -178,7 +178,7 @@
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
 - - 1801803682
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -209,7 +209,7 @@
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
 - - 1801803683
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -240,7 +240,7 @@
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
 - - 1801803684
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -271,7 +271,7 @@
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
 - - 1801803685
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -302,7 +302,7 @@
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
 - - 1801803686
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -333,7 +333,7 @@
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
 - - 1801803687
   - Mass: 1
     OnCollision: scenes/sequencer/NoteCollision.hs
@@ -364,7 +364,7 @@
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
-    - IsKinematic
+    - Kinematic
 - - 1913565961
   - Mass: 1
     OnCollision: null
@@ -517,4 +517,4 @@
     Shape: CubeShape
     PhysicsProperties:
     - NoContactResponse
-    - IsKinematic
+    - Kinematic

@@ -39,7 +39,7 @@ pianokey parentID parentPose i j noteDegree = do
     cmpColor ==> colorOff
     cmpParent            ==> parentID
     cmpShapeType         ==> CubeShape
-    cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+    cmpPhysicsProperties ==> [Kinematic, NoContactResponse]
     cmpPose              ==> parentPose !*! (identity & translation .~ pose)
     cmpSize              ==> V3 0.01 0.2 0.3
     cmpOnCollisionStart  ==> \_ _ -> do

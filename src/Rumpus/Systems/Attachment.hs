@@ -48,7 +48,7 @@ detachAttachedEntities entityID =
         forM_ attachments $ \(Attachment attachedEntityID _offset) -> do
 
             physProps <- getEntityPhysicsProperties attachedEntityID
-            unless (IsKinematic `elem` physProps) $ 
+            unless (Kinematic `elem` physProps) $ 
                 withEntityRigidBody attachedEntityID $ \rigidBody ->
                     setRigidBodyKinematic rigidBody False
 

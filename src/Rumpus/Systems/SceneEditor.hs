@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.SceneEditor where
 import PreludeExtra
 
@@ -78,7 +79,7 @@ addEditorFrame entityID = do
         cmpShapeType         ==> SphereShape
         cmpColor             ==> color
         cmpSize              ==> 0.1
-        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        cmpPhysicsProperties ==> [Kinematic, NoContactResponse]
         cmpConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
         --cmpPose              ==> (newPose & posPosition .~ V3 (-0.5) 0.5 0)
         cmpOnDrag            ==> \dragDistance -> do
@@ -95,7 +96,7 @@ addEditorFrame entityID = do
         cmpShapeType         ==> CubeShape
         cmpColor             ==> V4 0.3 0.3 1 1
         cmpSize              ==> 0.2
-        cmpPhysicsProperties ==> [IsKinematic, NoContactResponse]
+        cmpPhysicsProperties ==> [Kinematic, NoContactResponse]
         cmpConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
         --cmpPose              ==> (newPose & posPosition .~ V3 0.5 0.5 0)
         cmpOnDrag            ==> \dragDistance -> do
@@ -148,6 +149,23 @@ tickSceneEditorSystem = do
             HandButtonEvent HandButtonGrip ButtonDown -> do
                 --handPose <- getEntityPose handEntityID
                 --_ <- spawnNewEntityAtPose handPose
+
+                handPose <- getEntityPose handEntityID
+
+                let handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1))
+
+                mRayResult <- castRay handRay
+                forM_ mRayResult $ \RayResult{..} -> do
+                    entityID <- unCollisionObjectID <$>  getCollisionObjectID rrCollisionObject
+
+                    teleportable <- getIsTeleportable entityID
+                    when teleportable $ do
+                        pose <- getEntityPose entityID
+                        let V3 x y z = pose ^. translation
+                        -- Add size y/2 here
+                        setPlayerPosition (V3 x y z)
+
+
                 return ()
             HandButtonEvent HandButtonTrigger ButtonDown -> do
 
@@ -199,6 +217,9 @@ tickSceneEditorSystem = do
 
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysicsProperties)
+
+getIsTeleportable :: MonadState ECS m => EntityID -> m Bool
+getIsTeleportable = fmap (elem Teleportable) . getEntityPhysicsProperties
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneFolder = do

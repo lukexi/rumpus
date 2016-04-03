@@ -78,6 +78,7 @@ tickControlEventsSystem headM44 vrEvents = modifySystemState sysControls $ do
         --GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
         _ -> return ())
 
+setPlayerPosition position = modifySystemState sysControls (ctsPlayer . posPosition .= position)
 
 emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [VRPalEvent] -> m [Hand]
 emulateRightHand VRPal{..} player events = do

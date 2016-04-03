@@ -14,7 +14,7 @@ pianokey parentID n = do
     let note = n + 60
         x = fromIntegral n / 1.5 - 3
     cmpParent            ==> parentID
-    cmpPhysicsProperties ==> [IsKinematic]
+    cmpPhysicsProperties ==> [Kinematic]
     cmpPose              ==> (identity & translation . _x .~ x)
     cmpSize              ==> 0.5
     cmpOnCollisionStart  ==> \_ _ -> do

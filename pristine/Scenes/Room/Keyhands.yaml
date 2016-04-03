@@ -29,4 +29,4 @@ OnStartExpr:
 - Keyhands.hs
 - start
 PhysicsProperties:
-- IsKinematic
+- Kinematic

@@ -1,4 +1,9 @@
-
+[ ] Teleporting
+    [ ] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
+    [ ] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
+    [ ] If doing head, do hands too.
+    [ ] Add a ray and visual feedback for what you'll teleport to.
+    [ ] Could possibly do an animation...
 
 [ ] Finish keyboard
     [x] Get touchpad down event from steamVR

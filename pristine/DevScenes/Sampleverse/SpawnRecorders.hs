@@ -9,7 +9,7 @@ start = do
     let recorderAt y = do
             cmpParent            ==> rootEntityID
             cmpShapeType         ==> CubeShape
-            cmpPhysicsProperties ==> [IsKinematic]
+            cmpPhysicsProperties ==> [Kinematic]
             cmpPose              ==> (identity & translation . _y .~ y)
             cmpSize              ==> 0.1
             cmpPdPatchFile       ==> "scenes/sampleverse/recorder"

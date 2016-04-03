@@ -17,7 +17,7 @@ data PhysicsSystem = PhysicsSystem
     } deriving Show
 makeLenses ''PhysicsSystem
 
-data PhysicsProperty = IsKinematic | NoContactResponse | Static | NoPhysicsShape
+data PhysicsProperty = Kinematic | NoContactResponse | Static | NoPhysicsShape | Teleportable
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type PhysicsProperties = [PhysicsProperty]
@@ -75,7 +75,7 @@ deriveRigidBody dynamicsWorld = do
                 setRigidBodyGravity rigidBody gravity
                 setRigidBodyDisableDeactivation rigidBody True
             
-            when (NoContactResponse `elem` physProperties || IsKinematic `elem` physProperties) $ do
+            when (NoContactResponse `elem` physProperties || Kinematic `elem` physProperties) $ do
                 setRigidBodyKinematic rigidBody True
 
             when (NoContactResponse `elem` physProperties) $ 
@@ -118,6 +118,11 @@ getEntityOverlapping entityID = getEntityComponent entityID cmpRigidBody  >>= \c
         fmap (fromMaybe []) $ 
             withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> 
                 contactTest dynamicsWorld rigidBody
+
+castRay :: (RealFloat a, MonadIO m, MonadState ECS m) => Ray GLfloat -> m (Maybe (RayResult GLfloat))
+castRay ray = do
+    dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
+    rayTestClosest dynamicsWorld ray
 
 getEntityOverlappingEntityIDs :: (MonadState ECS m, MonadIO m) => EntityID -> m [EntityID]
 getEntityOverlappingEntityIDs entityID = 

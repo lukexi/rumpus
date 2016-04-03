@@ -12,7 +12,7 @@ start = do
         childID <- spawnEntity Transient $ do
             cmpParent ==> parentID
             cmpShapeType ==> SphereShape
-            cmpPhysicsProperties ==> [IsKinematic]
+            cmpPhysicsProperties ==> [Kinematic]
             cmpSize ==> 0.2
             cmpMass ==> 0.1
             let h = (fromIntegral $ (i * 27) `mod` 37) / 37
