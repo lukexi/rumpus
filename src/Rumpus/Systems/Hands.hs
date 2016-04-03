@@ -27,7 +27,6 @@ startHandsSystem = do
         cmpColor             ==> handColor
         cmpSize              ==> V3 0.1 0.1 0.3
         cmpShapeType         ==> CubeShape
-        cmpName              ==> "Left Hand"
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse, Static]
         cmpMass              ==> 0
         cmpOnCollisionStart  ==> \_ impulse -> do
@@ -36,7 +35,6 @@ startHandsSystem = do
         cmpColor             ==> handColor
         cmpSize              ==> V3 0.1 0.1 0.3
         cmpShapeType         ==> CubeShape
-        cmpName              ==> "Right Hand"
         cmpPhysicsProperties ==> [IsKinematic, NoContactResponse, Static]
         cmpMass              ==> 0
         cmpOnCollisionStart  ==> \_ impulse -> 

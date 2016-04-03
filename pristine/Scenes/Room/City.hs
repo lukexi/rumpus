@@ -42,8 +42,9 @@ createStars :: EntityMonad ()
 createStars = do
     rootEntityID <- ask
     
-    let numPoints = 300 :: Int
-        sphere = pointsOnSphere numPoints
+    let numPoints = 200 :: Int
+        -- Only take the upper hemisphere
+        sphere = drop (numPoints `div` 2) $ pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
         cmpParent                 ==> rootEntityID

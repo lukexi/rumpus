@@ -1,4 +1,34 @@
 
+
+[ ] Fix hands swapping for haptics
+[ ] Fix error message positioning (add line numbers?? any way to do that easily??)
+[ ] Finish keyboard
+    [ ] Get touchpad down event from steamVR
+
+
+[ ] Create intro object
+        Have it be the only thing that you start out seeing, and have the other objects on other platforms?
+        TRY EDITING ME
+
+[ ] Add microphone-reactive object
+
+
+[ ] 1080p render for video? 
+    This would be possibly quite easy with a threaded render that takes the last world state and renders it!
+    This is where we can let our immutable structures shine :)
+    (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
+
+[x] Build city
+
+[x] Add exception handler to update and start functions. See older cubensis code for instructions..
+
+[x] Find Windows documents directory, copy scenes there and load from there
+    getUserDocumentsDirectory
+    copy scenes 
+
+[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
+
+
 [x] Fix audio on release builds! 
     Make sure HRTFs are working, we might need to include the openal folder in the release,
     or figure out the openal api
@@ -14,26 +44,6 @@
     But regardless, I can probably just ignore this issue since most people won't have an msys64 path to begin with!
     but I do need to fix it so I can develop...
     Try a tool to see what files are being opened. 
-
-[ ] Fix error message positioning (add line numbers?? any way to do that easily??)
-[ ] Finish keyboard
-    [ ] Get touchpad down event from steamVR
-
-[ ] Add exception handler to update and start functions. See older cubensis code for instructions..
-
-[ ] Create intro object
-        TRY EDITING ME
-
-[x] Build city
-[ ] Add microphone-reactive object
-
-
-[x] Find Windows documents directory, copy scenes there and load from there
-    getUserDocumentsDirectory
-    copy scenes 
-
-[ ] Add Tab and Shift-Tab support to freetype-gl-mini (only operates on beginning of line, insert or remove 4 spaces, easy : ))
-
 
 [x] Finish faster code-update system.
         Basic idea: we want to pass char buffers to the GHC API.
@@ -54,12 +64,6 @@
             to pause that when we are making edits.
 
             (something something file modification date?? How to communicate this to this different bits though...)
-
-
-[ ] 1080p render for video? 
-    This would be possibly quite easy with a threaded render that takes the last world state and renders it!
-    This is where we can let our immutable structures shine :)
-    (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
 
 
 import Rumpus

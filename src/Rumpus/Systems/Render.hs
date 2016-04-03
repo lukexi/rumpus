@@ -26,6 +26,9 @@ import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Storable.Mutable as VM
 import Control.Parallel.Strategies
+import Control.DeepSeq
+import Control.Exception
+
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
     , uCamera         :: UniformLocation (V3  GLfloat)
@@ -47,7 +50,7 @@ makeLenses ''RenderSystem
 defineSystemKey ''RenderSystem
 
 maxInstances :: Int
-maxInstances = 1000
+maxInstances = 10000
 
 initRenderSystem :: (MonadIO m, MonadState ECS m) => m ()
 initRenderSystem = do
@@ -116,8 +119,8 @@ tickRenderSystem headM44 = do
             color <- getEntityColorOrSelectedColor entityID
             let modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
             liftIO $ do
-                VM.unsafeWrite rshInstanceColorsMVector    i color
-                VM.unsafeWrite rshInstanceModelM44sMVector i modelM44
+                VM.write rshInstanceColorsMVector    i color
+                VM.write rshInstanceModelM44sMVector i modelM44
             return (i+1)
             ) 0 entityIDsForShape
         let countStr = "("++show count++") "
@@ -153,7 +156,7 @@ renderEntities projViewM44 shapes = do
 -- Perform a breadth-first traversal of entities with no parents, 
 -- accumulating their matrix mults all the way down into any children.
 -- This avoids duplicate matrix multiplications.
-getFinalMatrices :: MonadState ECS m => m (Map EntityID (M44 GLfloat))
+getFinalMatrices :: (MonadIO m, MonadState ECS m) => m (Map EntityID (M44 GLfloat))
 getFinalMatrices = do
     poseMap                   <- getComponentMap cmpPose
     childrenMap               <- getComponentMap cmpChildren
@@ -185,14 +188,43 @@ getFinalMatrices = do
             in foldl' (go (Just (entityMatrix, entityMatrixNoScale))) (Map.insert entityID entityMatrix accum) children
         calcMatricesForRootIDs = foldl' (go Nothing) mempty
 
-        -- !finalMatricesByEntityID = parMapChunks 128 calcMatricesForRootIDs rootIDs
-
         !finalMatricesByEntityID = calcMatricesForRootIDs rootIDs
+
+        -- !finalMatricesByEntityID = parMapChunks 512 calcMatricesForRootIDs rootIDs
+    --finalMatricesByEntityID <- naiveParMapChunks 512 calcMatricesForRootIDs rootIDs
 
     return finalMatricesByEntityID
 
+-- | Takes a [input] and a function from [input] to some monoid b, 
+-- runs the function on chunks of [input], and glues the results back together.
+parMapChunks :: (Foldable f, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> b
 parMapChunks n f xs = mconcat $ parMap rdeepseq f (chunkInto n (toList xs))
 
+-- | Naive reimplementation of parMapChunks for comparing.
+-- Only spins up threads if length xs > n
+naiveParMapChunks :: (Foldable f, MonadIO m, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> m b
+naiveParMapChunks n f xs = do
+    -- Split the input into chunks
+    let chunks = chunkInto n (toList xs)
+        (localChunk:threadChunks) = if null chunks then [[]] else chunks
+
+    -- Spin up threads for chunks 1..n
+    threads <- forM threadChunks (\xsForThread -> liftIO $ do
+        resultVar <- newEmptyMVar
+        _ <- forkIO $ do
+            let !result = force (f xsForThread)  
+            putMVar resultVar result
+        return resultVar)
+
+    -- Calculate chunk 0 on this thread while the other threads run
+    localResults <- liftIO $ evaluate (force f localChunk) 
+
+    -- Get thread results
+    threadResults <- mapM (liftIO . takeMVar) threads
+
+    return . mconcat $ localResults:threadResults  
+
+chunkInto :: Int -> [t] -> [[t]]
 chunkInto n l = go l
     where 
         go [] = []

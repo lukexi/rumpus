@@ -14,8 +14,8 @@ isInReleaseMode = False
 #endif
 
 profileMS' :: (MonadIO m) => String -> Int -> m a -> m a
-profileMS' = profileMS
---profileMS' _ _ = id
+--profileMS' = profileMS
+profileMS' _ _ = id
 --profileMS' name _ act = putStrLnIO ("About to run " ++ name ++ "...") >> act 
 
 profileFPS' :: (MonadIO m) => String -> Int -> m a -> m a

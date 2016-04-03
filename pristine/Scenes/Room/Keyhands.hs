@@ -1,4 +1,4 @@
--- Note: run update ticks in exception handler 
+ 
 module DefaultStart where
 import Rumpus
 
@@ -40,16 +40,17 @@ start = do
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
     eventDestinationID <- ask
-    let handsWithIDs = [ (LeftHand, leftHandID, leftHandKeys)
-                       , (RightHand, rightHandID, rightHandKeys)
+    let handsWithIDs = [ (LeftHand, leftHandID)
+                       , (RightHand, rightHandID)
                        ]
-    forM_ handsWithIDs $ \(whichHand, handID, keyRows) -> do
+        handsWithKeys = zip handsWithIDs [leftHandKeys, rightHandKeys]
+    forM_ handsWithKeys $ \((whichHand, handID), keyRows) -> do
         runEntity handID removeChildren
-        spawnKeysForHand whichHand handID keyRows eventDestinationID 
-    cmpOnUpdate ==> (forM_ [LeftHand, RightHand] $ \whichHand -> do
+        spawnKeysForHand whichHand handID keyRows 
+    cmpOnUpdate ==> (forM_ handsWithIDs $ \(whichHand, handID) -> do
         withHandEvents whichHand $ \case
-            HandButtonEvent HandButtonGrip ButtonDown -> do
-                withScriptData $ \case
+            HandButtonEvent HandButtonPad ButtonDown -> do
+                runEntity handID $ withScriptData $ \case
                     Just pendingEvent -> do
                         putStrLnIO ("SENDING EVENT! " ++ show pendingEvent)
                         --sendInternalEvent (GLFWEvent (Key pendingEventKey _ keyState modifierKeyBools))
@@ -61,7 +62,7 @@ start = do
             _ -> return ())
     return Nothing
 
-spawnKeysForHand whichHand handID keyRows eventDestinationID = do
+spawnKeysForHand whichHand handID keyRows = do
     let numRows = fromIntegral (length keyRows)
         maxNumKeys = fromIntegral $ maximum (map length keyRows)
     void $ spawnEntity Transient $ makeThumbNub whichHand handID maxNumKeys numRows
@@ -70,12 +71,12 @@ spawnKeysForHand whichHand handID keyRows eventDestinationID = do
         forM_ (zip [0..] keyRow) $ \(x, keyName) -> do
             
             void $ spawnEntity Transient $ 
-                makeKeyboardKey whichHand handID eventDestinationID x y numKeys numRows keyName
+                makeKeyboardKey whichHand handID x y numKeys numRows keyName
 
 inRect x y w h (V2 ptX ptY) =
     ptX > x && ptX < x + w && ptY > y && ptY < y + h
 
-makeKeyboardKey whichHand parentHandID eventDestinationID x y numKeys numRows keyName = do
+makeKeyboardKey whichHand parentHandID x y numKeys numRows keyName = do
     let (xF, yF) = (fromIntegral x, fromIntegral y)
         keyProgX = xF / numKeys 
         keyProgY = yF / numRows
@@ -107,9 +108,7 @@ makeKeyboardKey whichHand parentHandID eventDestinationID x y numKeys numRows ke
                     color = if isInKey then colorOn else colorOff
                 cmpColor ==> color
                 when isInKey $ do
-                    runEntity eventDestinationID $ 
-                        setScriptData (Just (Character keyName))
-            
+                    runEntity parentHandID $ setScriptData (Just (Character keyName))
             _ -> return ()
 
 makeThumbNub whichHand parentHandID maxNumKeys numRows = do

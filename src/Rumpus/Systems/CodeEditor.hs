@@ -236,13 +236,6 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                         pauseFileWatchers codeInFile
                         handleTextBufferEvent window e 
                             (cesCodeEditors . ix codeInFile . cedCodeRenderer)
-                    VREvent (VRKeyboardInputEvent chars) -> do 
-                        forM_ chars $ \char -> do
-                            -- Make sure our events don't trigger reloading/recompilation
-                            pauseFileWatchers codeInFile
-                            handleTextBufferEvent window (Character char)
-                                (cesCodeEditors . ix codeInFile . cedCodeRenderer)
-                        return (not (null chars))
                     _ -> return False
                 when didSave $ do
                     recompileCodeInFile codeInFile

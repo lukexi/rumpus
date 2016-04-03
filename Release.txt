@@ -118,13 +118,27 @@ Later thoughts:
 - "Slow Start" facility for objects that spawn a lot of children - limit the number they can spawn per frame
 - and spread it out over many frames instead. Slow way down to look awesome; watch the algorithm build the work.
 
-Look-to-set-cursor on touchpad - hold a button, and a beam comes out of your forehead?
+- Look-to-set-cursor on touchpad - hold a button, and a beam comes out of your forehead?
     (basically, raycast along headpose, get hit point, then move up from head and orient a line down to the hitpoint.)
 
-Fun ideas with top-level definitions!!!
+- Top Level Definition Parsing:
+    Fun ideas with top-level definitions!!!
 
-Parse top-level definitions like x = 40.
+    Parse top-level definitions like x = 40.
 
-Two things we can do with that:
-One, we can turn them into automatic interfaces for the object - e.g. sliders along the side, or levers coming out of the code, etc.
-Two, we can replace the YAML storage with just writing values directly into the file. It'll be super easy since we just need to check the starts of each line.
+    Two things we can do with that:
+    One, we can turn them into automatic interfaces for the object - e.g. sliders along the side, or levers coming out of the code, etc.
+    Two, we can replace the YAML storage with just writing values directly into the file. It'll be super easy since we just need to check the starts of each line.
+
+
+- Use OpenVR's Submit_GlRenderBuffer
+    (does this mean we don't do the blit-to-texture ourselves, and let OpenVR handle that? I think that's what they mean.)
+
+
+- Idea for making GPU handle transform stacks:
+    Pass a list of indices into an M44 buffer that the shader should look up to assemble into the actual model transform.
+    This requires keeping all transforms in one buffer and dealing with whatever rejiggering that causes.
+
+    Look up "skeletal animation" to see more approaches
+        "Also uniform buffers can be used to store the matrices of bones and use them for implementing skeletal animation, however, I personally prefer using normal 2D textures for this purpose to take advantage of the free interpolation thanks to the dedicated texture fetching units but that’s another story."
+        http://rastergrid.com/blog/2010/01/uniform-buffers-vs-texture-buffers/

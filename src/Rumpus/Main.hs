@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Rumpus.Main where
 import Rumpus
@@ -57,19 +58,19 @@ rumpusMain = withPd $ \pd -> do
 
         startHandsSystem
 
-        -- XXXXXXXXXXXXXXXX Turning off scene loading in dev mode while testing profiled renderer.
-        when isInReleaseMode $ loadScene sceneFolder
-
-        unless isInReleaseMode loadTestScene
+        let useTestScene = False
+        if 
+            | isInReleaseMode  -> loadScene sceneFolder
+            | not useTestScene -> loadScene sceneFolder
+            | otherwise        -> loadTestScene
         
-        
-        whileVR vrPal $ \headM44 hands vrEvents -> profileFPS' "frame" 0 $ do
+        whileVR vrPal $ \headM44 vrEvents -> profileFPS' "frame" 0 $ do
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory
             profileMS' "gc"          1 $ liftIO performMinorGC
             
-            profileMS' "controls"    1 $ tickControlEventsSystem headM44 hands vrEvents
+            profileMS' "controls"    1 $ tickControlEventsSystem headM44 vrEvents
             profileMS' "codeinput"   1 $ tickCodeEditorInputSystem
             profileMS' "codeupdate"  1 $ tickCodeEditorResultsSystem
             profileMS' "attachments" 1 $ tickAttachmentSystem

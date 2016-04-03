@@ -21,8 +21,8 @@ Tree Room
 
 Models: 
     [ ] trees
-    [ ] fountain
-    [ ] sphere of cubes from cubensis
+    [x] fountain
+    [x] sphere of cubes from cubensis
     [ ] wavy thing from cubensis
     [ ] wind chimes or other ambient sounds
 
@@ -32,10 +32,6 @@ Grip to attach to hand (grip again to release), then trigger can send trigger me
 
 Later
 - add check to bullet-mini to make sure we never create collider shapes of 0 size - it breaks all dynamic bodies!
-[x] Update OpenVR to get tron mode? Should be easy enough to reverse if it gets hairy...
-    (UPDATE: it got hairy!)
-
-
 
 
 /c/Program\ Files/pd-0.46-6.msw/pd/bin/pd.exe -path C:/msys64/home/lukex_000/Projects/rumpus/resources/pd-kit -open /c/Users/lukex_000/Documents/Rumpus/Scenes/Room/fountain-voice.pd

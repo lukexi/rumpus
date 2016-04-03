@@ -1,14 +1,10 @@
 module Fountain where
 import Rumpus
 
-
-createNewTimer = liftIO $ registerDelay (100 * 1000)
-checkTimer = liftIO . atomically . readTVar
+rate :: Float
+rate = 10
 
 majorScale = map (+60) [0,2,4,7,9]
-randomNote = do
-    i <- liftIO (randomRIO (0, length majorScale - 1))
-    return (majorScale !! i)
 
 start :: OnStart
 start = do
@@ -18,7 +14,7 @@ start = do
         shouldSpawn <- checkTimer timer
         if shouldSpawn 
             then do
-                note <- randomNote
+                note <- randomFrom majorScale
                 sendPd "note" (Atom $ realToFrac note)
                 pose <- getPose
                 childID <- spawnEntity Transient $ do
@@ -31,8 +27,8 @@ start = do
                 runEntity childID $ do
                     setLifetime 10
                     applyForce $ (pose ^. _m33) !* (V3 0 0.3 0)
-                editScriptData $ \_ -> createNewTimer
+                editScriptData $ \_ -> createNewTimer rate
             else return ())
 
-    timer <- createNewTimer
+    timer <- createNewTimer rate
     return (Just (toDyn timer))

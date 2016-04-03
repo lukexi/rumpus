@@ -146,7 +146,6 @@ tickSceneEditorSystem = do
                 setEntityPose (inv44 playerM44 !*! hand ^. hndMatrix) handEntityID
                 continueDrag handEntityID
             HandButtonEvent HandButtonGrip ButtonDown -> do
-                putStrLnIO "GRIP"
                 --handPose <- getEntityPose handEntityID
                 --_ <- spawnNewEntityAtPose handPose
                 return ()

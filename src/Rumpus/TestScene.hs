@@ -18,7 +18,7 @@ loadTestScene = do
 
 
     -- Spawn objects
-    forM_ [room, city] $ \onStart -> do
+    forM_ [room, city, fountain] $ \onStart -> do
         spawnEntity Transient $ do
             cmpOnStart ==> onStart
             cmpSize ==> 0.3
@@ -83,7 +83,6 @@ pointsOnSphere (fromIntegral -> n) =
 
 city :: OnStart
 city = do
-    printIO "CITY"
     removeChildren
     createBuildings
     createStars
@@ -92,11 +91,11 @@ city = do
 createBuildings :: EntityMonad ()
 createBuildings = do
     rootEntityID <- ask
-    let n = 5
+    let n = 8
         dim = 200
         height = dim * 5
         buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
-    forM_ buildSites $ \(V3 x y z) -> do
+    forM_ (zip [0..] buildSites) $ \(i, V3 x y z) -> do
         hue <- liftIO randomIO
         
         when (x /= 0 && z /= 0) $ void . spawnEntity Transient $ do
@@ -105,6 +104,10 @@ createBuildings = do
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
             cmpShapeType            ==> CubeShape
             cmpPhysicsProperties    ==> [NoPhysicsShape]
+            cmpOnUpdate ==> do
+                now <- getNow
+                let newHeight = ((sin (now+i) + 1) + 1) * height
+                setSize (V3 dim newHeight dim)
             cmpSize                 ==> V3 dim height dim
             cmpColor                ==> hslColor hue 0.8 0.8
 
@@ -123,3 +126,38 @@ createStars = do
         cmpPhysicsProperties    ==> [NoPhysicsShape]
         cmpSize                 ==> 5
         cmpColor                ==> hslColor hue 0.8 0.8
+
+-------------------------
+-- Fountain
+
+rate :: Float
+rate = 10
+
+majorScale = map (+60) [0,2,4,7,9]
+
+fountain :: OnStart
+fountain = do
+    removeChildren
+
+    cmpOnUpdate ==> withScriptData (\timer -> do
+        shouldSpawn <- checkTimer timer
+        if shouldSpawn 
+            then do
+                note <- randomFrom majorScale
+                sendPd "note" (Atom $ realToFrac note)
+                pose <- getPose
+                childID <- spawnEntity Transient $ do
+                    cmpPose ==> pose & translation +~ 
+                        (pose ^. _m33) !* (V3 0 0.3 0)
+                    cmpShapeType ==> SphereShape
+                    cmpSize ==> 0.03
+                    cmpMass ==> 0.1
+                    cmpColor ==> hslColor (note / 12) 0.9 0.8
+                runEntity childID $ do
+                    setLifetime 10
+                    applyForce $ (pose ^. _m33) !* (V3 0 0.3 0)
+                editScriptData $ \_ -> createNewTimer rate
+            else return ())
+
+    timer <- createNewTimer rate
+    return (Just (toDyn timer))
