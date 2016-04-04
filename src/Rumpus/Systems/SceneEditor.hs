@@ -193,16 +193,10 @@ tickSceneEditorSystem = do
                 endDrag handEntityID
                 detachAttachedEntities handEntityID
 
-                -- If we've selected something, show the keyboard on grip-up
-                --traverseM_ getSelectedEntityID $ \_selectedID -> do
-                --    vrPal <- viewSystem sysControls ctsVRPal
-                --    showHandKeyboard vrPal
-                --    return ()
-
-                -- WARNING!!! 
-                -- NOT SAVING TO AVOID SCREWING UP DEMO!!
+                -- Saving is currently disabled to simplify the alpha release
+                -- (code will still be saved automatically)
                 --saveScene
-
+                
             _ -> return ()
 
     leftHandID  <- getLeftHandID
