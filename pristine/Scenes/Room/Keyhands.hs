@@ -22,9 +22,9 @@ data HandKey = HandKeyChar Char
              | HandKeyBlank -- Just a spacer
 
 
-data HandKeyLayout = RegularKey Int Int -- x y
-                   | FullWidthKey Int   -- y
-                   | FullHeightKey Int  -- x
+data HandKeyLayout = RegularKey
+                   | FullWidthKey
+                   | FullHeightKey
 
 data KeyDef = KeyDef HandKeyLayout HandKey
 
@@ -39,21 +39,33 @@ showKey HandKeyDown        = "v"
 showKey HandKeyLeft        = "<"
 showKey HandKeyRight       = ">"
 showKey HandKeyBlank       = ""
-showKey _ = "DANGUS"
+showKey _                  = "DANGUS"
 
 keyToEvent (HandKeyChar char) = Just (Character char)
-keyToEvent (HandKeyEnter)     = Just (Key Key'Enter enterKeyCode KeyState'Pressed noModifierKeys)
+keyToEvent HandKeySpace       = Just (toPressedKey Key'Space)
+keyToEvent HandKeyEnter       = Just (toPressedKey Key'Enter)
+keyToEvent HandKeyBackspace   = Just (toPressedKey Key'Backspace)
+keyToEvent HandKeyTab         = Just (toPressedKey Key'Tab)
+keyToEvent HandKeyUp          = Just (toPressedKey Key'Up)
+keyToEvent HandKeyDown        = Just (toPressedKey Key'Down)
+keyToEvent HandKeyLeft        = Just (toPressedKey Key'Left)
+keyToEvent HandKeyRight       = Just (toPressedKey Key'Right)
 keyToEvent _ = Nothing
 
-enterKeyCode = 0
+toPressedKey key = Key Key'Space noKeyCode KeyState'Pressed noModifierKeys
+-- (fixme: we don't use this anywhere as far as I know...)
+noKeyCode = 0
 
 noModifierKeys = GLFW.ModifierKeys False False False False
 
 (leftHandKeys, rightHandKeys) = map fst &&& map snd $
-    [ (cs "`12345", cs "67890-=")
-    , (cs "qwert", cs "yuiop[]\\")
-    , (cs "asdfg", cs "hjkl;'" ++ [HandKeyEnter])
-    , (cs "zxcvb", cs "nm,./")
+    [ (replicate 3 HandKeyUp    , replicate 3 HandKeyUp)
+    , (HandKeyLeft :               cs "`12345", cs "67890-="   ++ [HandKeyBackspace, HandKeyRight])
+    , (HandKeyLeft : HandKeyTab   : cs "qwert", cs "yuiop[]\\" ++ [                  HandKeyRight])
+    , (HandKeyLeft : HandKeyBlank : cs "asdfg", cs "hjkl;'"    ++ [HandKeyEnter,     HandKeyRight])
+    , (HandKeyLeft : HandKeyShift : cs "zxcvb", cs "nm,./"     ++ [HandKeyShift,     HandKeyRight])
+    , ([HandKeySpace]                         , [HandKeySpace])
+    , (replicate 3 HandKeyDown    , replicate 3 HandKeyDown)
     ]
     where
         cs = map HandKeyChar
