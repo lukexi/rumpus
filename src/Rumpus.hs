@@ -10,6 +10,7 @@ import Rumpus.Systems.Collisions as Exports
 import Rumpus.Systems.Constraint as Exports
 import Rumpus.Systems.Controls as Exports
 import Rumpus.Systems.Hands as Exports
+import Rumpus.Systems.KeyboardHands as Exports
 import Rumpus.Systems.Lifetime as Exports
 import Rumpus.Systems.Physics as Exports
 import Rumpus.Systems.PlayPause as Exports

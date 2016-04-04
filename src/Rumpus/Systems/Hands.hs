@@ -55,3 +55,12 @@ getLeftHandID  = viewSystem sysHands hndLeftHand
 
 getRightHandID :: (MonadState ECS m) => m EntityID
 getRightHandID = viewSystem sysHands hndRightHand
+
+
+getHandIDs :: (MonadState ECS m) => m [(WhichHand, EntityID)]
+getHandIDs = do
+    leftHandID  <- getLeftHandID
+    rightHandID <- getRightHandID
+    return [ (LeftHand, leftHandID)
+           , (RightHand, rightHandID)
+           ]

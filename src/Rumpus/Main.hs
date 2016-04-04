@@ -46,6 +46,7 @@ rumpusMain = withPd $ \pd -> do
         initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
+        initKeyboardHandsSystem
         initLifetimeSystem
         initPhysicsSystem
         initPlayPauseSystem
@@ -57,6 +58,7 @@ rumpusMain = withPd $ \pd -> do
         initTextSystem
 
         startHandsSystem
+        startKeyboardHandsSystem
 
         let useTestScene = False
         if 
@@ -72,6 +74,7 @@ rumpusMain = withPd $ \pd -> do
             -- without traversing all of memory
             profileMS' "gc"          1 $ liftIO performMinorGC
             
+            profileMS' "keyhands"    1 $ tickKeyboardHandsSystem
             profileMS' "controls"    1 $ tickControlEventsSystem headM44 vrEvents
             profileMS' "codeinput"   1 $ tickCodeEditorInputSystem
             profileMS' "codeupdate"  1 $ tickCodeEditorResultsSystem

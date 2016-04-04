@@ -47,6 +47,7 @@ library
                        Rumpus.Systems.Constraint
                        Rumpus.Systems.Controls
                        Rumpus.Systems.Hands
+                       Rumpus.Systems.KeyboardHands
                        Rumpus.Systems.Lifetime
                        Rumpus.Systems.Render
                        Rumpus.Systems.Physics

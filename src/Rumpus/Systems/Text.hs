@@ -51,6 +51,15 @@ initTextSystem = do
             removeComponent cmpTextRenderer
         }
 
+setEntityText entityID text = do
+    setEntityComponent cmpText text entityID
+    modifyEntityComponent entityID cmpTextRenderer $ \renderer -> 
+        flip execStateT renderer $ setTextRendererText id text
+
+setText text = do
+    entityID <- ask
+    setEntityText entityID text
+
 getEntityTextColor :: MonadState ECS m => EntityID -> m (V4 GLfloat)
 getEntityTextColor entityID = fromMaybe 1 <$> getEntityComponent entityID cmpTextColor
 

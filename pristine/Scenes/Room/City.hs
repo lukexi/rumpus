@@ -23,20 +23,20 @@ createBuildings :: EntityMonad ()
 createBuildings = do
     rootEntityID <- ask
     let n = 5
-        dim = 200
-        height = dim * 5
-        buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
+        dim = 20
+        height = dim * 50
+        buildSites = [V3 (x * dim * 2) (height/2) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
     forM_ buildSites $ \(V3 x y z) -> do
         hue <- liftIO randomIO
         
         when (x /= 0 && z /= 0) $ void . spawnEntity Transient $ do
-            cmpParent               ==> rootEntityID
-            cmpPose                 ==> mkTransformation 
-                                            (axisAngle (V3 0 0 1) 0) (V3 x y z)
-            cmpShapeType            ==> CubeShape
-            cmpPhysicsProperties    ==> [NoPhysicsShape]
-            cmpSize                 ==> V3 dim height dim
-            cmpColor                ==> hslColor hue 0.8 0.8
+            cmpParent             ==> rootEntityID
+            cmpPose               ==> mkTransformation 
+                                          (axisAngle (V3 0 0 1) 0) (V3 x y z)
+            cmpShapeType          ==> CubeShape
+            cmpPhysicsProperties  ==> [NoPhysicsShape]
+            cmpSize               ==> V3 dim height dim
+            cmpColor              ==> hslColor hue 0.8 0.8
 
 createStars :: EntityMonad ()
 createStars = do
