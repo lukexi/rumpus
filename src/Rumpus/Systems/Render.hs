@@ -24,7 +24,7 @@ import Rumpus.Systems.Text
 import Rumpus.Types
 import Graphics.GL.TextBuffer
 
-import qualified Data.Vector.Storable.Mutable as VM
+import qualified Data.Vector.Unboxed as V
 import Control.Parallel.Strategies
 import Control.DeepSeq
 import Control.Exception
@@ -35,12 +35,12 @@ data Uniforms = Uniforms
     } deriving (Data)
 
 data RenderShape = RenderShape
-    { rshShapeType                :: ShapeType
-    , rshShape                    :: Shape Uniforms
-    , rshInstanceColorsBuffer     :: ArrayBuffer --FIXME add a phantom type for these!!
-    , rshInstanceColorsMVector    :: VM.IOVector (V4 GLfloat)
-    , rshInstanceModelM44sBuffer  :: ArrayBuffer 
-    , rshInstanceModelM44sMVector :: VM.IOVector (M44 GLfloat)
+    { rshShapeType                 :: ShapeType
+    , rshShape                     :: Shape Uniforms
+    , rshStreamingArrayBuffer      :: StreamingArrayBuffer
+    , rshInstanceColorsBuffer      :: ArrayBuffer (V4 GLfloat)
+    , rshInstanceModelM44sBuffer   :: ArrayBuffer (M44 GLfloat)
+    , rshResetShapeInstanceBuffers :: IO ()
     }
 
 data RenderSystem = RenderSystem 
@@ -50,7 +50,7 @@ makeLenses ''RenderSystem
 defineSystemKey ''RenderSystem
 
 maxInstances :: Int
-maxInstances = 10000
+maxInstances = 2048
 
 initRenderSystem :: (MonadIO m, MonadState ECS m) => m ()
 initRenderSystem = do
@@ -72,24 +72,29 @@ initRenderSystem = do
 
     shapesWithBuffers <- forM shapes $ \(shapeType, shape) -> do
         withShape shape $ do
-            modelM44sVector <- liftIO $ VM.replicate maxInstances (identity :: M44 GLfloat)
-            colorsVector    <- liftIO $ VM.replicate maxInstances (0        :: V4 GLfloat)
+            let streamingBufferCapacity = maxInstances * 8
+            sab              <- makeSAB streamingBufferCapacity
+            modelM44sBuffer  <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (M44 GLfloat))
+            colorsBuffer     <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (V4  GLfloat))
+            
+            let resetShapeInstanceBuffers = withShape shape $ do
+                    shader <- asks sProgram
+                    withArrayBuffer modelM44sBuffer $ do
+                        resetSABBuffer sab modelM44sBuffer
+                        assignMatrixAttributeInstanced shader "aInstanceTransform" GL_FLOAT
 
-            modelM44sBuffer <- bufferDataV GL_DYNAMIC_DRAW modelM44sVector
-            colorsBuffer    <- bufferDataV GL_DYNAMIC_DRAW colorsVector
-            shader <- asks sProgram
-            withArrayBuffer modelM44sBuffer $ 
-                assignMatrixAttributeInstanced shader "aInstanceTransform" GL_FLOAT
-            withArrayBuffer colorsBuffer $ 
-                assignFloatAttributeInstanced shader "aInstanceColor" GL_FLOAT 4
+                    withArrayBuffer colorsBuffer $ do
+                        resetSABBuffer sab colorsBuffer
+                        assignFloatAttributeInstanced  shader "aInstanceColor" GL_FLOAT 4
+            liftIO resetShapeInstanceBuffers
 
             return RenderShape 
                 { rshShapeType                 = shapeType
                 , rshShape                     = shape
-                , rshInstanceColorsMVector     = colorsVector
+                , rshStreamingArrayBuffer      = sab
                 , rshInstanceColorsBuffer      = colorsBuffer
-                , rshInstanceModelM44sMVector  = modelM44sVector
                 , rshInstanceModelM44sBuffer   = modelM44sBuffer
+                , rshResetShapeInstanceBuffers = resetShapeInstanceBuffers
                 }
 
     registerSystem sysRender (RenderSystem shapesWithBuffers)
@@ -100,57 +105,56 @@ tickRenderSystem headM44 = do
     vrPal  <- viewSystem sysControls ctsVRPal
     player <- viewSystem sysControls ctsPlayer
 
-    finalMatricesByEntityID <- profileMS' "getFinalMatrices" 2 $ getFinalMatrices
+    finalMatricesByEntityID <- getFinalMatrices
+    colorsMap               <- getComponentMap cmpColor
+
     -- Pulse the currently selected entity in blue
     selectedEntityID <- getSelectedEntityID
-    let getEntityColorOrSelectedColor entityID = do
-            if Just entityID == selectedEntityID
-                then do
-                    now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
-                    return $ hslColor 0.6 0.9 now
-                else getEntityColor entityID
+    now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
+    let colorForEntity entityID 
+            | Just entityID == selectedEntityID = hslColor 0.6 0.9 now
+            | otherwise = fromMaybe 1 $ Map.lookup entityID colorsMap
+
     -- Batch by entities sharing the same shape type
 
     shapes      <- viewSystem sysRender rdsShapes
     shapeCounts <- forM shapes $ \RenderShape{..} -> withShape rshShape $ do
         let shapeName = show rshShapeType ++ " "
-        entityIDsForShape <- profileMS' (shapeName ++ "getEntityIDsForShapeType") 3 $ getEntityIDsForShapeType rshShapeType
-        count <- profileMS' (shapeName ++ "writeVectors") 3 $ foldM (\i entityID -> do
-            color <- getEntityColorOrSelectedColor entityID
-            let modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
-            liftIO $ do
-                VM.write rshInstanceColorsMVector    i color
-                VM.write rshInstanceModelM44sMVector i modelM44
-            return (i+1)
-            ) 0 entityIDsForShape
-        let countStr = "("++show count++") "
-        profileMS' (shapeName ++ countStr ++ "bufCols") 3 $ bufferSubDataV rshInstanceColorsBuffer    rshInstanceColorsMVector
-        profileMS' (shapeName ++ countStr ++ "bufM44s") 3 $ bufferSubDataV rshInstanceModelM44sBuffer rshInstanceModelM44sMVector
-        --printIO (rshShapeType, count)
-        return (rshShape, count)
+        entityIDsForShape <- getEntityIDsForShapeType rshShapeType
+        let count = V.length entityIDsForShape
+        writeSAB rshStreamingArrayBuffer (fromIntegral count) rshResetShapeInstanceBuffers $ do
+            fillSABBuffer rshInstanceColorsBuffer $ \i -> do
+                let entityID = entityIDsForShape V.! i
+                    color = colorForEntity entityID
+                return color
+            fillSABBuffer rshInstanceModelM44sBuffer    $ \i -> do
+                let entityID = entityIDsForShape V.! i
+                    modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
+                return modelM44
+
+        return (rshShape, rshStreamingArrayBuffer, count)
 
     -- Render the scene
-    renderWith vrPal headM44
-        (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
-        (\projM44 viewM44 -> do
-            let projViewM44 = projM44 !*! viewM44
-            profileMS' "renderEntities" 2     $ renderEntities     projViewM44 shapeCounts
-            profileMS' "renderEntitiesText" 2 $ renderEntitiesText projViewM44 finalMatricesByEntityID
-            )
+    renderWith vrPal headM44 $ \projM44 viewM44 -> do
+        glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT)
+        let projViewM44 = projM44 !*! viewM44
+        renderEntities     projViewM44 shapeCounts
+        renderEntitiesText projViewM44 finalMatricesByEntityID
+
 
 renderEntities :: (MonadIO m, MonadState ECS m) 
-               => M44 GLfloat -> [(Shape Uniforms, Int)] -> m ()
+               => M44 GLfloat -> [(Shape Uniforms, StreamingArrayBuffer, Int)] -> m ()
 renderEntities projViewM44 shapes = do
     
     headM44 <- getHeadPose
 
-    forM_ shapes $ \(shape, shapeCount) -> withShape shape $ do
+    forM_ shapes $ \(shape, sab, shapeCount) -> withShape shape $ do
 
         Uniforms{..} <- asks sUniforms
         uniformV3  uCamera (headM44 ^. translation)
         uniformM44 uProjectionView projViewM44
 
-        profileMS' "Draw" 3 $ drawShapeInstanced (fromIntegral shapeCount)
+        drawSAB sab (fromIntegral shapeCount)
 
 
 -- Perform a breadth-first traversal of entities with no parents, 
@@ -195,44 +199,10 @@ getFinalMatrices = do
 
     return finalMatricesByEntityID
 
--- | Takes a [input] and a function from [input] to some monoid b, 
--- runs the function on chunks of [input], and glues the results back together.
-parMapChunks :: (Foldable f, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> b
-parMapChunks n f xs = mconcat $ parMap rdeepseq f (chunkInto n (toList xs))
 
--- | Naive reimplementation of parMapChunks for comparing.
--- Only spins up threads if length xs > n
-naiveParMapChunks :: (Foldable f, MonadIO m, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> m b
-naiveParMapChunks n f xs = do
-    -- Split the input into chunks
-    let chunks = chunkInto n (toList xs)
-        (localChunk:threadChunks) = if null chunks then [[]] else chunks
 
-    -- Spin up threads for chunks 1..n
-    threads <- forM threadChunks (\xsForThread -> liftIO $ do
-        resultVar <- newEmptyMVar
-        _ <- forkIO $ do
-            let !result = force (f xsForThread)  
-            putMVar resultVar result
-        return resultVar)
-
-    -- Calculate chunk 0 on this thread while the other threads run
-    localResults <- liftIO $ evaluate (force f localChunk) 
-
-    -- Get thread results
-    threadResults <- mapM (liftIO . takeMVar) threads
-
-    return . mconcat $ localResults:threadResults  
-
-chunkInto :: Int -> [t] -> [[t]]
-chunkInto n l = go l
-    where 
-        go [] = []
-        go xs = let (x,xs') = splitAt n xs
-                in x:go xs' 
-
-getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m [EntityID]
-getEntityIDsForShapeType shapeType = Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType
+getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m (V.Vector EntityID)
+getEntityIDsForShapeType shapeType = V.fromList . Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType
 
 
 renderEntitiesText :: (MonadState ECS m, MonadIO m) 
@@ -271,3 +241,43 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
     glDisable GL_BLEND
 
+
+
+
+--- Parallel matrix evaluation experiments
+
+-- | Takes a [input] and a function from [input] to some monoid b, 
+-- runs the function on chunks of [input], and glues the results back together.
+parMapChunks :: (Foldable f, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> b
+parMapChunks n f xs = mconcat $ parMap rdeepseq f (chunkInto n (toList xs))
+
+-- | Naive reimplementation of parMapChunks for comparing.
+-- Only spins up threads if length xs > n
+naiveParMapChunks :: (Foldable f, MonadIO m, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> m b
+naiveParMapChunks n f xs = do
+    -- Split the input into chunks
+    let chunks = chunkInto n (toList xs)
+        (localChunk:threadChunks) = if null chunks then [[]] else chunks
+
+    -- Spin up threads for chunks 1..n
+    threads <- forM threadChunks (\xsForThread -> liftIO $ do
+        resultVar <- newEmptyMVar
+        _ <- forkIO $ do
+            let !result = force (f xsForThread)  
+            putMVar resultVar result
+        return resultVar)
+
+    -- Calculate chunk 0 on this thread while the other threads run
+    localResults <- liftIO $ evaluate (force f localChunk) 
+
+    -- Get thread results
+    threadResults <- mapM (liftIO . takeMVar) threads
+
+    return . mconcat $ localResults:threadResults  
+
+chunkInto :: Int -> [t] -> [[t]]
+chunkInto n l = go l
+    where 
+        go [] = []
+        go xs = let (x,xs') = splitAt n xs
+                in x:go xs' 

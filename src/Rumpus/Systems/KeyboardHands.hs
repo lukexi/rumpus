@@ -8,18 +8,13 @@
 module Rumpus.Systems.KeyboardHands where
 import PreludeExtra
 
-import Rumpus.Types
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Sound
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.Collisions
-import Rumpus.Systems.Script
 import Rumpus.Systems.Text
-import Rumpus.Systems.Selection
-import Rumpus.Systems.Constraint
 
 import qualified Graphics.UI.GLFW.Pal as GLFW
 
@@ -42,6 +37,7 @@ data HandKeyLayout = RegularKey
 
 data KeyDef = KeyDef HandKeyLayout HandKey
 
+showKey :: Bool -> HandKey -> [Char]
 showKey False (HandKeyChar unshifted _) = [unshifted]
 showKey True  (HandKeyChar _ shifted)   = [shifted]
 showKey _ HandKeyEnter                  = "Enter"
@@ -54,6 +50,7 @@ showKey _ HandKeyLeft                   = "<"
 showKey _ HandKeyRight                  = ">"
 showKey _ HandKeyBlank                  = ""
 
+keyToEvent :: Bool -> HandKey -> Maybe Event
 keyToEvent False (HandKeyChar unshifted _) = Just (Character unshifted)
 keyToEvent True  (HandKeyChar _ shifted)   = Just (Character shifted)
 keyToEvent _ HandKeyEnter                  = Just (toPressedKey Key'Enter)
@@ -65,6 +62,7 @@ keyToEvent _ HandKeyLeft                   = Just (toPressedKey Key'Left)
 keyToEvent _ HandKeyRight                  = Just (toPressedKey Key'Right)
 keyToEvent _ _ = Nothing
 
+toPressedKey :: Key -> Event
 toPressedKey key = Key key noKeyCode KeyState'Pressed noModifierKeys
     where
         -- (FIXME: we don't use keycodes anywhere, remove from API for now)
@@ -72,7 +70,7 @@ toPressedKey key = Key key noKeyCode KeyState'Pressed noModifierKeys
         noModifierKeys = GLFW.ModifierKeys False False False False
 
 
-
+leftHandKeys :: [[HandKey]]
 leftHandKeys =
     [ replicate 4 HandKeyUp                                      
     , HandKeyLeft :                cs "`12345" "~!@#$%" ++ [HandKeyRight] 
@@ -85,11 +83,12 @@ leftHandKeys =
     where
         cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
 
+rightHandKeys :: [[HandKey]]
 rightHandKeys =
     [ replicate 4 HandKeyUp
     , HandKeyLeft : cs "67890-="   "^&*()_+"  ++ [HandKeyBackspace, HandKeyRight]
     , HandKeyLeft : cs "yuiop[]\\" "YUIOP{}|" ++ [                  HandKeyRight]
-    , HandKeyLeft : cs "hjkl;'"    "HJKL:\""  ++ [HandKeyEnter,     HandKeyRight]
+    , HandKeyLeft : cs "hjkl;'"    "HJKL:\""  ++ [HandKeyEnter, HandKeyEnter, HandKeyRight]
     , HandKeyLeft : cs "nm,./"     "NM<>?"    ++ [HandKeyShift,     HandKeyRight]
     , replicate 4 (HandKeyChar ' ' ' ')
     , replicate 4 HandKeyDown
@@ -97,6 +96,7 @@ rightHandKeys =
     where
         cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
 
+keyWidth, keyHeight, keyPad, keyHeightT, keyWidthT, keyboardOffsetY :: GLfloat
 keyWidth        = 0.05
 keyHeight       = 0.05
 keyPad          = 0.01
@@ -115,11 +115,6 @@ data KeyboardHandsSystem = KeyboardHandsSystem
 makeLenses      ''KeyboardHandsSystem
 defineSystemKey ''KeyboardHandsSystem
 
-initKeyboardHandsSystem :: ECSMonad ()
-initKeyboardHandsSystem = do
-    -- System is initialized in start
-    --registerComponent "KeyboardHandsKey" cmpKeyboardHandsKey (newComponentInterface cmpKeyboardHandsKey)
-    return ()
 
 startKeyboardHandsSystem :: ECSMonad ()
 startKeyboardHandsSystem = do
@@ -160,7 +155,6 @@ tickKeyboardHandsSystem = do
 
     keyIDs <- viewSystem sysKeyboardHands kbhKeyIDs
 
-    let handsWithKeys = zip handIDs [leftHandKeys, rightHandKeys]
     forM_ handIDs $ \(whichHand, handID) -> do
         withHandEvents whichHand $ \case
             HandButtonEvent HandButtonPad ButtonDown -> do
@@ -182,6 +176,7 @@ tickKeyboardHandsSystem = do
                     modifySystemState sysKeyboardHands $ kbhCurrentKeys . at whichHand .= Nothing
             _ -> return ()
 
+spawnKeysForHand :: (MonadIO m, MonadState ECS m) => WhichHand -> EntityID -> [[HandKey]] -> m [(EntityID, HandKey)]
 spawnKeysForHand whichHand handID keyRows = do
     let numRows = fromIntegral (length keyRows)
         maxNumKeys = fromIntegral $ maximum (map length keyRows)
@@ -228,24 +223,26 @@ makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
                     modifySystemState sysKeyboardHands $ kbhCurrentKeys . at whichHand ?= key
             _ -> return ()
 
+getThumbPos :: Hand -> V2 GLfloat
 getThumbPos hand = hand ^. hndXY 
     & _y  *~ (-1) -- y is flipped 
     & _xy *~ 0.5  -- scale to -0.5 - 0.5
 
 -- | Check if a point is in the given rectangle
+inRect :: (Num a, Ord a) => a -> a -> a -> a -> V2 a -> Bool
 inRect x y w h (V2 ptX ptY) =
     ptX > x && ptX < x + w && ptY > y && ptY < y + h
 
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
+makeThumbNub :: (HasComponents s, MonadState s m, MonadReader EntityID m) => WhichHand -> EntityID -> GLfloat -> GLfloat -> m ()
 makeThumbNub whichHand parentHandID maxNumKeys numRows = do
     let keyboardDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
         colorOn = hslColor 0.2 0.8 0.8
-        colorOff = hslColor 0.3 0.8 0.4
     cmpColor                  ==> colorOn
     cmpParent                 ==> parentHandID
     cmpShapeType              ==> SphereShape
     cmpPhysicsProperties      ==> [NoPhysicsShape]
-    cmpSize                   ==> realToFrac 0.02
+    cmpSize                   ==> 0.02
     cmpInheritParentTransform ==> InheritPose
     cmpOnUpdate               ==> do
         withHandEvents whichHand $ \case

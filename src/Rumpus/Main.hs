@@ -14,7 +14,7 @@ copyScenes :: IO FilePath
 copyScenes = do
     userDocsDir <- getUserDocumentsDirectory
     let userRoomDir    = userDocsDir </> "Rumpus" </> "Scenes" </> "Room"
-        pristineScenes = "pristine" </> "Scenes" </> "Room"
+        pristineScenes = "pristine"               </> "Scenes" </> "Room"
     exists  <- doesDirectoryExist userRoomDir
     when (not exists) $ do
         createDirectoryIfMissing True userRoomDir
@@ -46,7 +46,6 @@ rumpusMain = withPd $ \pd -> do
         initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
-        initKeyboardHandsSystem
         initLifetimeSystem
         initPhysicsSystem
         initPlayPauseSystem
@@ -66,9 +65,21 @@ rumpusMain = withPd $ \pd -> do
             | not useTestScene -> loadScene sceneFolder
             | otherwise        -> loadTestScene
         
-        whileWindow (gpWindow vrPal) $ profileFPS' "frame" 0 $ do
+
+
+        --fpsRef <- liftIO . newIORef =<< liftIO getCurrentTime
+        --let checkFPS = liftIO $ do
+        --        now  <- getCurrentTime
+        --        last <- readIORef fpsRef
+        --        writeIORef fpsRef now
+        --        let timeDiff = now `diffUTCTime` last
+        --        putStrLn ("FPS: " ++ show (1/timeDiff))
+
+
+        whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
             (headM44, vrEvents) <- tickVR vrPal playerM44
+
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory
@@ -89,5 +100,7 @@ rumpusMain = withPd $ \pd -> do
             profileMS' "sceneEditor" 1 $ tickSceneEditorSystem
             profileMS' "sound"       1 $ tickSoundSystem headM44
             profileMS' "render"      1 $ tickRenderSystem headM44
+            tickRenderSystem headM44
+            --checkFPS
 
 

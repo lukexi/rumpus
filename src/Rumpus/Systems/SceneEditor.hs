@@ -148,7 +148,7 @@ tickSceneEditorSystem = do
 
                 handPose <- getEntityPose handEntityID
 
-                let handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1))
+                let handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1)) :: Ray GLfloat
 
                 mRayResult <- castRay handRay
                 forM_ mRayResult $ \RayResult{..} -> do

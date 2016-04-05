@@ -51,11 +51,13 @@ initTextSystem = do
             removeComponent cmpTextRenderer
         }
 
+setEntityText :: (MonadIO m, HasComponents s, MonadState s m) => EntityID -> String -> m ()
 setEntityText entityID text = do
     setEntityComponent cmpText text entityID
     modifyEntityComponent entityID cmpTextRenderer $ \renderer -> 
         flip execStateT renderer $ setTextRendererText id text
 
+setText :: (MonadIO m, HasComponents s, MonadState s m, MonadReader EntityID m) => String -> m ()
 setText text = do
     entityID <- ask
     setEntityText entityID text

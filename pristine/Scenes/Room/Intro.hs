@@ -1,7 +1,5 @@
- 
+
+  
 
 {-
-Welcome to Rumpus, a live coding 
-environmemt for the
-htc vive
-l-}
+Welcome to Rumpus, a live coding -}

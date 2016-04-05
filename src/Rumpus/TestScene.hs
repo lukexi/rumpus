@@ -12,13 +12,14 @@ import Rumpus
 
 loadTestScene :: ECSMonad ()
 loadTestScene = do
-	-- testEntity <- spawnEntity Transient $ return ()
+    -- testEntity <- spawnEntity Transient $ return ()
     -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart        
     -- selectEntity testEntity
 
 
     -- Spawn objects
     forM_ [room, city, fountain] $ \onStart -> do
+    --forM_ [room] $ \onStart -> do
         spawnEntity Transient $ do
             cmpOnStart ==> onStart
             cmpSize ==> 0.3
