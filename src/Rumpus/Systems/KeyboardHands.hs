@@ -180,7 +180,11 @@ spawnKeysForHand :: (MonadIO m, MonadState ECS m) => WhichHand -> EntityID -> [[
 spawnKeysForHand whichHand handID keyRows = do
     let numRows = fromIntegral (length keyRows)
         maxNumKeys = fromIntegral $ maximum (map length keyRows)
+    
+    -- Add the indicator of thumb position
     void $ spawnEntity Transient $ makeThumbNub whichHand handID maxNumKeys numRows
+
+    -- Spawn the keys and return their entityIDs
     fmap concat . forM (zip [0..] keyRows) $ \(indexY, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM (zip [0..] keyRow) $ \(indexX, key) -> do

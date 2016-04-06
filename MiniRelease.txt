@@ -4,22 +4,52 @@
     [x] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
     
     [ ] Add a ray and visual feedback for what you'll teleport to.
-    [ ] Could possibly do an animation...
+            (and haptics OBVZ)
+    [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
+
+[ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
+    Except, how to deal with editing without resetting position etc.? 
+    Have a separate "initialize" function that is only run at startup?
+    Can do a Main.hs that starts the world when it runs?
+        And, rather than a separate initialize, Main could spawn the objects and set their positions...
+
+    This also nicely simplifies object instances; can just keep track of what haskell files are available.
+
+[ ] Move buffering of matrices before waitGetPoses too??
+    Need to handle hands somehow.
 
 [x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
 
-[ ] Text matrix caching - many to cache here; the correction matrix, the textpose-to-normalpose
+[ ] Text matrix caching
+    [x] Cache correction matrix
+    [ ] Cache objectPose !*! textPose !*! correctionMatrix?
+        A bit trickier, since we have to make sure we catch everything that will change any of those...
+
+[ ] Held object haptics
+
+[ ] Text display improvements... how hard would a virtual screen be???
+    Prototype it in freetype-gl-mini. Basically, render to texture, add curve, add shader.
+    Or, just do clipping and put shaders on the text.
+    [ ] Cursor is way too hard to see! *********
+    [ ] Add line numbers?? Any way to do that easily??
+
 
 [ ] Crasher when turning controllers on after launch
 
 [ ] Finish keyboard
+    [ ] Fullsize keys for space etc.
+    [ ] Haptics for moving thumb on keys
+        [ ] Different vibrations to let you know that you're still on the right key??
+            (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
+    [ ] Only show keyboard when object selected
+
     [x] Get touchpad down event from steamVR
 
 
 [ ] Create intro object
         Have it be the only thing that you start out seeing, and have the other objects on other platforms?
         TRY EDITING ME
-
+    [ ] Rename cmp to my
 
 [ ] 1080p render for video? 
     This would be possibly quite easy with a threaded render that takes the last world state and renders it!
@@ -27,6 +57,11 @@
     (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
 
 [ ] Add microphone-reactive object
+[ ] Add sequencer platform
+    [ ] Note: only have limited voices so ditch the per-note positioning 
+        and just have them all report to a verylogue instance, which will 
+        set things up nicely for doing a full synth+sequencer
+[ ] Some sort of swarm of cubes? 
 
 [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
     (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
@@ -34,9 +69,45 @@
 [ ] Add notes to Early Access notes about the intentions of rumpus to become something that "normal people" can use, 
     but is itself the tool in which such a friendlier and more powerful environment is to be created.
 
+
+
+
+
+[ ] (later!!!) Implement Vlachos's idea of total render-thread asynchrony. This will be easy with our immutable datastructures.
+    sendToRenderer :: (MonadIO m, MonadState ECS m) => m ()
+        worldState <- get 
+        swapTVarIO worldStateRef worldState.
+
+    forkOS $ do
+        worldState <- readTVarIO worldStateRef
+        flip runStateT worldState $ do
+            (headM44, vrEvents) <- tickVR
+            tickRendererSystem headM44
+
+    renderThread is responsible for WaitGetPoses and Submit. it is a forkOS'd high priority thread.
+    It just takes the worldState and runs what is currently in tickRenderer on it.
+    In an improved version, we can calculate trajectories to interpolate objects from one frame to another when a frame is missed.
+    But even with just the most boneheaded implementation as above, it will be better than reprojection 
+    since things will render perfectly and only animations will judder. 
+    (we could special case the hands to make sure they and their attachments always render correctly)
+
+    think about how to make sure the world doesn't get ahead of render... maybe just as a first stab, 
+    worldStateRef is an MVar such that putMVar blocks if the renderer hasn't gotten to our last worlddata yet?
+
+    Really, this is so simple that it may be worth trying since the gains would be large; they're be essentially no garbage at all on the renderthread
+
+    (a complication comes to mind: would need to improve the way TextRenderers handle their updateMetrics calls 
+    since currently they synchronously update their GL state whenever they change. 
+    Maybe just an isDirty flag that can get processed on the render thread?? 
+    That would probably do the trick!)
+
+    Try having render thread be main thread, logic thread forked and vice versa.
+
+    All in all, especially combined with a hard entity limit that we know we can render smoothly, 
+    this would be a pretty good system to making sure user errors don't explode everything as they do currently!
+
 [x] Fix hands swapping for haptics
 [x] Fix error message positioning 
-        [ ] (add line numbers?? any way to do that easily??)
 
 [x] Build city
 
@@ -109,7 +180,17 @@ start = do
     -- based on what time it is.
     myUpdate ==> do
         now <- getNow
-        myPose ==> toPose def { posePosition = V3 0 1 0
-                              , poseOrientation = axisAngle (V3 0 1 0) (now * rotationSpeed) 
-                              }
+        setRotation (V3 0 1 0) (now * rotationSpeed)
+        setColor (newColor {hue = now, saturation = 0.6 brightness = 0.7)
 
+data Color = Color { hue :: GLfloat, saturation :: GLfloat, brightness :: GLfloat }
+
+setColor Color{..} = setColorV4 (hslColor hue saturation brightness)
+
+setPosition position = do
+    pose <- getPose
+    setPose $ mkTransformation (pose & translation .~ position)
+
+setRotation axis angle = do
+    pose <- getPose
+    setPose $ mkTransformation (axisAngle axis angle) (pose ^. translation)
