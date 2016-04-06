@@ -5,7 +5,7 @@ import PreludeExtra
 
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Selection
-
+import Rumpus.Systems.Hands
 data SoundSystem = SoundSystem 
     { _sndPd               :: !PureData
     , _sndOpenALSourcePool :: ![(Int, OpenALSource)]
@@ -38,8 +38,9 @@ initSoundSystem pd = do
         , ciRemoveComponent = removePdPatchComponent 
         }
 
-tickSoundSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
-tickSoundSystem headM44 = do
+tickSoundSystem :: (MonadIO m, MonadState ECS m) => m ()
+tickSoundSystem = do
+    headM44 <- getHeadPose 
     -- Update source and listener positions
     alListenerPose (poseFromMatrix headM44)
     forEntitiesWithComponent cmpOpenALSource $ \(entityID, sourceID) -> do

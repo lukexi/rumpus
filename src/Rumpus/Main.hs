@@ -41,7 +41,8 @@ rumpusMain = withPd $ \pd -> do
         startHandsSystem
         startKeyboardHandsSystem
 
-        let useTestScene = False
+        -- Profiling doesn't support hot code load, so load the test scene instead
+        let useTestScene = isBeingProfiled
         if 
             | isInReleaseMode  -> loadScene sceneFolder
             | not useTestScene -> loadScene sceneFolder
@@ -61,14 +62,15 @@ rumpusMain = withPd $ \pd -> do
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
             (headM44, vrEvents) <- tickVR vrPal playerM44
-
+            tickControlEventsSystem headM44 vrEvents
+            tickRenderSystem headM44
+            
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory
-            liftIO performMinorGC
+            --liftIO performMinorGC
             
             tickKeyboardHandsSystem
-            tickControlEventsSystem headM44 vrEvents
             tickCodeEditorInputSystem
             tickCodeEditorResultsSystem
             tickAttachmentSystem
@@ -80,8 +82,9 @@ rumpusMain = withPd $ \pd -> do
             tickSyncPhysicsPosesSystem
             tickCollisionsSystem
             tickSceneEditorSystem
-            tickSoundSystem headM44
-            tickRenderSystem headM44
+            tickSoundSystem
+
+            
             --checkFPS
 
 

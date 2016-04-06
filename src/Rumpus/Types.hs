@@ -14,6 +14,13 @@ isInReleaseMode = True
 isInReleaseMode = False
 #endif
 
+isBeingProfiled :: Bool
+#if defined(RUMPUS_PROFILE)
+isBeingProfiled = True
+#else
+isBeingProfiled = False
+#endif
+
 profileMS' :: (MonadIO m) => String -> Int -> m a -> m a
 --profileMS' = profileMS
 profileMS' _ _ = id

@@ -72,12 +72,13 @@ initRenderSystem = do
 
     shapesWithBuffers <- forM shapes $ \(shapeType, shape) -> do
         withShape shape $ do
-            let streamingBufferCapacity = maxInstances * 8
+            let streamingBufferCapacity = maxInstances * 64
             sab              <- makeSAB streamingBufferCapacity
             modelM44sBuffer  <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (M44 GLfloat))
             colorsBuffer     <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (V4  GLfloat))
             
-            let resetShapeInstanceBuffers = profileMS "reset" 0 $ withShape shape $ do
+            --let resetShapeInstanceBuffers = profileMS "reset" 0 $ withShape shape $ do
+            let resetShapeInstanceBuffers = withShape shape $ do
                     shader <- asks sProgram
                     withArrayBuffer modelM44sBuffer $ do
                         resetSABBuffer sab modelM44sBuffer

@@ -30,10 +30,17 @@ Flag RumpusReleaseWithLogs
     see realtime console output from a release build of Rumpus.
   Default:     False
 
+Flag RumpusProfile
+  Description:
+    Sets a runtime flag so we can tell if we're being profiled and turn off hot-code-loading
+  Default:     False
+
 library 
   hs-source-dirs:      src
   if flag(RumpusRelease)
     cpp-options: -DRUMPUS_RELEASE
+  if flag(RumpusProfile)
+    cpp-options: -DRUMPUS_PROFILE
   exposed-modules:     Rumpus
                        RumpusLib
                        PreludeExtra
@@ -98,7 +105,8 @@ executable rumpus
   main-is:             Main.hs
   -- -s/-S prints GC info (-S as it happens)
   -- -L50 changes length of cost center profile names in the .prof/.hp files
-  ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -s -H512M -A4M"
+  -- ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -s -H512M -A4M"
+  ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -H512m -A4M"
   -- ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -s -H512M"
   -- -T collects runtime stats for use with GHC.Stats
   ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -S -H512M -A4M -L100"
@@ -111,6 +119,8 @@ executable rumpus
   -- but maybe just masking it and that one would pop up later.
   if os(osx)
     ghc-options: -dynamic
+  if flag(RumpusProfile)
+    cpp-options: -DRUMPUS_PROFILE
 
   if flag(RumpusRelease) && !flag(RumpusReleaseWithLogs)
     cpp-options: -DRUMPUS_RELEASE

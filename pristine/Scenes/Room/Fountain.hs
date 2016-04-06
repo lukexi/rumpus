@@ -2,7 +2,7 @@ module Fountain where
 import Rumpus
 
 rate :: Float
-rate = 10
+rate = 2
 
 majorScale = map (+60) [0,2,4,7,9]
 
