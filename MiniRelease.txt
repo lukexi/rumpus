@@ -6,6 +6,12 @@
     [ ] Add a ray and visual feedback for what you'll teleport to.
     [ ] Could possibly do an animation...
 
+[x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
+
+[ ] Text matrix caching - many to cache here; the correction matrix, the textpose-to-normalpose
+
+[ ] Crasher when turning controllers on after launch
+
 [ ] Finish keyboard
     [x] Get touchpad down event from steamVR
 

@@ -18,7 +18,7 @@ start = do
                 cmpOnUpdate ==> do
                     now <- sin <$> getNow
                     let V3 pX pY pZ = pos
-                    cmpPose ==> mkTransformation 
+                    setPose $ mkTransformation 
                         (axisAngle (V3 0 1 1) (now*2)) 
                         (V3 (pX+now) pY pZ)
             when (n > 0) $ do

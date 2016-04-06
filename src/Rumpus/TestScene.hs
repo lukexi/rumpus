@@ -105,10 +105,10 @@ createBuildings = do
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
             cmpShapeType            ==> CubeShape
             cmpPhysicsProperties    ==> [NoPhysicsShape]
-            cmpOnUpdate ==> do
-                now <- getNow
-                let newHeight = ((sin (now+i) + 1) + 1) * height
-                setSize (V3 dim newHeight dim)
+            --cmpOnUpdate ==> do
+            --    now <- getNow
+            --    let newHeight = ((sin (now+i) + 1) + 1) * height
+            --    setSize (V3 dim newHeight dim)
             cmpSize                 ==> V3 dim height dim
             cmpColor                ==> hslColor hue 0.8 0.8
 

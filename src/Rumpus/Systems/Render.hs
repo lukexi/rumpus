@@ -77,7 +77,7 @@ initRenderSystem = do
             modelM44sBuffer  <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (M44 GLfloat))
             colorsBuffer     <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (V4  GLfloat))
             
-            let resetShapeInstanceBuffers = withShape shape $ do
+            let resetShapeInstanceBuffers = profileMS "reset" 0 $ withShape shape $ do
                     shader <- asks sProgram
                     withArrayBuffer modelM44sBuffer $ do
                         resetSABBuffer sab modelM44sBuffer
@@ -102,9 +102,7 @@ initRenderSystem = do
 
 tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
-    vrPal  <- viewSystem sysControls ctsVRPal
-    player <- viewSystem sysControls ctsPlayer
-
+    
     finalMatricesByEntityID <- getFinalMatrices
     colorsMap               <- getComponentMap cmpColor
 
@@ -127,7 +125,7 @@ tickRenderSystem headM44 = do
                 let entityID = entityIDsForShape V.! i
                     color = colorForEntity entityID
                 return color
-            fillSABBuffer rshInstanceModelM44sBuffer    $ \i -> do
+            fillSABBuffer rshInstanceModelM44sBuffer $ \i -> do
                 let entityID = entityIDsForShape V.! i
                     modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
                 return modelM44
@@ -135,6 +133,7 @@ tickRenderSystem headM44 = do
         return (rshShape, rshStreamingArrayBuffer, count)
 
     -- Render the scene
+    vrPal  <- viewSystem sysControls ctsVRPal
     renderWith vrPal headM44 $ \projM44 viewM44 -> do
         glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT)
         let projViewM44 = projM44 !*! viewM44
@@ -163,6 +162,7 @@ renderEntities projViewM44 shapes = do
 getFinalMatrices :: (MonadIO m, MonadState ECS m) => m (Map EntityID (M44 GLfloat))
 getFinalMatrices = do
     poseMap                   <- getComponentMap cmpPose
+    poseScaledMap             <- getComponentMap cmpPoseScaled
     childrenMap               <- getComponentMap cmpChildren
     parentMap                 <- getComponentMap cmpParent
     sizeMap                   <- getComponentMap cmpSize
@@ -177,7 +177,7 @@ getFinalMatrices = do
             let size                     = Map.lookupDefault 1 entityID sizeMap
                 inherit                  = Map.lookup entityID inheritParentTransformMap
                 entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
-                entityMatrixLocal        = entityMatrixLocalNoScale !*! scaleMatrix size
+                entityMatrixLocal        = Map.lookupDefault identity entityID poseScaledMap
 
                 parentTransform          = case (inherit, mParentMatrix) of
                     (Just InheritFull, Just (parentMatrix, _))        -> (parentMatrix        !*!) 

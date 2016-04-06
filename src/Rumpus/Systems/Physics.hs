@@ -97,7 +97,7 @@ tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
     forEntitiesWithComponent cmpRigidBody $
         \(entityID, rigidBody) -> runEntity entityID $ do
             pose <- uncurry Pose <$> getBodyState rigidBody
-            setComponent cmpPose (transformationFromPose pose)
+            setEntityPoseCacheScale entityID (transformationFromPose pose)
 
 
 
@@ -138,6 +138,10 @@ setEntitySize newSize entityID = do
 
     setEntityComponent cmpSize newSize entityID
 
+    -- Update the scaled pose cache
+    pose <- getEntityPose entityID
+    setEntityComponent cmpPoseScaled (pose !*! scaleMatrix newSize) entityID
+
     withEntityRigidBody entityID $ \rigidBody -> do 
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
             mass       <- fromMaybe 1         <$> getEntityComponent entityID cmpMass
@@ -152,11 +156,16 @@ setPose pose = setEntityPose pose =<< ask
 setEntityPose :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> EntityID -> m ()
 setEntityPose poseM44 entityID = do
 
-    setEntityComponent cmpPose poseM44 entityID
+    setEntityPoseCacheScale entityID poseM44 
 
     withEntityRigidBody entityID $ \rigidBody -> do
         let pose = poseFromMatrix poseM44
         setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
+
+setEntityPoseCacheScale entityID poseM44 = do
+    size <- getEntitySize entityID
+    setEntityComponent cmpPose poseM44 entityID
+    setEntityComponent cmpPoseScaled (poseM44 !*! scaleMatrix size) entityID
 
 getEntityPhysicsProperties :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
 getEntityPhysicsProperties entityID = fromMaybe [] <$> getEntityComponent entityID cmpPhysicsProperties

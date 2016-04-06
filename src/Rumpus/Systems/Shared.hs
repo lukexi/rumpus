@@ -17,6 +17,7 @@ defineComponentKey ''ShapeType
 defineComponentKey ''InheritParentTransform
 defineComponentKeyWithType "Name"                   [t|String|]
 defineComponentKeyWithType "Pose"                   [t|M44 GLfloat|]
+defineComponentKeyWithType "PoseScaled"             [t|M44 GLfloat|]
 defineComponentKeyWithType "Size"                   [t|V3 GLfloat|]
 defineComponentKeyWithType "Color"                  [t|V4 GLfloat|]
 defineComponentKeyWithType "Parent"                 [t|EntityID|]
@@ -36,6 +37,16 @@ initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
     registerComponent "Name" cmpName (savedComponentInterface cmpName)
     registerComponent "Pose" cmpPose (savedComponentInterface cmpPose)
+    registerComponent "PoseScaled" cmpPoseScaled $ (newComponentInterface cmpPoseScaled) 
+        {   ciDeriveComponent = Just $ do
+                -- More hax for release; one problem with this is that every entity will now
+                -- get a cached scale (even those without shapes, poses or sizes, 
+                -- since getSze and getPose return defaults)
+                -- but I guess that's not so bad...
+                size <- getSize
+                pose <- getPose
+                cmpPoseScaled ==> pose !*! scaleMatrix size
+        }
     registerComponent "Size" cmpSize (savedComponentInterface cmpSize)
     registerComponent "Color" cmpColor (savedComponentInterface cmpColor)
     registerComponent "ShapeType" cmpShapeType (savedComponentInterface cmpShapeType)

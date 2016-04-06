@@ -23,7 +23,7 @@ start = do
                 n <- (orbitRate *) <$> getNow
                 let x = orbitRadius * cos n
                     z = orbitRadius * sin n
-                cmpPose ==> (identity & translation .~ V3 x 0 z)
+                setPose (identity & translation .~ V3 x 0 z)
 
     container <- spawnEntity Transient $ do
         cmpParent                   ==> rootEntityID

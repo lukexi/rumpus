@@ -39,6 +39,7 @@ library
                        PreludeExtra
                        Rumpus.Main
                        Rumpus.TestScene
+                       Rumpus.CopyScenes
                        Rumpus.Types
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
