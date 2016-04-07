@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Haptics where
 
 import Rumpus.Systems.Controls
@@ -13,25 +15,30 @@ makeLenses ''HapticsSystem
 defineSystemKey ''HapticsSystem
 
 
-initHapticsSystem :: MonadState ECS m => VRPal -> m ()
-initHapticsSystem vrPal = do
+initHapticsSystem :: MonadState ECS m => m ()
+initHapticsSystem = do
     registerSystem sysHaptics $ HapticsSystem
-            { _hptLastHandTick = mempty
-            }
+        { _hptLastHandTick = mempty
+        }
 
-beginHapticDrag = tickWithPose
+beginHapticDrag :: (MonadIO m, MonadState ECS m) => WhichHand -> M44 GLfloat -> m ()
+beginHapticDrag whichHand pose = pulseWithPose whichHand (pose ^. translation) 
 
+continueHapticDrag :: (MonadIO m, MonadState ECS m) => WhichHand -> M44 GLfloat -> m ()
 continueHapticDrag whichHand pose = do
-    mLastPose <- viewSystem sysHaptics (hptLastHandTick . at whichHand)
-    case mLastPose of
-        Just lastPose
-            | lastPose - pose > 10 -> 
-                tickWithPose whichHand pose
+    let newPosition = pose ^. translation
+    mLastPosition <- viewSystem sysHaptics (hptLastHandTick . at whichHand)
+    case mLastPosition of
+        Just lastPosition
+            | distance lastPosition newPosition > 0.05 ->
+                pulseWithPose whichHand newPosition
         _ -> return ()
 
-tickWithPose whichHand pose = do
-    modifySystem sysHaptics $ hptLastHandTick . at whichHand ?= pose
-    triggerHapticPulse whichHand 0.1 10000
+pulseWithPose :: (MonadIO m, MonadState ECS m) => WhichHand -> V3 GLfloat -> m ()
+pulseWithPose whichHand position = do
+    modifySystemState sysHaptics $ hptLastHandTick . at whichHand ?= position
+    hapticPulse whichHand 1500
 
+endHapticDrag :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 endHapticDrag whichHand = do
-    modifySystem sysHaptics $ hptLastHandTick . at whichHand ?= pose
+    modifySystemState sysHaptics $ hptLastHandTick . at whichHand .= Nothing

@@ -21,7 +21,6 @@ import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Text
-import Rumpus.Types
 import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Unboxed as V
@@ -118,7 +117,7 @@ tickRenderSystem headM44 = do
 
     shapes      <- viewSystem sysRender rdsShapes
     shapeCounts <- forM shapes $ \RenderShape{..} -> withShape rshShape $ do
-        let shapeName = show rshShapeType ++ " "
+        --let shapeName = show rshShapeType ++ " "
         entityIDsForShape <- getEntityIDsForShapeType rshShapeType
         let count = V.length entityIDsForShape
         writeSAB rshStreamingArrayBuffer (fromIntegral count) rshResetShapeInstanceBuffers $ do
@@ -175,8 +174,7 @@ getFinalMatrices = do
         rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
         go mParentMatrix !accum entityID = 
 
-            let size                     = Map.lookupDefault 1 entityID sizeMap
-                inherit                  = Map.lookup entityID inheritParentTransformMap
+            let inherit                  = Map.lookup entityID inheritParentTransformMap
                 entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
                 entityMatrixLocal        = Map.lookupDefault identity entityID poseScaledMap
 

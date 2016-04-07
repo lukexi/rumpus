@@ -119,7 +119,7 @@ getEntityOverlapping entityID = getEntityComponent entityID cmpRigidBody  >>= \c
             withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> 
                 contactTest dynamicsWorld rigidBody
 
-castRay :: (RealFloat a, MonadIO m, MonadState ECS m) => Ray GLfloat -> m (Maybe (RayResult GLfloat))
+castRay :: (MonadIO m, MonadState ECS m) => Ray GLfloat -> m (Maybe (RayResult GLfloat))
 castRay ray = do
     dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
     rayTestClosest dynamicsWorld ray
@@ -162,6 +162,7 @@ setEntityPose poseM44 entityID = do
         let pose = poseFromMatrix poseM44
         setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
 
+setEntityPoseCacheScale :: MonadState ECS m => EntityID -> M44 GLfloat -> m ()
 setEntityPoseCacheScale entityID poseM44 = do
     size <- getEntitySize entityID
     setEntityComponent cmpPose poseM44 entityID
