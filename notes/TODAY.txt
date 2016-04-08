@@ -4,7 +4,7 @@ TODAY:
 
     - [ ] Widgets for OnStart, OnCollision, OnUpdate code
     - [ ] OnSelect that detects raycasts
-    - [ ] Widget text labels
+    - [x] Widget text labels
         - [x] Make "selection" a Maybe in freetype-gl-mini
 
 

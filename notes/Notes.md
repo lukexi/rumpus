@@ -1,4 +1,4 @@
-[ ] Fix touchpad support... can we detect the button yet?
+[x] Fix touchpad support... can we detect the button yet?
 [x] Fix hand ordering
 [x] Try SteamVR keyboard again
 

@@ -7,6 +7,8 @@
             (and haptics OBVZ)
     [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
 
+[ ] Do a slightly nicer default shader? Maybe some lights? We are not using the GPU at all so this would be rad...
+
 [ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
     Except, how to deal with editing without resetting position etc.? 
     Have a separate "initialize" function that is only run at startup?
@@ -14,9 +16,15 @@
         And, rather than a separate initialize, Main could spawn the objects and set their positions...
 
     This also nicely simplifies object instances; can just keep track of what haskell files are available.
+    Remember the whole component editors idea though...
+    Boy it would make the demo a lot better, as you'd start with creating a few objects, 
+    setting their size and color, and then specifying their behavior.
+
 
 [ ] Move buffering of matrices before waitGetPoses too??
     Need to handle hands somehow.
+    (I think we don't want to do this? because the idea is that waitGetPoses will wait until 2ms before vsync
+    and give us time to submit all the render calls. we are probably well within time for that... but I guess try it!)
 
 [x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
 
@@ -25,12 +33,12 @@
     [ ] Cache objectPose !*! textPose !*! correctionMatrix?
         A bit trickier, since we have to make sure we catch everything that will change any of those...
 
-[ ] Held object haptics
+[x] Held object haptics
 
 [ ] Text display improvements... how hard would a virtual screen be???
     Prototype it in freetype-gl-mini. Basically, render to texture, add curve, add shader.
     Or, just do clipping and put shaders on the text.
-    [ ] Cursor is way too hard to see! *********
+    [x] Cursor is way too hard to see! *********
     [ ] Add line numbers?? Any way to do that easily??
 
 
@@ -38,7 +46,7 @@
 
 [ ] Finish keyboard
     [ ] Fullsize keys for space etc.
-    [ ] Haptics for moving thumb on keys
+    [x] Haptics for moving thumb on keys
         [ ] Different vibrations to let you know that you're still on the right key??
             (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
     [ ] Only show keyboard when object selected
@@ -106,6 +114,10 @@
     All in all, especially combined with a hard entity limit that we know we can render smoothly, 
     this would be a pretty good system to making sure user errors don't explode everything as they do currently!
 
+[ ] Another great idea from talk 1: pass BOTH eye M44s in one render call, and output to both framebuffers at the same time
+    while using instanced rendering. Use odd instances to render to left eye, even to right eye? Or something like that,
+    but point is in general that you render all geometry of a kind to both eyes at once.
+
 [x] Fix hands swapping for haptics
 [x] Fix error message positioning 
 
@@ -145,7 +157,7 @@
         Disable code loading from files to ensure that this fixes things, then implement the filewatcher pausing.
         Switch file saving to be async.
 
-        [ ] I've commented out refreshTextRendererFromFile in CodeEditor.hs:264
+        [x] I've commented out refreshTextRendererFromFile in CodeEditor.hs:264
             (since it's the cause of the pauses while typing!) while I figure out
             the right way to refresh the text - should do the readFile call 
             in the background upon receiving the FileEvent, but also want to be able

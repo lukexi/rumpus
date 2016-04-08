@@ -23,9 +23,9 @@ Need to support:
 - [x] Move Selection to its own system so CodeEditor and SceneEditor can use it
 
 - [ ] Add FocusedCodeEditor to CodeEditor to use rather than selectedEntity
-- [ ] Improve "editable code" structure to let systems register code components 
+- [x] Improve "editable code" structure to let systems register code components 
       with the CodeEditor rather than manually listing and updating everything in there.
-- [ ] HandSystem that simply spawns (transiently) and records the IDs of the hands
+- [x] HandSystem that simply spawns (transiently) and records the IDs of the hands
 
 - [x] PlayPause -> System?
 
