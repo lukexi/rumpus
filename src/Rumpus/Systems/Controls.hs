@@ -50,23 +50,18 @@ sendInternalEvent event = do
     internalEvents <- viewSystem sysControls ctsInternalEvents
     liftIO . atomically $ writeTChan internalEvents event
 
-tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [VREvent] -> m ()
-tickControlEventsSystem headM44 vrEvents = modifySystemState sysControls $ do
+tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [VRPalEvent] -> m ()
+tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
     ctsHeadPose .= headM44
 
     vrPal@VRPal{..} <- use ctsVRPal
     
     -- Clear the events list
-    ctsEvents .= map VREvent vrEvents
+    ctsEvents .= events
 
     -- Gather internal events
     internalEvents <- liftIO . atomically . exhaustTChan =<< use ctsInternalEvents
     ctsEvents <>= internalEvents
-
-    -- Gather GLFW Pal events
-    processEvents gpEvents $ \e -> do
-        closeOnEscape gpWindow e
-        ctsEvents %= (GLFWEvent e:)
 
     --hands' <- if gpRoomScale == RoomScale
     --    then return hands
@@ -81,10 +76,12 @@ tickControlEventsSystem headM44 vrEvents = modifySystemState sysControls $ do
 
     use ctsEvents >>= mapM_ (\case
         VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> lift toggleWorldPlaying
+        GLFWEvent e -> closeOnEscape gpWindow e
         --GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
         _ -> return ())
 
-setPlayerPosition position = modifySystemState sysControls (ctsPlayer .= mkTransformation (axisAngle (V3 0 1 0) 0) position)
+setPlayerPosition position = modifySystemState sysControls $
+    ctsPlayer .= mkTransformation (axisAngle (V3 0 1 0) 0) position
 
 emulateRightHand :: (MonadIO m) => VRPal -> Pose Float -> [VRPalEvent] -> m [Hand]
 emulateRightHand VRPal{..} player events = do

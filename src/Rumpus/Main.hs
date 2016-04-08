@@ -62,8 +62,8 @@ rumpusMain = withPd $ \pd -> do
 
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
-            (headM44, vrEvents) <- tickVR vrPal playerM44
-            tickControlEventsSystem headM44 vrEvents
+            (headM44, events) <- tickVR vrPal playerM44
+            tickControlEventsSystem headM44 events
             tickRenderSystem headM44
             
 
@@ -91,7 +91,6 @@ rumpusMain = withPd $ \pd -> do
 
 --profileMS' "gc"          1 $ 
 --profileMS' "keyhands"    1 $ 
---profileMS' "controls"    1 $ 
 --profileMS' "codeinput"   1 $ 
 --profileMS' "codeupdate"  1 $ 
 --profileMS' "attachments" 1 $ 
@@ -104,4 +103,5 @@ rumpusMain = withPd $ \pd -> do
 --profileMS' "collisions"  1 $ 
 --profileMS' "sceneEditor" 1 $ 
 --profileMS' "sound"       1 $ 
+--profileMS' "controls"    1 $ 
 --profileMS' "render"      1 $ 
