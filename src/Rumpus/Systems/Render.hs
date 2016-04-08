@@ -211,32 +211,32 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
 
     font <- getFont
-    withSharedFont font $ do
+    withSharedFont font projViewM44 $ do
+
         entitiesWithText <- Map.toList <$> getComponentMap cmpTextRenderer
         forM_ entitiesWithText $ \(entityID, textRenderer) -> do
-            color <- getEntityTextColor entityID 
+            --color <- getEntityTextColor entityID
             
-            textM44 <- getEntityTextPose entityID
-            let entityM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
-                finalM44 = entityM44 !*! textM44
+            let parentM44 = Map.lookupDefault identity entityID finalMatricesByEntityID
+            textM44 <- getEntityTextCachedM44 entityID
 
-            renderText textRenderer (projViewM44 !*! finalM44) (color ^. _xyz)
+            renderTextPreCorrectedOfSameFont textRenderer (parentM44 !*! textM44)
 
         entitiesWithOnStart <- Map.toList <$> getComponentMap cmpOnStartExpr
         forM_ entitiesWithOnStart $ \(entityID, codeExprKey) -> 
             traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
-                parentPose <- getEntityPose entityID
+                parentPose   <- getEntityPose entityID
                 V3 _ _ sizeZ <- getEntitySize entityID
 
                 let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) !*! scaleMatrix 0.008
 
                 -- Render code in white
-                renderText (editor ^. cedCodeRenderer) (projViewM44 !*! codeModelM44) (V3 1 1 1)
+                renderTextPreCorrectedOfSameFont (editor ^. cedCodeRenderer) (codeModelM44 !*! editor ^. cedCodeRenderer . txrCorrectionM44)
 
                 let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 50 0 0)
 
                 -- Render errors in light red
-                renderText (editor ^. cedErrorRenderer) (projViewM44 !*! errorsModelM44) (V3 1 0.5 0.5)
+                renderTextPreCorrectedOfSameFont (editor ^. cedErrorRenderer) (errorsModelM44 !*! editor ^. cedErrorRenderer . txrCorrectionM44)
 
     glDisable GL_BLEND
 

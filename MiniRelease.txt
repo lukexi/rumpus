@@ -8,6 +8,7 @@
     [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
 
 [ ] Do a slightly nicer default shader? Maybe some lights? We are not using the GPU at all so this would be rad...
+    (boyyy shadowing would be even cooler!!!)
 
 [ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
     Except, how to deal with editing without resetting position etc.? 
@@ -26,19 +27,12 @@
     (I think we don't want to do this? because the idea is that waitGetPoses will wait until 2ms before vsync
     and give us time to submit all the render calls. we are probably well within time for that... but I guess try it!)
 
-[x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
 
-[ ] Text matrix caching
-    [x] Cache correction matrix
-    [ ] Cache objectPose !*! textPose !*! correctionMatrix?
-        A bit trickier, since we have to make sure we catch everything that will change any of those...
-
-[x] Held object haptics
 
 [ ] Text display improvements... how hard would a virtual screen be???
     Prototype it in freetype-gl-mini. Basically, render to texture, add curve, add shader.
     Or, just do clipping and put shaders on the text.
-    [x] Cursor is way too hard to see! *********
+    [x] Cursor is way too hard to see!
     [ ] Add line numbers?? Any way to do that easily??
 
 [ ] Knob API!
@@ -124,6 +118,16 @@
 [ ] Another great idea from talk 1: pass BOTH eye M44s in one render call, and output to both framebuffers at the same time
     while using instanced rendering. Use odd instances to render to left eye, even to right eye? Or something like that,
     but point is in general that you render all geometry of a kind to both eyes at once.
+
+
+[x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
+
+[x] Text matrix caching
+    [x] Cache correction matrix
+    [x] Cache objectPose !*! textPose !*! correctionMatrix?
+        A bit trickier, since we have to make sure we catch everything that will change any of those...
+
+[x] Held object haptics
 
 [x] Fix hands swapping for haptics
 [x] Fix error message positioning 
