@@ -33,6 +33,11 @@
     [ ] Cursor is way too hard to see! *********
     [ ] Add line numbers?? Any way to do that easily??
 
+[ ] Knob API!
+    scaleKnob <- makeKnob 0 100 "Scale"
+    myOnUpdate ==> do
+        newScale <- readKnob scaleKnob
+        setSize newScale
 
 [ ] Crasher when turning controllers on after launch
         - Investigate this in openvr-hs to minimize surface area 
