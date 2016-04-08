@@ -110,7 +110,8 @@ keyboardOffsetY = -0.2
 data KeyboardHandsSystem = KeyboardHandsSystem 
     { _kbhShiftDown   :: Bool
     , _kbhKeyIDs      :: [(EntityID, HandKey)]
-    , _kbhCurrentKeys :: Map WhichHand HandKey
+    , _kbhCurrentKey  :: Map WhichHand HandKey
+    , _kbhLastKey     :: Map WhichHand HandKey
     } deriving Show
 makeLenses      ''KeyboardHandsSystem
 defineSystemKey ''KeyboardHandsSystem
@@ -122,15 +123,14 @@ startKeyboardHandsSystem = do
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
     
-    vrPal <- viewSystem sysControls ctsVRPal
     runEntity leftHandID $ do
         cmpOnCollisionStart  ==> \_ impulse -> do
-            triggerHandHapticPulse vrPal LeftHand 0 (floor $ impulse * 10000)
+            hapticPulse LeftHand (floor $ impulse * 10000)
 
 
     runEntity rightHandID $ do
         cmpOnCollisionStart  ==> \_ impulse -> 
-            triggerHandHapticPulse vrPal RightHand 0 (floor $ impulse * 10000)
+            hapticPulse RightHand (floor $ impulse * 10000)
     
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
@@ -145,21 +145,30 @@ startKeyboardHandsSystem = do
     registerSystem sysKeyboardHands $ KeyboardHandsSystem
         { _kbhShiftDown   = False
         , _kbhKeyIDs      = keyIDs
-        , _kbhCurrentKeys = mempty
+        , _kbhCurrentKey  = mempty
+        , _kbhLastKey     = mempty
         }
 
 tickKeyboardHandsSystem :: ECSMonad ()
 tickKeyboardHandsSystem = do
     handIDs <- getHandIDs
-    
 
     keyIDs <- viewSystem sysKeyboardHands kbhKeyIDs
 
     forM_ handIDs $ \(whichHand, handID) -> do
         withHandEvents whichHand $ \case
+            HandStateEvent _ -> do
+                modifySystemState sysKeyboardHands $ do
+                    currentKey <- use $ kbhCurrentKey . at whichHand
+                    lastKey    <- use $ kbhLastKey    . at whichHand
+                    when (currentKey /= lastKey) $ do
+                        lift $ hapticPulse whichHand 2000
+                    kbhLastKey . at whichHand .= currentKey
             HandButtonEvent HandButtonPad ButtonDown -> do
-                mCurrentKey <- viewSystem sysKeyboardHands (kbhCurrentKeys . at whichHand)
+                mCurrentKey <- viewSystem sysKeyboardHands (kbhCurrentKey . at whichHand)
                 forM_ mCurrentKey $ \currentKey -> do
+
+                    -- Shift handling
                     if (currentKey == HandKeyShift) 
                         then do
                             isShiftDown <- modifySystemState sysKeyboardHands (kbhShiftDown <%= not)
@@ -173,14 +182,13 @@ tickKeyboardHandsSystem = do
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
                                 sendInternalEvent (GLFWEvent event)
 
-                    modifySystemState sysKeyboardHands $ kbhCurrentKeys . at whichHand .= Nothing
             _ -> return ()
 
 spawnKeysForHand :: (MonadIO m, MonadState ECS m) => WhichHand -> EntityID -> [[HandKey]] -> m [(EntityID, HandKey)]
 spawnKeysForHand whichHand handID keyRows = do
     let numRows = fromIntegral (length keyRows)
         maxNumKeys = fromIntegral $ maximum (map length keyRows)
-    
+
     -- Add the indicator of thumb position
     void $ spawnEntity Transient $ makeThumbNub whichHand handID maxNumKeys numRows
 
@@ -194,17 +202,17 @@ spawnKeysForHand whichHand handID keyRows = do
 
 makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> Int-> Int -> GLfloat -> GLfloat -> HandKey -> m ()
 makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
-    let (indexXF,  indexYF)  = (fromIntegral x                   , fromIntegral y)
-        (keyProgX, keyProgY) = (indexXF / numKeys                , indexYF / numRows) 
-        (keyProgW, keyProgH) = (1 / numKeys                      , 1       / numRows)
-        (keyX, keyY)         = (keyOffsetX + indexXF * keyWidthT , keyboardOffsetY + indexYF * keyHeightT)
-        pointIsInKey         = inRect keyProgX keyProgY keyProgW keyProgH
-        keyOffsetX           = -keyWidthT * (numKeys - 1) / 2
-        pose                 = V3 keyX 0.1 keyY
-        colorOn              = hslColor 0.2 0.8 0.8
-        colorOff             = hslColor 0.3 0.8 0.4
-        keyTitleScale        = 1 / (fromIntegral (length keyTitle))
-        keyTitle             = showKey False key 
+    let (indexXF,  indexYF)   = (fromIntegral x                   , fromIntegral y)
+        (keyProgX, keyProgY)  = (indexXF / numKeys                , indexYF / numRows) 
+        (keyProgW, keyProgH)  = (1 / numKeys                      , 1       / numRows)
+        (keyX, keyY)          = (keyOffsetX + indexXF * keyWidthT , keyboardOffsetY + indexYF * keyHeightT)
+        pointIsInKey          = inRect keyProgX keyProgY keyProgW keyProgH
+        keyOffsetX            = -keyWidthT * (numKeys - 1) / 2
+        pose                  = V3 keyX 0.1 keyY
+        colorOn               = hslColor 0.2 0.8 0.8
+        colorOff              = hslColor 0.3 0.8 0.4
+        keyTitleScale         = 1 / (fromIntegral (length keyTitle))
+        keyTitle              = showKey False key 
     cmpText                   ==> keyTitle
     cmpTextPose               ==> mkTransformation 
                                       (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0) !*! scaleMatrix keyTitleScale
@@ -224,7 +232,7 @@ makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
                 cmpColor ==> color
 
                 when isInKey $ do
-                    modifySystemState sysKeyboardHands $ kbhCurrentKeys . at whichHand ?= key
+                    modifySystemState sysKeyboardHands $ kbhCurrentKey . at whichHand ?= key
             _ -> return ()
 
 getThumbPos :: Hand -> V2 GLfloat

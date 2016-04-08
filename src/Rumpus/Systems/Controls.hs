@@ -25,6 +25,12 @@ getNow = do
     vrPal <- viewSystem sysControls ctsVRPal
     realToFrac . utctDayTime <$> VRPal.getNow vrPal 
 
+
+hapticPulse whichHand duration = do
+    let axis = 0 -- none of the others seem to work??
+    vrPal <- viewSystem sysControls ctsVRPal
+    triggerHandHapticPulse vrPal whichHand axis duration
+
 initControlsSystem :: (MonadState ECS m, MonadIO m) => VRPal -> m ()
 initControlsSystem vrPal = do
     internalEvents <- liftIO newTChanIO

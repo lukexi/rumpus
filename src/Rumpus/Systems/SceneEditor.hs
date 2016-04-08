@@ -16,6 +16,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Sound
 import Rumpus.Systems.Attachment
 --import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.Haptics
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Constraint
 
@@ -125,9 +126,10 @@ continueDrag draggingHandEntityID = do
 
 endDrag :: MonadState ECS m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
-    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID _) -> runEntity entityID $ 
-        when (handEntityID == endingDragHandEntityID) $
-            removeComponent cmpDrag
+    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID _) -> do
+        when (handEntityID == endingDragHandEntityID) $ do
+
+            runEntity entityID $ removeComponent cmpDrag
 
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity Persistent $ do
@@ -138,10 +140,12 @@ spawnNewEntityAtPose pose = spawnEntity Persistent $ do
 
 tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
-    let editSceneWithHand handEntityID otherHandEntityID event = case event of
+    let editSceneWithHand whichHand handEntityID otherHandEntityID event = case event of
             HandStateEvent hand -> do
-                setEntityPose (hand ^. hndMatrix) handEntityID
+                let newHandPose = hand ^. hndMatrix 
+                setEntityPose newHandPose handEntityID
                 continueDrag handEntityID
+                continueHapticDrag whichHand newHandPose
             HandButtonEvent HandButtonGrip ButtonDown -> do
                 --handPose <- getEntityPose handEntityID
                 --_ <- spawnNewEntityAtPose handPose
@@ -175,8 +179,10 @@ tickSceneEditorSystem = do
                     when (null overlappingEntityIDs) clearSelection
                     
                     forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
+                        handPose <- getEntityPose handEntityID
+                        beginHapticDrag whichHand handPose
 
-                        hasDragFunction <- entityHasComponent grabbedID cmpOnDrag
+                        hasDragFunction        <- entityHasComponent grabbedID cmpOnDrag
                         isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
                         if 
                             | isBeingHeldByOtherHand -> do
@@ -190,6 +196,7 @@ tickSceneEditorSystem = do
                                 selectEntity grabbedID
                                 attachEntity handEntityID grabbedID True
             HandButtonEvent HandButtonTrigger ButtonUp -> do
+                endHapticDrag whichHand
                 endDrag handEntityID
                 detachAttachedEntities handEntityID
 
@@ -201,8 +208,8 @@ tickSceneEditorSystem = do
 
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
-    withLeftHandEvents  (editSceneWithHand leftHandID  rightHandID)
-    withRightHandEvents (editSceneWithHand rightHandID leftHandID)
+    withLeftHandEvents  (editSceneWithHand LeftHand leftHandID  rightHandID)
+    withRightHandEvents (editSceneWithHand RightHand rightHandID leftHandID)
 
 
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]

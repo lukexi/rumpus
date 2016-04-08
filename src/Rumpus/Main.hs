@@ -28,6 +28,7 @@ rumpusMain = withPd $ \pd -> do
         initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
+        initHapticsSystem
         initLifetimeSystem
         initPhysicsSystem
         initPlayPauseSystem

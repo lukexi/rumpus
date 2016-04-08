@@ -1,7 +1,16 @@
 #!/bin/sh
 # A workaround for missing .p_a files
+
+# This will prevent the cleaning from taking place more than once.
+# We clear this file in rumpus-dev, as that builds a non-profiled build again.
+if [[ -e .profile-clean-hack ]]; then
+	exit 0;
+fi
+
 stack clean pd 
 stack clean bindings-GLFW 
 stack clean bullet-mini 
 stack clean openvr-hs
 stack clean freetype-gl-mini
+
+touch .profile-clean-hack

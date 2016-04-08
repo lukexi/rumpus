@@ -1,2 +1,3 @@
 #!/bin/sh
+rm -rf .profile-clean-hack # see rumpus-profile-cleaner
 stack build --file-watch --exec "rumpus $1"

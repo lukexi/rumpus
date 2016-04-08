@@ -43,6 +43,8 @@
 
 
 [ ] Crasher when turning controllers on after launch
+        - Investigate this in openvr-hs to minimize surface area 
+
 
 [ ] Finish keyboard
     [ ] Fullsize keys for space etc.
