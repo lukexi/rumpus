@@ -12,7 +12,6 @@ import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Attachment
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Text
 
@@ -155,7 +154,7 @@ tickKeyboardHandsSystem = do
 
     keyIDs <- viewSystem sysKeyboardHands kbhKeyIDs
 
-    forM_ handIDs $ \(whichHand, handID) -> do
+    forM_ handIDs $ \(whichHand, _handID) -> do
         withHandEvents whichHand $ \case
             HandStateEvent _ -> do
                 modifySystemState sysKeyboardHands $ do

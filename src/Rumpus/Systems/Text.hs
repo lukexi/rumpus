@@ -46,6 +46,7 @@ initTextSystem = do
                         txtRecycleBin .= xs
                         flip execStateT x $ setTextRendererText id text
             cmpTextRenderer ==> textRenderer
+            -- Retrigger pose caching
             setTextPose =<< getTextPose
         , ciRemoveComponent = withComponent_ cmpTextRenderer $ \textRenderer -> do
             -- FIXME at some point we should start actually destroying TextRenderers if the bin has enough
@@ -78,11 +79,12 @@ getEntityTextPose entityID = fromMaybe identity <$> getEntityComponent entityID 
 getEntityTextCachedM44 :: MonadState ECS m => EntityID -> m (M44 GLfloat)
 getEntityTextCachedM44 entityID = fromMaybe identity <$> getEntityComponent entityID cmpTextCachedM44
 
+setTextPose :: (MonadState ECS m, MonadReader EntityID m) => M44 GLfloat -> m ()
 setTextPose pose = flip setEntityTextPose pose =<< ask
 
+setEntityTextPose :: (MonadState ECS m) => EntityID -> M44 GLfloat -> m ()
 setEntityTextPose entityID textPose = do
     setEntityComponent cmpTextPose textPose entityID
-
 
     withEntityComponent_ entityID cmpTextRenderer $ \textRenderer -> 
         setEntityComponent cmpTextCachedM44 (textPose !*! textRenderer ^. txrCorrectionM44) entityID
