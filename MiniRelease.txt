@@ -77,6 +77,12 @@
         and just have them all report to a verylogue instance, which will 
         set things up nicely for doing a full synth+sequencer
 [ ] Some sort of swarm of cubes? 
+[ ] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
+[ ] Pull-along music box
+[ ] L-system trees
+[ ] Ball that when thrown, causes a tree to grow
+[ ] Focus on basic code capabilities: defining and spawning instances of things. 
+    Using same set of rules to generate multiple possibilities.
 
 [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
     (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
