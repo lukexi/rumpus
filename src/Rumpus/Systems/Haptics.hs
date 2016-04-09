@@ -3,8 +3,6 @@
 module Rumpus.Systems.Haptics where
 
 import Rumpus.Systems.Controls
-import Rumpus.Systems.Physics
-import Rumpus.Systems.Shared
 import PreludeExtra
 
 data HapticsSystem = HapticsSystem 

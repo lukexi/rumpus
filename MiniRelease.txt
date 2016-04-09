@@ -8,6 +8,7 @@
     [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
 
 [ ] Do a slightly nicer default shader? Maybe some lights? We are not using the GPU at all so this would be rad...
+    (boyyy shadowing would be even cooler!!!)
 
 [ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
     Except, how to deal with editing without resetting position etc.? 
@@ -26,19 +27,12 @@
     (I think we don't want to do this? because the idea is that waitGetPoses will wait until 2ms before vsync
     and give us time to submit all the render calls. we are probably well within time for that... but I guess try it!)
 
-[x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
 
-[ ] Text matrix caching
-    [x] Cache correction matrix
-    [ ] Cache objectPose !*! textPose !*! correctionMatrix?
-        A bit trickier, since we have to make sure we catch everything that will change any of those...
-
-[x] Held object haptics
 
 [ ] Text display improvements... how hard would a virtual screen be???
     Prototype it in freetype-gl-mini. Basically, render to texture, add curve, add shader.
     Or, just do clipping and put shaders on the text.
-    [x] Cursor is way too hard to see! *********
+    [x] Cursor is way too hard to see!
     [ ] Add line numbers?? Any way to do that easily??
 
 [ ] Knob API!
@@ -53,16 +47,17 @@
 
 [ ] Finish keyboard
     [ ] Fullsize keys for space etc.
+    [ ] Only show keyboard when object selected
+    [ ] Variable-width keys like Valve's, for oft-used keys?
     [x] Haptics for moving thumb on keys
         [ ] Different vibrations to let you know that you're still on the right key??
             (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
-    [ ] Only show keyboard when object selected
 
     [x] Get touchpad down event from steamVR
 
 
 [ ] Create intro object
-        Have it be the only thing that you start out seeing, and have the other objects on other platforms?
+        Have it be the only thing that you start out seeing (on a pedestal, with a rotating color-shifting cube), and have the other objects on other platforms?
         TRY EDITING ME
     [ ] Rename cmp to my
 
@@ -76,13 +71,16 @@
     [ ] Note: only have limited voices so ditch the per-note positioning 
         and just have them all report to a verylogue instance, which will 
         set things up nicely for doing a full synth+sequencer
-[ ] Some sort of swarm of cubes? 
+
 [ ] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
 [ ] Pull-along music box
 [ ] L-system trees
 [ ] Ball that when thrown, causes a tree to grow
 [ ] Focus on basic code capabilities: defining and spawning instances of things. 
     Using same set of rules to generate multiple possibilities.
+[ ] Some sort of swarm of cubes, taking advantage of instancing
+    (the most effective version of this would be using a vert-shader for rotation etc. 
+    as we seem to be generally CPU bound and barely using the GPU)
 
 [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
     (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
@@ -92,6 +90,11 @@
 
 
 
+[ ] Time update/start runs. Remove them if they take too long and set an error.
+    This won't handle nontermnation, which will require running a thread and 
+    manufacturing dummy data (esp, how to deal with dynamics world?) which will get complicated.
+    It feels like smarter idea is the whole separate-render-thread-from-logic-thread thing, 
+    and let the logic thread crash.
 
 
 [ ] (later!!!) Implement Vlachos's idea of total render-thread asynchrony. This will be easy with our immutable datastructures.
@@ -130,6 +133,16 @@
 [ ] Another great idea from talk 1: pass BOTH eye M44s in one render call, and output to both framebuffers at the same time
     while using instanced rendering. Use odd instances to render to left eye, even to right eye? Or something like that,
     but point is in general that you render all geometry of a kind to both eyes at once.
+
+
+[x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
+
+[x] Text matrix caching
+    [x] Cache correction matrix
+    [x] Cache objectPose !*! textPose !*! correctionMatrix?
+        A bit trickier, since we have to make sure we catch everything that will change any of those...
+
+[x] Held object haptics
 
 [x] Fix hands swapping for haptics
 [x] Fix error message positioning 

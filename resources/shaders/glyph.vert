@@ -8,7 +8,8 @@ layout (std140) uniform charactersBlock {
   Character characters[500];
 };
 
-uniform mat4 uMVP;
+uniform mat4 uProjectionView;
+uniform mat4 uModel;
 uniform float uTime;
 
 in int  aInstanceGlyphIndex;
@@ -43,6 +44,7 @@ mat4 translateMatrix(vec3 t) {
 }
 
 void main() {
+    mat4 mvp = uProjectionView * uModel; 
 
     Character character = characters[aInstanceGlyphIndex];
     
@@ -53,7 +55,7 @@ void main() {
     vTexCoord = texCoord;
 
     vColor = vec3(aInstanceCharacterOffset.w,1.0,1.0);
-    gl_Position = uMVP * vec4(position.xyz, 1.0);
+    gl_Position = mvp * vec4(position.xyz, 1.0);
 
     // Scaling & color effects for the cursor
     if (aInstanceCharacterOffset.w < 0.0) {
@@ -71,7 +73,7 @@ void main() {
         vec3 positionScaled = vec3(posCoordsOffset * scale) 
                                 + aInstanceCharacterOffset.xyz;
         
-        gl_Position = uMVP * vec4(positionScaled, 1.0);
+        gl_Position = mvp * vec4(positionScaled, 1.0);
     }
 }
 
