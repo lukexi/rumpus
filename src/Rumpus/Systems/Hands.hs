@@ -24,20 +24,20 @@ startHandsSystem = do
     let handColor = V4 0.6 0.6 0.9 1
 
     leftHandID <- spawnEntity Transient $ do
-        cmpColor             ==> handColor
-        cmpSize              ==> V3 0.1 0.1 0.3
-        cmpShapeType         ==> CubeShape
-        cmpPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
-        cmpMass              ==> 0
-        cmpOnCollisionStart  ==> \_ impulse -> do
+        myColor             ==> handColor
+        mySize              ==> V3 0.1 0.1 0.3
+        myShapeType         ==> CubeShape
+        myPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
+        myMass              ==> 0
+        myOnCollisionStart  ==> \_ impulse -> do
             triggerHandHapticPulse vrPal LeftHand 0 (floor $ impulse * 10000)
     rightHandID <- spawnEntity Transient $ do
-        cmpColor             ==> handColor
-        cmpSize              ==> V3 0.1 0.1 0.3
-        cmpShapeType         ==> CubeShape
-        cmpPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
-        cmpMass              ==> 0
-        cmpOnCollisionStart  ==> \_ impulse -> 
+        myColor             ==> handColor
+        mySize              ==> V3 0.1 0.1 0.3
+        myShapeType         ==> CubeShape
+        myPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
+        myMass              ==> 0
+        myOnCollisionStart  ==> \_ impulse -> 
             triggerHandHapticPulse vrPal RightHand 0 (floor $ impulse * 10000)
     registerSystem sysHands $ HandsSystem
             { _hndLeftHand  = leftHandID

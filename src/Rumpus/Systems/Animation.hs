@@ -13,17 +13,17 @@ defineComponentKeyWithType "SizeAnimation"  [t|Animation (V3 GLfloat)|]
 
 initAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAnimationSystem = do
-    registerComponent "ColorAnimation" cmpColorAnimation (newComponentInterface cmpColorAnimation)
-    registerComponent "SizeAnimation"  cmpSizeAnimation  (newComponentInterface cmpSizeAnimation)
-    -- registerComponent "PoseAnimation"  cmpPoseAnimation  (newComponentInterface cmpPoseAnimation)
+    registerComponent "ColorAnimation" myColorAnimation (newComponentInterface myColorAnimation)
+    registerComponent "SizeAnimation"  mySizeAnimation  (newComponentInterface mySizeAnimation)
+    -- registerComponent "PoseAnimation"  myPoseAnimation  (newComponentInterface myPoseAnimation)
 
 tickAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAnimationSystem = whenWorldPlaying $ do
     now <- realToFrac <$> getNow
     
-    tickComponentAnimation now cmpColorAnimation cmpColor
-    tickComponentAnimation now cmpSizeAnimation  cmpSize
-    -- tickComponentAnimation now cmpPoseAnimation  cmpPose
+    tickComponentAnimation now myColorAnimation myColor
+    tickComponentAnimation now mySizeAnimation  mySize
+    -- tickComponentAnimation now myPoseAnimation  myPose
 
 tickComponentAnimation :: MonadState ECS m 
                        => DiffTime

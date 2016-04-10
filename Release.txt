@@ -56,7 +56,7 @@
     
         Use tutorial as an opportunity to simplify lang examples as much as possible
         e.g. pull out 'align-vector-to-entity' code from fountain; we'll need it for guns!
-        should cmpSize etc. be selfSize or cSize or eSize or thisSize or 
+        should mySize etc. be selfSize or cSize or eSize or thisSize or 
         s'size e_color?
 
         s'size  ==> V3 1 2 4

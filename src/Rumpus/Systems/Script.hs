@@ -10,7 +10,7 @@ import Control.Monad.Catch
 
 tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
-    forEntitiesWithComponent cmpOnStart $
+    forEntitiesWithComponent myOnStart $
         \(entityID, onStart) -> runEntity entityID $ do
             putStrLnIO ("Running OnStart for " ++ show entityID)
             -- Only call OnStart once. 
@@ -25,10 +25,10 @@ tickScriptSystem = whenWorldPlaying $ do
             setErrorText entityID runtimeErrors
             
             forM_ mScriptData $ \scriptData -> 
-                cmpScriptData ==> scriptData
-            removeComponent cmpOnStart
+                myScriptData ==> scriptData
+            removeComponent myOnStart
 
-    forEntitiesWithComponent cmpOnUpdate $
+    forEntitiesWithComponent myOnUpdate $
         \(entityID, onUpdate) -> do
             runEntity entityID onUpdate 
                 `catchAll`
@@ -38,7 +38,7 @@ tickScriptSystem = whenWorldPlaying $ do
 withScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => (a -> m ()) -> m ()
 withScriptData f = 
-    withComponent_ cmpScriptData $ \dynScriptData -> do
+    withComponent_ myScriptData $ \dynScriptData -> do
         case fromDynamic dynScriptData of
             Just scriptData -> f scriptData
             Nothing -> ask >>= \entityID -> putStrLnIO 
@@ -49,7 +49,7 @@ withScriptData f =
 editScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => (a -> m a) -> m ()
 editScriptData f = 
-    modifyComponent cmpScriptData $ \dynScriptData -> do
+    modifyComponent myScriptData $ \dynScriptData -> do
         case fromDynamic dynScriptData of
             Just scriptData -> toDyn <$> f scriptData
             Nothing -> ask >>= \entityID -> do
@@ -61,4 +61,4 @@ editScriptData f =
 
 setScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => a -> m ()
-setScriptData scriptData = cmpScriptData ==> toDyn scriptData
+setScriptData scriptData = myScriptData ==> toDyn scriptData

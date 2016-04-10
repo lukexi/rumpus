@@ -13,7 +13,7 @@ import Rumpus
 loadTestScene :: ECSMonad ()
 loadTestScene = do
     -- testEntity <- spawnEntity Transient $ return ()
-    -- addCodeExpr testEntity "CollisionStart" "collisionStart" cmpOnCollisionStartExpr cmpOnCollisionStart        
+    -- addCodeExpr testEntity "CollisionStart" "collisionStart" myOnCollisionStartExpr myOnCollisionStart        
     -- selectEntity testEntity
 
 
@@ -21,9 +21,9 @@ loadTestScene = do
     forM_ [room, city, fountain] $ \onStart -> do
     --forM_ [room] $ \onStart -> do
         spawnEntity Transient $ do
-            cmpOnStart ==> onStart
-            cmpSize ==> 0.3
-            cmpShapeType ==> CubeShape
+            myOnStart ==> onStart
+            mySize ==> 0.3
+            myShapeType ==> CubeShape
 
     setWorldPlaying True
 
@@ -44,14 +44,14 @@ room = do
     removeChildren
     builderID <- ask
     let makeWall pos size hue = spawnEntity Transient $ do
-            cmpParent            ==> builderID
-            cmpPose              ==> mkTransformation 
+            myParent            ==> builderID
+            myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
-            cmpShapeType         ==> CubeShape
-            cmpPhysicsProperties ==> [Kinematic, Static]
-            cmpSize              ==> size
-            cmpColor             ==> hslColor hue 0.8 0.6
-            cmpMass              ==> 0
+            myShapeType         ==> CubeShape
+            myPhysicsProperties ==> [Kinematic, Static]
+            mySize              ==> size
+            myColor             ==> hslColor hue 0.8 0.6
+            myMass              ==> 0
     --makeWall (V3 0 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 -- back
     --makeWall (V3 0 0 (roomD/2))  (V3 roomW roomH wallD) 0.2 -- front
     --makeWall (V3 (-roomW/2) 0 0) (V3 wallD roomH roomD) 0.3 -- left
@@ -100,17 +100,17 @@ createBuildings = do
         hue <- liftIO randomIO
         
         when (x /= 0 && z /= 0) $ void . spawnEntity Transient $ do
-            cmpParent               ==> rootEntityID
-            cmpPose                 ==> mkTransformation 
+            myParent               ==> rootEntityID
+            myPose                 ==> mkTransformation 
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
-            cmpShapeType            ==> CubeShape
-            cmpPhysicsProperties    ==> [NoPhysicsShape]
-            --cmpOnUpdate ==> do
+            myShapeType            ==> CubeShape
+            myPhysicsProperties    ==> [NoPhysicsShape]
+            --myOnUpdate ==> do
             --    now <- getNow
             --    let newHeight = ((sin (now+i) + 1) + 1) * height
             --    setSize (V3 dim newHeight dim)
-            cmpSize                 ==> V3 dim height dim
-            cmpColor                ==> hslColor hue 0.8 0.8
+            mySize                 ==> V3 dim height dim
+            myColor                ==> hslColor hue 0.8 0.8
 
 createStars :: EntityMonad ()
 createStars = do
@@ -120,13 +120,13 @@ createStars = do
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
-        cmpParent               ==> rootEntityID
-        cmpPose                 ==> mkTransformation 
+        myParent               ==> rootEntityID
+        myPose                 ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
-        cmpShapeType            ==> SphereShape
-        cmpPhysicsProperties    ==> [NoPhysicsShape]
-        cmpSize                 ==> 5
-        cmpColor                ==> hslColor hue 0.8 0.8
+        myShapeType            ==> SphereShape
+        myPhysicsProperties    ==> [NoPhysicsShape]
+        mySize                 ==> 5
+        myColor                ==> hslColor hue 0.8 0.8
 
 -------------------------
 -- Fountain
@@ -140,7 +140,7 @@ fountain :: OnStart
 fountain = do
     removeChildren
 
-    cmpOnUpdate ==> withScriptData (\timer -> do
+    myOnUpdate ==> withScriptData (\timer -> do
         shouldSpawn <- checkTimer timer
         if shouldSpawn 
             then do
@@ -148,12 +148,12 @@ fountain = do
                 sendPd "note" (Atom $ realToFrac note)
                 pose <- getPose
                 childID <- spawnEntity Transient $ do
-                    cmpPose ==> pose & translation +~ 
+                    myPose ==> pose & translation +~ 
                         (pose ^. _m33) !* (V3 0 0.3 0)
-                    cmpShapeType ==> SphereShape
-                    cmpSize ==> 0.03
-                    cmpMass ==> 0.1
-                    cmpColor ==> hslColor (note / 12) 0.9 0.8
+                    myShapeType ==> SphereShape
+                    mySize ==> 0.03
+                    myMass ==> 0.1
+                    myColor ==> hslColor (note / 12) 0.9 0.8
                 runEntity childID $ do
                     setLifetime 10
                     applyForce $ (pose ^. _m33) !* (V3 0 0.3 0)

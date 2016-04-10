@@ -29,24 +29,24 @@ createBuildings = do
     -- Ground
     spawnEntity Transient $ do
         let y = -height*2
-        cmpParent             ==> rootEntityID
-        cmpPose               ==> mkTransformation 
+        myParent             ==> rootEntityID
+        myPose               ==> mkTransformation 
                                       (axisAngle (V3 0 0 1) 0) (V3 0 y 0)
-        cmpShapeType          ==> CubeShape
-        cmpPhysicsProperties  ==> [NoPhysicsShape]
-        cmpSize               ==> V3 (dim * n * 8) 1 (dim * n * 8)
-        cmpColor              ==> hslColor 0.7 0.6 0.2
+        myShapeType          ==> CubeShape
+        myPhysicsProperties  ==> [NoPhysicsShape]
+        mySize               ==> V3 (dim * n * 8) 1 (dim * n * 8)
+        myColor              ==> hslColor 0.7 0.6 0.2
     forM_ buildSites $ \(V3 x y z) -> do
         hue <- liftIO randomIO
         
         when (x /= 0 && z /= 0) $ void . spawnEntity Transient $ do
-            cmpParent             ==> rootEntityID
-            cmpPose               ==> mkTransformation 
+            myParent             ==> rootEntityID
+            myPose               ==> mkTransformation 
                                           (axisAngle (V3 0 0 1) 0) (V3 x y z)
-            cmpShapeType          ==> CubeShape
-            cmpPhysicsProperties  ==> [NoPhysicsShape]
-            cmpSize               ==> V3 dim height dim
-            cmpColor              ==> hslColor hue 0.8 0.8
+            myShapeType          ==> CubeShape
+            myPhysicsProperties  ==> [NoPhysicsShape]
+            mySize               ==> V3 dim height dim
+            myColor              ==> hslColor hue 0.8 0.8
 
 createStars :: EntityMonad ()
 createStars = do
@@ -57,10 +57,10 @@ createStars = do
         sphere = drop (numPoints `div` 2) $ pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
-        cmpParent                 ==> rootEntityID
-        cmpPose                   ==> mkTransformation 
+        myParent                 ==> rootEntityID
+        myPose                   ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
-        cmpShapeType              ==> SphereShape
-        cmpPhysicsProperties      ==> [NoPhysicsShape]
-        cmpSize                   ==> 5
-        cmpColor                  ==> hslColor hue 0.8 0.8
+        myShapeType              ==> SphereShape
+        myPhysicsProperties      ==> [NoPhysicsShape]
+        mySize                   ==> 5
+        myColor                  ==> hslColor hue 0.8 0.8

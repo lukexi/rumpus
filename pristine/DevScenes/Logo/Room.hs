@@ -13,20 +13,20 @@ roomOffset = 0
 start :: OnStart
 start = do
     lhID <- getLeftHandID
-    removeEntityComponent cmpShapeType lhID
+    removeEntityComponent myShapeType lhID
     --setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     setPose (identity & translation .~ V3 0 10 (-roomD/2 + 0.4))
     removeChildren
     builderID <- ask
     let makeWall pos size hue = spawnEntity Transient $ do
-            cmpParent            ==> builderID
-            cmpPose              ==> mkTransformation 
+            myParent            ==> builderID
+            myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
-            cmpShapeType         ==> CubeShape
-            cmpPhysicsProperties ==> [Kinematic, Static]
-            cmpSize              ==> size
-            cmpColor             ==> hslColor hue 0.8 0.6 1
-            cmpMass              ==> 0
+            myShapeType         ==> CubeShape
+            myPhysicsProperties ==> [Kinematic, Static]
+            mySize              ==> size
+            myColor             ==> hslColor hue 0.8 0.6 1
+            myMass              ==> 0
     --makeWall (V3 0 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 -- back
     makeWall (V3 0 0 (roomD/2))  (V3 roomW roomH wallD) 0.8 -- front
     makeWall (V3 (-roomW/2) 0 0) (V3 wallD roomH roomD) 0.4 -- left
@@ -44,13 +44,13 @@ start = do
 
 
     spawnEntity Transient $ do
-        cmpParent            ==> builderID
-        cmpPose              ==> mkTransformation 
+        myParent            ==> builderID
+        myPose              ==> mkTransformation 
             (axisAngle (V3 0 0 1) 0) (V3 0 roomOffset 2)
-        cmpShapeType         ==> SphereShape
-        cmpPhysicsProperties ==> [Kinematic, Static]
-        cmpSize              ==> 0.8
-        cmpColor             ==> hslColor 0.2 0.7 0.6
-        cmpMass              ==> 0
+        myShapeType         ==> SphereShape
+        myPhysicsProperties ==> [Kinematic, Static]
+        mySize              ==> 0.8
+        myColor             ==> hslColor 0.2 0.7 0.6
+        myMass              ==> 0
 
     return Nothing

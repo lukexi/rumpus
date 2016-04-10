@@ -54,10 +54,10 @@ defineComponentKeyWithType "OnCollisionStartExpr" [t|CodeInFile|]
 defineComponentKeyWithType "PlayWhenReady" [t|Bool|]
 
 getPlayWhenReady :: (MonadState ECS m, MonadReader EntityID m) => m Bool
-getPlayWhenReady = fromMaybe False <$> getComponent cmpPlayWhenReady
+getPlayWhenReady = fromMaybe False <$> getComponent myPlayWhenReady
 
 getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
-getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID cmpPlayWhenReady
+getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID myPlayWhenReady
 
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
             => FilePath
@@ -77,7 +77,7 @@ addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
 
 forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 forkCode fromEntityID toEntityID = do
-    let codeFileComponentKey = cmpOnStartExpr
+    let codeFileComponentKey = myOnStartExpr
     mCodeExpr <- getEntityComponent fromEntityID codeFileComponentKey
 
     forM_ mCodeExpr $ \(fullPath, expr) -> do
@@ -126,12 +126,12 @@ initCodeEditorSystem = do
         }
 
     -- Will require (scriptPath, "start") (or "update" or "collision") to be added somewhere!
-    registerCodeExprComponent "OnStartExpr"          cmpOnStartExpr          cmpOnStart
-    registerCodeExprComponent "OnUpdateExpr"         cmpOnUpdateExpr         cmpOnUpdate
-    registerCodeExprComponent "OnCollisionExpr"      cmpOnCollisionExpr      cmpOnCollision
-    registerCodeExprComponent "OnCollisionStartExpr" cmpOnCollisionStartExpr cmpOnCollisionStart
+    registerCodeExprComponent "OnStartExpr"          myOnStartExpr          myOnStart
+    registerCodeExprComponent "OnUpdateExpr"         myOnUpdateExpr         myOnUpdate
+    registerCodeExprComponent "OnCollisionExpr"      myOnCollisionExpr      myOnCollision
+    registerCodeExprComponent "OnCollisionStartExpr" myOnCollisionStartExpr myOnCollisionStart
 
-    registerComponent "PlayWhenReady" cmpPlayWhenReady (savedComponentInterface cmpPlayWhenReady)
+    registerComponent "PlayWhenReady" myPlayWhenReady (savedComponentInterface myPlayWhenReady)
 
 
 registerCodeExprComponent :: MonadState ECS m 
@@ -226,7 +226,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 
     mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
     forM mSelectedEntityID $ \selectedEntityID ->
-        withEntityComponent selectedEntityID cmpOnStartExpr $ \codeInFile ->
+        withEntityComponent selectedEntityID myOnStartExpr $ \codeInFile ->
             modifySystemState sysCodeEditor $ do
                 
                 didSave <- fmap or . forM events $ \case
@@ -269,7 +269,7 @@ recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) 
 -- assuming the given entityID has an onStartExpr.
 setErrorText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
 setErrorText entityID errors = do
-    traverseM_ (getEntityComponent entityID cmpOnStartExpr) $ \codeInFile ->
+    traverseM_ (getEntityComponent entityID myOnStartExpr) $ \codeInFile ->
         modifySystemState sysCodeEditor $ 
             setTextRendererText (cesCodeEditors . ix codeInFile . cedErrorRenderer) errors
 
@@ -305,7 +305,7 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     -- First, see if we can place a cursor into a text buffer.
     -- If not, then move onto the selection logic.
     selectedEntityID <- MaybeT $ viewSystem sysSelection selSelectedEntityID
-    codeInFile       <- MaybeT $ getEntityComponent selectedEntityID cmpOnStartExpr
+    codeInFile       <- MaybeT $ getEntityComponent selectedEntityID myOnStartExpr
     editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeInFile)
     handPose         <- getEntityPose handEntityID
     pose             <- getEntityPose selectedEntityID

@@ -12,14 +12,14 @@ defineComponentKey ''Lifetime
 
 initLifetimeSystem :: MonadState ECS m => m ()
 initLifetimeSystem = do
-    registerComponent "Lifetime" cmpLifetime (newComponentInterface cmpLifetime)
+    registerComponent "Lifetime" myLifetime (newComponentInterface myLifetime)
 
 tickLifetimeSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickLifetimeSystem = whenWorldPlaying $ do
     now <- liftIO getCurrentTime
     
 
-    forEntitiesWithComponent cmpLifetime $ \(entityID, Lifetime birthtime lifetime) -> do
+    forEntitiesWithComponent myLifetime $ \(entityID, Lifetime birthtime lifetime) -> do
         let age = now `diffUTCTime` birthtime
         
         let fadeStart = lifetime - 1
@@ -35,7 +35,7 @@ tickLifetimeSystem = whenWorldPlaying $ do
 setLifetime :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> m ()
 setLifetime lifetime = do
     birth <- liftIO getCurrentTime
-    cmpLifetime ==> Lifetime birth (realToFrac lifetime)
+    myLifetime ==> Lifetime birth (realToFrac lifetime)
 
 
 

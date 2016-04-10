@@ -14,14 +14,14 @@ start = do
     removeChildren
     builderID <- ask
     let makeWall pos size hue extraProps = spawnEntity Transient $ do
-            cmpParent            ==> builderID
-            cmpPose              ==> mkTransformation 
+            myParent            ==> builderID
+            myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
-            cmpShapeType         ==> CubeShape
-            cmpPhysicsProperties ==> extraProps ++ [Kinematic, Static]
-            cmpSize              ==> size
-            cmpColor             ==> hslColor hue 0.8 0.6
-            cmpMass              ==> 0
+            myShapeType         ==> CubeShape
+            myPhysicsProperties ==> extraProps ++ [Kinematic, Static]
+            mySize              ==> size
+            myColor             ==> hslColor hue 0.8 0.6
+            myMass              ==> 0
     --makeWall (V3 0 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 [] -- back
     makeWall (V3 0 0 (roomD/2))  (V3 (roomW*0.99) roomH wallD) 0.2 [] -- front
     --makeWall (V3 (-roomW/2) 0 0) (V3 wallD roomH roomD) 0.3 [] -- left
