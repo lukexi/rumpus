@@ -1,3 +1,8 @@
+[ ] Try metaphor of "Exploratorium", or "Computational Museum". 
+    Just like you might visit the Exploratorium and have a great time despite not
+    quite understanding how turbulence works, or how parabolic dishes focus sounds, you can
+    still enjoy the exhibits. The plaques describe how they work for those who are interested.
+
 [x] Teleporting
     [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
     [x] If doing head, do hands too.
