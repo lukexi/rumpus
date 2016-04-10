@@ -123,12 +123,12 @@ startKeyboardHandsSystem = do
     rightHandID <- getRightHandID
     
     runEntity leftHandID $ do
-        cmpOnCollisionStart  ==> \_ impulse -> do
+        myOnCollisionStart  ==> \_ impulse -> do
             hapticPulse LeftHand (floor $ impulse * 10000)
 
 
     runEntity rightHandID $ do
-        cmpOnCollisionStart  ==> \_ impulse -> 
+        myOnCollisionStart  ==> \_ impulse -> 
             hapticPulse RightHand (floor $ impulse * 10000)
     
     -- Have hands write their key events to this entityID
@@ -212,23 +212,23 @@ makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
         colorOff              = hslColor 0.3 0.8 0.4
         keyTitleScale         = 1 / (fromIntegral (length keyTitle))
         keyTitle              = showKey False key 
-    cmpText                   ==> keyTitle
-    cmpTextPose               ==> mkTransformation 
+    myText                   ==> keyTitle
+    myTextPose               ==> mkTransformation 
                                       (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0) !*! scaleMatrix keyTitleScale
-    cmpColor                  ==> colorOff
-    cmpParent                 ==> parentHandID
-    cmpShapeType              ==> CubeShape
-    cmpPhysicsProperties      ==> [NoPhysicsShape]
-    cmpPose                   ==> (identity & translation .~ pose)
-    cmpSize                   ==> V3 keyWidth 0.02 keyHeight
-    cmpInheritParentTransform ==> InheritPose
-    cmpOnUpdate ==> do
+    myColor                  ==> colorOff
+    myParent                 ==> parentHandID
+    myShapeType              ==> CubeShape
+    myPhysicsProperties      ==> [NoPhysicsShape]
+    myPose                   ==> (identity & translation .~ pose)
+    mySize                   ==> V3 keyWidth 0.02 keyHeight
+    myInheritParentTransform ==> InheritPose
+    myOnUpdate ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do
                 let thumbXY  = getThumbPos hand
                     isInKey  = pointIsInKey (thumbXY + 0.5) -- pointIsInKey expects values 0-1 rather than -0.5 - 0.5
                     color    = if isInKey then colorOn else colorOff
-                cmpColor ==> color
+                myColor ==> color
 
                 when isInKey $ do
                     modifySystemState sysKeyboardHands $ kbhCurrentKey . at whichHand ?= key
@@ -249,13 +249,13 @@ makeThumbNub :: (HasComponents s, MonadState s m, MonadReader EntityID m) => Whi
 makeThumbNub whichHand parentHandID maxNumKeys numRows = do
     let keyboardDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
         colorOn = hslColor 0.2 0.8 0.8
-    cmpColor                  ==> colorOn
-    cmpParent                 ==> parentHandID
-    cmpShapeType              ==> SphereShape
-    cmpPhysicsProperties      ==> [NoPhysicsShape]
-    cmpSize                   ==> 0.02
-    cmpInheritParentTransform ==> InheritPose
-    cmpOnUpdate               ==> do
+    myColor                  ==> colorOn
+    myParent                 ==> parentHandID
+    myShapeType              ==> SphereShape
+    myPhysicsProperties      ==> [NoPhysicsShape]
+    mySize                   ==> 0.02
+    myInheritParentTransform ==> InheritPose
+    myOnUpdate               ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do                
                 let V2 x y  = getThumbPos hand * keyboardDims

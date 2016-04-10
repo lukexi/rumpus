@@ -31,9 +31,9 @@ initSoundSystem pd = do
 
     registerSystem sysSound soundSystem
 
-    registerComponent "PdPatchFile" cmpPdPatchFile (savedComponentInterface cmpPdPatchFile)
-    registerComponent "OpenALSource" cmpOpenALSource (newComponentInterface cmpOpenALSource)
-    registerComponent "PdPatch" cmpPdPatch $ (newComponentInterface cmpPdPatch)
+    registerComponent "PdPatchFile" myPdPatchFile (savedComponentInterface myPdPatchFile)
+    registerComponent "OpenALSource" myOpenALSource (newComponentInterface myOpenALSource)
+    registerComponent "PdPatch" myPdPatch $ (newComponentInterface myPdPatch)
         { ciDeriveComponent = Just (derivePdPatchComponent pd) 
         , ciRemoveComponent = removePdPatchComponent 
         }
@@ -43,7 +43,7 @@ tickSoundSystem = do
     headM44 <- getHeadPose 
     -- Update source and listener positions
     alListenerPose (poseFromMatrix headM44)
-    forEntitiesWithComponent cmpOpenALSource $ \(entityID, sourceID) -> do
+    forEntitiesWithComponent myOpenALSource $ \(entityID, sourceID) -> do
         position <- view translation <$> getEntityPose entityID
         alSourcePosition sourceID position
 
@@ -58,31 +58,31 @@ dequeueOpenALSource = modifySystemState sysSound $ do
 
 derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => PureData -> m ()
 derivePdPatchComponent pd = do
-    withComponent_ cmpPdPatchFile $ \patchFile -> do
+    withComponent_ myPdPatchFile $ \patchFile -> do
         sceneFolder <- getSceneFolder
         patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
-        cmpPdPatch ==> patch
+        myPdPatch ==> patch
 
         -- Assign the patch's output DAC index to route it to the the SourceID
         traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
             putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show sourceChannel
             send pd patch "dac" $ Atom (fromIntegral sourceChannel)
-            cmpOpenALSource ==> sourceID
+            myOpenALSource ==> sourceID
 
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()
 removePdPatchComponent = do
     pd <- viewSystem sysSound sndPd
     _ <- withPdPatch $ closePatch pd
 
-    removeComponent cmpPdPatch
-    removeComponent cmpOpenALSource
+    removeComponent myPdPatch
+    removeComponent myOpenALSource
 
 withPdPatch :: (MonadReader EntityID m, MonadState ECS m) => (Patch -> m b) -> m (Maybe b)
-withPdPatch = withComponent cmpPdPatch
+withPdPatch = withComponent myPdPatch
 
 
 withEntityPdPatch :: (HasComponents s, MonadState s m) => EntityID -> (Patch -> m b) -> m (Maybe b)
-withEntityPdPatch entityID = withEntityComponent entityID cmpPdPatch
+withEntityPdPatch entityID = withEntityComponent entityID myPdPatch
 
 sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
 sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem -> 

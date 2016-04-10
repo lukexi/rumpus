@@ -107,22 +107,22 @@ attachWithSpring entityID = do
             let pose = poseFromMatrix (hand ^. hndMatrix)
             setEntityPose pose entityID
 
-            useTraverseM_ (wldComponents . cmpSpring . at entityID) $ \spring ->
+            useTraverseM_ (wldComponents . mySpring . at entityID) $ \spring ->
                 setSpringWorldPose spring (pose ^. posPosition) (pose ^. posOrientation)
         HandButtonEvent HandButtonTrigger ButtonDown -> do
 
             overlapping         <- getEntityOverlapping entityID
             nonFloorOverlapping <- flip filterM overlapping $ \overlapper -> do
                 overlapperEntityID <- unCollisionObjectID <$> getCollisionObjectID overlapper
-                (/= Just "Floor") <$> use (wldComponents . cmpName . at overlapperEntityID)
+                (/= Just "Floor") <$> use (wldComponents . myName . at overlapperEntityID)
             forM_ (listToMaybe nonFloorOverlapping) $ \oneNonFloor -> do
                 do
                     anEntityID <- unCollisionObjectID <$> getCollisionObjectID oneNonFloor
-                    printIO =<< use (wldComponents . cmpName . at anEntityID)
+                    printIO =<< use (wldComponents . myName . at anEntityID)
                 dynamicsWorld <- view wlsDynamicsWorld
 
                 spring <- addWorldSpringConstraint dynamicsWorld (RigidBody oneNonFloor)
-                wldComponents . cmpSpring . at entityID ?= spring
+                wldComponents . mySpring . at entityID ?= spring
 
                 setSpringLinearLowerLimit  spring (-5  :: V3 Float)
                 setSpringLinearUpperLimit  spring (5   :: V3 Float)
@@ -143,8 +143,8 @@ attachWithSpring entityID = do
         HandButtonEvent HandButtonTrigger ButtonUp -> do
             setEntityColor (V4 0 1 0 1) entityID
 
-            useTraverseM_ (wldComponents . cmpSpring . at entityID) $ \spring -> do
+            useTraverseM_ (wldComponents . mySpring . at entityID) $ \spring -> do
                 dynamicsWorld <- view wlsDynamicsWorld
                 removeSpringConstraint dynamicsWorld spring
-                wldComponents . cmpSpring . at entityID .= Nothing
+                wldComponents . mySpring . at entityID .= Nothing
         _ -> return ()

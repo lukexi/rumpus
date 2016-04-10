@@ -104,7 +104,7 @@ tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
     
     finalMatricesByEntityID <- getFinalMatrices
-    colorsMap               <- getComponentMap cmpColor
+    colorsMap               <- getComponentMap myColor
 
     -- Pulse the currently selected entity in blue
     selectedEntityID <- getSelectedEntityID
@@ -161,12 +161,12 @@ renderEntities projViewM44 shapes = do
 -- This avoids duplicate matrix multiplications.
 getFinalMatrices :: (MonadIO m, MonadState ECS m) => m (Map EntityID (M44 GLfloat))
 getFinalMatrices = do
-    poseMap                   <- getComponentMap cmpPose
-    poseScaledMap             <- getComponentMap cmpPoseScaled
-    childrenMap               <- getComponentMap cmpChildren
-    parentMap                 <- getComponentMap cmpParent
-    sizeMap                   <- getComponentMap cmpSize
-    inheritParentTransformMap <- getComponentMap cmpInheritParentTransform
+    poseMap                   <- getComponentMap myPose
+    poseScaledMap             <- getComponentMap myPoseScaled
+    childrenMap               <- getComponentMap myChildren
+    parentMap                 <- getComponentMap myParent
+    sizeMap                   <- getComponentMap mySize
+    inheritParentTransformMap <- getComponentMap myInheritParentTransform
     
     let entityIDs           = Set.fromList . Map.keys $ poseMap
         entityIDsWithChild  = Set.fromList . Map.keys $ childrenMap
@@ -201,7 +201,7 @@ getFinalMatrices = do
 
 
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m (V.Vector EntityID)
-getEntityIDsForShapeType shapeType = V.fromList . Map.keys . Map.filter (== shapeType) <$> getComponentMap cmpShapeType
+getEntityIDsForShapeType shapeType = V.fromList . Map.keys . Map.filter (== shapeType) <$> getComponentMap myShapeType
 
 
 renderEntitiesText :: (MonadState ECS m, MonadIO m) 
@@ -213,7 +213,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
     font <- getFont
     withSharedFont font projViewM44 $ do
 
-        entitiesWithText <- Map.toList <$> getComponentMap cmpTextRenderer
+        entitiesWithText <- Map.toList <$> getComponentMap myTextRenderer
         forM_ entitiesWithText $ \(entityID, textRenderer) -> do
             --color <- getEntityTextColor entityID
             
@@ -222,7 +222,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
             renderTextPreCorrectedOfSameFont textRenderer (parentM44 !*! textM44)
 
-        entitiesWithOnStart <- Map.toList <$> getComponentMap cmpOnStartExpr
+        entitiesWithOnStart <- Map.toList <$> getComponentMap myOnStartExpr
         forM_ entitiesWithOnStart $ \(entityID, codeExprKey) -> 
             traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
                 parentPose   <- getEntityPose entityID

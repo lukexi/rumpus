@@ -38,8 +38,8 @@ initSceneEditorSystem :: MonadState ECS m => m ()
 initSceneEditorSystem = do
     registerSystem sysSceneEditor $ SceneEditorSystem Nothing
 
-    registerComponent "Drag"   cmpDrag   (newComponentInterface cmpDrag)
-    registerComponent "OnDrag" cmpOnDrag (newComponentInterface cmpOnDrag)
+    registerComponent "Drag"   myDrag   (newComponentInterface myDrag)
+    registerComponent "OnDrag" myOnDrag (newComponentInterface myOnDrag)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
@@ -69,21 +69,21 @@ removeCurrentEditorFrame = traverseM_ (viewSystem sysSceneEditor sedCurrentEdito
 addEditorFrame :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 addEditorFrame entityID = do
     editorFrame <- spawnEntity Transient $ do
-        removeComponent cmpShapeType
-        cmpConstraint ==> RelativePositionTo entityID 0
+        removeComponent myShapeType
+        myConstraint ==> RelativePositionTo entityID 0
     
     ------------------------
     -- Define a color editor
     color <- getEntityColor entityID
     _colorEditor <- spawnEntity Transient $ do
-        cmpParent            ==> editorFrame
-        cmpShapeType         ==> SphereShape
-        cmpColor             ==> color
-        cmpSize              ==> 0.1
-        cmpPhysicsProperties ==> [Kinematic, NoContactResponse]
-        cmpConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
-        --cmpPose              ==> (newPose & posPosition .~ V3 (-0.5) 0.5 0)
-        cmpOnDrag            ==> \dragDistance -> do
+        myParent            ==> editorFrame
+        myShapeType         ==> SphereShape
+        myColor             ==> color
+        mySize              ==> 0.1
+        myPhysicsProperties ==> [Kinematic, NoContactResponse]
+        myConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
+        --myPose              ==> (newPose & posPosition .~ V3 (-0.5) 0.5 0)
+        myOnDrag            ==> \dragDistance -> do
             let x = dragDistance ^. _x
                 newColor = hslColor (mod' x 1) 0.9 0.6
             setColor newColor
@@ -93,14 +93,14 @@ addEditorFrame entityID = do
     -- Define a size editor
     
     _sizeEditor <- spawnEntity Transient $ do
-        cmpParent            ==> editorFrame
-        cmpShapeType         ==> CubeShape
-        cmpColor             ==> V4 0.3 0.3 1 1
-        cmpSize              ==> 0.2
-        cmpPhysicsProperties ==> [Kinematic, NoContactResponse]
-        cmpConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
-        --cmpPose              ==> (newPose & posPosition .~ V3 0.5 0.5 0)
-        cmpOnDrag            ==> \dragDistance -> do
+        myParent            ==> editorFrame
+        myShapeType         ==> CubeShape
+        myColor             ==> V4 0.3 0.3 1 1
+        mySize              ==> 0.2
+        myPhysicsProperties ==> [Kinematic, NoContactResponse]
+        myConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
+        --myPose              ==> (newPose & posPosition .~ V3 0.5 0.5 0)
+        myOnDrag            ==> \dragDistance -> do
             let size = max 0.05 (abs dragDistance)
             -- Set the edited entity's size, not the editor-widget's : )
             setEntitySize size entityID
@@ -111,32 +111,32 @@ addEditorFrame entityID = do
 beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
     startPos <- view translation <$> getEntityPose handEntityID
-    setEntityComponent cmpDrag (Drag handEntityID startPos) draggedID
+    setEntityComponent myDrag (Drag handEntityID startPos) draggedID
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
-    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID startPos) ->
+    forEntitiesWithComponent myDrag $ \(entityID, Drag handEntityID startPos) ->
         when (handEntityID == draggingHandEntityID) $ do
             currentPose <- view translation <$> getEntityPose handEntityID
             let dragDistance = currentPose - startPos
 
             runEntity entityID $ 
-                withComponent_ cmpOnDrag $ \onDrag ->
+                withComponent_ myOnDrag $ \onDrag ->
                     onDrag dragDistance
 
 endDrag :: MonadState ECS m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
-    forEntitiesWithComponent cmpDrag $ \(entityID, Drag handEntityID _) -> do
+    forEntitiesWithComponent myDrag $ \(entityID, Drag handEntityID _) -> do
         when (handEntityID == endingDragHandEntityID) $ do
 
-            runEntity entityID $ removeComponent cmpDrag
+            runEntity entityID $ removeComponent myDrag
 
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity Persistent $ do
-    cmpPose          ==> pose 
-    cmpShapeType     ==> CubeShape
-    cmpSize          ==> 0.5
-    -- cmpOnUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
+    myPose          ==> pose 
+    myShapeType     ==> CubeShape
+    mySize          ==> 0.5
+    -- myOnUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
 
 tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
@@ -182,7 +182,7 @@ tickSceneEditorSystem = do
                         handPose <- getEntityPose handEntityID
                         beginHapticDrag whichHand handPose
 
-                        hasDragFunction        <- entityHasComponent grabbedID cmpOnDrag
+                        hasDragFunction        <- entityHasComponent grabbedID myOnDrag
                         isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
                         if 
                             | isBeingHeldByOtherHand -> do

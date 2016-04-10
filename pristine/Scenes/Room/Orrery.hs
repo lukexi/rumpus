@@ -15,38 +15,38 @@ start = do
     rootEntityID <- ask
 
     let makeCelestialBody parentID radius hue = do
-            cmpParent                   ==> parentID
-            cmpInheritParentTransform   ==> InheritPose
-            cmpSize                     ==> V3 radius radius radius
-            cmpColor                    ==> hslColor hue 0.8 0.5
-            cmpShapeType                ==> SphereShape
-            cmpPhysicsProperties        ==> [NoPhysicsShape]
+            myParent                   ==> parentID
+            myInheritParentTransform   ==> InheritPose
+            mySize                     ==> V3 radius radius radius
+            myColor                    ==> hslColor hue 0.8 0.5
+            myShapeType                ==> SphereShape
+            myPhysicsProperties        ==> [NoPhysicsShape]
 
     let makePlanet Planet{..} = 
           spawnEntity Transient $ do
             makeCelestialBody parentID radius hue
-            cmpPose                     ==> translateMatrix (V3 (orbitRadius*3) 0 0)
-            cmpOnUpdate                 ==> do
+            myPose                     ==> translateMatrix (V3 (orbitRadius*3) 0 0)
+            myOnUpdate                 ==> do
                 n <- (orbitRate *) <$> getNow
                 let x = orbitRadius * cos n
                     z = orbitRadius * sin n
                 setPose (identity & translation .~ V3 x 0 z)
 
     container <- spawnEntity Transient $ do
-        cmpParent                   ==> rootEntityID
-        cmpInheritParentTransform   ==> InheritPose
-        cmpSize                     ==> 0.3
-        cmpPhysicsProperties        ==> [NoPhysicsShape]
+        myParent                   ==> rootEntityID
+        myInheritParentTransform   ==> InheritPose
+        mySize                     ==> 0.3
+        myPhysicsProperties        ==> [NoPhysicsShape]
 
     scaler <- spawnEntity Transient $ do 
-        cmpParent                   ==> container
-        cmpInheritParentTransform   ==> InheritFull
-        cmpSize                     ==> 1
-        cmpPhysicsProperties        ==> [NoPhysicsShape]
+        myParent                   ==> container
+        myInheritParentTransform   ==> InheritFull
+        mySize                     ==> 1
+        myPhysicsProperties        ==> [NoPhysicsShape]
 
     sun <- spawnEntity Transient $ do
         makeCelestialBody scaler 0.1 0.5
-        cmpPose ==> mkTransformation 
+        myPose ==> mkTransformation 
                         (axisAngle (V3 1 0 0) 0.4) 
                         (V3 0 1 0)
     

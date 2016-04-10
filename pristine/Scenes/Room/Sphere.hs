@@ -21,19 +21,19 @@ start = do
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
-        cmpParent                 ==> rootEntityID
-        cmpPose                   ==> mkTransformation 
+        myParent                 ==> rootEntityID
+        myPose                   ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) pos
-        cmpShapeType              ==> SphereShape
-        cmpPhysicsProperties      ==> [NoPhysicsShape]
-        cmpInheritParentTransform ==> InheritFull
-        cmpSize                   ==> V3 0.5 0.5 0.5
-        cmpColor                  ==> hslColor hue 0.8 0.5
-        cmpOnUpdate ==> do
+        myShapeType              ==> SphereShape
+        myPhysicsProperties      ==> [NoPhysicsShape]
+        myInheritParentTransform ==> InheritFull
+        mySize                   ==> V3 0.5 0.5 0.5
+        myColor                  ==> hslColor hue 0.8 0.5
+        myOnUpdate ==> do
             now <- sin <$> getNow
             setSize (realToFrac ((sin now + 1) * 0.1 + 0.01))
             --let V3 pX pY pZ = pos
-            --cmpPose ==> mkTransformation 
+            --myPose ==> mkTransformation 
             --    (axisAngle (V3 0 1 1) (now*2)) 
             --    (V3 (pX+now) pY pZ)
     return Nothing

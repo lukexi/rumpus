@@ -24,15 +24,15 @@ makePianoKey parentID parentPose i noteDegree = do
         hue  = fromIntegral i / fromIntegral (length majorScale)
         colorOn = hslColor hue 0.8 0.8
         colorOff = hslColor hue 0.8 0.4
-    cmpColor ==> colorOff
-    cmpParent            ==> parentID
-    cmpShapeType         ==> CubeShape
-    cmpPhysicsProperties ==> [Kinematic, NoContactResponse]
-    cmpPose              ==> parentPose !*! (identity & translation .~ pose)
-    cmpSize              ==> V3 0.01 0.2 0.3
-    cmpOnCollisionStart  ==> \_ _ -> do
-        cmpColor ==> colorOn
+    myColor ==> colorOff
+    myParent            ==> parentID
+    myShapeType         ==> CubeShape
+    myPhysicsProperties ==> [Kinematic, NoContactResponse]
+    myPose              ==> parentPose !*! (identity & translation .~ pose)
+    mySize              ==> V3 0.01 0.2 0.3
+    myOnCollisionStart  ==> \_ _ -> do
+        myColor ==> colorOn
         sendEntityPd parentID "piano-key" (List [note, 1])
-    cmpOnCollisionEnd    ==> \_ -> do
-        cmpColor ==> colorOff
+    myOnCollisionEnd    ==> \_ -> do
+        myColor ==> colorOff
         sendEntityPd parentID "piano-key" (List [note, 0])

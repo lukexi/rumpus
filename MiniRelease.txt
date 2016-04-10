@@ -59,7 +59,7 @@
 [ ] Create intro object
         Have it be the only thing that you start out seeing (on a pedestal, with a rotating color-shifting cube), and have the other objects on other platforms?
         TRY EDITING ME
-    [ ] Rename cmp to my
+    [x] Rename cmp to my
 
 [ ] 1080p render for video? 
     This would be possibly quite easy with a threaded render that takes the last world state and renders it!

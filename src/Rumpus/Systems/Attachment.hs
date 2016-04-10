@@ -17,11 +17,11 @@ defineComponentKey ''Attachments
 
 initAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAttachmentSystem = do
-    registerComponent "Attachments" cmpAttachments (newComponentInterface cmpAttachments)
+    registerComponent "Attachments" myAttachments (newComponentInterface myAttachments)
 
 tickAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAttachmentSystem =
-    forEntitiesWithComponent cmpAttachments $
+    forEntitiesWithComponent myAttachments $
         \(entityID, attachments) -> 
             forM_ attachments $ \(Attachment toEntityID offset) -> do
                 pose <- getEntityPose entityID
@@ -52,18 +52,18 @@ detachAttachedEntities entityID =
                 withEntityRigidBody attachedEntityID $ \rigidBody ->
                     setRigidBodyKinematic rigidBody False
 
-        removeEntityComponent cmpAttachments entityID
+        removeEntityComponent myAttachments entityID
 
 addAttachmentToSet :: (MonadState s m, HasComponents s) => EntityID -> Attachment -> m ()
-addAttachmentToSet entityID attachment = getEntityComponent entityID cmpAttachments >>= \case
-    Nothing          -> setEntityComponent cmpAttachments (Set.singleton attachment) entityID
-    Just attachments -> setEntityComponent cmpAttachments (Set.insert attachment attachments) entityID
+addAttachmentToSet entityID attachment = getEntityComponent entityID myAttachments >>= \case
+    Nothing          -> setEntityComponent myAttachments (Set.singleton attachment) entityID
+    Just attachments -> setEntityComponent myAttachments (Set.insert attachment attachments) entityID
 
 withAttachments :: MonadState ECS m => EntityID -> (Attachments -> m b) -> m ()
-withAttachments entityID = withEntityComponent_ entityID cmpAttachments
+withAttachments entityID = withEntityComponent_ entityID myAttachments
 
 getEntityAttachments :: (HasComponents s, MonadState s m) => EntityID -> m (Maybe Attachments)
-getEntityAttachments entityID = getEntityComponent entityID cmpAttachments
+getEntityAttachments entityID = getEntityComponent entityID myAttachments
 
 isEntityAttachedTo :: (HasComponents s, MonadState s m) => EntityID -> EntityID -> m Bool
 isEntityAttachedTo childID parentID = maybe False (Set.member childID . Set.map atcToEntityID) <$> getEntityAttachments parentID

@@ -7,9 +7,9 @@
 module Rumpus.Systems.Controls where
 import PreludeExtra
 import Rumpus.Systems.PlayPause
-import Rumpus.Systems.Selection
+import Foreign.C.Types
 import qualified Graphics.VR.Pal as VRPal
-import Graphics.VR.Pal (VRPalEvent)
+
 data ControlsSystem = ControlsSystem
     { _ctsVRPal          :: !VRPal
     , _ctsPlayer         :: !(M44 GLfloat)
@@ -25,7 +25,7 @@ getNow = do
     vrPal <- viewSystem sysControls ctsVRPal
     realToFrac . utctDayTime <$> VRPal.getNow vrPal 
 
-
+hapticPulse :: (MonadIO m, MonadState ECS m) => WhichHand -> CUShort -> m ()
 hapticPulse whichHand duration = do
     let axis = 0 -- none of the others seem to work??
     vrPal <- viewSystem sysControls ctsVRPal
@@ -54,7 +54,7 @@ tickControlEventsSystem :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> [VRPa
 tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
     ctsHeadPose .= headM44
 
-    vrPal@VRPal{..} <- use ctsVRPal
+    VRPal{..} <- use ctsVRPal
     
     -- Clear the events list
     ctsEvents .= events
@@ -80,6 +80,7 @@ tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
         --GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
         _ -> return ())
 
+setPlayerPosition :: MonadState ECS m => V3 GLfloat -> m ()
 setPlayerPosition position = modifySystemState sysControls $
     ctsPlayer .= mkTransformation (axisAngle (V3 0 1 0) 0) position
 

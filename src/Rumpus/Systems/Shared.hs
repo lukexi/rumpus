@@ -35,83 +35,83 @@ defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
-    registerComponent "Name" cmpName (savedComponentInterface cmpName)
-    registerComponent "Pose" cmpPose (savedComponentInterface cmpPose)
-    registerComponent "PoseScaled" cmpPoseScaled $ (newComponentInterface cmpPoseScaled) 
+    registerComponent "Name" myName (savedComponentInterface myName)
+    registerComponent "Pose" myPose (savedComponentInterface myPose)
+    registerComponent "PoseScaled" myPoseScaled $ (newComponentInterface myPoseScaled) 
         {   ciDeriveComponent = Just $ do
                 -- More hax for release; one problem with this is that every entity will now
                 -- get a cached scale (even those without shapes, poses or sizes, 
                 -- since getSze and getPose return defaults)
-                -- but I guess that's not so bad...
+                -- but I guess there aren't so many without shapes yet
                 size <- getSize
                 pose <- getPose
-                cmpPoseScaled ==> pose !*! scaleMatrix size
+                myPoseScaled ==> pose !*! scaleMatrix size
         }
-    registerComponent "Size" cmpSize (savedComponentInterface cmpSize)
-    registerComponent "Color" cmpColor (savedComponentInterface cmpColor)
-    registerComponent "ShapeType" cmpShapeType (savedComponentInterface cmpShapeType)
-    registerComponent "Parent" cmpParent $ (newComponentInterface cmpParent)
+    registerComponent "Size" mySize (savedComponentInterface mySize)
+    registerComponent "Color" myColor (savedComponentInterface myColor)
+    registerComponent "ShapeType" myShapeType (savedComponentInterface myShapeType)
+    registerComponent "Parent" myParent $ (newComponentInterface myParent)
         { ciDeriveComponent = Just $ do
-            withComponent_ cmpParent $ \parentID -> do
+            withComponent_ myParent $ \parentID -> do
                 childID <- ask
-                getEntityComponent parentID cmpChildren >>= \case
-                    Nothing -> setEntityComponent cmpChildren [childID] parentID
-                    Just _ ->  modifyEntityComponent parentID cmpChildren (return . (childID:))
+                getEntityComponent parentID myChildren >>= \case
+                    Nothing -> setEntityComponent myChildren [childID] parentID
+                    Just _ ->  modifyEntityComponent parentID myChildren (return . (childID:))
         }
-    registerComponent "Children" cmpChildren $ (newComponentInterface cmpChildren)
+    registerComponent "Children" myChildren $ (newComponentInterface myChildren)
         { ciRemoveComponent = removeChildren
         }
-    registerComponent "InheritParentTransform" cmpInheritParentTransform (newComponentInterface cmpInheritParentTransform)
+    registerComponent "InheritParentTransform" myInheritParentTransform (newComponentInterface myInheritParentTransform)
 
     -- Allows Script and CodeEditor to access these
-    registerComponent "OnStart"  cmpOnStart      (newComponentInterface cmpOnStart)
-    registerComponent "OnUpdate" cmpOnUpdate     (newComponentInterface cmpOnUpdate)
-    registerComponent "ScriptData" cmpScriptData (newComponentInterface cmpScriptData)
+    registerComponent "OnStart"  myOnStart      (newComponentInterface myOnStart)
+    registerComponent "OnUpdate" myOnUpdate     (newComponentInterface myOnUpdate)
+    registerComponent "ScriptData" myScriptData (newComponentInterface myScriptData)
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren = 
-    withComponent_ cmpChildren (mapM_ removeEntity)
+    withComponent_ myChildren (mapM_ removeEntity)
 
 
 setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
-setEntityColor newColor entityID = setEntityComponent cmpColor newColor entityID
+setEntityColor newColor entityID = setEntityComponent myColor newColor entityID
 
 setColor :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => V4 GLfloat -> m ()
-setColor newColor = setComponent cmpColor newColor
+setColor newColor = setComponent myColor newColor
 
 
 getEntityIDsWithName :: MonadState ECS m => String -> m [EntityID]
-getEntityIDsWithName name = fromMaybe [] <$> withComponentMap cmpName (return . Map.keys . Map.filter (== name))
+getEntityIDsWithName name = fromMaybe [] <$> withComponentMap myName (return . Map.keys . Map.filter (== name))
 
 getEntityName :: MonadState ECS m => EntityID -> m String
-getEntityName entityID = fromMaybe "No Name" <$> getEntityComponent entityID cmpName
+getEntityName entityID = fromMaybe "No Name" <$> getEntityComponent entityID myName
 
 getName :: (MonadReader EntityID m, MonadState ECS m) => m String
 getName = getEntityName =<< ask
 
 getEntityPose :: MonadState ECS m => EntityID -> m (M44 GLfloat)
-getEntityPose entityID = fromMaybe identity <$> getEntityComponent entityID cmpPose
+getEntityPose entityID = fromMaybe identity <$> getEntityComponent entityID myPose
 
 getPose :: (MonadReader EntityID m, MonadState ECS m) => m (M44 GLfloat)
 getPose = getEntityPose =<< ask
 
 getEntitySize :: MonadState ECS m => EntityID -> m (V3 GLfloat)
-getEntitySize entityID = fromMaybe 1 <$> getEntityComponent entityID cmpSize
+getEntitySize entityID = fromMaybe 1 <$> getEntityComponent entityID mySize
 
 getSize :: (MonadReader EntityID m, MonadState ECS m) => m (V3 GLfloat)
 getSize = getEntitySize =<< ask
 
 getEntityColor :: MonadState ECS m => EntityID -> m (V4 GLfloat)
-getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID cmpColor
+getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID myColor
 
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
 getEntityInheritParentTransform :: (HasComponents s, MonadState s m) => EntityID -> m (Maybe InheritParentTransform)
-getEntityInheritParentTransform entityID = getEntityComponent entityID cmpInheritParentTransform
+getEntityInheritParentTransform entityID = getEntityComponent entityID myInheritParentTransform
 
 getInheritParentTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m (Maybe InheritParentTransform)
 getInheritParentTransform = getEntityInheritParentTransform =<< ask
 
 getEntityChildren :: (HasComponents s, MonadState s m) => EntityID -> m [EntityID]
-getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID cmpChildren
+getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID myChildren

@@ -20,9 +20,9 @@ defineComponentKey ''OnCollisionEnd
 
 initCollisionsSystem :: MonadState ECS m => m ()
 initCollisionsSystem = do
-    registerComponent "OnCollision"      cmpOnCollision      (newComponentInterface cmpOnCollision)
-    registerComponent "OnCollisionStart" cmpOnCollisionStart (newComponentInterface cmpOnCollisionStart)
-    registerComponent "OnCollisionEnd"   cmpOnCollisionEnd   (newComponentInterface cmpOnCollisionEnd)
+    registerComponent "OnCollision"      myOnCollision      (newComponentInterface myOnCollision)
+    registerComponent "OnCollisionStart" myOnCollisionStart (newComponentInterface myOnCollisionStart)
+    registerComponent "OnCollisionEnd"   myOnCollisionEnd   (newComponentInterface myOnCollisionEnd)
 
 -- | Loop through the collisions for this frame and call any 
 -- entities' registered collision callbacks
@@ -41,17 +41,17 @@ tickCollisionsSystem = do
 
             lastCollisionPairs <- viewSystem sysPhysics phyCollisionPairs
 
-            forEntitiesWithComponent cmpOnCollision $ \(entityID, onCollision) -> do
+            forEntitiesWithComponent myOnCollision $ \(entityID, onCollision) -> do
                 (_, _, allCollisions) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ allCollisions $ \collidingID ->
                     runEntity entityID $ onCollision collidingID 0.1
 
-            forEntitiesWithComponent cmpOnCollisionStart $ \(entityID, onCollisionStart) -> do
+            forEntitiesWithComponent myOnCollisionStart $ \(entityID, onCollisionStart) -> do
                 (newCollisions, _, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ newCollisions $ \collidingID ->
                     runEntity entityID $ onCollisionStart collidingID 0.1
             
-            forEntitiesWithComponent cmpOnCollisionEnd $ \(entityID, onCollisionEnd) -> do
+            forEntitiesWithComponent myOnCollisionEnd $ \(entityID, onCollisionEnd) -> do
                 (_, oldCollisions, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ oldCollisions $ \collidingID ->
                     runEntity entityID $ onCollisionEnd collidingID

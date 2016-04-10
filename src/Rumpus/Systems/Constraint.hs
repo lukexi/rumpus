@@ -13,15 +13,15 @@ defineComponentKey ''Constraint
 
 initConstraintSystem :: MonadState ECS m => m ()
 initConstraintSystem = do
-    registerComponent "Constraint" cmpConstraint $ (newComponentInterface cmpConstraint) { 
+    registerComponent "Constraint" myConstraint $ (newComponentInterface myConstraint) { 
         -- Satisfy the constraint once upon resuscitation
         ciDeriveComponent = Just 
-            (withComponent_ cmpConstraint satisfyConstraint)
+            (withComponent_ myConstraint satisfyConstraint)
         }
 
 tickConstraintSystem :: (MonadState ECS m, MonadIO m) => m ()
 tickConstraintSystem = do
-    forEntitiesWithComponent cmpConstraint $ \(entityID, constraint) -> runEntity entityID (satisfyConstraint constraint)
+    forEntitiesWithComponent myConstraint $ \(entityID, constraint) -> runEntity entityID (satisfyConstraint constraint)
 
 satisfyConstraint :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => Constraint -> m ()
 satisfyConstraint constraint =
@@ -33,4 +33,4 @@ satisfyConstraint constraint =
 
 setEntityConstraint :: (MonadState ECS m, MonadIO m) => Constraint -> EntityID -> m ()
 setEntityConstraint constraint entityID = 
-    setEntityComponent cmpConstraint constraint entityID
+    setEntityComponent myConstraint constraint entityID
