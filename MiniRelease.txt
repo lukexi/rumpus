@@ -49,6 +49,7 @@
 [ ] Crasher when turning controllers on after launch
         - Investigate this in openvr-hs to minimize surface area 
 
+[ ] Debug objectcode - try making a minimal rumpus exe that just loads scripts in the recompiler.
 
 [ ] Finish keyboard
     [ ] Fullsize keys for space etc.

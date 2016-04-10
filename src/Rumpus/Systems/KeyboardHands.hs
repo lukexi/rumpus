@@ -85,32 +85,36 @@ leftHandKeys =
 rightHandKeys :: [[HandKey]]
 rightHandKeys =
     [ replicate 4 HandKeyUp
-    , HandKeyLeft : cs "67890-="   "^&*()_+"  ++ [HandKeyBackspace, HandKeyRight]
-    , HandKeyLeft : cs "yuiop[]\\" "YUIOP{}|" ++ [                  HandKeyRight]
+    , HandKeyLeft : cs "67890-="   "^&*()_+"  ++ [HandKeyBackspace,           HandKeyRight]
+    , HandKeyLeft : cs "yuiop[]\\" "YUIOP{}|" ++ [                            HandKeyRight]
     , HandKeyLeft : cs "hjkl;'"    "HJKL:\""  ++ [HandKeyEnter, HandKeyEnter, HandKeyRight]
-    , HandKeyLeft : cs "nm,./"     "NM<>?"    ++ [HandKeyShift,     HandKeyRight]
+    , HandKeyLeft : cs "nm,./"     "NM<>?"    ++ [HandKeyShift,               HandKeyRight]
     , replicate 4 (HandKeyChar ' ' ' ')
     , replicate 4 HandKeyDown
     ]
     where
         cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
 
-keyWidth, keyHeight, keyPad, keyHeightT, keyWidthT, keyboardOffsetY :: GLfloat
+keyWidth, keyHeight, keyPad, keyHeightT, keyWidthT, keyDepth, keyboardOffsetY, keyboardOffsetZ :: GLfloat
 keyWidth        = 0.05
 keyHeight       = 0.05
 keyPad          = 0.01
 keyWidthT       = keyWidth + keyPad
 keyHeightT      = keyHeight + keyPad
 
+keyDepth = 0.02
+
 -- How far up the controllers the keyboard appears
 keyboardOffsetY = -0.2
-
+-- How far off the controllers the keyboard floats
+keyboardOffsetZ = 0.1
 
 data KeyboardHandsSystem = KeyboardHandsSystem 
     { _kbhShiftDown   :: Bool
     , _kbhKeyIDs      :: [(EntityID, HandKey)]
     , _kbhCurrentKey  :: Map WhichHand HandKey
     , _kbhLastKey     :: Map WhichHand HandKey
+    , _kbhKeyboard    :: Map WhichHand EntityID
     } deriving Show
 makeLenses      ''KeyboardHandsSystem
 defineSystemKey ''KeyboardHandsSystem
@@ -122,22 +126,12 @@ startKeyboardHandsSystem = do
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
     
-    runEntity leftHandID $ do
-        myOnCollisionStart  ==> \_ impulse -> do
-            hapticPulse LeftHand (floor $ impulse * 10000)
-
-
-    runEntity rightHandID $ do
-        myOnCollisionStart  ==> \_ impulse -> 
-            hapticPulse RightHand (floor $ impulse * 10000)
-    
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
-    let handsWithIDs = [ (LeftHand, leftHandID)
-                       , (RightHand, rightHandID)
-                       ]
-        handsWithKeys = zip handsWithIDs [leftHandKeys, rightHandKeys]
-    keyIDs <- fmap concat . forM handsWithKeys $ \((whichHand, handID), keyRows) -> do
+    let handsWithKeys = [ (LeftHand,  leftHandID,  leftHandKeys)
+                        , (RightHand, rightHandID, rightHandKeys)
+                        ]
+    keyIDs <- fmap concat . forM handsWithKeys $ \(whichHand, handID, keyRows) -> do
         runEntity handID removeChildren
         spawnKeysForHand whichHand handID keyRows
 
@@ -146,6 +140,7 @@ startKeyboardHandsSystem = do
         , _kbhKeyIDs      = keyIDs
         , _kbhCurrentKey  = mempty
         , _kbhLastKey     = mempty
+        , _kbhKeyboard    = mempty
         }
 
 tickKeyboardHandsSystem :: ECSMonad ()
@@ -207,7 +202,7 @@ makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
         (keyX, keyY)          = (keyOffsetX + indexXF * keyWidthT , keyboardOffsetY + indexYF * keyHeightT)
         pointIsInKey          = inRect keyProgX keyProgY keyProgW keyProgH
         keyOffsetX            = -keyWidthT * (numKeys - 1) / 2
-        pose                  = V3 keyX 0.1 keyY
+        pose                  = V3 keyX keyboardOffsetZ keyY
         colorOn               = hslColor 0.2 0.8 0.8
         colorOff              = hslColor 0.3 0.8 0.4
         keyTitleScale         = 1 / (fromIntegral (length keyTitle))
@@ -220,7 +215,7 @@ makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
     myShapeType              ==> CubeShape
     myPhysicsProperties      ==> [NoPhysicsShape]
     myPose                   ==> (identity & translation .~ pose)
-    mySize                   ==> V3 keyWidth 0.02 keyHeight
+    mySize                   ==> V3 keyWidth keyDepth keyHeight
     myInheritParentTransform ==> InheritPose
     myOnUpdate ==> do
         withHandEvents whichHand $ \case
@@ -239,10 +234,7 @@ getThumbPos hand = hand ^. hndXY
     & _y  *~ (-1) -- y is flipped 
     & _xy *~ 0.5  -- scale to -0.5 - 0.5
 
--- | Check if a point is in the given rectangle
-inRect :: (Num a, Ord a) => a -> a -> a -> a -> V2 a -> Bool
-inRect x y w h (V2 ptX ptY) =
-    ptX > x && ptX < x + w && ptY > y && ptY < y + h
+
 
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
 makeThumbNub :: (HasComponents s, MonadState s m, MonadReader EntityID m) => WhichHand -> EntityID -> GLfloat -> GLfloat -> m ()
@@ -253,12 +245,17 @@ makeThumbNub whichHand parentHandID maxNumKeys numRows = do
     myParent                 ==> parentHandID
     myShapeType              ==> SphereShape
     myPhysicsProperties      ==> [NoPhysicsShape]
-    mySize                   ==> 0.02
+    mySize                   ==> keyDepth
     myInheritParentTransform ==> InheritPose
     myOnUpdate               ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do                
                 let V2 x y  = getThumbPos hand * keyboardDims
-                    pose    = V3 x 0.1 (y + keyboardOffsetY + keyboardDims ^. _y / 2 - (keyHeightT / 2))
+                    pose    = V3 x keyboardOffsetZ (y + keyboardOffsetY + keyboardDims ^. _y / 2 - (keyHeightT / 2))
                 setPose (identity & translation .~ pose)
             _ -> return ()
+
+-- | Check if a point is in the given rectangle
+inRect :: (Num a, Ord a) => a -> a -> a -> a -> V2 a -> Bool
+inRect x y w h (V2 ptX ptY) =
+    ptX > x && ptX < x + w && ptY > y && ptY < y + h
