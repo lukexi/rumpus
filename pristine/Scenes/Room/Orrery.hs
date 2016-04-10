@@ -2,11 +2,11 @@ module Orrery where
 import Rumpus
 
 data Planet = Planet 
-    { parent      :: Float
+    { parent      :: EntityID
     , radius      :: Float
     , orbitRadius :: Float 
     , orbitRate   :: Float
-    , surfaceHue  :: V4 Float
+    , surfaceHue  :: Float
     }
 
 start :: OnStart
@@ -24,7 +24,7 @@ start = do
 
     let makePlanet Planet{..} = 
           spawnEntity Transient $ do
-            makeCelestialBody parentID radius hue
+            makeCelestialBody parent radius surfaceHue
             myPose                     ==> translateMatrix (V3 (orbitRadius*3) 0 0)
             myOnUpdate                 ==> do
                 n <- (orbitRate *) <$> getNow
@@ -50,12 +50,12 @@ start = do
                         (axisAngle (V3 1 0 0) 0.4) 
                         (V3 0 1 0)
     
-    sun2 <- makePlanet $ Planet { parent = sun,  radius = 0.03,  hue = 0.68 orbitRadius = 0.4,  orbitRate = 0.1 }
+    sun2 <- makePlanet $ Planet { parent = sun,  radius = 0.03,  surfaceHue = 0.68, orbitRadius = 0.4,  orbitRate = 0.1 }
 
-    p1   <- makePlanet $ Planet { parent = sun2, radius = 0.1,   hue = 0.1  orbitRadius = 0.22, orbitRate = 0.7 }
-    m1   <- makePlanet $ Planet { parent = p1,   radius = 0.02,  hue = 0.24 orbitRadius = 0.13, orbitRate = 2.1 }
+    p1   <- makePlanet $ Planet { parent = sun2, radius = 0.1,   surfaceHue = 0.1 , orbitRadius = 0.22, orbitRate = 0.7 }
+    m1   <- makePlanet $ Planet { parent = p1,   radius = 0.02,  surfaceHue = 0.24, orbitRadius = 0.13, orbitRate = 2.1 }
     
-    p2   <- makePlanet $ Planet { parent = sun2, radius = 0.06,  hue = 0.18 orbitRadius = 0.55, orbitRate = 0.4 }
-    p3   <- makePlanet $ Planet { parent = sun2, radius = 0.25,  hue = 0.34 orbitRadius = 0.9,  orbitRate = 0.9 }
+    p2   <- makePlanet $ Planet { parent = sun2, radius = 0.06,  surfaceHue = 0.18, orbitRadius = 0.55, orbitRate = 0.4 }
+    p3   <- makePlanet $ Planet { parent = sun2, radius = 0.25,  surfaceHue = 0.34, orbitRadius = 0.9,  orbitRate = 0.9 }
     
     return Nothing

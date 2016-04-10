@@ -1,4 +1,4 @@
-amodule Room where
+module Room where
 import Rumpus
 
 roomCube = 4
