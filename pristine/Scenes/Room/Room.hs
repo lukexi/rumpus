@@ -22,9 +22,9 @@ start = do
             mySize              ==> size
             myColor             ==> hslColor hue 0.8 0.6
             myMass              ==> 0
-    makeWall (V3 0 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 [] -- back
-    makeWall (V3 0 0 (roomD/2))  (V3 roomW roomH wallD) 0.2 [] -- front
-    makeWall (V3 (-roomW/2) 0 0) (V3 wallD roomH roomD) 0.3 [] -- left
+    --makeWall (V3 0 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 [] -- back
+    makeWall (V3 0 0 (roomD/2))  (V3 (roomW*0.99) roomH wallD) 0.2 [] -- front
+    --makeWall (V3 (-roomW/2) 0 0) (V3 wallD roomH roomD) 0.3 [] -- left
     --makeWall (V3 (roomW/2)  0 0) (V3 wallD roomH roomD) 0.4 [] -- right
     makeWall (V3 0 (-roomH/2) 0) (V3 roomW wallD roomD) 0.5 [Teleportable] -- floor
     makeWall (V3 (-10) (-roomH/2) 0) (V3 roomW wallD roomD) 0.5 [Teleportable] -- floor2
