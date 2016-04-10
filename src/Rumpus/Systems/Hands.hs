@@ -15,12 +15,8 @@ makeLenses ''HandsSystem
 
 defineSystemKey ''HandsSystem
 
---tickHandsSystem = do
-
 startHandsSystem :: (MonadState ECS m, MonadIO m) => m ()
 startHandsSystem = do
-    vrPal <- viewSystem sysControls ctsVRPal
-    --when (gpRoomScale vrPal == RoomScale) $ do
     let handColor = V4 0.6 0.6 0.9 1
 
     leftHandID <- spawnEntity $ do

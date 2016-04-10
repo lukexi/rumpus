@@ -22,8 +22,8 @@ start = do
             myShapeType                ==> SphereShape
             myPhysicsProperties        ==> [NoPhysicsShape]
 
-    let makePlanet Planet{..} = 
-          spawnEntity $ do
+    let makePlanet Planet{..} = spawnEntity $ do
+
             makeCelestialBody parent radius surfaceHue
             myPose                     ==> translateMatrix (V3 (orbitRadius*3) 0 0)
             myOnUpdate                 ==> do
@@ -32,17 +32,18 @@ start = do
                     z = orbitRadius * sin n
                 setPose (identity & translation .~ V3 x 0 z)
 
+    -- Create a container node that inherits pose, but not scale, from the root object
     container <- spawnEntity $ do
         myParent                   ==> rootEntityID
         myInheritParentTransform   ==> InheritPose
         mySize                     ==> 0.3
-        myPhysicsProperties        ==> [NoPhysicsShape]
 
+    -- Create a node that inherits scale from the container node, but whose own scale is 1
+    -- (FIXME: this is probably more complicated than it has to be)
     scaler <- spawnEntity $ do 
         myParent                   ==> container
         myInheritParentTransform   ==> InheritFull
         mySize                     ==> 1
-        myPhysicsProperties        ==> [NoPhysicsShape]
 
     sun <- spawnEntity $ do
         makeCelestialBody scaler 0.1 0.5

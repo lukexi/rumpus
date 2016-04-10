@@ -132,8 +132,14 @@ startKeyboardHandsSystem = do
                         , (RightHand, rightHandID, rightHandKeys)
                         ]
     keyIDs <- fmap concat . forM handsWithKeys $ \(whichHand, handID, keyRows) -> do
-        runEntity handID removeChildren
-        spawnKeysForHand whichHand handID keyRows
+        --runEntity handID removeChildren
+
+        containerID <- spawnEntity $ do
+            myParent                   ==> handID
+            myInheritParentTransform   ==> InheritPose
+
+        keyIDsForHand <- spawnKeysForHand whichHand containerID keyRows
+        return keyIDsForHand
 
     registerSystem sysKeyboardHands $ KeyboardHandsSystem
         { _kbhShiftDown   = False
@@ -179,23 +185,23 @@ tickKeyboardHandsSystem = do
             _ -> return ()
 
 spawnKeysForHand :: (MonadIO m, MonadState ECS m) => WhichHand -> EntityID -> [[HandKey]] -> m [(EntityID, HandKey)]
-spawnKeysForHand whichHand handID keyRows = do
+spawnKeysForHand whichHand containerID keyRows = do
     let numRows = fromIntegral (length keyRows)
         maxNumKeys = fromIntegral $ maximum (map length keyRows)
 
     -- Add the indicator of thumb position
-    void $ spawnEntity $ makeThumbNub whichHand handID maxNumKeys numRows
+    void $ spawnEntity $ makeThumbNub whichHand containerID maxNumKeys numRows
 
     -- Spawn the keys and return their entityIDs
     fmap concat . forM (zip [0..] keyRows) $ \(indexY, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM (zip [0..] keyRow) $ \(indexX, key) -> do
             keyID <- spawnEntity $ 
-                makeKeyboardKey whichHand handID indexX indexY numKeys numRows key
+                makeKeyboardKey whichHand containerID indexX indexY numKeys numRows key
             return (keyID, key)
 
 makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> Int-> Int -> GLfloat -> GLfloat -> HandKey -> m ()
-makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
+makeKeyboardKey whichHand containerID x y numKeys numRows key = do
     let (indexXF,  indexYF)   = (fromIntegral x                   , fromIntegral y)
         (keyProgX, keyProgY)  = (indexXF / numKeys                , indexYF / numRows) 
         (keyProgW, keyProgH)  = (1 / numKeys                      , 1       / numRows)
@@ -207,11 +213,11 @@ makeKeyboardKey whichHand parentHandID x y numKeys numRows key = do
         colorOff              = hslColor 0.3 0.8 0.4
         keyTitleScale         = 1 / (fromIntegral (length keyTitle))
         keyTitle              = showKey False key 
+    myParent                 ==> containerID
     myText                   ==> keyTitle
     myTextPose               ==> mkTransformation 
                                       (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0) !*! scaleMatrix keyTitleScale
     myColor                  ==> colorOff
-    myParent                 ==> parentHandID
     myShapeType              ==> CubeShape
     myPhysicsProperties      ==> [NoPhysicsShape]
     myPose                   ==> (identity & translation .~ pose)
@@ -238,14 +244,14 @@ getThumbPos hand = hand ^. hndXY
 
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
 makeThumbNub :: (HasComponents s, MonadState s m, MonadReader EntityID m) => WhichHand -> EntityID -> GLfloat -> GLfloat -> m ()
-makeThumbNub whichHand parentHandID maxNumKeys numRows = do
+makeThumbNub whichHand containerID maxNumKeys numRows = do
     let keyboardDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
         colorOn = hslColor 0.2 0.8 0.8
+    myParent                 ==> containerID
     myColor                  ==> colorOn
-    myParent                 ==> parentHandID
     myShapeType              ==> SphereShape
     myPhysicsProperties      ==> [NoPhysicsShape]
-    mySize                   ==> keyDepth
+    mySize                   ==> realToFrac keyDepth
     myInheritParentTransform ==> InheritPose
     myOnUpdate               ==> do
         withHandEvents whichHand $ \case
