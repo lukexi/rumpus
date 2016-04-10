@@ -21,7 +21,7 @@ start = do
                 note <- randomNote
                 sendPd "note" (Atom $ realToFrac note)
                 pose <- getPose
-                childID <- spawnEntity Transient $ do
+                childID <- spawnEntity $ do
                     myPose ==> pose & translation +~ 
                         (pose ^. _m33) !* (V3 0 0.3 0)
                     myShapeType ==> SphereShape

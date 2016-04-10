@@ -8,7 +8,7 @@ start = do
     
     rootEntityID <- ask
     let pos = V3 0 1 0
-    childID <- spawnEntity Transient $ do
+    childID <- spawnEntity $ do
         myParent ==> rootEntityID
         myPose   ==> mkTransformation (axisAngle (V3 0 0 1) 0.3) pos
         myShapeType              ==> SphereShape

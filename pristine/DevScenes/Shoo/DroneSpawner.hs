@@ -9,7 +9,7 @@ start = do
     removeChildren
     parentID <- ask
     forM [0..numDrones] $ \ i -> do
-        childID <- spawnEntity Transient $ do
+        childID <- spawnEntity $ do
             myParent ==> parentID
             myShapeType ==> SphereShape
             myPhysicsProperties ==> [Kinematic]

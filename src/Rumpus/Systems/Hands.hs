@@ -23,7 +23,7 @@ startHandsSystem = do
     --when (gpRoomScale vrPal == RoomScale) $ do
     let handColor = V4 0.6 0.6 0.9 1
 
-    leftHandID <- spawnEntity Transient $ do
+    leftHandID <- spawnEntity $ do
         myColor             ==> handColor
         mySize              ==> V3 0.1 0.1 0.3
         myShapeType         ==> CubeShape
@@ -31,7 +31,7 @@ startHandsSystem = do
         myMass              ==> 0
         myOnCollisionStart  ==> \_ impulse -> do
             triggerHandHapticPulse vrPal LeftHand 0 (floor $ impulse * 10000)
-    rightHandID <- spawnEntity Transient $ do
+    rightHandID <- spawnEntity $ do
         myColor             ==> handColor
         mySize              ==> V3 0.1 0.1 0.3
         myShapeType         ==> CubeShape

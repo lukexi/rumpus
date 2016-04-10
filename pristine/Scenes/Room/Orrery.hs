@@ -23,7 +23,7 @@ start = do
             myPhysicsProperties        ==> [NoPhysicsShape]
 
     let makePlanet Planet{..} = 
-          spawnEntity Transient $ do
+          spawnEntity $ do
             makeCelestialBody parent radius surfaceHue
             myPose                     ==> translateMatrix (V3 (orbitRadius*3) 0 0)
             myOnUpdate                 ==> do
@@ -32,19 +32,19 @@ start = do
                     z = orbitRadius * sin n
                 setPose (identity & translation .~ V3 x 0 z)
 
-    container <- spawnEntity Transient $ do
+    container <- spawnEntity $ do
         myParent                   ==> rootEntityID
         myInheritParentTransform   ==> InheritPose
         mySize                     ==> 0.3
         myPhysicsProperties        ==> [NoPhysicsShape]
 
-    scaler <- spawnEntity Transient $ do 
+    scaler <- spawnEntity $ do 
         myParent                   ==> container
         myInheritParentTransform   ==> InheritFull
         mySize                     ==> 1
         myPhysicsProperties        ==> [NoPhysicsShape]
 
-    sun <- spawnEntity Transient $ do
+    sun <- spawnEntity $ do
         makeCelestialBody scaler 0.1 0.5
         myPose ==> mkTransformation 
                         (axisAngle (V3 1 0 0) 0.4) 

@@ -7,6 +7,6 @@ update entityID = do
     withRightHandEvents $ \case
         HandButtonEvent HandButtonTrigger ButtonDown -> do
             handPose <- getEntityPose entityID
-            traverseM_ (spawnEntity Transient "MessyBall")
+            traverseM_ (spawnEntity "MessyBall")
                 (setEntityPose handPose)
         _ -> return ()

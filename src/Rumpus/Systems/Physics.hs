@@ -155,6 +155,7 @@ setEntitySize newSize entityID = do
             mass       <- fromMaybe 1         <$> getEntityComponent entityID myMass
             shapeType  <- fromMaybe CubeShape <$> getEntityComponent entityID myShapeType
 
+            -- FIXME this max 0.01 should be moved into bullet-mini; infinitesimal objects break the whole simulation
             shape      <- createShapeCollider shapeType (max 0.01 newSize)
             setRigidBodyShape dynamicsWorld rigidBody shape mass
 

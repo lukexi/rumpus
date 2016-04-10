@@ -7,7 +7,7 @@ start = do
     removeChildren
     rootEntityID <- ask
 
-    forM_ [0..12] $ \n -> spawnEntity Transient $ pianokey rootEntityID n
+    forM_ [0..12] $ \n -> spawnEntity $ pianokey rootEntityID n
     return Nothing
 
 pianokey parentID n = do

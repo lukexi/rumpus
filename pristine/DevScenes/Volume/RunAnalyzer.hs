@@ -11,7 +11,7 @@ update = do
         forM_ notes $ \case
             Atom (Float note) -> do
                 headPose <- getHeadPose
-                childID <- spawnEntity Transient $ do
+                childID <- spawnEntity $ do
                     myShapeType ==> CubeShape
                     myParent  ==> rootID
                     myPose    ==> headPose

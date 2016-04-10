@@ -26,7 +26,7 @@ data SceneEditorSystem = SceneEditorSystem
 makeLenses ''SceneEditorSystem
 defineSystemKey ''SceneEditorSystem
 
--- data Drag = Drag HandEntityID (Pose GLfloat)
+-- data Drag = Drag HandEntityID (M44 GLfloat)
 data Drag = Drag HandEntityID (V3 GLfloat)
 
 type OnDrag = V3 GLfloat -> EntityMonad ()
@@ -68,14 +68,14 @@ removeCurrentEditorFrame = traverseM_ (viewSystem sysSceneEditor sedCurrentEdito
 
 addEditorFrame :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 addEditorFrame entityID = do
-    editorFrame <- spawnEntity Transient $ do
+    editorFrame <- spawnEntity $ do
         removeComponent myShapeType
         myConstraint ==> RelativePositionTo entityID 0
     
     ------------------------
     -- Define a color editor
     color <- getEntityColor entityID
-    _colorEditor <- spawnEntity Transient $ do
+    _colorEditor <- spawnEntity $ do
         myParent            ==> editorFrame
         myShapeType         ==> SphereShape
         myColor             ==> color
@@ -92,7 +92,7 @@ addEditorFrame entityID = do
     -----------------------
     -- Define a size editor
     
-    _sizeEditor <- spawnEntity Transient $ do
+    _sizeEditor <- spawnEntity $ do
         myParent            ==> editorFrame
         myShapeType         ==> CubeShape
         myColor             ==> V4 0.3 0.3 1 1
@@ -132,7 +132,7 @@ endDrag endingDragHandEntityID = do
             runEntity entityID $ removeComponent myDrag
 
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
-spawnNewEntityAtPose pose = spawnEntity Persistent $ do
+spawnNewEntityAtPose pose = spawnEntity $ do
     myPose          ==> pose 
     myShapeType     ==> CubeShape
     mySize          ==> 0.5

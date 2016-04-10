@@ -23,7 +23,7 @@ start = do
     rootPose <- getPose
     forM_ (zip [0..] chords) $ \(i, chord) -> do
         forM_ (zip [0..] chord) $ \(j, note) -> do
-            keyID <- spawnEntity Transient $ do
+            keyID <- spawnEntity $ do
                 pianokey rootEntityID rootPose i j note
             attachEntity rootEntityID keyID False
     return Nothing

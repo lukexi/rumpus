@@ -20,7 +20,7 @@ start = do
     let numPoints = 30 :: Int
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
-    forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
+    forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
         myParent                 ==> rootEntityID
         myPose                   ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) pos

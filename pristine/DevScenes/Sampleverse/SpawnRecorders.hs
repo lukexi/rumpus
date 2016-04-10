@@ -23,7 +23,7 @@ start = do
                 samplerEntityID <- ask
                 children <- forM [0..255] $ \i -> do
                     let x = fromIntegral i / 8 + 1
-                    spawnEntity Transient $ do
+                    spawnEntity $ do
                         myParent                 ==> samplerEntityID
                         myShapeType              ==> CubeShape
                         mySize                   ==> 1
@@ -40,5 +40,5 @@ start = do
                     myColor ==> hslColor (realToFrac val) 0.8 0.4
                 )
     
-    forM_ [1, 2] $ \y -> spawnEntity Transient $ recorderAt y
+    forM_ [1, 2] $ \y -> spawnEntity $ recorderAt y
     return Nothing
