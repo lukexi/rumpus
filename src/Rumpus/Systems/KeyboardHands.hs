@@ -184,13 +184,13 @@ spawnKeysForHand whichHand handID keyRows = do
         maxNumKeys = fromIntegral $ maximum (map length keyRows)
 
     -- Add the indicator of thumb position
-    void $ spawnEntity Transient $ makeThumbNub whichHand handID maxNumKeys numRows
+    void $ spawnEntity $ makeThumbNub whichHand handID maxNumKeys numRows
 
     -- Spawn the keys and return their entityIDs
     fmap concat . forM (zip [0..] keyRows) $ \(indexY, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM (zip [0..] keyRow) $ \(indexX, key) -> do
-            keyID <- spawnEntity Transient $ 
+            keyID <- spawnEntity $ 
                 makeKeyboardKey whichHand handID indexX indexY numKeys numRows key
             return (keyID, key)
 

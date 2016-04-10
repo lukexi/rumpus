@@ -14,7 +14,7 @@ start = do
     setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     removeChildren
     builderID <- ask
-    let makeWall pos size hue = spawnEntity Transient $ do
+    let makeWall pos size hue = spawnEntity $ do
             myParent            ==> builderID
             myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)

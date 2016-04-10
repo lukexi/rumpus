@@ -7,7 +7,7 @@ start = do
     removeChildren
     
     let branch parentID n pos = do
-            childID <- spawnEntity Transient $ do
+            childID <- spawnEntity $ do
                 myParent ==> parentID
                 myPose   ==> mkTransformation 
                     (axisAngle (V3 0 0 1) 0.3) pos

@@ -12,7 +12,7 @@ start = do
     rootEntityID <- ask
     rootPose <- getPose
     forM_ (zip [0..] majorScale) $ \(i, note) -> do
-        keyID <- spawnEntity Transient $ 
+        keyID <- spawnEntity $ 
             makePianoKey rootEntityID rootPose i note
         attachEntity rootEntityID keyID False
     return Nothing

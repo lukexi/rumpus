@@ -9,7 +9,7 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Controls
 
-
+import Foreign.C
 
 data PhysicsSystem = PhysicsSystem 
     { _phyDynamicsWorld :: DynamicsWorld 
@@ -27,6 +27,8 @@ defineSystemKey ''PhysicsSystem
 
 defineComponentKeyWithType "Mass"    [t|GLfloat|]
 defineComponentKeyWithType "Gravity" [t|V3 GLfloat|]
+defineComponentKeyWithType "CollisionGroup" [t|CShort|]
+defineComponentKeyWithType "CollisionMask"  [t|CShort|]
 defineComponentKey ''RigidBody
 defineComponentKey ''SpringConstraint
 defineComponentKey ''PhysicsProperties
@@ -48,6 +50,8 @@ initPhysicsSystem = do
     registerComponent "Gravity"           myGravity            (savedComponentInterface myGravity)
     registerComponent "PhysicsProperties" myPhysicsProperties  (savedComponentInterface myPhysicsProperties)
     registerComponent "SpringConstraint"  mySpringConstraint   (newComponentInterface mySpringConstraint)
+    registerComponent "CollisionGroup"    myCollisionGroup     (newComponentInterface myCollisionGroup)
+    registerComponent "CollisionMask"     myCollisionMask      (newComponentInterface myCollisionMask)
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do
@@ -57,14 +61,18 @@ deriveRigidBody dynamicsWorld = do
         forM_ mShapeType $ \shapeType -> do
 
             mass <- fromMaybe 1 <$> getComponent myMass
+            collisionGroup <- fromMaybe 1 <$> getComponent myCollisionGroup
+            collisionMask  <- fromMaybe 1 <$> getComponent myCollisionMask
             size <- getSize
             poseM44 <- getPose
             let pose = poseFromMatrix poseM44
             
             collisionID <- CollisionObjectID <$> ask
-            let bodyInfo = mempty { rbPosition = pose ^. posPosition
-                                  , rbRotation = pose ^. posOrientation
-                                  , rbMass     = mass
+            let bodyInfo = mempty { rbPosition       = pose ^. posPosition
+                                  , rbRotation       = pose ^. posOrientation
+                                  , rbMass           = mass
+                                  , rbCollisionGroup = collisionGroup
+                                  , rbCollisionMask  = collisionMask
                                   }
             shape     <- createShapeCollider shapeType size
             rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
@@ -147,6 +155,7 @@ setEntitySize newSize entityID = do
             mass       <- fromMaybe 1         <$> getEntityComponent entityID myMass
             shapeType  <- fromMaybe CubeShape <$> getEntityComponent entityID myShapeType
 
+            -- FIXME this max 0.01 should be moved into bullet-mini; infinitesimal objects break the whole simulation
             shape      <- createShapeCollider shapeType (max 0.01 newSize)
             setRigidBodyShape dynamicsWorld rigidBody shape mass
 

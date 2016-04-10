@@ -12,7 +12,7 @@ import Rumpus
 
 loadTestScene :: ECSMonad ()
 loadTestScene = do
-    -- testEntity <- spawnEntity Transient $ return ()
+    -- testEntity <- spawnEntity $ return ()
     -- addCodeExpr testEntity "CollisionStart" "collisionStart" myOnCollisionStartExpr myOnCollisionStart        
     -- selectEntity testEntity
 
@@ -20,7 +20,7 @@ loadTestScene = do
     -- Spawn objects
     forM_ [room, city, fountain] $ \onStart -> do
     --forM_ [room] $ \onStart -> do
-        spawnEntity Transient $ do
+        spawnEntity $ do
             myOnStart ==> onStart
             mySize ==> 0.3
             myShapeType ==> CubeShape
@@ -43,7 +43,7 @@ room = do
     setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     removeChildren
     builderID <- ask
-    let makeWall pos size hue = spawnEntity Transient $ do
+    let makeWall pos size hue = spawnEntity $ do
             myParent            ==> builderID
             myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
@@ -99,7 +99,7 @@ createBuildings = do
     forM_ (zip [0..] buildSites) $ \(i, V3 x y z) -> do
         hue <- liftIO randomIO
         
-        when (x /= 0 && z /= 0) $ void . spawnEntity Transient $ do
+        when (x /= 0 && z /= 0) $ void . spawnEntity $ do
             myParent               ==> rootEntityID
             myPose                 ==> mkTransformation 
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
@@ -119,7 +119,7 @@ createStars = do
     let numPoints = 300 :: Int
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
-    forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity Transient $ do
+    forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
         myParent               ==> rootEntityID
         myPose                 ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
@@ -147,7 +147,7 @@ fountain = do
                 note <- randomFrom majorScale
                 sendPd "note" (Atom $ realToFrac note)
                 pose <- getPose
-                childID <- spawnEntity Transient $ do
+                childID <- spawnEntity $ do
                     myPose ==> pose & translation +~ 
                         (pose ^. _m33) !* (V3 0 0.3 0)
                     myShapeType ==> SphereShape
