@@ -63,6 +63,8 @@ rumpusMain = withPd $ \pd -> do
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
             (headM44, events) <- tickVR vrPal playerM44
+            --(headM44, events) <- tickVR vrPal (playerM44 !*! scaleMatrix 5)
+            --(headM44, events) <- tickVR vrPal (playerM44 !*! scaleMatrix 0.1)
             tickControlEventsSystem headM44 events
             tickRenderSystem headM44
             

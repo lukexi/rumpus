@@ -1,6 +1,6 @@
 - - 192315978
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -11,7 +11,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -24,13 +24,13 @@
       - -0.8070159
       - 2.1406612
       - -0.48412967
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1083086105
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -41,7 +41,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -54,13 +54,13 @@
       - -0.87857413
       - 2.0441818
       - -0.14132464
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1125476434
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -71,7 +71,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -84,13 +84,13 @@
       - -1.0906844
       - 0.81796974
       - -0.82365805
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1351947595
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -101,7 +101,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -114,13 +114,13 @@
       - -0.97537386
       - 1.0264641
       - -0.12770715
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1544235735
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -131,7 +131,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -144,13 +144,13 @@
       - -0.8471876
       - 2.0947063
       - 0.4853093
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1801803681
   - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
+    Collision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.1
@@ -161,7 +161,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Update: scenes/sequencer/NoteUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -174,14 +174,14 @@
       - 0.8791841
       - 1.3421621
       - 0.27463254
-    OnStart: null
+    Start: null
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
     - Kinematic
 - - 1801803682
   - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
+    Collision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.1
@@ -192,7 +192,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Update: scenes/sequencer/NoteUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -205,14 +205,14 @@
       - 0.78519887
       - 0.64295083
       - 0.21386561
-    OnStart: null
+    Start: null
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
     - Kinematic
 - - 1801803683
   - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
+    Collision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.1
@@ -223,7 +223,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Update: scenes/sequencer/NoteUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -236,14 +236,14 @@
       - 0.7949814
       - 0.91798604
       - 0.18061861
-    OnStart: null
+    Start: null
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
     - Kinematic
 - - 1801803684
   - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
+    Collision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.1
@@ -254,7 +254,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Update: scenes/sequencer/NoteUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -267,14 +267,14 @@
       - 0.55929565
       - 0.6066946
       - 0.19421706
-    OnStart: null
+    Start: null
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
     - Kinematic
 - - 1801803685
   - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
+    Collision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.1
@@ -285,7 +285,7 @@
     - 5.8144593e-4
     - 1
     - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Update: scenes/sequencer/NoteUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -298,14 +298,14 @@
       - 0.3884779
       - 1.4330782
       - 4.377815e-2
-    OnStart: null
+    Start: null
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
     - Kinematic
 - - 1801803686
   - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
+    Collision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.1
@@ -316,7 +316,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Update: scenes/sequencer/NoteUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -329,14 +329,14 @@
       - 0.86895967
       - 1.1481773
       - 0.24693379
-    OnStart: null
+    Start: null
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
     - Kinematic
 - - 1801803687
   - Mass: 1
-    OnCollision: scenes/sequencer/NoteCollision.hs
+    Collision: scenes/sequencer/NoteCollision.hs
     PdPatch: scenes/sequencer/saw-voice
     Size:
     - 0.1
@@ -347,7 +347,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/sequencer/NoteUpdate.hs
+    Update: scenes/sequencer/NoteUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -360,14 +360,14 @@
       - 0.5775987
       - 1.0057558
       - 0.16182694
-    OnStart: null
+    Start: null
     Name: Note
     Shape: CubeShape
     PhysicsProperties:
     - Kinematic
 - - 1913565961
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -378,7 +378,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -391,13 +391,13 @@
       - -0.39743516
       - 2.2075076
       - -0.21649782
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 2471343175
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -408,7 +408,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -421,13 +421,13 @@
       - 0.64898014
       - 2.3159044
       - 0.3181293
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 2978547395
   - Mass: 0.0
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 1000
@@ -438,7 +438,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -451,13 +451,13 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: null
+    Start: null
     Name: Floor
     Shape: StaticPlaneShape
     PhysicsProperties: []
 - - 3216010645
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1
@@ -468,7 +468,7 @@
     - 1
     - 0.8
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -481,14 +481,14 @@
       - 0.9533405
       - 1.1365529
       - 4.173088e-2
-    OnStart: null
+    Start: null
     Name: Right Hand
     Shape: CubeShape
     PhysicsProperties:
     - NoContactResponse
 - - 3839326968
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 1.0e-2
@@ -499,7 +499,7 @@
     - 1
     - 0.0
     - 1
-    OnUpdate: scenes/sequencer/PlayHeadUpdate.hs
+    Update: scenes/sequencer/PlayHeadUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -512,7 +512,7 @@
       - 0.45703125
       - 1
       - 0.0
-    OnStart: null
+    Start: null
     Name: PlayHead
     Shape: CubeShape
     PhysicsProperties:

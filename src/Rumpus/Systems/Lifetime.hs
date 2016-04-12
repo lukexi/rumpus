@@ -20,9 +20,9 @@ tickLifetimeSystem = whenWorldPlaying $ do
     
 
     forEntitiesWithComponent myLifetime $ \(entityID, Lifetime birthtime lifetime) -> do
-        let age = now `diffUTCTime` birthtime
-        
-        let fadeStart = lifetime - 1
+        let age       = now `diffUTCTime` birthtime
+            fadeStart = lifetime - 1
+
         when (age > fadeStart) $ do
             let fadeProgress = lifetime - age
             size <- getEntitySize entityID

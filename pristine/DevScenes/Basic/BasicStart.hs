@@ -2,7 +2,7 @@
 module DefaultStart where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     
@@ -16,7 +16,7 @@ start = do
         myInheritParentTransform ==> True
         mySize                   ==> V3 0.5 0.6 0.6
         myColor ==> hslColor 0.1 0.8 0.5
-        myOnUpdate ==> do
+        myUpdate ==> do
             now <- sin <$> getNow
             myPose ==> 
                 mkTransformation (axisAngle (V3 0 1 1) now) pos

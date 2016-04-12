@@ -9,7 +9,7 @@ shelfH = 0.15
 
 roomOffset = (roomH/2 - wallD/2)
 
-start :: OnStart
+start :: Start
 start = do
     setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     removeChildren

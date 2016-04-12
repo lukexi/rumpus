@@ -1,6 +1,6 @@
 - - 694474371
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1
@@ -11,7 +11,7 @@
     - 0.8
     - 0.7
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -28,14 +28,14 @@
       - 0.0
       - 0.1
       - 0.0
-    OnStart: null
+    Start: null
     PhysicsProperties:
     - NoContactResponse
     Name: Left Hand
     Shape: CubeShape
 - - 1801803679
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.3
@@ -46,7 +46,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -63,13 +63,13 @@
       - -0.44366735
       - 1.2382588
       - -0.5660496
-    OnStart: null
+    Start: null
     PhysicsProperties: []
     Name: MessyCube
     Shape: CubeShape
 - - 2978547395
   - Mass: 0.0
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 1000
@@ -80,7 +80,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -97,13 +97,13 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: null
+    Start: null
     PhysicsProperties: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3215898416
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: scenes/spatula/spatula-song
     Size:
     - 0.2
@@ -114,7 +114,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/spatula/SpatulaUpdate.hs
+    Update: scenes/spatula/SpatulaUpdate.hs
     Scale:
     - 1
     - 1
@@ -131,14 +131,14 @@
       - 0.23167068
       - 0.7138907
       - -0.232716
-    OnStart: scenes/spatula/SpatulaStart.hs
+    Start: scenes/spatula/SpatulaStart.hs
     PhysicsProperties:
     - Kinematic
     Name: Spatula
     Shape: CubeShape
 - - 3216010645
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1
@@ -149,7 +149,7 @@
     - 1
     - 0.8
     - 1
-    OnUpdate: scenes/spatula/HandFireUpdate.hs
+    Update: scenes/spatula/HandFireUpdate.hs
     Scale:
     - 1
     - 1
@@ -166,14 +166,14 @@
       - -0.71248907
       - 2.6274974
       - 0.22345476
-    OnStart: null
+    Start: null
     PhysicsProperties:
     - NoContactResponse
     Name: Right Hand
     Shape: CubeShape
 - - 3839326967
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.3
@@ -184,7 +184,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -201,7 +201,7 @@
       - -8.312541e-2
       - 2.3149238
       - -0.3740393
-    OnStart: null
+    Start: null
     PhysicsProperties: []
     Name: MessyBall
     Shape: SphereShape

@@ -12,12 +12,11 @@ pointsOnSphere (fromIntegral -> n) =
             phi = k * inc
         in V3 (cos phi * r) y (sin phi * r)
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     createBuildings
     createStars
-    return Nothing
 
 createBuildings :: EntityMonad ()
 createBuildings = do
@@ -45,8 +44,12 @@ createBuildings = do
                                           (axisAngle (V3 0 0 1) 0) (V3 x y z)
             myShapeType          ==> CubeShape
             myPhysicsProperties  ==> [NoPhysicsShape]
-            mySize               ==> V3 dim height dim
+            mySize               ==> V3 dim (abs x) dim
             myColor              ==> hslColor hue 0.8 0.8
+            myUpdate             ==> do
+                let rate = 7000
+                now <- getNow
+                setSize $ V3 dim (height * (sin $ rate * now / (x * z))) dim 
 
 createStars :: EntityMonad ()
 createStars = do

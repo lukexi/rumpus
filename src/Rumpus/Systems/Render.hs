@@ -222,8 +222,8 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
             renderTextPreCorrectedOfSameFont textRenderer (parentM44 !*! textM44)
 
-        entitiesWithOnStart <- Map.toList <$> getComponentMap myOnStartExpr
-        forM_ entitiesWithOnStart $ \(entityID, codeExprKey) -> 
+        entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
+        forM_ entitiesWithStart $ \(entityID, codeExprKey) -> 
             traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
                 parentPose   <- getEntityPose entityID
                 V3 _ _ sizeZ <- getEntitySize entityID

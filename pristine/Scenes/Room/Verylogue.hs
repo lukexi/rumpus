@@ -3,7 +3,7 @@ import Rumpus
 
 majorScale = [0,2,4,5,7,9,11,12]
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
 
@@ -16,7 +16,6 @@ start = do
         keyID <- spawnEntity $ 
             makePianoKey rootEntityID rootPose i note
         attachEntity rootEntityID keyID False
-    return Nothing
 
 makePianoKey parentID parentPose i noteDegree = do
     let note = fromIntegral $ noteDegree + 60
@@ -31,9 +30,9 @@ makePianoKey parentID parentPose i noteDegree = do
     myPhysicsProperties ==> [Kinematic, NoContactResponse]
     myPose              ==> parentPose !*! (identity & translation .~ pose)
     mySize              ==> V3 0.01 0.2 0.3
-    myOnCollisionStart  ==> \_ _ -> do
+    myCollisionStart  ==> \_ _ -> do
         myColor ==> colorOn
         sendEntityPd parentID "piano-key" (List [note, 1])
-    myOnCollisionEnd    ==> \_ -> do
+    myCollisionEnd    ==> \_ -> do
         myColor ==> colorOff
         sendEntityPd parentID "piano-key" (List [note, 0])

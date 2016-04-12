@@ -1,7 +1,7 @@
 module MessStart where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start _entityID = do
     forM_ [1..20::Int] $ \_ -> do
         color <- liftIO $ randomRIO (0,1)

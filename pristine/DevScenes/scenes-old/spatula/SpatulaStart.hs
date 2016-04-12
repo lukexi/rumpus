@@ -1,7 +1,7 @@
 module SpatulaStart where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start entityID = do
     chan <- traverseM (use (wldComponents . myPdPatch . at entityID)) $ \patch -> do
         pd <- view wlsPd

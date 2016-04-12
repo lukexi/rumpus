@@ -24,11 +24,11 @@ defineComponentKeyWithType "Parent"                 [t|EntityID|]
 defineComponentKeyWithType "Children"               [t|[EntityID]|]
 
 -- Script System components (shared by Script and CodeEditor systems)
-type OnStart  = EntityMonad (Maybe Dynamic)
-type OnUpdate = EntityMonad ()
+type Start  = EntityMonad ()
+type Update = EntityMonad ()
 
-defineComponentKey ''OnStart
-defineComponentKey ''OnUpdate
+defineComponentKey ''Start
+defineComponentKey ''Update
 
 defineComponentKeyWithType "ScriptData" [t|Dynamic|]
 
@@ -64,8 +64,8 @@ initSharedSystem = do
     registerComponent "InheritParentTransform" myInheritParentTransform (newComponentInterface myInheritParentTransform)
 
     -- Allows Script and CodeEditor to access these
-    registerComponent "OnStart"  myOnStart      (newComponentInterface myOnStart)
-    registerComponent "OnUpdate" myOnUpdate     (newComponentInterface myOnUpdate)
+    registerComponent "Start"  myStart      (newComponentInterface myStart)
+    registerComponent "Update" myUpdate     (newComponentInterface myUpdate)
     registerComponent "ScriptData" myScriptData (newComponentInterface myScriptData)
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()

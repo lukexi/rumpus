@@ -6,34 +6,29 @@ import Rumpus.Systems.PlayPause
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
 import Control.Monad.Catch
---import Control.DeepSeq
+import Control.DeepSeq
 
 tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
-    forEntitiesWithComponent myOnStart $
+    forEntitiesWithComponent myStart $
         \(entityID, onStart) -> runEntity entityID $ do
-            putStrLnIO ("Running OnStart for " ++ show entityID)
-            -- Only call OnStart once. 
+            putStrLnIO ("Running Start for " ++ show entityID)
+            -- Only call Start once. 
             -- Handle any exceptions therein by writing them to the error pane.
-            (mScriptData, runtimeErrors) <- handleAll (\e -> return (Nothing, show e)) $ do
-                mScriptData <- onStart
-                -- We can't deepseq a dynamic value here, so
-                -- FIXME perhaps have scripts return via a helper 
-                -- function that deepseqs their script data?
-                (return (mScriptData, ""))
+            runtimeErrors <- handleAll (\e -> return (show e)) $ do
+                onStart
+                return ""
 
             setErrorText entityID runtimeErrors
-            
-            forM_ mScriptData $ \scriptData -> 
-                myScriptData ==> scriptData
-            removeComponent myOnStart
+                        
+            removeComponent myStart
 
-    forEntitiesWithComponent myOnUpdate $
-        \(entityID, onUpdate) -> do
-            runEntity entityID onUpdate 
+    forEntitiesWithComponent myUpdate $
+        \(entityID, update) -> do
+            runEntity entityID update 
                 `catchAll`
                 -- FIXME display this in world somewhere...
-                (\e -> putStrLnIO $ "Error in onUpdate for entity" ++ show entityID ++ ": " ++ show e)
+                (\e -> putStrLnIO $ "Error in Update for entity" ++ show entityID ++ ": " ++ show e)
 
 withScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => (a -> m ()) -> m ()
@@ -48,17 +43,11 @@ withScriptData f =
 
 editScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => (a -> m a) -> m ()
-editScriptData f = 
-    modifyComponent myScriptData $ \dynScriptData -> do
-        case fromDynamic dynScriptData of
-            Just scriptData -> toDyn <$> f scriptData
-            Nothing -> ask >>= \entityID -> do
-                putStrLnIO 
-                    ("editScriptData: Attempted to use entityID " ++ show entityID 
-                        ++ "'s script data of type " ++ show dynScriptData 
-                        ++ " with a function that accepts a different type.")
-                return dynScriptData
+editScriptData f = withScriptData $ \scriptData ->
+    setScriptData =<< f scriptData 
 
 setScriptData :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                => a -> m ()
 setScriptData scriptData = myScriptData ==> toDyn scriptData
+-- FIXME not everything is NFData, so need to figure out from API perspective how to allow non NFData (e.g. TVars) while still encouraging NFData 
+--setScriptData scriptData = myScriptData ==> (toDyn $!! scriptData)

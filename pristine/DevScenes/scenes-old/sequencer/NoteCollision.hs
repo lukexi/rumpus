@@ -1,7 +1,7 @@
 module NoteCollision where
 import Rumpus
 
-collision :: OnCollision
+collision :: Collision
 collision entityID _collidedID _impulse = do
     
     sendEntityPd entityID "trigger" (Atom 1)

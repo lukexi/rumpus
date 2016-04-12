@@ -1,5 +1,5 @@
 module DefaultStart where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start entityID = return ()

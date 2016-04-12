@@ -223,7 +223,7 @@ makeKeyboardKey whichHand containerID x y numKeys numRows key = do
     myPose                   ==> (identity & translation .~ pose)
     mySize                   ==> V3 keyWidth keyDepth keyHeight
     myInheritParentTransform ==> InheritPose
-    myOnUpdate ==> do
+    myUpdate ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do
                 let thumbXY  = getThumbPos hand
@@ -253,7 +253,7 @@ makeThumbNub whichHand containerID maxNumKeys numRows = do
     myPhysicsProperties      ==> [NoPhysicsShape]
     mySize                   ==> realToFrac keyDepth
     myInheritParentTransform ==> InheritPose
-    myOnUpdate               ==> do
+    myUpdate               ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do                
                 let V2 x y  = getThumbPos hand * keyboardDims

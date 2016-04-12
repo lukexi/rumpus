@@ -1,3 +1,3 @@
-OnStartExpr:
+StartExpr:
 - scenes/sampleverse/SpawnRecorders.hs
 - start

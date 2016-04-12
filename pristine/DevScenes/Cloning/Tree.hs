@@ -2,7 +2,7 @@
 module Tree where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     
@@ -16,7 +16,7 @@ start = do
                 myInheritParentTransform ==> InheritFull
                 mySize                   ==> V3 0.5 0.5 0.5
                 myColor ==> hslColor (fromIntegral n/9) 0.8 0.5
-                myOnUpdate ==> do
+                myUpdate ==> do
                     now <- sin <$> getNow
                     let V3 pX pY pZ = pos
                     myPose ==> mkTransformation 

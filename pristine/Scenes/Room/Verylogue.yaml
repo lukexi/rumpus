@@ -26,6 +26,6 @@ Pose:
   - 0.0
   - 1
 PdPatchFile: verylogue.pd
-OnStartExpr:
+StartExpr:
 - Verylogue.hs
 - start

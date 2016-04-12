@@ -2,7 +2,7 @@
 module SpatulaUpdate where
 import Rumpus
 
-update :: OnUpdate
+update :: Update
 update entityID = do
     now <- getNow
     let a     = (*5) . sin . (/10) $ now

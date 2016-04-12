@@ -1,7 +1,7 @@
 module PlayHeadUpdate where
 import Rumpus
 
-update :: OnUpdate
+update :: Update
 update = do
     -- y <- (+ 1) . (* 0.01) . sin <$> getNow
     x <- (/4) . flip mod' 4 . (*3) <$> getNow

@@ -10,11 +10,11 @@ randomNote = do
     i <- liftIO (randomRIO (0, length majorScale - 1))
     return (majorScale !! i)
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
 
-    myOnUpdate ==> withScriptData (\timer -> do
+    myUpdate ==> withScriptData (\timer -> do
         shouldSpawn <- checkTimer timer
         if shouldSpawn 
             then do

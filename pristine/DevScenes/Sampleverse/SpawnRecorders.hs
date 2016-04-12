@@ -2,7 +2,7 @@
 module DefaultStart where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     rootEntityID <- ask
@@ -13,13 +13,13 @@ start = do
             myPose              ==> identity & translation . _y .~ y
             mySize              ==> 0.1
             myPdPatchFile       ==> "scenes/sampleverse/recorder"
-            myOnCollisionStart  ==> \_ _ -> do
+            myCollisionStart  ==> \_ _ -> do
                 hue <- liftIO randomIO
                 myColor ==> hslColor hue 0.8 0.4 1
                 sendPd "record-toggle" (Atom 1)
-            myOnCollisionEnd    ==> \_ -> do
+            myCollisionEnd    ==> \_ -> do
                 sendPd "record-toggle" (Atom 0)
-            myOnStart           ==> do
+            myStart           ==> do
                 samplerEntityID <- ask
                 children <- forM [0..255] $ \i -> do
                     let x = fromIntegral i / 8 + 1
@@ -32,7 +32,7 @@ start = do
                         myPhysicsProperties      ==> [NoPhysicsShape]
                         myInheritParentTransform ==> True
                 return (Just (toDyn children))
-            myOnUpdate          ==> withScriptData (\children -> do
+            myUpdate          ==> withScriptData (\children -> do
                 fftSample <- readPdArray "sample-fft" 0 256
                 forM_ (zip children fftSample) $ \(childID, sample) -> runEntity childID $ do
                     let val = sample * 2

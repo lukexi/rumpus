@@ -1,4 +1,4 @@
-OnStartExpr:
+StartExpr:
 - scenes/treeroom/Room.hs
 - start
 PlayWhenReady: true

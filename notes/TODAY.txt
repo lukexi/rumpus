@@ -2,7 +2,7 @@ TODAY:
 - Text editor pass:
     Try to get things to a point where e.g. treeroom can be coded from scratch from inside rumpus.
 
-    - [ ] Widgets for OnStart, OnCollision, OnUpdate code
+    - [ ] Widgets for Start, Collision, Update code
     - [ ] OnSelect that detects raycasts
     - [x] Widget text labels
         - [x] Make "selection" a Maybe in freetype-gl-mini
@@ -33,7 +33,7 @@ TODAY:
 - [ ] Component library so we can define an entity, name it and spawn it
 
 - [ ] Handy note: we can use start function to define everything else by just setting properties on self.
-    - Animations can be added in OnStart
+    - Animations can be added in Start
 
 - [ ] Fix readArray in pd-hs - it should return an unboxed Vector rather than a list
 
@@ -47,7 +47,7 @@ TODAY:
 DONE
 - [x] Speech recorder with OnEnter/OnExit!
 
-- [x] OnCollisionEnter/OnCollisionExit
+- [x] CollisionEnter/CollisionExit
     (just keep a Set of collision pairs, detect entries and exits that way)
     Collisions should be their own system.
 

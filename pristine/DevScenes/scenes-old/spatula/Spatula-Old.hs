@@ -84,7 +84,7 @@ spatula = newEntity
         , _entPhysicsProperties   = [Kinematic]
         , _entShape       = CubeShape
         , _entName        = "Spatula"
-        , _entOnUpdate    = Just "spatula/Wobble.hs"
+        , _entUpdate    = Just "spatula/Wobble.hs"
         , _entPdPatch     = Just "spatula/spatula2"
         }
 

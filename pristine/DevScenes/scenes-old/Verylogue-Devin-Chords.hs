@@ -11,7 +11,7 @@ blackKeys = [1,3,6,8,10]
 
 chords = [[0,4,7],[0,5,9],[9,12,4],[11,4,7],[3,8,11]]
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
 
@@ -42,9 +42,9 @@ pianokey parentID parentPose i j noteDegree = do
     myPhysicsProperties ==> [Kinematic, NoContactResponse]
     myPose              ==> parentPose !*! (identity & translation .~ pose)
     mySize              ==> V3 0.01 0.2 0.3
-    myOnCollisionStart  ==> \_ _ -> do
+    myCollisionStart  ==> \_ _ -> do
         myColor ==> colorOn
         sendEntityPd parentID "piano-key" (List [note, 1])
-    myOnCollisionEnd    ==> \_ -> do
+    myCollisionEnd    ==> \_ -> do
         myColor ==> colorOff
         sendEntityPd parentID "piano-key" (List [note, 0])

@@ -1,6 +1,6 @@
 - - 355696329
   - Mass: 1
-    OnCollision: scenes/fountain/SoundCubeCollision.hs
+    Collision: scenes/fountain/SoundCubeCollision.hs
     PdPatch: scenes/fountain/saw-voice
     Size:
     - 0.5
@@ -11,7 +11,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -27,14 +27,14 @@
       - -0.28256136
       - 1.5246012
       - 0.17519844
-    OnStart: null
+    Start: null
     PhysicsProperties: []
     Name: SoundCube
     Shape: CubeShape
     Lifetime: 2
 - - 694474371
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1
@@ -45,7 +45,7 @@
     - 0.8
     - 0.7
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -61,14 +61,14 @@
       - 0.0
       - 0.1
       - 0.0
-    OnStart: null
+    Start: null
     PhysicsProperties:
     - NoContactResponse
     Name: Left Hand
     Shape: CubeShape
 - - 2978547395
   - Mass: 0.0
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 1000
@@ -79,7 +79,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -95,13 +95,13 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: scenes/fountain/MessStart.hs
+    Start: scenes/fountain/MessStart.hs
     PhysicsProperties: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3216010645
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1
@@ -112,7 +112,7 @@
     - 1
     - 0.8
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -128,14 +128,14 @@
       - 1.3076365e-3
       - 0.8562407
       - -6.86041e-2
-    OnStart: null
+    Start: null
     PhysicsProperties:
     - NoContactResponse
     Name: Right Hand
     Shape: CubeShape
 - - 3839326967
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: scenes/fountain/flutter
     Size:
     - 0.3
@@ -146,7 +146,7 @@
     - 1
     - 0.0
     - 1
-    OnUpdate: null
+    Update: null
     Scale:
     - 1
     - 1
@@ -162,7 +162,7 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: null
+    Start: null
     PhysicsProperties: []
     Name: MessyBall
     Shape: SphereShape

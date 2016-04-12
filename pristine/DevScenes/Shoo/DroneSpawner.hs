@@ -4,7 +4,7 @@ import Rumpus
 
 numDrones = 30
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     parentID <- ask
@@ -17,7 +17,7 @@ start = do
             myMass ==> 0.1
             let h = (fromIntegral $ (i * 27) `mod` 37) / 37
             myColor ==> hslColor h 0.9 0.8
-            myOnUpdate ==> do
+            myUpdate ==> do
                 now <- getNow
                 let iF = fromIntegral i
                     rate = 0.05
@@ -26,7 +26,7 @@ start = do
                     y = 1 + iF * 0.4
                     z = 1 + 0.3 * iF * sin t
                 setPose (identity & translation .~ V3 x y z)
-            myOnCollisionStart ==> \_ _ -> do
+            myCollisionStart ==> \_ _ -> do
                 myColor ==> hslColor 1 0.5 0.5
 
         return ()

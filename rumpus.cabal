@@ -54,6 +54,7 @@ library
                        Rumpus.Systems.Collisions
                        Rumpus.Systems.Constraint
                        Rumpus.Systems.Controls
+                       Rumpus.Systems.EditorFrame
                        Rumpus.Systems.Hands
                        Rumpus.Systems.Haptics
                        Rumpus.Systems.KeyboardHands

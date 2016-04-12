@@ -2,7 +2,7 @@
 module DefaultStart where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     rootEntityID <- ask
@@ -17,9 +17,9 @@ pianokey parentID n = do
     myPhysicsProperties ==> [Kinematic]
     myPose              ==> (identity & translation . _x .~ x)
     mySize              ==> 0.5
-    myOnCollisionStart  ==> \_ _ -> do
+    myCollisionStart  ==> \_ _ -> do
         hue <- liftIO randomIO
         myColor ==> hslColor hue 0.8 0.4
         sendEntityPd parentID "piano-key" (List [fromIntegral note, 1])
-    myOnCollisionEnd    ==> \_ -> do
+    myCollisionEnd    ==> \_ -> do
         sendEntityPd parentID "piano-key" (List [fromIntegral note, 0])

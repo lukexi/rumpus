@@ -2,7 +2,7 @@
 module HandFireUpdate where
 import Rumpus
 
-update :: OnUpdate
+update :: Update
 update entityID = do
     withRightHandEvents $ \case
         HandButtonEvent HandButtonTrigger ButtonDown -> do

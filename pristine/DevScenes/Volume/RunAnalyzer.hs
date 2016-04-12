@@ -3,7 +3,7 @@
 module RunAnalyzer where
 import Rumpus
 
-update :: OnUpdate
+update :: Update
 update = do
     withScriptData $ \receiver -> do
         rootID <- ask

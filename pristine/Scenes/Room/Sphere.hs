@@ -12,7 +12,7 @@ pointsOnSphere (fromIntegral -> n) =
             phi = k * inc
         in V3 (cos phi * r) y (sin phi * r)
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     rootEntityID <- ask
@@ -29,11 +29,10 @@ start = do
         myInheritParentTransform ==> InheritFull
         mySize                   ==> V3 0.5 0.5 0.5
         myColor                  ==> hslColor hue 0.8 0.5
-        myOnUpdate ==> do
+        myUpdate ==> do
             now <- sin <$> getNow
             setSize (realToFrac ((sin now + 1) * 0.1 + 0.01))
             --let V3 pX pY pZ = pos
             --myPose ==> mkTransformation 
             --    (axisAngle (V3 0 1 1) (now*2)) 
             --    (V3 (pX+now) pY pZ)
-    return Nothing

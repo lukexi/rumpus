@@ -13,7 +13,7 @@ import Rumpus
 loadTestScene :: ECSMonad ()
 loadTestScene = do
     -- testEntity <- spawnEntity $ return ()
-    -- addCodeExpr testEntity "CollisionStart" "collisionStart" myOnCollisionStartExpr myOnCollisionStart        
+    -- addCodeExpr testEntity "CollisionStart" "collisionStart" myCollisionStartExpr myCollisionStart        
     -- selectEntity testEntity
 
 
@@ -21,7 +21,7 @@ loadTestScene = do
     forM_ [room, city, fountain] $ \onStart -> do
     --forM_ [room] $ \onStart -> do
         spawnEntity $ do
-            myOnStart ==> onStart
+            myStart ==> onStart
             mySize ==> 0.3
             myShapeType ==> CubeShape
 
@@ -38,7 +38,7 @@ shelfH = 0.15
 
 roomOffset = (roomH/2 - wallD/2)
 
-room :: OnStart
+room :: Start
 room = do
     setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     removeChildren
@@ -66,7 +66,6 @@ room = do
         makeWall (V3 0 shelfY (roomD/2)) 
                  (V3 roomW shelfH (wallD*2)) 0.7 -- shelf
 
-    return Nothing
 
 -------------------------------------------------------------------------------
 -- City
@@ -82,12 +81,11 @@ pointsOnSphere (fromIntegral -> n) =
             phi = k * inc
         in V3 (cos phi * r) y (sin phi * r)
 
-city :: OnStart
+city :: Start
 city = do
     removeChildren
     createBuildings
     createStars
-    return Nothing
 
 createBuildings :: EntityMonad ()
 createBuildings = do
@@ -105,7 +103,7 @@ createBuildings = do
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
             myShapeType            ==> CubeShape
             myPhysicsProperties    ==> [NoPhysicsShape]
-            --myOnUpdate ==> do
+            --myUpdate ==> do
             --    now <- getNow
             --    let newHeight = ((sin (now+i) + 1) + 1) * height
             --    setSize (V3 dim newHeight dim)
@@ -136,11 +134,11 @@ rate = 10
 
 majorScale = map (+60) [0,2,4,7,9]
 
-fountain :: OnStart
+fountain :: Start
 fountain = do
     removeChildren
 
-    myOnUpdate ==> withScriptData (\timer -> do
+    myUpdate ==> withScriptData (\timer -> do
         shouldSpawn <- checkTimer timer
         if shouldSpawn 
             then do
@@ -161,4 +159,4 @@ fountain = do
             else return ())
 
     timer <- createNewTimer rate
-    return (Just (toDyn timer))
+    setScriptData timer

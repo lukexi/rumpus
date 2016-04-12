@@ -2,7 +2,7 @@
 module DefaultStart where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
 
@@ -30,9 +30,9 @@ makePianoKey parentID parentPose i noteDegree = do
     myPhysicsProperties ==> [Kinematic, NoContactResponse]
     myPose              ==> parentPose !*! (identity & translation .~ pose)
     mySize              ==> V3 0.01 0.2 0.3
-    myOnCollisionStart  ==> \_ _ -> do
+    myCollisionStart  ==> \_ _ -> do
         myColor ==> colorOn
         sendEntityPd parentID "piano-key" (List [note, 1])
-    myOnCollisionEnd    ==> \_ -> do
+    myCollisionEnd    ==> \_ -> do
         myColor ==> colorOff
         sendEntityPd parentID "piano-key" (List [note, 0])

@@ -1,7 +1,7 @@
 module StartAnalyzer where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start = do
     receiveChan <- withPdPatch $ \patch -> do
         pd <- viewSystem sysSound sndPd

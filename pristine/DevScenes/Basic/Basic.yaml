@@ -17,6 +17,6 @@ Pose:
 PhysicsProperties:
 - Kinematic
 - NoContactResponse
-OnStartExpr:
+StartExpr:
 - scenes/basic/BasicStart.hs
 - start

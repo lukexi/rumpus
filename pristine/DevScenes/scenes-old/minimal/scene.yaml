@@ -1,6 +1,6 @@
 - - 124748846
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.11631584
@@ -11,7 +11,7 @@
     - 0.59151995
     - 0.24000007
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -24,13 +24,13 @@
       - -7.9236925e-2
       - 1.032083
       - -5.4659307e-2
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 184849503
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -41,7 +41,7 @@
     - 0.84
     - 0.87899196
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -54,13 +54,13 @@
       - -7.592902e-2
       - 0.7625083
       - 1.6618123
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 577161494
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -71,7 +71,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -84,13 +84,13 @@
       - 1.5546224
       - 1.139713
       - -0.7305281
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 580428607
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.18869305
@@ -101,7 +101,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -114,13 +114,13 @@
       - 0.19043514
       - 1.190624e-2
       - -0.7367603
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 666392315
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -131,7 +131,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -144,13 +144,13 @@
       - 0.6645529
       - 1.8444649
       - -0.90676236
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 694474371
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1
@@ -161,7 +161,7 @@
     - 0.8
     - 0.7
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -174,14 +174,14 @@
       - 0.36101747
       - 1.3331577
       - -0.14369106
-    OnStart: null
+    Start: null
     Name: Left Hand
     Shape: CubeShape
     PhysicsProperties:
     - NoContactResponse
 - - 992630667
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1444354
@@ -192,7 +192,7 @@
     - 0.5732741
     - 0.24000007
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -205,13 +205,13 @@
       - -0.2748745
       - 0.9615505
       - -0.23412359
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1134014372
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -222,7 +222,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -235,13 +235,13 @@
       - 0.6645529
       - 1.8444649
       - -0.90676236
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1169090362
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 6.800842e-2
@@ -252,7 +252,7 @@
     - 0.96
     - 0.24000007
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -265,13 +265,13 @@
       - -0.29764664
       - 0.7785614
       - -0.13170302
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1198920318
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 6.35674e-2
@@ -282,7 +282,7 @@
     - 0.96
     - 0.24000007
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -295,13 +295,13 @@
       - -0.15784633
       - 0.7594592
       - 1.6842231e-2
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1431009904
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -312,7 +312,7 @@
     - 0.8699999
     - 0.90465266
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -325,13 +325,13 @@
       - 0.2781154
       - 0.4627608
       - -1.5333812
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1673933154
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.25975323
@@ -342,7 +342,7 @@
     - 0.89641297
     - 0.96
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -355,13 +355,13 @@
       - -0.21862987
       - 1.2393779
       - -0.13009015
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 1801803679
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.846102
@@ -372,7 +372,7 @@
     - 0.96
     - 0.24000007
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -385,13 +385,13 @@
       - 1.4495622
       - 0.434022
       - -0.4114685
-    OnStart: null
+    Start: null
     Name: MessyCube
     Shape: CubeShape
     PhysicsProperties: []
 - - 1953701046
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -402,7 +402,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -415,13 +415,13 @@
       - -0.38743052
       - 0.98287493
       - -1.5989583
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 2314345432
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -432,7 +432,7 @@
     - 0.93000007
     - 0.8699999
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -445,13 +445,13 @@
       - -0.6039825
       - 0.2555728
       - -0.8381426
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 2430015393
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.27116442
@@ -462,7 +462,7 @@
     - 0.24000007
     - 0.24000032
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -475,13 +475,13 @@
       - 0.7623005
       - 0.14112814
       - 2.1920295
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 2578553634
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.5
@@ -492,7 +492,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -505,13 +505,13 @@
       - 0.11747362
       - 1.2482325
       - -1.9422166
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 2893411358
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.28154707
@@ -522,7 +522,7 @@
     - 0.34155804
     - 0.24000007
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -535,13 +535,13 @@
       - -0.26245522
       - 0.9843664
       - -4.6174124e-2
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 2978547395
   - Mass: 0.0
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 1000
@@ -552,7 +552,7 @@
     - 1
     - 1
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -565,13 +565,13 @@
       - 0.0
       - 0.0
       - 0.0
-    OnStart: null
+    Start: null
     Name: Floor
     Shape: StaticPlaneShape
     PhysicsProperties: []
 - - 3216010645
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1
@@ -582,7 +582,7 @@
     - 1
     - 0.8
     - 1
-    OnUpdate: null
+    Update: null
     Children: []
     Lifetime: null
     Pose:
@@ -595,14 +595,14 @@
       - 0.7182911
       - 0.6241809
       - -0.42304668
-    OnStart: null
+    Start: null
     Name: Right Hand
     Shape: CubeShape
     PhysicsProperties:
     - NoContactResponse
 - - 3793229927
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.1232543
@@ -613,7 +613,7 @@
     - 0.34545645
     - 0.24000007
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -626,13 +626,13 @@
       - 0.2666382
       - 1.4863777
       - -0.21880442
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []
 - - 3859500163
   - Mass: 1
-    OnCollision: null
+    Collision: null
     PdPatch: null
     Size:
     - 0.71537447
@@ -643,7 +643,7 @@
     - 0.87490255
     - 0.8699999
     - 1
-    OnUpdate: scenes/minimal/DefaultUpdate.hs
+    Update: scenes/minimal/DefaultUpdate.hs
     Children: []
     Lifetime: null
     Pose:
@@ -656,7 +656,7 @@
       - -0.77472675
       - 1.7820439
       - 0.37945032
-    OnStart: null
+    Start: null
     Name: NewEntity
     Shape: CubeShape
     PhysicsProperties: []

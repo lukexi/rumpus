@@ -10,7 +10,7 @@ shelfH = 0.15
 --roomOffset = (roomH/2 - wallD/2)
 roomOffset = 0
 
-start :: OnStart
+start :: Start
 start = do
     lhID <- getLeftHandID
     removeEntityComponent myShapeType lhID

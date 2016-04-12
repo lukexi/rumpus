@@ -1,7 +1,7 @@
 module Tree where
 import Rumpus
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     
@@ -15,7 +15,7 @@ start = do
                 myInheritParentTransform ==> InheritFull
                 mySize                   ==> V3 0.5 0.5 0.5
                 myColor                  ==> hslColor (fromIntegral n/9) 0.8 0.5
-                myOnUpdate ==> do
+                myUpdate ==> do
                     now <- sin <$> getNow
                     let V3 pX pY pZ = pos
                     setPose $ mkTransformation 
@@ -26,4 +26,3 @@ start = do
                 branch childID (n - 1) (V3 (-1) 1 0)
     rootEntityID <- ask
     branch rootEntityID (3::Int) (V3 0 1 0)
-    return Nothing

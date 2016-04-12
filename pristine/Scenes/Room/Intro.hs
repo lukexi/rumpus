@@ -6,5 +6,6 @@ environment for the htc vive
 
 import Rumpus
 
-start :: OnStart
-start = return Nothing
+start :: Start
+start = do
+	return ()

@@ -7,22 +7,22 @@ import Rumpus.Systems.PlayPause
 import qualified Data.Set as Set
 import qualified Data.HashMap.Strict as Map
 
-type OnCollision        = CollidedWithID -> CollisionImpulse -> EntityMonad ()
-type OnCollisionStart   = CollidedWithID -> CollisionImpulse -> EntityMonad ()
-type OnCollisionEnd     = CollidedWithID -> EntityMonad ()
+type Colliding        = CollidedWithID -> CollisionImpulse -> EntityMonad ()
+type CollisionStart   = CollidedWithID -> CollisionImpulse -> EntityMonad ()
+type CollisionEnd     = CollidedWithID -> EntityMonad ()
 
 type CollidedWithID     = EntityID
 type CollisionImpulse   = GLfloat
 
-defineComponentKey ''OnCollision
-defineComponentKey ''OnCollisionStart
-defineComponentKey ''OnCollisionEnd
+defineComponentKey ''Colliding
+defineComponentKey ''CollisionStart
+defineComponentKey ''CollisionEnd
 
 initCollisionsSystem :: MonadState ECS m => m ()
 initCollisionsSystem = do
-    registerComponent "OnCollision"      myOnCollision      (newComponentInterface myOnCollision)
-    registerComponent "OnCollisionStart" myOnCollisionStart (newComponentInterface myOnCollisionStart)
-    registerComponent "OnCollisionEnd"   myOnCollisionEnd   (newComponentInterface myOnCollisionEnd)
+    registerComponent "Colliding"      myColliding      (newComponentInterface myColliding)
+    registerComponent "CollisionStart" myCollisionStart (newComponentInterface myCollisionStart)
+    registerComponent "CollisionEnd"   myCollisionEnd   (newComponentInterface myCollisionEnd)
 
 -- | Loop through the collisions for this frame and call any 
 -- entities' registered collision callbacks
@@ -41,17 +41,17 @@ tickCollisionsSystem = do
 
             lastCollisionPairs <- viewSystem sysPhysics phyCollisionPairs
 
-            forEntitiesWithComponent myOnCollision $ \(entityID, onCollision) -> do
+            forEntitiesWithComponent myColliding $ \(entityID, onColliding) -> do
                 (_, _, allCollisions) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ allCollisions $ \collidingID ->
-                    runEntity entityID $ onCollision collidingID 0.1
+                    runEntity entityID $ onColliding collidingID 0.1
 
-            forEntitiesWithComponent myOnCollisionStart $ \(entityID, onCollisionStart) -> do
+            forEntitiesWithComponent myCollisionStart $ \(entityID, onCollisionStart) -> do
                 (newCollisions, _, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ newCollisions $ \collidingID ->
                     runEntity entityID $ onCollisionStart collidingID 0.1
             
-            forEntitiesWithComponent myOnCollisionEnd $ \(entityID, onCollisionEnd) -> do
+            forEntitiesWithComponent myCollisionEnd $ \(entityID, onCollisionEnd) -> do
                 (_, oldCollisions, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ oldCollisions $ \collidingID ->
                     runEntity entityID $ onCollisionEnd collidingID

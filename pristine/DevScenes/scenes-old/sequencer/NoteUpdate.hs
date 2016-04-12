@@ -1,7 +1,7 @@
 module NoteUpdate where
 import Rumpus
 
-update :: OnUpdate
+update :: Update
 update entityID = do    
     pose <- getEntityPose entityID
     let height = pose ^. posPosition . _y

@@ -25,7 +25,7 @@ Pose:
   - 0.0   
   - 0.0
   - 1
-OnStartExpr:
+StartExpr:
 - Intro.hs
 - start
 PdPatchFile: intro-voice.pd

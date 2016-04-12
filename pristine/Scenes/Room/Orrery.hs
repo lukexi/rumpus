@@ -9,7 +9,7 @@ data Planet = Planet
     , surfaceHue  :: Float
     }
 
-start :: OnStart
+start :: Start
 start = do
     removeChildren
     rootEntityID <- ask
@@ -26,7 +26,7 @@ start = do
 
             makeCelestialBody parent radius surfaceHue
             myPose                     ==> translateMatrix (V3 (orbitRadius*3) 0 0)
-            myOnUpdate                 ==> do
+            myUpdate                 ==> do
                 n <- (orbitRate *) <$> getNow
                 let x = orbitRadius * cos n
                     z = orbitRadius * sin n
@@ -59,4 +59,4 @@ start = do
     p2   <- makePlanet $ Planet { parent = sun2, radius = 0.06,  surfaceHue = 0.18, orbitRadius = 0.55, orbitRate = 0.4 }
     p3   <- makePlanet $ Planet { parent = sun2, radius = 0.25,  surfaceHue = 0.34, orbitRadius = 0.9,  orbitRate = 0.9 }
     
-    return Nothing
+    return ()

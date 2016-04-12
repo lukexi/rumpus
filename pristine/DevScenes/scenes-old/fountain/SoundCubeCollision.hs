@@ -1,7 +1,7 @@
 module SoundCubeCollision where
 import Rumpus
 
-collision :: OnCollision
+collision :: Collision
 collision entityID _collidedID impulse = when (impulse > 0.1) $ do
     
     sendEntityPd entityID "note"    (Atom 48)
