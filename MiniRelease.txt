@@ -27,18 +27,19 @@
     [x] Cursor is way too hard to see!
     [ ] Add line numbers?? Any way to do that easily??
 
+[ ] Fix app freezing when dragging the window
 
 [ ] Knob API!
-    scaleKnob <- makeKnob 0 100 "Scale"
+    scaleKnob <- makeKnob 0 100 "Scale" 50
     myUpdate ==> do
         newScale <- readKnob scaleKnob
         setSize newScale
 
 [ ] Finish keyboard
-    [ ] Fix bad key/thumb mapping
     [ ] Fullsize keys for space etc.
     [ ] Variable-width keys like Valve's, for oft-used keys?
     
+    [x] Fix bad key/thumb mapping
     [x] Only show keyboard when object selected
     [x] Haptics for moving thumb on keys
         [ ] Different vibrations to let you know that you're still on the right key??
