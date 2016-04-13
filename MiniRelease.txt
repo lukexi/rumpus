@@ -35,9 +35,11 @@
         setSize newScale
 
 [ ] Finish keyboard
+    [ ] Fix bad key/thumb mapping
     [ ] Fullsize keys for space etc.
-    [ ] Only show keyboard when object selected
     [ ] Variable-width keys like Valve's, for oft-used keys?
+    
+    [x] Only show keyboard when object selected
     [x] Haptics for moving thumb on keys
         [ ] Different vibrations to let you know that you're still on the right key??
             (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)

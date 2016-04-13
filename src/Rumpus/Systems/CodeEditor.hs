@@ -51,7 +51,7 @@ defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
 defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
 defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
 
-defineComponentKeyWithType "PlayWhenReady" [t|Bool|]
+defineComponentKeyWithType "PlayWhenReady"      [t|Bool|]
 
 getPlayWhenReady :: (MonadState ECS m, MonadReader EntityID m) => m Bool
 getPlayWhenReady = fromMaybe False <$> getComponent myPlayWhenReady
