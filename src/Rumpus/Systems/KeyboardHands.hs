@@ -14,8 +14,11 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Text
+import Rumpus.Systems.Animation
+
 
 import qualified Graphics.UI.GLFW.Pal as GLFW
+import qualified Data.HashMap.Strict as Map
 
 data HandKey = HandKeyChar Char Char
              | HandKeyEnter
@@ -120,6 +123,20 @@ makeLenses      ''KeyboardHandsSystem
 defineSystemKey ''KeyboardHandsSystem
 
 
+showKeyboardHands :: (MonadIO m, MonadState ECS m) => m ()
+showKeyboardHands = do
+    keyboardIDs <- viewSystem sysKeyboardHands kbhKeyboard
+    forM_ keyboardIDs $ \keyboardID -> runEntity keyboardID $ do
+        animateSizeTo 1 0.2
+
+hideKeyboardHands :: (MonadIO m, MonadState ECS m) => m ()
+hideKeyboardHands = do
+    keyboardIDs <- viewSystem sysKeyboardHands kbhKeyboard
+    forM_ keyboardIDs $ \keyboardID -> runEntity keyboardID $ do
+        animateSizeTo 0.01 0.2
+
+
+
 startKeyboardHandsSystem :: ECSMonad ()
 startKeyboardHandsSystem = do
 
@@ -131,22 +148,27 @@ startKeyboardHandsSystem = do
     let handsWithKeys = [ (LeftHand,  leftHandID,  leftHandKeys)
                         , (RightHand, rightHandID, rightHandKeys)
                         ]
-    keyIDs <- fmap concat . forM handsWithKeys $ \(whichHand, handID, keyRows) -> do
+    containersAndKeyIDs <- forM handsWithKeys $ \(whichHand, handID, keyRows) -> do
         --runEntity handID removeChildren
 
         containerID <- spawnEntity $ do
             myParent                   ==> handID
             myInheritParentTransform   ==> InheritPose
+        scaleContainerID <- spawnEntity $ do
+            myParent                   ==> containerID
+            myInheritParentTransform   ==> InheritFull
 
-        keyIDsForHand <- spawnKeysForHand whichHand containerID keyRows
-        return keyIDsForHand
+        keyIDsForHand <- spawnKeysForHand whichHand scaleContainerID keyRows
+        return ((whichHand, containerID), keyIDsForHand)
+    let keyIDs = concatMap snd containersAndKeyIDs
+        keyboardIDs = Map.fromList (map fst containersAndKeyIDs)
 
     registerSystem sysKeyboardHands $ KeyboardHandsSystem
         { _kbhShiftDown   = False
         , _kbhKeyIDs      = keyIDs
         , _kbhCurrentKey  = mempty
         , _kbhLastKey     = mempty
-        , _kbhKeyboard    = mempty
+        , _kbhKeyboard    = keyboardIDs
         }
 
 tickKeyboardHandsSystem :: ECSMonad ()

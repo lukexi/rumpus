@@ -2,7 +2,7 @@ module Fountain where
 import Rumpus
 
 rate :: Float
-rate = 0.5
+rate = 5
 
 majorScale = map (+60) [0,2,4,7,9]
 
@@ -10,13 +10,15 @@ start :: Start
 start = do
     removeChildren
 
-    myUpdate ==> withScriptData (\timer -> do
-        shouldSpawn <- checkTimer timer
-        if shouldSpawn 
-            then do
+    myUpdate ==> do
+        withState $ \timer -> do
+            shouldSpawn <- checkTimer timer
+            when shouldSpawn $ do
+                -- Play a note
                 note <- randomFrom majorScale
                 sendPd "note" (Atom $ realToFrac note)
                 
+                -- Spawn a ball
                 pose <- getPose
                 spawnEntity $ do
                     myPose      ==> pose & translation +~ 
@@ -28,10 +30,11 @@ start = do
                     myStart     ==> do
                         setLifetime 10
                         applyForce $ (pose ^. _m33) !* (V3 0 0.3 0)
-                now <- getNow
+                
+                -- Create a new timer
                 newTimer <- createNewTimer rate
-                setScriptData newTimer
-            else return ())
+                setState newTimer
 
+    -- Create the initial timer
     newTimer <- createNewTimer rate
-    setScriptData newTimer
+    setState newTimer

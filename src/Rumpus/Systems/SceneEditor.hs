@@ -14,9 +14,9 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Sound
 import Rumpus.Systems.Attachment
 --import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.KeyboardHands
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Selection
-import Rumpus.Systems.Constraint
 
 data SceneEditorSystem = SceneEditorSystem
     { _sedCurrentEditorFrame :: !(Maybe EntityID)
@@ -42,8 +42,7 @@ initSceneEditorSystem = do
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
 
-    --vrPal <- viewSystem sysControls ctsVRPal
-    --hideHandKeyboard vrPal
+    hideKeyboardHands
 
     removeCurrentEditorFrame
     
@@ -57,6 +56,7 @@ selectEntity entityID = do
 
     setSelectedEntityID entityID
 
+    showKeyboardHands
     --addEditorFrame entityID
 
     return ()

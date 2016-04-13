@@ -16,9 +16,8 @@ rumpusMain = withPd $ \pd -> do
     --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
     -- pd    <- reacquire 1 $ initLibPd
     
-    sceneFolder <- copyScenes
-    --args <- getArgs
-    --let sceneName = fromMaybe "room" $ listToMaybe args
+    let scene = "Room"
+    userSceneFolder <- copyStartScene scene
 
     void . flip runStateT newECS $ do 
 
@@ -35,7 +34,7 @@ rumpusMain = withPd $ \pd -> do
         initRenderSystem
         initSceneEditorSystem
         initSoundSystem pd
-        initSelectionSystem sceneFolder
+        initSelectionSystem userSceneFolder
         initSharedSystem
         initTextSystem
 
@@ -45,8 +44,8 @@ rumpusMain = withPd $ \pd -> do
         -- Profiling doesn't support hot code load, so load the test scene instead
         let useTestScene = isBeingProfiled
         if 
-            | isInReleaseMode  -> loadScene sceneFolder
-            | not useTestScene -> loadScene sceneFolder
+            | isInReleaseMode  -> loadScene userSceneFolder
+            | not useTestScene -> loadScene (pristineSceneDirWithName scene)
             | otherwise        -> loadTestScene
         
 

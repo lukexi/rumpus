@@ -4,27 +4,32 @@ module PreludeExtra
     , module PreludeExtra
     ) where
 
-import Control.Monad.State as Exports
+import Control.Monad.State as Exports hiding (withState, withStateT)
 import Control.Monad.Reader as Exports hiding (local)
 import Data.Maybe as Exports
 import Data.Foldable as Exports
 import Control.Arrow as Exports
 import Control.Concurrent as Exports
 import Control.Concurrent.STM as Exports
---import Data.Map as Exports (Map)
+
 import Data.Char as Exports
 import Text.Read as Exports (readMaybe)
 import Data.Set as Exports (Set)
+
 import System.Random as Exports
 import System.Directory as Exports
 import System.FilePath as Exports
 import System.Environment as Exports
+
 import Data.Dynamic as Exports
 import Debug.Trace as Exports
 import Data.Fixed as Exports
 import Data.Time as Exports
 import Data.IORef as Exports
 import System.Mem as Exports
+
+import Control.Monad.Catch as Exports
+import Control.DeepSeq as Exports
 
 import Data.Yaml as Exports hiding ((.=), String)
 import GHC.Generics as Exports (Generic)

@@ -1,7 +1,3 @@
-[ ] Try metaphor of "Exploratorium", or "Computational Museum". 
-    Just like you might visit the Exploratorium and have a great time despite not
-    quite understanding how turbulence works, or how parabolic dishes focus sounds, you can
-    still enjoy the exhibits. The plaques describe how they work for those who are interested.
 
 [x] Teleporting
     [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
@@ -12,8 +8,6 @@
             (and haptics OBVZ)
     [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
 
-[ ] Do a slightly nicer default shader? Maybe some lights? We are not using the GPU at all so this would be rad...
-    (boyyy shadowing would be even cooler!!!)
 
 [ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
     Except, how to deal with editing without resetting position etc.? 
@@ -27,29 +21,18 @@
     setting their size and color, and then specifying their behavior.
 
 
-[ ] Move buffering of matrices before waitGetPoses too??
-    Need to handle hands somehow.
-    (I think we don't want to do this? because the idea is that waitGetPoses will wait until 2ms before vsync
-    and give us time to submit all the render calls. we are probably well within time for that... but I guess try it!)
-
-
-
 [ ] Text display improvements... how hard would a virtual screen be???
     Prototype it in freetype-gl-mini. Basically, render to texture, add curve, add shader.
     Or, just do clipping and put shaders on the text.
     [x] Cursor is way too hard to see!
     [ ] Add line numbers?? Any way to do that easily??
 
+
 [ ] Knob API!
     scaleKnob <- makeKnob 0 100 "Scale"
     myUpdate ==> do
         newScale <- readKnob scaleKnob
         setSize newScale
-
-[ ] Crasher when turning controllers on after launch
-        - Investigate this in openvr-hs to minimize surface area 
-
-[ ] Debug objectcode - try making a minimal rumpus exe that just loads scripts in the recompiler.
 
 [ ] Finish keyboard
     [ ] Fullsize keys for space etc.
@@ -60,40 +43,64 @@
             (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
 
     [x] Get touchpad down event from steamVR
-
-
-[ ] Create intro object
-        Have it be the only thing that you start out seeing (on a pedestal, with a rotating color-shifting cube), and have the other objects on other platforms?
-        TRY EDITING ME
-    [x] Rename cmp to my
-
-[ ] 1080p render for video? 
-    This would be possibly quite easy with a threaded render that takes the last world state and renders it!
-    This is where we can let our immutable structures shine :)
-    (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
-
-[ ] Add microphone-reactive object
-[ ] Add sequencer platform
-    [ ] Note: only have limited voices so ditch the per-note positioning 
-        and just have them all report to a verylogue instance, which will 
-        set things up nicely for doing a full synth+sequencer
-
-[ ] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
-[ ] Pull-along music box
-[ ] L-system trees
-[ ] Ball that when thrown, causes a tree to grow
-[ ] Focus on basic code capabilities: defining and spawning instances of things. 
-    Using same set of rules to generate multiple possibilities.
-[ ] Some sort of swarm of cubes, taking advantage of instancing
-    (the most effective version of this would be using a vert-shader for rotation etc. 
-    as we seem to be generally CPU bound and barely using the GPU)
-
-[ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
+    [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
     (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
 
-[ ] Add notes to Early Access notes about the intentions of rumpus to become something that "normal people" can use, 
-    but is itself the tool in which such a friendlier and more powerful environment is to be created.
 
+RENDERING
+    [ ] Do a slightly nicer default shader? Maybe some lights? We are not using the GPU at all so this would be rad...
+        (boyyy shadowing would be even cooler!!!)
+
+LAUNCH
+    [ ] Try metaphor of "Exploratorium", or "Computational Museum". 
+        Just like you might visit the Exploratorium and have a great time despite not
+        quite understanding how turbulence works, or how parabolic dishes focus sounds, you can
+        still enjoy the exhibits. The plaques describe how they work for those who are interested.
+
+    [ ] 1080p render for video? 
+        This would be possibly quite easy with a threaded render that takes the last world state and renders it!
+        This is where we can let our immutable structures shine :)
+        (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
+
+    [ ] Add notes to Early Access notes about the intentions of rumpus to become something that "normal people" can use, 
+        but is itself the tool in which such a friendlier and more powerful environment is to be created.
+
+    
+    [ ] Create intro object
+            Have it be the only thing that you start out seeing (on a pedestal, with a rotating color-shifting cube), and have the other objects on other platforms?
+            TRY EDITING ME
+        [x] Rename cmp to my
+        [x] Rename myScriptData to just myData, or myState
+
+OBJECTS
+    [ ] Add microphone-reactive object
+    [ ] Add sequencer platform
+        [ ] Note: only have limited voices so ditch the per-note positioning 
+            and just have them all report to a verylogue instance, which will 
+            set things up nicely for doing a full synth+sequencer
+
+    [ ] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
+    [ ] Pull-along music box
+    [ ] L-system trees
+    [ ] Ball that when thrown, causes a tree to grow
+    [ ] Focus on basic code capabilities: defining and spawning instances of things. 
+        Using same set of rules to generate multiple possibilities.
+    [ ] Some sort of swarm of cubes, taking advantage of instancing
+        (the most effective version of this would be using a vert-shader for rotation etc. 
+        as we seem to be generally CPU bound and barely using the GPU)
+
+
+
+
+
+
+
+[ ] Debug objectcode - try making a minimal rumpus exe that just loads scripts in the recompiler.
+
+[ ] Move buffering of matrices before waitGetPoses too??
+    Need to handle hands somehow.
+    (I think we don't want to do this? because the idea is that waitGetPoses will wait until 2ms before vsync
+    and give us time to submit all the render calls. we are probably well within time for that... but I guess try it!)
 
 
 [ ] Time update/start runs. Remove them if they take too long and set an error.
@@ -140,6 +147,9 @@
     while using instanced rendering. Use odd instances to render to left eye, even to right eye? Or something like that,
     but point is in general that you render all geometry of a kind to both eyes at once.
 
+
+[x] Crasher when turning controllers on after launch
+        - Investigate this in openvr-hs to minimize surface area 
 
 [x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
 

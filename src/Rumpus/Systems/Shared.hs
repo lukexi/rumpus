@@ -30,7 +30,7 @@ type Update = EntityMonad ()
 defineComponentKey ''Start
 defineComponentKey ''Update
 
-defineComponentKeyWithType "ScriptData" [t|Dynamic|]
+defineComponentKeyWithType "State" [t|Dynamic|]
 
 
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -66,7 +66,7 @@ initSharedSystem = do
     -- Allows Script and CodeEditor to access these
     registerComponent "Start"  myStart      (newComponentInterface myStart)
     registerComponent "Update" myUpdate     (newComponentInterface myUpdate)
-    registerComponent "ScriptData" myScriptData (newComponentInterface myScriptData)
+    registerComponent "State"  myState      (newComponentInterface myState)
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren = 
