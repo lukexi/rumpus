@@ -273,7 +273,7 @@ makeThumbNub whichHand containerID maxNumKeys numRows = do
     myColor                  ==> colorOn
     myShapeType              ==> SphereShape
     myPhysicsProperties      ==> [NoPhysicsShape]
-    mySize                   ==> realToFrac keyDepth
+    mySize                   ==> realToFrac keyDepth * 2
     myInheritParentTransform ==> InheritPose
     myUpdate               ==> do
         withHandEvents whichHand $ \case

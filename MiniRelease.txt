@@ -1,4 +1,11 @@
 
+[ ] The crashing in Subhalive could be due to differing PATH environments (gcc/ld/etc) on the Surface Book vs Duds
+
+
+[ ] Fix keyboard offsets
+[ ] Fix mirror window hiccups
+[ ] Subtle ding when finished compiling (buzz when failed)
+
 [x] Teleporting
     [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
     [x] If doing head, do hands too.
@@ -26,6 +33,7 @@
     Or, just do clipping and put shaders on the text.
     [x] Cursor is way too hard to see!
     [ ] Add line numbers?? Any way to do that easily??
+    [ ] Clipping/scrolling
 
 
 [ ] Knob API!
@@ -111,6 +119,7 @@ OBJECTS
     It feels like smarter idea is the whole separate-render-thread-from-logic-thread thing, 
     and let the logic thread crash.
 
+[ ] Do a profiling pass with https://wiki.haskell.org/ThreadScope_Tour/Spark2
 
 [ ] (later!!!) Implement Vlachos's idea of total render-thread asynchrony. This will be easy with our immutable datastructures.
     sendToRenderer :: (MonadIO m, MonadState ECS m) => m ()

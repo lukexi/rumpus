@@ -112,7 +112,7 @@ tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
 createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m CollisionShape
 createShapeCollider shapeType size = case shapeType of
     CubeShape        -> createBoxShape         size
-    SphereShape      -> createSphereShape      (size ^. _x)
+    SphereShape      -> createSphereShape      (size ^. _x / 2) -- we want diameter rather than radius to match boxes
     StaticPlaneShape -> createStaticPlaneShape (0 :: Int)
 
 withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
