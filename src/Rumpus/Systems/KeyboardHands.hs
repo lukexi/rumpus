@@ -2,9 +2,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns #-}
+
 module Rumpus.Systems.KeyboardHands where
 import PreludeExtra
 
@@ -105,7 +105,14 @@ keyPad          = 0.01
 keyWidthT       = keyWidth + keyPad
 keyHeightT      = keyHeight + keyPad
 
+keyDimsT :: V2 GLfloat
+keyDimsT        = V2 keyWidthT keyHeightT
+
 keyDepth = 0.02
+
+keyColorOn, keyColorOff :: V4 GLfloat
+keyColorOn               = hslColor 0.2 0.8 0.8
+keyColorOff              = hslColor 0.3 0.8 0.4
 
 -- How far up the controllers the keyboard appears
 keyboardOffsetY = -0.2
@@ -134,7 +141,6 @@ hideKeyboardHands = do
     keyboardIDs <- viewSystem sysKeyboardHands kbhKeyboard
     forM_ keyboardIDs $ \keyboardID -> runEntity keyboardID $ do
         animateSizeTo 0.01 0.2
-
 
 
 startKeyboardHandsSystem :: ECSMonad ()
@@ -200,7 +206,6 @@ tickKeyboardHandsSystem = do
                         -- We don't send any events for Shift, just using it to toggle internal state.
                         else do
                             isShiftDown <- viewSystem sysKeyboardHands kbhShiftDown
-                            --sendInternalEvent (GLFWEvent (Key pendingEventKey _ keyState modifierKeyBools))
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
                                 sendInternalEvent (GLFWEvent event)
 
@@ -208,38 +213,37 @@ tickKeyboardHandsSystem = do
 
 spawnKeysForHand :: (MonadIO m, MonadState ECS m) => WhichHand -> EntityID -> [[HandKey]] -> m [(EntityID, HandKey)]
 spawnKeysForHand whichHand containerID keyRows = do
-    let numRows = fromIntegral (length keyRows)
-        maxNumKeys = fromIntegral $ maximum (map length keyRows)
+    let numRows      = fromIntegral (length keyRows)
+        maxNumKeys   = fromIntegral $ maximum (map length keyRows)
+        keyboardDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
 
     -- Add the indicator of thumb position
-    void $ spawnEntity $ makeThumbNub whichHand containerID maxNumKeys numRows
+    void $ spawnEntity $ makeThumbNub whichHand containerID keyboardDims
 
     -- Spawn the keys and return their entityIDs
     fmap concat . forM (zip [0..] keyRows) $ \(indexY, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM (zip [0..] keyRow) $ \(indexX, key) -> do
             keyID <- spawnEntity $ 
-                makeKeyboardKey whichHand containerID indexX indexY numKeys numRows key
+                makeKeyboardKey whichHand containerID indexX indexY numKeys numRows keyboardDims key
             return (keyID, key)
 
-makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> Int-> Int -> GLfloat -> GLfloat -> HandKey -> m ()
-makeKeyboardKey whichHand containerID x y numKeys numRows key = do
-    let (indexXF,  indexYF)   = (fromIntegral x                   , fromIntegral y)
-        (keyProgX, keyProgY)  = (indexXF / numKeys                , indexYF / numRows) 
-        (keyProgW, keyProgH)  = (1 / numKeys                      , 1       / numRows)
-        (keyX, keyY)          = (keyOffsetX + indexXF * keyWidthT , keyboardOffsetY + indexYF * keyHeightT)
-        pointIsInKey          = inRect keyProgX keyProgY keyProgW keyProgH
+
+makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> Int-> Int -> GLfloat -> GLfloat -> V2 GLfloat -> HandKey -> m ()
+makeKeyboardKey whichHand containerID (fromIntegral -> x) (fromIntegral -> y) numKeys numRows keyboardDims key = do
+    let pointIsInKey          = inRect (keyXY - keyDimsT/2) keyDimsT
+
+        keyXY@(V2 keyX keyY)  = V2 (keyOffsetX + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
         keyOffsetX            = -keyWidthT * (numKeys - 1) / 2
         pose                  = V3 keyX keyboardOffsetZ keyY
-        colorOn               = hslColor 0.2 0.8 0.8
-        colorOff              = hslColor 0.3 0.8 0.4
+        
         keyTitleScale         = 1 / (fromIntegral (length keyTitle))
         keyTitle              = showKey False key 
     myParent                 ==> containerID
     myText                   ==> keyTitle
     myTextPose               ==> mkTransformation 
                                       (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0) !*! scaleMatrix keyTitleScale
-    myColor                  ==> colorOff
+    myColor                  ==> keyColorOff
     myShapeType              ==> CubeShape
     myPhysicsProperties      ==> [NoPhysicsShape]
     myPose                   ==> (identity & translation .~ pose)
@@ -248,9 +252,9 @@ makeKeyboardKey whichHand containerID x y numKeys numRows key = do
     myUpdate ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do
-                let thumbXY  = getThumbPos hand
-                    isInKey  = pointIsInKey (thumbXY + 0.5) -- pointIsInKey expects values 0-1 rather than -0.5 - 0.5
-                    color    = if isInKey then colorOn else colorOff
+                let thumbXY  = thumbPosInKeyboard hand keyboardDims ^. _xz
+                    isInKey  = pointIsInKey thumbXY
+                    color    = if isInKey then keyColorOn else keyColorOff
                 myColor ==> color
 
                 when isInKey $ do
@@ -262,15 +266,17 @@ getThumbPos hand = hand ^. hndXY
     & _y  *~ (-1) -- y is flipped 
     & _xy *~ 0.5  -- scale to -0.5 - 0.5
 
-
+thumbPosInKeyboard :: Hand -> V2 GLfloat -> V3 GLfloat
+thumbPosInKeyboard hand keyboardDims = V3 x keyboardOffsetZ offsetY
+    where V2 x y  = getThumbPos hand * keyboardDims
+          offsetY = y + keyboardOffsetY + keyboardDims ^. _y / 2 - (keyHeightT / 2)
 
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
-makeThumbNub :: (HasComponents s, MonadState s m, MonadReader EntityID m) => WhichHand -> EntityID -> GLfloat -> GLfloat -> m ()
-makeThumbNub whichHand containerID maxNumKeys numRows = do
-    let keyboardDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
-        colorOn = hslColor 0.2 0.8 0.8
+makeThumbNub :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> V2 GLfloat -> m ()
+makeThumbNub whichHand containerID keyboardDims = do
+    
     myParent                 ==> containerID
-    myColor                  ==> colorOn
+    myColor                  ==> keyColorOn
     myShapeType              ==> SphereShape
     myPhysicsProperties      ==> [NoPhysicsShape]
     mySize                   ==> realToFrac keyDepth * 2
@@ -278,12 +284,11 @@ makeThumbNub whichHand containerID maxNumKeys numRows = do
     myUpdate               ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do                
-                let V2 x y  = getThumbPos hand * keyboardDims
-                    pose    = V3 x keyboardOffsetZ (y + keyboardOffsetY + keyboardDims ^. _y / 2 - (keyHeightT / 2))
+                let pose = thumbPosInKeyboard hand keyboardDims
                 setPose (identity & translation .~ pose)
             _ -> return ()
 
 -- | Check if a point is in the given rectangle
-inRect :: (Num a, Ord a) => a -> a -> a -> a -> V2 a -> Bool
-inRect x y w h (V2 ptX ptY) =
-    ptX > x && ptX < x + w && ptY > y && ptY < y + h
+inRect :: (Num a, Ord a) => V2 a -> V2 a -> V2 a -> Bool
+inRect (V2 x y) (V2 w h) (V2 ptX ptY) =
+    ptX > x && ptX < (x + w) && ptY > y && ptY < (y + h)
