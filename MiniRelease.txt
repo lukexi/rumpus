@@ -2,7 +2,7 @@
 [ ] The crashing in Subhalive could be due to differing PATH environments (gcc/ld/etc) on the Surface Book vs Duds
 
 
-[ ] Fix keyboard offsets
+[x] Fix keyboard offsets
 [ ] Fix mirror window hiccups
 [ ] Subtle ding when finished compiling (buzz when failed)
 
@@ -224,6 +224,8 @@ OBJECTS
     The data buffering will be a lot faster once we've got everything in aligned vectors;
     currently we're doing tons and tons of lookups on entityIDs when we'd rather just iterate a bunch of buffers in parallel:
     case in point being rendering, we want [Color] [M44] that we can dump into StreamingArrayBuffers directly
+
+[ ] Rumpus logo should be a Rhombus. I'm just sayin
 
 import Rumpus
 

@@ -36,7 +36,7 @@ tickComponentAnimation now animComponentKey setter =
         \(entityID, animation) -> runEntity entityID $ do
             let evaled = evalAnim now animation
 
-            setter (evanResult evaled)
+            _ <- setter (evanResult evaled)
             when (evanRunning evaled == False) $ do
                 removeComponent animComponentKey
 

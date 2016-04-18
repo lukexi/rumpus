@@ -1,7 +1,7 @@
 module Room where
 import Rumpus
 
-roomCube = 3
+roomCube = 8
 (roomW, roomH, roomD) = (roomCube,roomCube,roomCube)
 wallD = 1
 
