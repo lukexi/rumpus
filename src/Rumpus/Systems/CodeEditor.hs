@@ -233,9 +233,12 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                     GLFWEvent e -> do
                         -- Make sure our events don't trigger reloading/recompilation
                         -- (fixme: should be able to ask text buffer whether event will trigger save and only pause if so)
-                        pauseFileWatchers codeInFile
+                        let causesSave = eventWillSaveTextBuffer e
+                        when causesSave $ 
+                            pauseFileWatchers codeInFile
                         handleTextBufferEvent window e 
                             (cesCodeEditors . ix codeInFile . cedCodeRenderer)
+                        return causesSave
                     _ -> return False
                 when didSave $ do
                     recompileCodeInFile codeInFile

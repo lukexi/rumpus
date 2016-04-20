@@ -1,7 +1,4 @@
 
-[ ] The crashing in Subhalive could be due to differing PATH environments (gcc/ld/etc) on the Surface Book vs Duds
-
-
 [x] Fix keyboard offsets
 [ ] Fix mirror window hiccups
 [ ] Subtle ding when finished compiling (buzz when failed)
@@ -35,7 +32,6 @@
     [ ] Add line numbers?? Any way to do that easily??
     [ ] Clipping/scrolling
 
-[ ] Fix app freezing when dragging the window
 
 [ ] Knob API!
     scaleKnob <- makeKnob 0 100 "Scale" 50
@@ -159,6 +155,12 @@ OBJECTS
     while using instanced rendering. Use odd instances to render to left eye, even to right eye? Or something like that,
     but point is in general that you render all geometry of a kind to both eyes at once.
 
+
+
+[ ] Fix app freezing when dragging the window
+    [ ] This requires moving the whole application off the main thread, which should be no problem really!
+        Have the pollEvents call just be a constantly running thread that passes things to a channel.
+        (or, switch to SDL which hopefully doesn't copout on this)
 
 [x] Crasher when turning controllers on after launch
         - Investigate this in openvr-hs to minimize surface area 
