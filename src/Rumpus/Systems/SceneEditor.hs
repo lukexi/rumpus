@@ -24,20 +24,20 @@ data SceneEditorSystem = SceneEditorSystem
 makeLenses ''SceneEditorSystem
 defineSystemKey ''SceneEditorSystem
 
--- data Drag = Drag HandEntityID (M44 GLfloat)
-data Drag = Drag HandEntityID (V3 GLfloat)
+-- data DragFrom = DragFrom HandEntityID (M44 GLfloat)
+data DragFrom = DragFrom HandEntityID (V3 GLfloat)
 
-type OnDrag = V3 GLfloat -> EntityMonad ()
+type Drag = V3 GLfloat -> EntityMonad ()
 
+defineComponentKey ''DragFrom
 defineComponentKey ''Drag
-defineComponentKey ''OnDrag
 
 initSceneEditorSystem :: MonadState ECS m => m ()
 initSceneEditorSystem = do
     registerSystem sysSceneEditor $ SceneEditorSystem Nothing
 
+    registerComponent "DragFrom" myDragFrom (newComponentInterface myDragFrom)
     registerComponent "Drag"   myDrag   (newComponentInterface myDrag)
-    registerComponent "OnDrag" myOnDrag (newComponentInterface myOnDrag)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
@@ -69,25 +69,25 @@ removeCurrentEditorFrame = traverseM_ (viewSystem sysSceneEditor sedCurrentEdito
 beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 beginDrag handEntityID draggedID = do
     startPos <- view translation <$> getEntityPose handEntityID
-    setEntityComponent myDrag (Drag handEntityID startPos) draggedID
+    setEntityComponent myDragFrom (DragFrom handEntityID startPos) draggedID
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
-    forEntitiesWithComponent myDrag $ \(entityID, Drag handEntityID startPos) ->
+    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID startPos) ->
         when (handEntityID == draggingHandEntityID) $ do
             currentPose <- view translation <$> getEntityPose handEntityID
             let dragDistance = currentPose - startPos
 
             runEntity entityID $ 
-                withComponent_ myOnDrag $ \onDrag ->
+                withComponent_ myDrag $ \onDrag ->
                     onDrag dragDistance
 
 endDrag :: MonadState ECS m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
-    forEntitiesWithComponent myDrag $ \(entityID, Drag handEntityID _) -> do
+    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID _) -> do
         when (handEntityID == endingDragHandEntityID) $ do
 
-            runEntity entityID $ removeComponent myDrag
+            runEntity entityID $ removeComponent myDragFrom
 
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity $ do
@@ -140,7 +140,7 @@ tickSceneEditorSystem = do
                         handPose <- getEntityPose handEntityID
                         beginHapticDrag whichHand handPose
 
-                        hasDragFunction        <- entityHasComponent grabbedID myOnDrag
+                        hasDragFunction        <- entityHasComponent grabbedID myDrag
                         isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
                         if 
                             | isBeingHeldByOtherHand -> do

@@ -35,7 +35,7 @@ addEditorFrame entityID = do
         myPhysicsProperties ==> [Kinematic, NoContactResponse]
         myConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
         --myPose              ==> (newPose & posPosition .~ V3 (-0.5) 0.5 0)
-        myOnDrag            ==> \dragDistance -> do
+        myDrag            ==> \dragDistance -> do
             let x = dragDistance ^. _x
                 newColor = hslColor (mod' x 1) 0.9 0.6
             setColor newColor
@@ -52,7 +52,7 @@ addEditorFrame entityID = do
         myPhysicsProperties ==> [Kinematic, NoContactResponse]
         myConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
         --myPose              ==> (newPose & posPosition .~ V3 0.5 0.5 0)
-        myOnDrag            ==> \dragDistance -> do
+        myDrag            ==> \dragDistance -> do
             let size = max 0.05 (abs dragDistance)
             -- Set the edited entity's size, not the editor-widget's : )
             setEntitySize size entityID

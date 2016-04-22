@@ -12,7 +12,6 @@ import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Collisions
 import Rumpus.Systems.Text
 import Rumpus.Systems.Animation
 
@@ -160,6 +159,7 @@ startKeyboardHandsSystem = do
         containerID <- spawnEntity $ do
             myParent                   ==> handID
             myInheritParentTransform   ==> InheritPose
+            mySize                     ==> 0.01
         scaleContainerID <- spawnEntity $ do
             myParent                   ==> containerID
             myInheritParentTransform   ==> InheritFull
@@ -190,7 +190,7 @@ tickKeyboardHandsSystem = do
                     currentKey <- use $ kbhCurrentKey . at whichHand
                     lastKey    <- use $ kbhLastKey    . at whichHand
                     when (currentKey /= lastKey) $ do
-                        lift $ hapticPulse whichHand 2000
+                        lift $ hapticPulse whichHand 1000
                     kbhLastKey . at whichHand .= currentKey
             HandButtonEvent HandButtonPad ButtonDown -> do
                 mCurrentKey <- viewSystem sysKeyboardHands (kbhCurrentKey . at whichHand)
@@ -221,16 +221,16 @@ spawnKeysForHand whichHand containerID keyRows = do
     void $ spawnEntity $ makeThumbNub whichHand containerID keyboardDims
 
     -- Spawn the keys and return their entityIDs
-    fmap concat . forM (zip [0..] keyRows) $ \(indexY, keyRow) -> do
+    fmap concat . forM (zip [0..] keyRows) $ \(y, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
-        forM (zip [0..] keyRow) $ \(indexX, key) -> do
+        forM (zip [0..] keyRow) $ \(x, key) -> do
             keyID <- spawnEntity $ 
-                makeKeyboardKey whichHand containerID indexX indexY numKeys numRows keyboardDims key
+                makeKeyboardKey whichHand containerID x y numKeys keyboardDims key
             return (keyID, key)
 
 
-makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> Int-> Int -> GLfloat -> GLfloat -> V2 GLfloat -> HandKey -> m ()
-makeKeyboardKey whichHand containerID (fromIntegral -> x) (fromIntegral -> y) numKeys numRows keyboardDims key = do
+makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> Int-> Int -> GLfloat -> V2 GLfloat -> HandKey -> m ()
+makeKeyboardKey whichHand containerID (fromIntegral -> x) (fromIntegral -> y) numKeys keyboardDims key = do
     let pointIsInKey          = inRect (keyXY - keyDimsT/2) keyDimsT
 
         keyXY@(V2 keyX keyY)  = V2 (keyOffsetX + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)

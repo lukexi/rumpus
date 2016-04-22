@@ -8,6 +8,9 @@
             (and haptics OBVZ)
     [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
 
+[ ] Fix objects not having same physics properties (collisions for everything)
+
+[ ] Click-and-hold repeats for arrow keys
 
 [ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
     Except, how to deal with editing without resetting position etc.? 
@@ -67,6 +70,7 @@ LAUNCH
 
     [ ] Add notes to Early Access notes about the intentions of rumpus to become something that "normal people" can use, 
         but is itself the tool in which such a friendlier and more powerful environment is to be created.
+        Current language is the 'assembly language'
 
     
     [ ] Create intro object
@@ -99,7 +103,8 @@ OBJECTS
 
 
 [ ] Debug objectcode - try making a minimal rumpus exe that just loads scripts in the recompiler.
-
+    [ ] Once this is working, make systems into just regular entities with start and update ticks
+        (still need dependencies of some kind)
 [ ] Move buffering of matrices before waitGetPoses too??
     Need to handle hands somehow.
     (I think we don't want to do this? because the idea is that waitGetPoses will wait until 2ms before vsync
