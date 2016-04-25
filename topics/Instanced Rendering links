@@ -1,0 +1,16 @@
+Instanced Rendering links
+
+The algorithm we've currently implemented:
+http://onrendering.blogspot.com/2011/10/buffer-object-streaming-in-opengl.html
+
+
+
+Instancing section from OpenGL Programming Guide: The Official Guide to Learning OpenGL:
+http://www.informit.com/articles/article.aspx?p=2033340&seqNum=5
+
+
+http://developer.download.nvidia.com/opengl/tutorials/bindless_graphics.pdf
+
+
+Notes that for complex models, doing matrix calculations in the vert shader is a terrible idea. Use a compute shader to do it on GPU
+http://computergraphics.stackexchange.com/questions/346/when-is-it-better-to-upload-partial-model-matrices-to-the-vertex-shader

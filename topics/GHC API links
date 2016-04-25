@@ -1,0 +1,16 @@
+Apparently it *is* ok to use multiple GHC threads? But maybe what we've got is better from a memory/resources perspective...
+https://mail.haskell.org/pipermail/ghc-devs/2014-January/003709.html
+
+
+Descriptions and pro/cons of various compilation modes
+https://ghc.haskell.org/trac/ghc/ticket/11425
+
+
+It is possible to switch back and forth from bytecode to objectcode at runtime
+https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/ghci-obj.html
+
+Some interesting discussion of objectcode subtleties
+https://github.com/DanielG/ghc-mod/issues/554
+
+Hint's configuration:
+https://github.com/mvdan/hint/blob/a8e9d227785574e445b8006407366f9ea8ad73d6/src/Hint/Compat.hs

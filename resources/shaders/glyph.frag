@@ -12,5 +12,8 @@ void main() {
   float alpha = texture(uTexture, vTexCoord).r;
   color = vec4(vColor, alpha);
   
+  if (alpha < 0.1) {
+    discard;
+  }
   // color = vec4(1,1,1,1);
 }
