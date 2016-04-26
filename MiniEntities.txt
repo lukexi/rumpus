@@ -1,0 +1,35 @@
+
+Sorting out the creating-new-objects, yaml, etc. situation for release.
+=======================================================================
+
+
+
+Have Main.hs be the only thing run in a scene folder at launch. 
+
+The rest are loaded in as definitions. Definitions are just a map from names to Start functions, which is nice; no Value-parsing when spawning! (I guess, need CodeInFile too)
+
+Main.hs then takes care of spawning and laying out the objects (who should not define where they themselves spawn).
+
+
+
+
+Try having: clone by default (shared code), except for a special blank object or button that creates a fresh object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Idea: slabs are flatter & taller. Code on back, name on front for easy editing*.
+
+Maybe cool for things like fountain, can pick it up and see code on base. Not as good, though, because editing it will mean the object is sideways and behind.
+
+*Can distinguish between a click on the front and a click on the back by checking if vector from object center to hand center, when rotated by object pose, has positive or negative Z.
+

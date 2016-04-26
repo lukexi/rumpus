@@ -19,6 +19,7 @@ tickScriptSystem = whenWorldPlaying $ do
                 onStart
                 return ""
 
+            when (not (null runtimeErrors)) $ putStrLnIO runtimeErrors
             setErrorText entityID runtimeErrors
                         
             removeComponent myStart
