@@ -60,3 +60,18 @@ getHandIDs = do
     return [ (LeftHand, leftHandID)
            , (RightHand, rightHandID)
            ]
+
+withLeftHandEvents :: MonadState ECS m => (HandEvent -> m ()) -> m ()
+withLeftHandEvents f = withSystem_ sysControls $ \controlSystem -> do
+    let events = controlSystem ^. ctsEvents
+    forM_ events (\e -> onLeftHandEvent e f)
+
+withRightHandEvents :: MonadState ECS m => (HandEvent -> m ()) -> m ()
+withRightHandEvents f = withSystem_ sysControls $ \controlSystem -> do
+    let events = controlSystem ^. ctsEvents
+    forM_ events (\e -> onRightHandEvent e f)
+
+withHandEvents :: MonadState ECS m => WhichHand -> (HandEvent -> m ()) -> m ()
+withHandEvents hand f = withSystem_ sysControls $ \controlSystem -> do
+    let events = controlSystem ^. ctsEvents
+    forM_ events (\e -> onHandEvent hand e f)

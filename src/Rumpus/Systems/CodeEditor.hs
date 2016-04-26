@@ -198,8 +198,12 @@ createCodeEditor codeInFile = do
 
     -- FIXME this should be async...
     -- (note: could implement that using WatchFile/refreshText by writing a phony event)
-    codeRenderer  <- textRendererFromFile font scriptFullPath WatchFile
-    errorRenderer <- createTextRenderer font (textBufferFromString "")
+
+    let setupRenderer r = 
+            updateMetrics ((txrScreenSize ?~ V2 50 50) r)
+
+    codeRenderer  <- setupRenderer =<< textRendererFromFile font scriptFullPath WatchFile
+    errorRenderer <- setupRenderer =<< createTextRenderer font (textBufferFromString "")
     
     return CodeEditor 
             { _cedCodeRenderer  = codeRenderer
@@ -233,9 +237,12 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                     GLFWEvent e -> do
                         -- Make sure our events don't trigger reloading/recompilation
                         -- (fixme: should be able to ask text buffer whether event will trigger save and only pause if so)
-                        pauseFileWatchers codeInFile
+                        let causesSave = eventWillSaveTextBuffer e
+                        when causesSave $ 
+                            pauseFileWatchers codeInFile
                         handleTextBufferEvent window e 
                             (cesCodeEditors . ix codeInFile . cedCodeRenderer)
+                        return causesSave
                     _ -> return False
                 when didSave $ do
                     recompileCodeInFile codeInFile

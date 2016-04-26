@@ -54,13 +54,15 @@ void main() {
     
     vTexCoord = texCoord;
 
-    vColor = vec3(aInstanceCharacterOffset.w,1.0,1.0);
     gl_Position = mvp * vec4(position.xyz, 1.0);
 
     // Scaling & color effects for the cursor
     if (aInstanceCharacterOffset.w < 0.0) {
+    // if (true) {
+    //     float scaleTime = sin(uTime + gl_InstanceID * 5) / 2 + 1;
+    //     float hueTime   = mod(uTime + (gl_InstanceID*0.01) * 2, 1);
         float scaleTime = sin(uTime * 5) / 2 + 1;
-        float hueTime   = sin(uTime * 10) / 2 + 1;
+        float hueTime   = mod(uTime * 2, 1);
         vColor = hsv2rgb(vec3(hueTime,0.5,0.8));
 
         vec3 scale = vec3(scaleTime + 2);
@@ -74,6 +76,14 @@ void main() {
                                 + aInstanceCharacterOffset.xyz;
         
         gl_Position = mvp * vec4(positionScaled, 1.0);
+    } else if (aInstanceCharacterOffset.z < -0.001) {
+        vColor = vec3(0.3, 0.3, 0.4);
+    } else {
+        // Could pack hue into aInstanceCharacterOffset.w
+        // -1 currently means cursor mode;
+        // >1 = white?
+        // Or just add a second instance attribute.
+        vColor = vec3(1.0,1.0,1.0);
     }
 }
 

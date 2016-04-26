@@ -279,7 +279,7 @@ makeThumbNub whichHand containerID keyboardDims = do
     myColor                  ==> keyColorOn
     myShapeType              ==> SphereShape
     myPhysicsProperties      ==> [NoPhysicsShape]
-    mySize                   ==> realToFrac keyDepth
+    mySize                   ==> realToFrac keyDepth * 2
     myInheritParentTransform ==> InheritPose
     myUpdate               ==> do
         withHandEvents whichHand $ \case

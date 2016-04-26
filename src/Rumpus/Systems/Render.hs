@@ -60,7 +60,7 @@ initRenderSystem = do
 
     --planeGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     cubeGeo     <- cubeGeometry (V3 1 1 1) 1
-    sphereGeo   <- icosahedronGeometry 1 3 -- radius subdivisions
+    sphereGeo   <- octahedronGeometry 0.5 5 -- radius (which we halve to match boxes), subdivisions
     
     --planeShape  <- makeShape planeGeo  basicProg
     cubeShape   <- makeShape cubeGeo   basicProg
@@ -228,7 +228,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
                 parentPose   <- getEntityPose entityID
                 V3 _ _ sizeZ <- getEntitySize entityID
 
-                let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) !*! scaleMatrix 0.008
+                let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) !*! scaleMatrix (V3 sizeZ sizeZ 0)
 
                 -- Render code in white
                 renderTextPreCorrectedOfSameFont (editor ^. cedCodeRenderer) (codeModelM44 !*! editor ^. cedCodeRenderer . txrCorrectionM44)

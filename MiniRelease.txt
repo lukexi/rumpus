@@ -1,4 +1,8 @@
 
+[x] Fix keyboard offsets
+[ ] Fix mirror window hiccups
+[ ] Subtle ding when finished compiling (buzz when failed)
+
 [x] Teleporting
     [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
     [x] If doing head, do hands too.
@@ -29,8 +33,8 @@
     Or, just do clipping and put shaders on the text.
     [x] Cursor is way too hard to see!
     [ ] Add line numbers?? Any way to do that easily??
+    [ ] Clipping/scrolling
 
-[ ] Fix app freezing when dragging the window
 
 [ ] Knob API!
     scaleKnob <- makeKnob 0 100 "Scale" 50
@@ -117,6 +121,7 @@ OBJECTS
     It feels like smarter idea is the whole separate-render-thread-from-logic-thread thing, 
     and let the logic thread crash.
 
+[ ] Do a profiling pass with https://wiki.haskell.org/ThreadScope_Tour/Spark2
 
 [ ] (later!!!) Implement Vlachos's idea of total render-thread asynchrony. This will be easy with our immutable datastructures.
     sendToRenderer :: (MonadIO m, MonadState ECS m) => m ()
@@ -155,6 +160,12 @@ OBJECTS
     while using instanced rendering. Use odd instances to render to left eye, even to right eye? Or something like that,
     but point is in general that you render all geometry of a kind to both eyes at once.
 
+
+
+[ ] Fix app freezing when dragging the window
+    [ ] This requires moving the whole application off the main thread, which should be no problem really!
+        Have the pollEvents call just be a constantly running thread that passes things to a channel.
+        (or, switch to SDL which hopefully doesn't copout on this)
 
 [x] Crasher when turning controllers on after launch
         - Investigate this in openvr-hs to minimize surface area 
@@ -220,6 +231,8 @@ OBJECTS
     The data buffering will be a lot faster once we've got everything in aligned vectors;
     currently we're doing tons and tons of lookups on entityIDs when we'd rather just iterate a bunch of buffers in parallel:
     case in point being rendering, we want [Color] [M44] that we can dump into StreamingArrayBuffers directly
+
+[ ] Rumpus logo should be a Rhombus. I'm just sayin
 
 import Rumpus
 
