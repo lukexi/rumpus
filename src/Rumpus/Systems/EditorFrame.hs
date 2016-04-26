@@ -6,15 +6,8 @@
 module Rumpus.Systems.EditorFrame where
 import PreludeExtra
 
-import Rumpus.Types
-import Rumpus.Systems.Controls
-import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Sound
-import Rumpus.Systems.Attachment
-import Rumpus.Systems.Haptics
-import Rumpus.Systems.Selection
 import Rumpus.Systems.Constraint
 import Rumpus.Systems.SceneEditor
 

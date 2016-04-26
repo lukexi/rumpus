@@ -31,6 +31,8 @@ import Control.Exception
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
     , uCamera         :: UniformLocation (V3  GLfloat)
+    , uModel          :: UniformLocation (M44 GLfloat) -- only used in defaultSingle.vert
+    , uColor          :: UniformLocation (V4  GLfloat) -- only used in defaultSingle.vert
     } deriving (Data)
 
 data RenderShape = RenderShape
@@ -43,7 +45,8 @@ data RenderShape = RenderShape
     }
 
 data RenderSystem = RenderSystem 
-    { _rdsShapes :: ![RenderShape]
+    { _rdsShapes         :: ![RenderShape]
+    , _rdsTextPlaneShape :: Shape Uniforms
     }
 makeLenses ''RenderSystem
 defineSystemKey ''RenderSystem
@@ -57,14 +60,18 @@ initRenderSystem = do
     glClearColor 0 0 0.1 1
 
     basicProg   <- createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
+    singleProg  <- createShaderProgram "resources/shaders/defaultSingle.vert" "resources/shaders/default.frag"
 
-    --planeGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     cubeGeo     <- cubeGeometry (V3 1 1 1) 1
     sphereGeo   <- octahedronGeometry 0.5 5 -- radius (which we halve to match boxes), subdivisions
     
-    --planeShape  <- makeShape planeGeo  basicProg
     cubeShape   <- makeShape cubeGeo   basicProg
     sphereShape <- makeShape sphereGeo basicProg
+
+    
+    textPlaneGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
+    textPlaneShape  <- makeShape textPlaneGeo singleProg
+
 
     --let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
     let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape)]
@@ -97,7 +104,7 @@ initRenderSystem = do
                 , rshResetShapeInstanceBuffers = resetShapeInstanceBuffers
                 }
 
-    registerSystem sysRender (RenderSystem shapesWithBuffers)
+    registerSystem sysRender (RenderSystem shapesWithBuffers textPlaneShape)
 
 
 tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
@@ -210,6 +217,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
     glEnable GL_BLEND
     glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
 
+    -- Render entities with Text components
     font <- getFont
     withSharedFont font projViewM44 $ do
 
@@ -222,26 +230,64 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
             renderTextPreCorrectedOfSameFont textRenderer (parentM44 !*! textM44)
 
-        entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
-        forM_ entitiesWithStart $ \(entityID, codeExprKey) -> 
-            traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
-                parentPose   <- getEntityPose entityID
-                V3 _ _ sizeZ <- getEntitySize entityID
+    -- Render the code editors
+    -- (fixme: this is not efficient code; many state switches, shader switches, geo switches, uncached matrices)
+    -- We also probably don't need gl_discard in the shader if text is rendered with a background.
+    glEnable GL_STENCIL_TEST
+    planeShape <- viewSystem sysRender rdsTextPlaneShape
+    entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
+    forM_ entitiesWithStart $ \(entityID, codeExprKey) -> 
+        traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
+            parentPose   <- getEntityPose entityID
+            V3 _ _ sizeZ <- getEntitySize entityID
 
-                let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) !*! scaleMatrix (V3 sizeZ sizeZ 0)
+            let codeModelM44 = parentPose
+                    -- Offset Z by half the Z-scale to place on front of box 
+                    !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) 
+                    -- Scale by Z to fit within edges
+                    !*! scaleMatrix (V3 sizeZ sizeZ 0)
 
-                -- Render code in white
-                renderTextPreCorrectedOfSameFont (editor ^. cedCodeRenderer) (codeModelM44 !*! editor ^. cedCodeRenderer . txrCorrectionM44)
+            -- Render code in white
+            renderTextAsScreen (editor ^. cedCodeRenderer)
+                planeShape projViewM44 codeModelM44
 
-                let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 50 0 0)
 
-                -- Render errors in light red
-                renderTextPreCorrectedOfSameFont (editor ^. cedErrorRenderer) (errorsModelM44 !*! editor ^. cedErrorRenderer . txrCorrectionM44)
+            when (textRendererHasText $ editor ^. cedErrorRenderer) $ do
+                -- Render errors in light red in panel below main
+                let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 0 (-50) 0)
+
+                renderTextAsScreen (editor ^. cedCodeRenderer)
+                    planeShape projViewM44 errorsModelM44
+    glDisable GL_STENCIL_TEST
 
     glDisable GL_BLEND
 
+renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
+
+    glStencilMask 0xFF
+    glClear GL_STENCIL_BUFFER_BIT           -- Clear stencil buffer  (0 by default)
+    
+    glStencilOp GL_KEEP GL_KEEP GL_REPLACE  -- sfail dpfail dppfail
+
+    -- Draw background
+    glStencilFunc GL_ALWAYS 1 0xFF          -- Set any stencil to 1
+    glStencilMask 0xFF                      -- Write to stencil buffer
+    
+    withShape planeShape $ do
+        Uniforms{..} <- asks sUniforms
+        uniformV4  uColor (V4 0.01 0.02 0.05 1)
+        uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.01)))
+        uniformM44 uProjectionView projViewM44
+        drawShape
+
+    -- Draw clipped thing
+    glStencilFunc GL_EQUAL 1 0xFF -- Pass test if stencil value is 1
+    glStencilMask 0x00            -- Don't write anything to stencil buffer
+
+    renderText textRenderer projViewM44 modelM44
 
 
+textRendererHasText = not . null . stringFromTextBuffer . view txrTextBuffer
 
 --- Parallel matrix evaluation experiments
 

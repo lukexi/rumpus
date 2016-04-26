@@ -23,4 +23,5 @@ copyStartScene sceneFolderName = do
     
     return userMainSceneDir
 
-pristineSceneDirWithName name = "pristine"               </> "Scenes" </> name
+pristineSceneDirWithName :: FilePath -> FilePath
+pristineSceneDirWithName name = "pristine" </> "Scenes" </> name
