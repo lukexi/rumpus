@@ -16,8 +16,7 @@ rumpusMain = withPd $ \pd -> do
     --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
     -- pd    <- reacquire 1 $ initLibPd
     
-    let scene = "Room"
-    --let scene = "Empty"
+    scene <- fromMaybe "Room" . listToMaybe <$> getArgs
     userSceneFolder <- copyStartScene scene
 
     void . flip runStateT newECS $ do 

@@ -1,7 +1,7 @@
 module Room where
 import Rumpus
 
-roomCube = 8
+roomCube = 4
 (roomW, roomH, roomD) = (roomCube,roomCube,roomCube)
 wallD = 1
 
@@ -12,7 +12,9 @@ start = do
     removeChildren
 
     -- Set the pose of the code editor to be centered in the wall
-    setPose (identity & translation .~ V3 0 1 (-roomD/2 + 0.4))
+    setPose $ mkTransformation (axisAngle (V3 0 1 0) (-pi/2))
+        (V3 (-2.5) 1 0)
+        --(V3 (-1) 1 (-roomD/2 + 0.4))
 
     builderID <- ask
     void . spawnEntity $ do
@@ -39,7 +41,7 @@ start = do
         myShapeType ==> CubeShape
         mySize ==> 0.3
         myColor ==> V4 0.1 0.2 0.3 1
-        myStartExpr ==> ("NewObject1.hs", "start")
+        myStartExpr ==> ("NewObject2.hs", "start")
 
 -- Acts the same as "touch", creating the file if missing but not modifying an existing one
 touchFile filePath = liftIO $ appendFile filePath "" 

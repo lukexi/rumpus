@@ -24,7 +24,6 @@ import Rumpus.Systems.Text
 import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Unboxed as V
-import Control.Parallel.Strategies
 import Control.DeepSeq
 import Control.Exception
 
@@ -61,17 +60,20 @@ initRenderSystem = do
 
     basicProg   <- createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
     singleProg  <- createShaderProgram "resources/shaders/defaultSingle.vert" "resources/shaders/default.frag"
+    putStrLnIO "Render Setup Shader Errors:" >> glGetErrors
 
     cubeGeo     <- cubeGeometry (V3 1 1 1) 1
     sphereGeo   <- octahedronGeometry 0.5 5 -- radius (which we halve to match boxes), subdivisions
+    putStrLnIO "Render Setup Geo Errors:" >> glGetErrors
     
     cubeShape   <- makeShape cubeGeo   basicProg
     sphereShape <- makeShape sphereGeo basicProg
+    putStrLnIO "Render Setup Shape Errors:" >> glGetErrors
 
     
     textPlaneGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     textPlaneShape  <- makeShape textPlaneGeo singleProg
-
+    putStrLnIO "Render Setup Shape Errors:" >> glGetErrors
 
     --let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
     let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape)]
@@ -103,6 +105,7 @@ initRenderSystem = do
                 , rshInstanceModelM44sBuffer   = modelM44sBuffer
                 , rshResetShapeInstanceBuffers = resetShapeInstanceBuffers
                 }
+    putStrLnIO "Render Setup Errors:" >> glGetErrors
 
     registerSystem sysRender (RenderSystem shapesWithBuffers textPlaneShape)
 
@@ -146,6 +149,7 @@ tickRenderSystem headM44 = do
         let projViewM44 = projM44 !*! viewM44
         renderEntities     projViewM44 shapeCounts
         renderEntitiesText projViewM44 finalMatricesByEntityID
+    --putStrLnIO "Render Frame Errors:" >> glGetErrors
 
 
 renderEntities :: (MonadIO m, MonadState ECS m) 
@@ -232,7 +236,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
     -- Render the code editors
     -- (fixme: this is not efficient code; many state switches, shader switches, geo switches, uncached matrices)
-    -- We also probably don't need gl_discard in the shader if text is rendered with a background.
+    -- We also probably don't need gl discard in the shader if text is rendered with a background.
     glEnable GL_STENCIL_TEST
     planeShape <- viewSystem sysRender rdsTextPlaneShape
     entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
@@ -244,8 +248,8 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
             let codeModelM44 = parentPose
                     -- Offset Z by half the Z-scale to place on front of box 
                     !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) 
-                    -- Scale by Z to fit within edges
-                    !*! scaleMatrix (V3 sizeZ sizeZ 0)
+                    -- Scale by size to fit within edges
+                    !*! scaleMatrix (V3 sizeZ sizeZ 1)
 
             -- Render code in white
             renderTextAsScreen (editor ^. cedCodeRenderer)
@@ -267,7 +271,7 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
     glStencilMask 0xFF
     glClear GL_STENCIL_BUFFER_BIT           -- Clear stencil buffer  (0 by default)
     
-    glStencilOp GL_KEEP GL_KEEP GL_REPLACE  -- sfail dpfail dppfail
+    glStencilOp GL_KEEP GL_KEEP GL_REPLACE  -- stencil-fail, depth-fail, depth-stencil-fail
 
     -- Draw background
     glStencilFunc GL_ALWAYS 1 0xFF          -- Set any stencil to 1
@@ -276,7 +280,7 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
     withShape planeShape $ do
         Uniforms{..} <- asks sUniforms
         uniformV4  uColor (V4 0.01 0.02 0.05 1)
-        uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.01)))
+        uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.001)))
         uniformM44 uProjectionView projViewM44
         drawShape
 
@@ -289,40 +293,3 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
 
 textRendererHasText = not . null . stringFromTextBuffer . view txrTextBuffer
 
---- Parallel matrix evaluation experiments
-
--- | Takes a [input] and a function from [input] to some monoid b, 
--- runs the function on chunks of [input], and glues the results back together.
-parMapChunks :: (Foldable f, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> b
-parMapChunks n f xs = mconcat $ parMap rdeepseq f (chunkInto n (toList xs))
-
--- | Naive reimplementation of parMapChunks for comparing.
--- Only spins up threads if length xs > n
-naiveParMapChunks :: (Foldable f, MonadIO m, Monoid b, NFData b) => Int -> ([a] -> b) -> f a -> m b
-naiveParMapChunks n f xs = do
-    -- Split the input into chunks
-    let chunks = chunkInto n (toList xs)
-        (localChunk:threadChunks) = if null chunks then [[]] else chunks
-
-    -- Spin up threads for chunks 1..n
-    threads <- forM threadChunks (\xsForThread -> liftIO $ do
-        resultVar <- newEmptyMVar
-        _ <- forkIO $ do
-            let !result = force (f xsForThread)  
-            putMVar resultVar result
-        return resultVar)
-
-    -- Calculate chunk 0 on this thread while the other threads run
-    localResults <- liftIO $ evaluate (force f localChunk) 
-
-    -- Get thread results
-    threadResults <- mapM (liftIO . takeMVar) threads
-
-    return . mconcat $ localResults:threadResults  
-
-chunkInto :: Int -> [t] -> [[t]]
-chunkInto n l = go l
-    where 
-        go [] = []
-        go xs = let (x,xs') = splitAt n xs
-                in x:go xs' 

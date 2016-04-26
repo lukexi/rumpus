@@ -3,6 +3,8 @@
 [ ] Fix mirror window hiccups
 [ ] Subtle ding when finished compiling (buzz when failed)
 
+[ ] Rename ShapeType to Shape, CubeShape to Cube etc.
+
 [x] Teleporting
     [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
     [x] If doing head, do hands too.
@@ -102,7 +104,11 @@ OBJECTS
 
 
 
-
+Jacobs requests:
+- Gaze based cursor placement
+- No flashy selection
+- Fixed keyboard placement, on sides
+- Ideas for improving text editing without massive work? Token-based interaction with the text canvas?
 
 
 
