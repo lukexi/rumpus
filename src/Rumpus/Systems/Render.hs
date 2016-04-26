@@ -228,7 +228,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
                 parentPose   <- getEntityPose entityID
                 V3 _ _ sizeZ <- getEntitySize entityID
 
-                let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) !*! scaleMatrix 0.008
+                let codeModelM44 = parentPose !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) !*! scaleMatrix (V3 sizeZ sizeZ 0)
 
                 -- Render code in white
                 renderTextPreCorrectedOfSameFont (editor ^. cedCodeRenderer) (codeModelM44 !*! editor ^. cedCodeRenderer . txrCorrectionM44)

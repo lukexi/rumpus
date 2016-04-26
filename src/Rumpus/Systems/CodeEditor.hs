@@ -198,8 +198,12 @@ createCodeEditor codeInFile = do
 
     -- FIXME this should be async...
     -- (note: could implement that using WatchFile/refreshText by writing a phony event)
-    codeRenderer  <- textRendererFromFile font scriptFullPath WatchFile
-    errorRenderer <- createTextRenderer font (textBufferFromString "")
+
+    let setupRenderer r = 
+            updateMetrics ((txrScreenSize ?~ V2 50 50) r)
+
+    codeRenderer  <- setupRenderer =<< textRendererFromFile font scriptFullPath WatchFile
+    errorRenderer <- setupRenderer =<< createTextRenderer font (textBufferFromString "")
     
     return CodeEditor 
             { _cedCodeRenderer  = codeRenderer
