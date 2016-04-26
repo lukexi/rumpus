@@ -46,10 +46,10 @@ createBuildings = do
             myPhysicsProperties  ==> [NoPhysicsShape]
             mySize               ==> V3 dim (abs x) dim
             myColor              ==> hslColor hue 0.8 0.8
-            myUpdate             ==> do
-                let rate = 7000
-                now <- getNow
-                setSize $ V3 dim (height * (sin $ rate * now / (x * z))) dim 
+            -- myUpdate             ==> do
+            --    let rate = 7000
+            --    now <- getNow
+            --    setSize $ V3 dim (height * (sin $ rate * now / (x * z))) dim 
 
 createStars :: EntityMonad ()
 createStars = do
