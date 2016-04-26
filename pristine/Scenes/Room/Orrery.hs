@@ -16,11 +16,11 @@ start = do
 
     let makeCelestialBody parentID radius hue = do
             myParent                   ==> parentID
-            myInheritParentTransform   ==> InheritPose
+            myInheritTransform   ==> InheritPose
             mySize                     ==> V3 radius radius radius
             myColor                    ==> hslColor hue 0.8 0.5
-            myShapeType                ==> SphereShape
-            myPhysicsProperties        ==> [NoPhysicsShape]
+            myShape                ==> Sphere
+            myProperties        ==> [NoPhysicsShape]
 
     let makePlanet Planet{..} = spawnEntity $ do
 
@@ -35,14 +35,14 @@ start = do
     -- Create a container node that inherits pose, but not scale, from the root object
     container <- spawnEntity $ do
         myParent                   ==> rootEntityID
-        myInheritParentTransform   ==> InheritPose
+        myInheritTransform   ==> InheritPose
         mySize                     ==> 0.3
 
     -- Create a node that inherits scale from the container node, but whose own scale is 1
     -- (FIXME: this is probably more complicated than it has to be)
     scaler <- spawnEntity $ do 
         myParent                   ==> container
-        myInheritParentTransform   ==> InheritFull
+        myInheritTransform   ==> InheritFull
         mySize                     ==> 1
 
     sun <- spawnEntity $ do

@@ -23,7 +23,7 @@ loadTestScene = do
         spawnEntity $ do
             myStart ==> onStart
             mySize ==> 0.3
-            myShapeType ==> CubeShape
+            myShape ==> Cube
 
     setWorldPlaying True
 
@@ -47,8 +47,8 @@ room = do
             myParent            ==> builderID
             myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
-            myShapeType         ==> CubeShape
-            myPhysicsProperties ==> [Kinematic, Static]
+            myShape         ==> Cube
+            myProperties ==> [Floating, Static]
             mySize              ==> size
             myColor             ==> hslColor hue 0.8 0.6
             myMass              ==> 0
@@ -101,8 +101,8 @@ createBuildings = do
             myParent               ==> rootEntityID
             myPose                 ==> mkTransformation 
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
-            myShapeType            ==> CubeShape
-            myPhysicsProperties    ==> [NoPhysicsShape]
+            myShape            ==> Cube
+            myProperties    ==> [NoPhysicsShape]
             --myUpdate ==> do
             --    now <- getNow
             --    let newHeight = ((sin (now+i) + 1) + 1) * height
@@ -121,8 +121,8 @@ createStars = do
         myParent               ==> rootEntityID
         myPose                 ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
-        myShapeType            ==> SphereShape
-        myPhysicsProperties    ==> [NoPhysicsShape]
+        myShape            ==> Sphere
+        myProperties    ==> [NoPhysicsShape]
         mySize                 ==> 5
         myColor                ==> hslColor hue 0.8 0.8
 
@@ -151,7 +151,7 @@ fountain = do
                 spawnEntity $ do
                     myPose      ==> pose & translation +~ 
                                         (pose ^. _m33) !* (V3 0 0.3 0)
-                    myShapeType ==> SphereShape
+                    myShape ==> Sphere
                     mySize      ==> 0.03
                     myMass      ==> 0.1
                     myColor     ==> hslColor (note / 12) 0.9 0.8

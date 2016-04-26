@@ -17,8 +17,8 @@ start = do
             myParent            ==> builderID
             myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
-            myShapeType         ==> CubeShape
-            myPhysicsProperties ==> extraProps ++ [Kinematic, Static]
+            myShape         ==> Cube
+            myProperties ==> extraProps ++ [Floating, Static]
             mySize              ==> size
             myColor             ==> hslColor hue 0.8 0.6
             myMass              ==> 0

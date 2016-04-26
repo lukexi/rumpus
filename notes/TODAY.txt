@@ -20,7 +20,7 @@ TODAY:
     - [ ] Widget for switching kinematic on/off
     - [ ] Widget for switching contact response on/off
         - one widget type for sum types (e.g. ShapeType) 
-        - one for list types (e.g. PhysicsProperties)
+        - one for list types (e.g. Properties)
 
     - [ ] Make 3D icons out of primitives : )
         e.g. oO for collision response or something

@@ -7,14 +7,14 @@ start = do
     
     let branch parentID n pos = do
             childID <- spawnEntity $ do
-                myParent ==> parentID
-                myPose   ==> mkTransformation 
-                    (axisAngle (V3 0 0 1) 0.3) pos
-                myShapeType              ==> SphereShape
-                myPhysicsProperties      ==> [NoPhysicsShape]
-                myInheritParentTransform ==> InheritFull
-                mySize                   ==> V3 0.5 0.5 0.5
-                myColor                  ==> hslColor (fromIntegral n/9) 0.8 0.5
+                myParent           ==> parentID
+                myPose             ==> mkTransformation 
+                                        (axisAngle (V3 0 0 1) 0.3) pos
+                myShape            ==> Sphere
+                myProperties       ==> [NoPhysicsShape]
+                myInheritTransform ==> InheritFull
+                mySize             ==> V3 0.5 0.5 0.5
+                myColor            ==> hslColor (fromIntegral n/9) 0.8 0.5
                 myUpdate ==> do
                     now <- sin <$> getNow
                     let V3 pX pY pZ = pos

@@ -3,7 +3,7 @@
 [ ] Fix mirror window hiccups
 [ ] Subtle ding when finished compiling (buzz when failed)
 
-[ ] Rename ShapeType to Shape, CubeShape to Cube etc.
+[x] Rename ShapeType to Shape, Cube to Cube etc.
 
 [x] Teleporting
     [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.

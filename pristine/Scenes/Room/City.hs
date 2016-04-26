@@ -31,8 +31,8 @@ createBuildings = do
         myParent             ==> rootEntityID
         myPose               ==> mkTransformation 
                                       (axisAngle (V3 0 0 1) 0) (V3 0 y 0)
-        myShapeType          ==> CubeShape
-        myPhysicsProperties  ==> [NoPhysicsShape]
+        myShape          ==> Cube
+        myProperties  ==> [NoPhysicsShape]
         mySize               ==> V3 (dim * n * 8) 1 (dim * n * 8)
         myColor              ==> hslColor 0.7 0.6 0.2
     forM_ buildSites $ \(V3 x y z) -> do
@@ -42,8 +42,8 @@ createBuildings = do
             myParent             ==> rootEntityID
             myPose               ==> mkTransformation 
                                           (axisAngle (V3 0 0 1) 0) (V3 x y z)
-            myShapeType          ==> CubeShape
-            myPhysicsProperties  ==> [NoPhysicsShape]
+            myShape          ==> Cube
+            myProperties  ==> [NoPhysicsShape]
             mySize               ==> V3 dim (abs x) dim
             myColor              ==> hslColor hue 0.8 0.8
             -- myUpdate             ==> do
@@ -63,7 +63,7 @@ createStars = do
         myParent                 ==> rootEntityID
         myPose                   ==> mkTransformation 
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
-        myShapeType              ==> SphereShape
-        myPhysicsProperties      ==> [NoPhysicsShape]
+        myShape              ==> Sphere
+        myProperties      ==> [NoPhysicsShape]
         mySize                   ==> 5
         myColor                  ==> hslColor hue 0.8 0.8

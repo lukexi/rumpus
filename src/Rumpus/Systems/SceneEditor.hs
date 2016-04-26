@@ -92,7 +92,7 @@ endDrag endingDragHandEntityID = do
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity $ do
     myPose          ==> pose 
-    myShapeType     ==> CubeShape
+    myShape     ==> Cube
     mySize          ==> 0.5
     -- myUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
 
@@ -171,10 +171,10 @@ tickSceneEditorSystem = do
 
 
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
-filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityPhysicsProperties)
+filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
 
 getIsTeleportable :: MonadState ECS m => EntityID -> m Bool
-getIsTeleportable = fmap (elem Teleportable) . getEntityPhysicsProperties
+getIsTeleportable = fmap (elem Teleportable) . getEntityProperties
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneFolder = do

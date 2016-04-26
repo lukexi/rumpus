@@ -158,11 +158,11 @@ startKeyboardHandsSystem = do
 
         containerID <- spawnEntity $ do
             myParent                   ==> handID
-            myInheritParentTransform   ==> InheritPose
+            myInheritTransform   ==> InheritPose
             mySize                     ==> 0.01
         scaleContainerID <- spawnEntity $ do
             myParent                   ==> containerID
-            myInheritParentTransform   ==> InheritFull
+            myInheritTransform   ==> InheritFull
 
         keyIDsForHand <- spawnKeysForHand whichHand scaleContainerID keyRows
         return ((whichHand, containerID), keyIDsForHand)
@@ -208,6 +208,9 @@ tickKeyboardHandsSystem = do
                             isShiftDown <- viewSystem sysKeyboardHands kbhShiftDown
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
                                 sendInternalEvent (GLFWEvent event)
+            HandButtonEvent HandButtonPad ButtonUp -> do
+                
+                return ()
 
             _ -> return ()
 
@@ -244,11 +247,11 @@ makeKeyboardKey whichHand containerID (fromIntegral -> x) (fromIntegral -> y) nu
     myTextPose               ==> mkTransformation 
                                       (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0) !*! scaleMatrix keyTitleScale
     myColor                  ==> keyColorOff
-    myShapeType              ==> CubeShape
-    myPhysicsProperties      ==> [NoPhysicsShape]
+    myShape              ==> Cube
+    myProperties      ==> [NoPhysicsShape]
     myPose                   ==> (identity & translation .~ pose)
     mySize                   ==> V3 keyWidth keyDepth keyHeight
-    myInheritParentTransform ==> InheritPose
+    myInheritTransform ==> InheritPose
     myUpdate ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do
@@ -277,10 +280,10 @@ makeThumbNub whichHand containerID keyboardDims = do
     
     myParent                 ==> containerID
     myColor                  ==> keyColorOn
-    myShapeType              ==> SphereShape
-    myPhysicsProperties      ==> [NoPhysicsShape]
+    myShape              ==> Sphere
+    myProperties      ==> [NoPhysicsShape]
     mySize                   ==> realToFrac keyDepth * 2
-    myInheritParentTransform ==> InheritPose
+    myInheritTransform ==> InheritPose
     myUpdate               ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do                

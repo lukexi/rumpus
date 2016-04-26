@@ -22,16 +22,16 @@ startHandsSystem = do
     leftHandID <- spawnEntity $ do
         myColor             ==> handColor
         mySize              ==> V3 0.1 0.1 0.3
-        myShapeType         ==> CubeShape
-        myPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
+        myShape         ==> Cube
+        myProperties ==> [Floating, Ghostly, Static]
         myMass              ==> 0
         myCollisionStart  ==> \_ impulse -> do
             hapticPulse LeftHand (floor $ impulse * 10000)
     rightHandID <- spawnEntity $ do
         myColor             ==> handColor
         mySize              ==> V3 0.1 0.1 0.3
-        myShapeType         ==> CubeShape
-        myPhysicsProperties ==> [Kinematic, NoContactResponse, Static]
+        myShape         ==> Cube
+        myProperties ==> [Floating, Ghostly, Static]
         myMass              ==> 0
         myCollisionStart  ==> \_ impulse -> 
             hapticPulse RightHand (floor $ impulse * 10000)

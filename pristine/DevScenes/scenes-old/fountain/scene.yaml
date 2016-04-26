@@ -28,9 +28,9 @@
       - 1.5246012
       - 0.17519844
     Start: null
-    PhysicsProperties: []
+    Properties: []
     Name: SoundCube
-    Shape: CubeShape
+    Shape: Cube
     Lifetime: 2
 - - 694474371
   - Mass: 1
@@ -62,10 +62,10 @@
       - 0.1
       - 0.0
     Start: null
-    PhysicsProperties:
-    - NoContactResponse
+    Properties:
+    - Ghostly
     Name: Left Hand
-    Shape: CubeShape
+    Shape: Cube
 - - 2978547395
   - Mass: 0.0
     Collision: null
@@ -96,7 +96,7 @@
       - 0.0
       - 0.0
     Start: scenes/fountain/MessStart.hs
-    PhysicsProperties: []
+    Properties: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3216010645
@@ -129,10 +129,10 @@
       - 0.8562407
       - -6.86041e-2
     Start: null
-    PhysicsProperties:
-    - NoContactResponse
+    Properties:
+    - Ghostly
     Name: Right Hand
-    Shape: CubeShape
+    Shape: Cube
 - - 3839326967
   - Mass: 1
     Collision: null
@@ -163,8 +163,8 @@
       - 0.0
       - 0.0
     Start: null
-    PhysicsProperties: []
+    Properties: []
     Name: MessyBall
-    Shape: SphereShape
+    Shape: Sphere
     Lifetime: 2
 

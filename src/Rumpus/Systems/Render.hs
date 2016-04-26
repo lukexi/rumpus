@@ -75,8 +75,8 @@ initRenderSystem = do
     textPlaneShape  <- makeShape textPlaneGeo singleProg
     putStrLnIO "Render Setup Shape Errors:" >> glGetErrors
 
-    --let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape), (StaticPlaneShape, planeShape)]
-    let shapes = [(CubeShape, cubeShape), (SphereShape, sphereShape)]
+    --let shapes = [(Cube, cubeShape), (Sphere, sphereShape), (StaticPlaneShape, planeShape)]
+    let shapes = [(Cube, cubeShape), (Sphere, sphereShape)]
 
     shapesWithBuffers <- forM shapes $ \(shapeType, shape) -> do
         withShape shape $ do
@@ -177,7 +177,7 @@ getFinalMatrices = do
     childrenMap               <- getComponentMap myChildren
     parentMap                 <- getComponentMap myParent
     sizeMap                   <- getComponentMap mySize
-    inheritParentTransformMap <- getComponentMap myInheritParentTransform
+    inheritParentTransformMap <- getComponentMap myInheritTransform
     
     let entityIDs           = Set.fromList . Map.keys $ poseMap
         entityIDsWithChild  = Set.fromList . Map.keys $ childrenMap
@@ -212,7 +212,7 @@ getFinalMatrices = do
 
 
 getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m (V.Vector EntityID)
-getEntityIDsForShapeType shapeType = V.fromList . Map.keys . Map.filter (== shapeType) <$> getComponentMap myShapeType
+getEntityIDsForShapeType shapeType = V.fromList . Map.keys . Map.filter (== shapeType) <$> getComponentMap myShape
 
 
 renderEntitiesText :: (MonadState ECS m, MonadIO m) 

@@ -11,9 +11,9 @@ start = do
     childID <- spawnEntity $ do
         myParent ==> rootEntityID
         myPose   ==> mkTransformation (axisAngle (V3 0 0 1) 0.3) pos
-        myShapeType              ==> SphereShape
-        myPhysicsProperties      ==> [NoPhysicsShape]
-        myInheritParentTransform ==> True
+        myShape              ==> Sphere
+        myProperties      ==> [NoPhysicsShape]
+        myInheritTransform ==> True
         mySize                   ==> V3 0.5 0.6 0.6
         myColor ==> hslColor 0.1 0.8 0.5
         myUpdate ==> do

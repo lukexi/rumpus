@@ -8,8 +8,8 @@ start = do
     rootEntityID <- ask
     let recorderAt y = do
             myParent            ==> rootEntityID
-            myShapeType         ==> CubeShape
-            myPhysicsProperties ==> [Kinematic]
+            myShape         ==> Cube
+            myProperties ==> [Floating]
             myPose              ==> identity & translation . _y .~ y
             mySize              ==> 0.1
             myPdPatchFile       ==> "scenes/sampleverse/recorder"
@@ -25,12 +25,12 @@ start = do
                     let x = fromIntegral i / 8 + 1
                     spawnEntity $ do
                         myParent                 ==> samplerEntityID
-                        myShapeType              ==> CubeShape
+                        myShape              ==> Cube
                         mySize                   ==> 1
                         myColor                  ==> V4 0.8 0.9 0.4 1
                         myPose                   ==> identity & translation . _x .~ x
-                        myPhysicsProperties      ==> [NoPhysicsShape]
-                        myInheritParentTransform ==> True
+                        myProperties      ==> [NoPhysicsShape]
+                        myInheritTransform ==> True
                 return (Just (toDyn children))
             myUpdate          ==> withScriptData (\children -> do
                 fftSample <- readPdArray "sample-fft" 0 256

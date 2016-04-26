@@ -1,4 +1,4 @@
-ShapeType: SphereShape
+Shape: Sphere
 Color:
 - 0.5227212
 - 0.24000007
@@ -14,9 +14,9 @@ Pose:
   - 0.0
   - 0.0
   - 0.0
-PhysicsProperties:
-- Kinematic
-- NoContactResponse
+Properties:
+- Floating
+- Ghostly
 StartExpr:
 - scenes/basic/BasicStart.hs
 - start

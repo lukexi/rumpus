@@ -1,4 +1,4 @@
-ShapeType: CubeShape
+Shape: Cube
 Size:
 - 0.3
 - 0.3

@@ -23,7 +23,7 @@ start = do
                 spawnEntity $ do
                     myPose      ==> pose & translation +~ 
                                         (pose ^. _m33) !* (V3 0 0.3 0)
-                    myShapeType ==> SphereShape
+                    myShape ==> Sphere
                     mySize      ==> 0.03
                     myMass      ==> 0.1
                     myColor     ==> hslColor (note / 12) 0.9 0.8

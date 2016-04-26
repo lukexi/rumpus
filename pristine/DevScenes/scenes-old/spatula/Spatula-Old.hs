@@ -33,9 +33,9 @@ leftHand :: Entity
 leftHand = newEntity 
         { _entColor       = V4 1 0.8 0.7 1 
         , _entSize        = V3 0.1 0.1 0.4
-        , _entShape       = CubeShape
+        , _entShape       = Cube
         , _entPose        = newPose & posPosition .~ (V3 0 0.1 0)
-        , _entPhysicsProperties   = [NoContactResponse]
+        , _entProperties   = [Ghostly]
         , _entName        = "Left Hand"
         }
 
@@ -43,8 +43,8 @@ rightHand :: Entity
 rightHand = newEntity 
         { _entColor       = V4 0.7 1 0.8 1 
         , _entSize        = V3 0.1 0.1 0.4
-        , _entShape       = CubeShape
-        , _entPhysicsProperties   = [NoContactResponse]
+        , _entShape       = Cube
+        , _entProperties   = [Ghostly]
         , _entName        = "Right Hand"
         }
 
@@ -52,7 +52,7 @@ messyCube :: Entity
 messyCube = newEntity
             { _entPose = newPose & posPosition .~ V3 0 2 0
             , _entSize = 0.3
-            , _entShape = CubeShape
+            , _entShape = Cube
             , _entName  = "MessyCube"
             }
 
@@ -60,7 +60,7 @@ soundCube :: Entity
 soundCube = newEntity
             { _entPose = newPose & posPosition .~ V3 0 2 0
             , _entSize = 0.5
-            , _entShape = CubeShape
+            , _entShape = Cube
             , _entName  = "SoundCube"
             , _entPdPatch = Just "spatula/spatula1"
             }
@@ -70,7 +70,7 @@ messyBall :: Entity
 messyBall = newEntity
             { _entPose = newPose & posPosition .~ V3 1 2 0
             , _entSize = 0.3
-            , _entShape = SphereShape
+            , _entShape = Sphere
             , _entName  = "MessyBall"
             }
 
@@ -81,8 +81,8 @@ spatula = newEntity
         { _entSize        = V3 0.2 0.1 0.1
         , _entPose        = newPose & posPosition .~ V3 0 0.5 0
         , _entColor       = V4 0 1 1 1
-        , _entPhysicsProperties   = [Kinematic]
-        , _entShape       = CubeShape
+        , _entProperties   = [Floating]
+        , _entShape       = Cube
         , _entName        = "Spatula"
         , _entUpdate    = Just "spatula/Wobble.hs"
         , _entPdPatch     = Just "spatula/spatula2"

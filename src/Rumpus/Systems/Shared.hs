@@ -8,13 +8,13 @@ module Rumpus.Systems.Shared where
 import PreludeExtra
 import qualified Data.HashMap.Strict as Map
 
-data ShapeType = CubeShape | SphereShape | StaticPlaneShape 
+data ShapeType = Cube | Sphere 
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
-data InheritParentTransform = InheritFull | InheritPose
+data InheritTransform = InheritFull | InheritPose
 
-defineComponentKey ''ShapeType
-defineComponentKey ''InheritParentTransform
+defineComponentKey ''InheritTransform
+defineComponentKeyWithType "Shape"                  [t|ShapeType|]
 defineComponentKeyWithType "Name"                   [t|String|]
 defineComponentKeyWithType "Pose"                   [t|M44 GLfloat|]
 defineComponentKeyWithType "PoseScaled"             [t|M44 GLfloat|]
@@ -49,7 +49,7 @@ initSharedSystem = do
         }
     registerComponent "Size" mySize (savedComponentInterface mySize)
     registerComponent "Color" myColor (savedComponentInterface myColor)
-    registerComponent "ShapeType" myShapeType (savedComponentInterface myShapeType)
+    registerComponent "ShapeType" myShape (savedComponentInterface myShape)
     registerComponent "Parent" myParent $ (newComponentInterface myParent)
         { ciDeriveComponent = Just $ do
             withComponent_ myParent $ \parentID -> do
@@ -61,7 +61,7 @@ initSharedSystem = do
     registerComponent "Children" myChildren $ (newComponentInterface myChildren)
         { ciRemoveComponent = removeChildren
         }
-    registerComponent "InheritParentTransform" myInheritParentTransform (newComponentInterface myInheritParentTransform)
+    registerComponent "InheritTransform" myInheritTransform (newComponentInterface myInheritTransform)
 
     -- Allows Script and CodeEditor to access these
     registerComponent "Start"  myStart      (newComponentInterface myStart)
@@ -107,11 +107,11 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID myColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
-getEntityInheritParentTransform :: (HasComponents s, MonadState s m) => EntityID -> m (Maybe InheritParentTransform)
-getEntityInheritParentTransform entityID = getEntityComponent entityID myInheritParentTransform
+getEntityInheritTransform :: (HasComponents s, MonadState s m) => EntityID -> m (Maybe InheritTransform)
+getEntityInheritTransform entityID = getEntityComponent entityID myInheritTransform
 
-getInheritParentTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m (Maybe InheritParentTransform)
-getInheritParentTransform = getEntityInheritParentTransform =<< ask
+getInheritTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m (Maybe InheritTransform)
+getInheritTransform = getEntityInheritTransform =<< ask
 
 getEntityChildren :: (HasComponents s, MonadState s m) => EntityID -> m [EntityID]
 getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID myChildren

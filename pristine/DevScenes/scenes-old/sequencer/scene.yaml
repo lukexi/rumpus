@@ -26,8 +26,8 @@
       - -0.48412967
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1083086105
   - Mass: 1
     Collision: null
@@ -56,8 +56,8 @@
       - -0.14132464
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1125476434
   - Mass: 1
     Collision: null
@@ -86,8 +86,8 @@
       - -0.82365805
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1351947595
   - Mass: 1
     Collision: null
@@ -116,8 +116,8 @@
       - -0.12770715
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1544235735
   - Mass: 1
     Collision: null
@@ -146,8 +146,8 @@
       - 0.4853093
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1801803681
   - Mass: 1
     Collision: scenes/sequencer/NoteCollision.hs
@@ -176,9 +176,9 @@
       - 0.27463254
     Start: null
     Name: Note
-    Shape: CubeShape
-    PhysicsProperties:
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Floating
 - - 1801803682
   - Mass: 1
     Collision: scenes/sequencer/NoteCollision.hs
@@ -207,9 +207,9 @@
       - 0.21386561
     Start: null
     Name: Note
-    Shape: CubeShape
-    PhysicsProperties:
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Floating
 - - 1801803683
   - Mass: 1
     Collision: scenes/sequencer/NoteCollision.hs
@@ -238,9 +238,9 @@
       - 0.18061861
     Start: null
     Name: Note
-    Shape: CubeShape
-    PhysicsProperties:
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Floating
 - - 1801803684
   - Mass: 1
     Collision: scenes/sequencer/NoteCollision.hs
@@ -269,9 +269,9 @@
       - 0.19421706
     Start: null
     Name: Note
-    Shape: CubeShape
-    PhysicsProperties:
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Floating
 - - 1801803685
   - Mass: 1
     Collision: scenes/sequencer/NoteCollision.hs
@@ -300,9 +300,9 @@
       - 4.377815e-2
     Start: null
     Name: Note
-    Shape: CubeShape
-    PhysicsProperties:
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Floating
 - - 1801803686
   - Mass: 1
     Collision: scenes/sequencer/NoteCollision.hs
@@ -331,9 +331,9 @@
       - 0.24693379
     Start: null
     Name: Note
-    Shape: CubeShape
-    PhysicsProperties:
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Floating
 - - 1801803687
   - Mass: 1
     Collision: scenes/sequencer/NoteCollision.hs
@@ -362,9 +362,9 @@
       - 0.16182694
     Start: null
     Name: Note
-    Shape: CubeShape
-    PhysicsProperties:
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Floating
 - - 1913565961
   - Mass: 1
     Collision: null
@@ -393,8 +393,8 @@
       - -0.21649782
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 2471343175
   - Mass: 1
     Collision: null
@@ -423,8 +423,8 @@
       - 0.3181293
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 2978547395
   - Mass: 0.0
     Collision: null
@@ -454,7 +454,7 @@
     Start: null
     Name: Floor
     Shape: StaticPlaneShape
-    PhysicsProperties: []
+    Properties: []
 - - 3216010645
   - Mass: 1
     Collision: null
@@ -483,9 +483,9 @@
       - 4.173088e-2
     Start: null
     Name: Right Hand
-    Shape: CubeShape
-    PhysicsProperties:
-    - NoContactResponse
+    Shape: Cube
+    Properties:
+    - Ghostly
 - - 3839326968
   - Mass: 1
     Collision: null
@@ -514,7 +514,7 @@
       - 0.0
     Start: null
     Name: PlayHead
-    Shape: CubeShape
-    PhysicsProperties:
-    - NoContactResponse
-    - Kinematic
+    Shape: Cube
+    Properties:
+    - Ghostly
+    - Floating

@@ -29,10 +29,10 @@
       - 0.1
       - 0.0
     Start: null
-    PhysicsProperties:
-    - NoContactResponse
+    Properties:
+    - Ghostly
     Name: Left Hand
-    Shape: CubeShape
+    Shape: Cube
 - - 1801803679
   - Mass: 1
     Collision: null
@@ -64,9 +64,9 @@
       - 1.2382588
       - -0.5660496
     Start: null
-    PhysicsProperties: []
+    Properties: []
     Name: MessyCube
-    Shape: CubeShape
+    Shape: Cube
 - - 2978547395
   - Mass: 0.0
     Collision: null
@@ -98,7 +98,7 @@
       - 0.0
       - 0.0
     Start: null
-    PhysicsProperties: []
+    Properties: []
     Name: Floor
     Shape: StaticPlaneShape
 - - 3215898416
@@ -132,10 +132,10 @@
       - 0.7138907
       - -0.232716
     Start: scenes/spatula/SpatulaStart.hs
-    PhysicsProperties:
-    - Kinematic
+    Properties:
+    - Floating
     Name: Spatula
-    Shape: CubeShape
+    Shape: Cube
 - - 3216010645
   - Mass: 1
     Collision: null
@@ -167,10 +167,10 @@
       - 2.6274974
       - 0.22345476
     Start: null
-    PhysicsProperties:
-    - NoContactResponse
+    Properties:
+    - Ghostly
     Name: Right Hand
-    Shape: CubeShape
+    Shape: Cube
 - - 3839326967
   - Mass: 1
     Collision: null
@@ -202,6 +202,6 @@
       - 2.3149238
       - -0.3740393
     Start: null
-    PhysicsProperties: []
+    Properties: []
     Name: MessyBall
-    Shape: SphereShape
+    Shape: Sphere

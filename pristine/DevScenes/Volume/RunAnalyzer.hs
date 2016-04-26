@@ -12,7 +12,7 @@ update = do
             Atom (Float note) -> do
                 headPose <- getHeadPose
                 childID <- spawnEntity $ do
-                    myShapeType ==> CubeShape
+                    myShape ==> Cube
                     myParent  ==> rootID
                     myPose    ==> headPose
                     myGravity ==> 0

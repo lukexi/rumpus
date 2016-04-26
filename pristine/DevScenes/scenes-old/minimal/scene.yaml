@@ -26,8 +26,8 @@
       - -5.4659307e-2
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 184849503
   - Mass: 1
     Collision: null
@@ -56,8 +56,8 @@
       - 1.6618123
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 577161494
   - Mass: 1
     Collision: null
@@ -86,8 +86,8 @@
       - -0.7305281
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 580428607
   - Mass: 1
     Collision: null
@@ -116,8 +116,8 @@
       - -0.7367603
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 666392315
   - Mass: 1
     Collision: null
@@ -146,8 +146,8 @@
       - -0.90676236
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 694474371
   - Mass: 1
     Collision: null
@@ -176,9 +176,9 @@
       - -0.14369106
     Start: null
     Name: Left Hand
-    Shape: CubeShape
-    PhysicsProperties:
-    - NoContactResponse
+    Shape: Cube
+    Properties:
+    - Ghostly
 - - 992630667
   - Mass: 1
     Collision: null
@@ -207,8 +207,8 @@
       - -0.23412359
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1134014372
   - Mass: 1
     Collision: null
@@ -237,8 +237,8 @@
       - -0.90676236
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1169090362
   - Mass: 1
     Collision: null
@@ -267,8 +267,8 @@
       - -0.13170302
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1198920318
   - Mass: 1
     Collision: null
@@ -297,8 +297,8 @@
       - 1.6842231e-2
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1431009904
   - Mass: 1
     Collision: null
@@ -327,8 +327,8 @@
       - -1.5333812
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1673933154
   - Mass: 1
     Collision: null
@@ -357,8 +357,8 @@
       - -0.13009015
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1801803679
   - Mass: 1
     Collision: null
@@ -387,8 +387,8 @@
       - -0.4114685
     Start: null
     Name: MessyCube
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 1953701046
   - Mass: 1
     Collision: null
@@ -417,8 +417,8 @@
       - -1.5989583
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 2314345432
   - Mass: 1
     Collision: null
@@ -447,8 +447,8 @@
       - -0.8381426
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 2430015393
   - Mass: 1
     Collision: null
@@ -477,8 +477,8 @@
       - 2.1920295
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 2578553634
   - Mass: 1
     Collision: null
@@ -507,8 +507,8 @@
       - -1.9422166
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 2893411358
   - Mass: 1
     Collision: null
@@ -537,8 +537,8 @@
       - -4.6174124e-2
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 2978547395
   - Mass: 0.0
     Collision: null
@@ -568,7 +568,7 @@
     Start: null
     Name: Floor
     Shape: StaticPlaneShape
-    PhysicsProperties: []
+    Properties: []
 - - 3216010645
   - Mass: 1
     Collision: null
@@ -597,9 +597,9 @@
       - -0.42304668
     Start: null
     Name: Right Hand
-    Shape: CubeShape
-    PhysicsProperties:
-    - NoContactResponse
+    Shape: Cube
+    Properties:
+    - Ghostly
 - - 3793229927
   - Mass: 1
     Collision: null
@@ -628,8 +628,8 @@
       - -0.21880442
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []
 - - 3859500163
   - Mass: 1
     Collision: null
@@ -658,5 +658,5 @@
       - 0.37945032
     Start: null
     Name: NewEntity
-    Shape: CubeShape
-    PhysicsProperties: []
+    Shape: Cube
+    Properties: []

@@ -12,15 +12,19 @@ import Rumpus.Systems.Controls
 import Foreign.C
 
 data PhysicsSystem = PhysicsSystem 
-    { _phyDynamicsWorld :: DynamicsWorld 
+    { _phyDynamicsWorld  :: DynamicsWorld 
     , _phyCollisionPairs :: Map EntityID (Set EntityID)
     } deriving Show
 makeLenses ''PhysicsSystem
 
-data PhysicsProperty = Kinematic | NoContactResponse | Static | NoPhysicsShape | Teleportable
+data Property = Floating        -- ^ Sets bullet "Kinematic" flag 
+              | Ghostly         -- ^ Sets bullet "NoContactResponse" flag
+              | NoPhysicsShape  -- ^ Removes physics shape entirely (Rename to "Holographic"?)
+              | Static          -- ^ Marks objects we don't want to grab
+              | Teleportable    -- ^ Marks objects we want to allow teleportation to. Must have physics shape.
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
-type PhysicsProperties = [PhysicsProperty]
+type Properties = [Property]
 
 
 defineSystemKey ''PhysicsSystem
@@ -31,7 +35,7 @@ defineComponentKeyWithType "CollisionGroup" [t|CShort|]
 defineComponentKeyWithType "CollisionMask"  [t|CShort|]
 defineComponentKey ''RigidBody
 defineComponentKey ''SpringConstraint
-defineComponentKey ''PhysicsProperties
+defineComponentKey ''Properties
 
 
 initPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -48,16 +52,16 @@ initPhysicsSystem = do
         }
     registerComponent "Mass"              myMass               (savedComponentInterface myMass)
     registerComponent "Gravity"           myGravity            (savedComponentInterface myGravity)
-    registerComponent "PhysicsProperties" myPhysicsProperties  (savedComponentInterface myPhysicsProperties)
+    registerComponent "Properties"        myProperties         (savedComponentInterface myProperties)
     registerComponent "SpringConstraint"  mySpringConstraint   (newComponentInterface mySpringConstraint)
     registerComponent "CollisionGroup"    myCollisionGroup     (newComponentInterface myCollisionGroup)
     registerComponent "CollisionMask"     myCollisionMask      (newComponentInterface myCollisionMask)
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do
-    physProperties <- fromMaybe [] <$> getComponent myPhysicsProperties
+    physProperties <- fromMaybe [] <$> getComponent myProperties
     unless (NoPhysicsShape `elem` physProperties) $ do
-        mShapeType <- getComponent myShapeType
+        mShapeType <- getComponent myShape
         forM_ mShapeType $ \shapeType -> do
 
             mass <- fromMaybe 1 <$> getComponent myMass
@@ -83,10 +87,10 @@ deriveRigidBody dynamicsWorld = do
                 setRigidBodyGravity rigidBody gravity
                 setRigidBodyDisableDeactivation rigidBody True
             
-            when (NoContactResponse `elem` physProperties || Kinematic `elem` physProperties) $ do
+            when (Ghostly `elem` physProperties || Floating `elem` physProperties) $ do
                 setRigidBodyKinematic rigidBody True
 
-            when (NoContactResponse `elem` physProperties) $ 
+            when (Ghostly `elem` physProperties) $ 
                 setRigidBodyNoContactResponse rigidBody True
             
             myRigidBody ==> rigidBody
@@ -111,9 +115,8 @@ tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
 
 createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m CollisionShape
 createShapeCollider shapeType size = case shapeType of
-    CubeShape        -> createBoxShape         size
-    SphereShape      -> createSphereShape      (size ^. _x / 2) -- we want diameter rather than radius to match boxes
-    StaticPlaneShape -> createStaticPlaneShape (0 :: Int)
+    Cube        -> createBoxShape         size
+    Sphere      -> createSphereShape      (size ^. _x / 2) -- we want diameter rather than radius to match boxes
 
 withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
 withEntityRigidBody entityID = void . withEntityComponent entityID myRigidBody
@@ -152,12 +155,12 @@ setEntitySize newSize entityID = do
 
     withEntityRigidBody entityID $ \rigidBody -> do 
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
-            mass       <- fromMaybe 1         <$> getEntityComponent entityID myMass
-            shapeType  <- fromMaybe CubeShape <$> getEntityComponent entityID myShapeType
+            mass       <- fromMaybe 1    <$> getEntityComponent entityID myMass
+            shapeType  <- fromMaybe Cube <$> getEntityComponent entityID myShape
 
             -- FIXME this max 0.01 should be moved into bullet-mini; infinitesimal objects break the whole simulation
-            shape      <- createShapeCollider shapeType (max 0.01 newSize)
-            setRigidBodyShape dynamicsWorld rigidBody shape mass
+            shapeCollider <- createShapeCollider shapeType (max 0.01 newSize)
+            setRigidBodyShape dynamicsWorld rigidBody shapeCollider mass
 
 setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => M44 GLfloat -> m ()
 setPose pose = setEntityPose pose =<< ask
@@ -177,8 +180,8 @@ setEntityPoseCacheScale entityID poseM44 = do
     setEntityComponent myPose poseM44 entityID
     setEntityComponent myPoseScaled (poseM44 !*! scaleMatrix size) entityID
 
-getEntityPhysicsProperties :: (HasComponents s, MonadState s f) => EntityID -> f [PhysicsProperty]
-getEntityPhysicsProperties entityID = fromMaybe [] <$> getEntityComponent entityID myPhysicsProperties
+getEntityProperties :: (HasComponents s, MonadState s f) => EntityID -> f Properties
+getEntityProperties entityID = fromMaybe [] <$> getEntityComponent entityID myProperties
 
 applyForce :: (Real a, MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 a -> m ()
 applyForce force = applyForceToEntity force =<< ask

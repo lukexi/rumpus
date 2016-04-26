@@ -13,7 +13,7 @@ roomOffset = 0
 start :: Start
 start = do
     lhID <- getLeftHandID
-    removeEntityComponent myShapeType lhID
+    removeEntityComponent myShape lhID
     --setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     setPose (identity & translation .~ V3 0 10 (-roomD/2 + 0.4))
     removeChildren
@@ -22,8 +22,8 @@ start = do
             myParent            ==> builderID
             myPose              ==> mkTransformation 
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
-            myShapeType         ==> CubeShape
-            myPhysicsProperties ==> [Kinematic, Static]
+            myShape         ==> Cube
+            myProperties ==> [Floating, Static]
             mySize              ==> size
             myColor             ==> hslColor hue 0.8 0.6 1
             myMass              ==> 0
@@ -47,8 +47,8 @@ start = do
         myParent            ==> builderID
         myPose              ==> mkTransformation 
             (axisAngle (V3 0 0 1) 0) (V3 0 roomOffset 2)
-        myShapeType         ==> SphereShape
-        myPhysicsProperties ==> [Kinematic, Static]
+        myShape         ==> Sphere
+        myProperties ==> [Floating, Static]
         mySize              ==> 0.8
         myColor             ==> hslColor 0.2 0.7 0.6
         myMass              ==> 0

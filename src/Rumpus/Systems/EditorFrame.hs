@@ -14,7 +14,7 @@ import Rumpus.Systems.SceneEditor
 addEditorFrame :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 addEditorFrame entityID = do
     editorFrame <- spawnEntity $ do
-        removeComponent myShapeType
+        removeComponent myShape
         myConstraint ==> RelativePositionTo entityID 0
     
     ------------------------
@@ -22,10 +22,10 @@ addEditorFrame entityID = do
     color <- getEntityColor entityID
     _colorEditor <- spawnEntity $ do
         myParent            ==> editorFrame
-        myShapeType         ==> SphereShape
+        myShape         ==> Sphere
         myColor             ==> color
         mySize              ==> 0.1
-        myPhysicsProperties ==> [Kinematic, NoContactResponse]
+        myProperties ==> [Floating, Ghostly]
         myConstraint        ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
         --myPose              ==> (newPose & posPosition .~ V3 (-0.5) 0.5 0)
         myDrag            ==> \dragDistance -> do
@@ -39,10 +39,10 @@ addEditorFrame entityID = do
     
     _sizeEditor <- spawnEntity $ do
         myParent            ==> editorFrame
-        myShapeType         ==> CubeShape
+        myShape         ==> Cube
         myColor             ==> V4 0.3 0.3 1 1
         mySize              ==> 0.2
-        myPhysicsProperties ==> [Kinematic, NoContactResponse]
+        myProperties ==> [Floating, Ghostly]
         myConstraint        ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
         --myPose              ==> (newPose & posPosition .~ V3 0.5 0.5 0)
         myDrag            ==> \dragDistance -> do

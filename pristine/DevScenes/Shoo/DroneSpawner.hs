@@ -11,8 +11,8 @@ start = do
     forM [0..numDrones] $ \ i -> do
         childID <- spawnEntity $ do
             myParent ==> parentID
-            myShapeType ==> SphereShape
-            myPhysicsProperties ==> [Kinematic]
+            myShape ==> Sphere
+            myProperties ==> [Floating]
             mySize ==> 0.2
             myMass ==> 0.1
             let h = (fromIntegral $ (i * 27) `mod` 37) / 37
