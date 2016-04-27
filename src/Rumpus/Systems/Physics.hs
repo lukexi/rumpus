@@ -180,6 +180,15 @@ setEntityPoseCacheScale entityID poseM44 = do
     setEntityComponent myPose poseM44 entityID
     setEntityComponent myPoseScaled (poseM44 !*! scaleMatrix size) entityID
 
+setPosition position = do
+    pose <- getPose
+    setPose $ (pose & translation .~ position)
+
+setRotation axis angle = do
+    pose <- getPose
+    setPose $ mkTransformation (axisAngle axis angle) (pose ^. translation)
+
+
 getEntityProperties :: (HasComponents s, MonadState s f) => EntityID -> f Properties
 getEntityProperties entityID = fromMaybe [] <$> getEntityComponent entityID myProperties
 

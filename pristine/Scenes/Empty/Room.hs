@@ -12,9 +12,9 @@ start = do
     removeChildren
 
     -- Set the pose of the code editor to be centered in the wall
-    setPose $ mkTransformation (axisAngle (V3 0 1 0) (-pi/2))
-        (V3 (-2.5) 1 0)
-        --(V3 (-1) 1 (-roomD/2 + 0.4))
+    setPosition (V3 (-2.5) 1 0)
+    setRotation (V3 0 1 0) (-pi/2)
+    --setPosition (V3 (-1) 1 (-roomD/2 + 0.4))
 
     builderID <- ask
     void . spawnEntity $ do

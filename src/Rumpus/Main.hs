@@ -8,6 +8,7 @@ import Rumpus
 import Rumpus.TestScene
 import Rumpus.CopyScenes
 import Halive.Utils
+import System.Timeout
 
 rumpusMain :: IO ()
 rumpusMain = withPd $ \pd -> do
