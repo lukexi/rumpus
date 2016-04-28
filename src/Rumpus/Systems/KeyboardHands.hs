@@ -156,12 +156,12 @@ startKeyboardHandsSystem = do
     containersAndKeyIDs <- forM handsWithKeys $ \(whichHand, handID, keyRows) -> do
         --runEntity handID removeChildren
 
-        containerID <- spawnEntity $ do
-            myParent                   ==> handID
+        containerID      <- spawnEntity $ do
+            myParent             ==> handID
             myInheritTransform   ==> InheritPose
-            mySize                     ==> 0.01
+            mySize               ==> 0.01
         scaleContainerID <- spawnEntity $ do
-            myParent                   ==> containerID
+            myParent             ==> containerID
             myInheritTransform   ==> InheritFull
 
         keyIDsForHand <- spawnKeysForHand whichHand scaleContainerID keyRows

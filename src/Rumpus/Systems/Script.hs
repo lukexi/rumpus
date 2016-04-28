@@ -13,6 +13,11 @@ tickScriptSystem = whenWorldPlaying $ do
         \(entityID, onStart) -> runEntity entityID $ do
             --putStrLnIO ("Running Start for " ++ show entityID)
             
+            -- Automatically remove children when start runs.
+            -- This should probably be configurable but it's what
+            -- I always find myself doing so I'm hardcoding it for now.
+            removeChildren
+
             -- Only call Start once. 
             -- Handle any exceptions therein by writing them to the error pane.
             runtimeErrors <- handleAll (\e -> return (show e)) $ do

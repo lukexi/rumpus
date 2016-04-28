@@ -130,6 +130,7 @@ tickRenderSystem headM44 = do
         --let shapeName = show rshShapeType ++ " "
         entityIDsForShape <- getEntityIDsForShapeType rshShapeType
         let count = V.length entityIDsForShape
+        
         writeSAB rshStreamingArrayBuffer (fromIntegral count) rshResetShapeInstanceBuffers $ do
             fillSABBuffer rshInstanceColorsBuffer $ \i -> do
                 let entityID = entityIDsForShape V.! i
@@ -255,12 +256,11 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
             renderTextAsScreen (editor ^. cedCodeRenderer)
                 planeShape projViewM44 codeModelM44
 
-
             when (textRendererHasText $ editor ^. cedErrorRenderer) $ do
                 -- Render errors in light red in panel below main
-                let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 0 (-50) 0)
+                let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 0 (-1) 0)
 
-                renderTextAsScreen (editor ^. cedCodeRenderer)
+                renderTextAsScreen (editor ^. cedErrorRenderer)
                     planeShape projViewM44 errorsModelM44
     glDisable GL_STENCIL_TEST
 

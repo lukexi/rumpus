@@ -1,7 +1,10 @@
 
-[x] Fix keyboard offsets
 [ ] Fix mirror window hiccups
 [ ] Subtle ding when finished compiling (buzz when failed)
+[ ] Resolve the mismatch between scenegraph-tree objects and physics;
+    should still be able to have physics on things that are parented/scaled
+
+[x] Fix keyboard offsets
 
 [x] Rename ShapeType to Shape, Cube to Cube etc.
 
@@ -13,8 +16,8 @@
     [ ] Add a ray and visual feedback for what you'll teleport to.
             (and haptics OBVZ)
     [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
+    [ ] Allow teleporting to rotated objects
 
-[ ] Fix objects not having same physics properties (collisions for everything)
 
 [ ] Click-and-hold repeats for arrow keys
 
@@ -35,7 +38,7 @@
     Or, just do clipping and put shaders on the text.
     [x] Cursor is way too hard to see!
     [ ] Add line numbers?? Any way to do that easily??
-    [ ] Clipping/scrolling
+    [x] Clipping/scrolling
 
 
 [ ] Knob API!
