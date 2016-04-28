@@ -32,7 +32,7 @@
         And, rather than a separate initialize, Main could spawn the objects and set their positions...
 
     This also nicely simplifies object instances; can just keep track of what haskell files are available.
-    Remember the whole component editors idea though...
+    But, this doesn't have a good plan for saving state (e.g. positions and colors)
     Boy it would make the demo a lot better, as you'd start with creating a few objects, 
     setting their size and color, and then specifying their behavior.
 
@@ -186,6 +186,8 @@ Jacobs requests:
 
 [ ] Recheck initLinker initDynLinker stuff in Halive; 
     it didn't actually fix the crashes so it may just be slowing down loading for no reason
+    See MultipleLinkerInstances; it is indeed bad to run multiple GHC instances, contrary to a note I posted somewhere...
+    https://ghc.haskell.org/trac/ghc/ticket/3372
 
 [x] Crasher when turning controllers on after launch
         - Investigate this in openvr-hs to minimize surface area 
@@ -262,7 +264,7 @@ import Rumpus
 rotationSpeed = 1
 
 -- Try changing the colors!
-objectColor = colorRGB (1,2,3)
+objectColor = colorHSL 1 2 3
 
 -- Here's where we actually set up the object!
 start = do
@@ -282,10 +284,3 @@ data Color = Color { hue :: GLfloat, saturation :: GLfloat, brightness :: GLfloa
 
 setColor Color{..} = setColorV4 (hslColor hue saturation brightness)
 
-setPosition position = do
-    pose <- getPose
-    setPose $ mkTransformation (pose & translation .~ position)
-
-setRotation axis angle = do
-    pose <- getPose
-    setPose $ mkTransformation (axisAngle axis angle) (pose ^. translation)
