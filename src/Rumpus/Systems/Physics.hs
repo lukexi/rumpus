@@ -8,7 +8,7 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Controls
-
+import Data.List (nub)
 import Foreign.C
 
 data PhysicsSystem = PhysicsSystem 
@@ -59,8 +59,8 @@ initPhysicsSystem = do
 
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do
-    physProperties <- fromMaybe [] <$> getComponent myProperties
-    unless (NoPhysicsShape `elem` physProperties) $ do
+    properties <- fromMaybe [] <$> getComponent myProperties
+    unless (NoPhysicsShape `elem` properties) $ do
         mShapeType <- getComponent myShape
         forM_ mShapeType $ \shapeType -> do
 
@@ -80,6 +80,7 @@ deriveRigidBody dynamicsWorld = do
                                   }
             shape     <- createShapeCollider shapeType size
             rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo
+            myRigidBody ==> rigidBody
 
             -- Must happen after addRigidBody
             mGravity <- getComponent myGravity
@@ -87,13 +88,22 @@ deriveRigidBody dynamicsWorld = do
                 setRigidBodyGravity rigidBody gravity
                 setRigidBodyDisableDeactivation rigidBody True
             
-            when (Ghostly `elem` physProperties || Floating `elem` physProperties) $ do
+            when (Ghostly `elem` properties || Floating `elem` properties) $ do
                 setRigidBodyKinematic rigidBody True
 
-            when (Ghostly `elem` physProperties) $ 
+            when (Ghostly `elem` properties) $ 
                 setRigidBodyNoContactResponse rigidBody True
             
-            myRigidBody ==> rigidBody
+
+setFloating isFloating = do
+    myProperties ==% nub . (Floating :)
+    withRigidBody $ \rigidBody ->
+        setRigidBodyKinematic rigidBody isFloating
+
+setGhostly isGhostly = do
+    myProperties ==% nub . (Ghostly :)
+    withRigidBody $ \rigidBody ->
+        setRigidBodyNoContactResponse rigidBody isGhostly
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
@@ -121,6 +131,9 @@ createShapeCollider shapeType size = case shapeType of
 withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
 withEntityRigidBody entityID = void . withEntityComponent entityID myRigidBody
 
+withRigidBody action = do
+    entityID <- ask
+    withEntityRigidBody entityID action
 
 getEntityOverlapping :: (MonadState ECS m, MonadIO m) => EntityID -> m [Collision]
 getEntityOverlapping entityID = getEntityComponent entityID myRigidBody  >>= \case

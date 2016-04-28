@@ -24,6 +24,7 @@ rumpusMain = withPd $ \pd -> do
 
         initAnimationSystem
         initAttachmentSystem
+        initClockSystem
         initCodeEditorSystem
         initCollisionsSystem
         initConstraintSystem
@@ -74,6 +75,7 @@ rumpusMain = withPd $ \pd -> do
             --liftIO performMinorGC
             
             tickKeyboardHandsSystem
+            tickClockSystem
             tickCodeEditorInputSystem
             tickCodeEditorResultsSystem
             tickAttachmentSystem

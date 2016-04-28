@@ -50,6 +50,7 @@ library
                        Rumpus.Types
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
+                       Rumpus.Systems.Clock
                        Rumpus.Systems.CodeEditor
                        Rumpus.Systems.Collisions
                        Rumpus.Systems.Constraint

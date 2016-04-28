@@ -14,38 +14,34 @@ pointsOnSphere (fromIntegral -> n) =
 
 start :: Start
 start = do
-    removeChildren
     createBuildings
     createStars
 
 createBuildings :: EntityMonad ()
 createBuildings = do
-    rootEntityID <- ask
     let n = 5
         dim = 20
         height = dim * 5
         buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
     -- Ground
-    spawnEntity $ do
+    spawnChild $ do
         let y = -height*2
-        myParent             ==> rootEntityID
-        myPose               ==> mkTransformation 
-                                      (axisAngle (V3 0 0 1) 0) (V3 0 y 0)
-        myShape          ==> Cube
+        myPose        ==> mkTransformation 
+                            (axisAngle (V3 0 0 1) 0) (V3 0 y 0)
+        myShape       ==> Cube
         myProperties  ==> [NoPhysicsShape]
-        mySize               ==> V3 (dim * n * 8) 1 (dim * n * 8)
-        myColor              ==> hslColor 0.7 0.6 0.2
+        mySize        ==> V3 (dim * n * 8) 1 (dim * n * 8)
+        myColor       ==> hslColor 0.7 0.6 0.2
     forM_ buildSites $ \(V3 x y z) -> do
         hue <- liftIO randomIO
         
-        when (x /= 0 && z /= 0) $ void . spawnEntity $ do
-            myParent             ==> rootEntityID
-            myPose               ==> mkTransformation 
-                                          (axisAngle (V3 0 0 1) 0) (V3 x y z)
-            myShape          ==> Cube
-            myProperties  ==> [NoPhysicsShape]
-            mySize               ==> V3 dim (abs x) dim
-            myColor              ==> hslColor hue 0.8 0.8
+        when (x /= 0 && z /= 0) $ void . spawnChild $ do
+            myPose       ==> mkTransformation 
+                                (axisAngle (V3 0 0 1) 0) (V3 x y z)
+            myShape      ==> Cube
+            myProperties ==> [NoPhysicsShape]
+            mySize       ==> V3 dim (abs x) dim
+            myColor      ==> hslColor hue 0.8 0.8
             -- myUpdate             ==> do
             --    let rate = 7000
             --    now <- getNow
@@ -53,17 +49,15 @@ createBuildings = do
 
 createStars :: EntityMonad ()
 createStars = do
-    rootEntityID <- ask
     
     let numPoints = 200 :: Int
         -- Only take the upper hemisphere
         sphere = drop (numPoints `div` 2) $ pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
-    forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
-        myParent                 ==> rootEntityID
-        myPose                   ==> mkTransformation 
-                                        (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
-        myShape              ==> Sphere
-        myProperties      ==> [NoPhysicsShape]
-        mySize                   ==> 5
-        myColor                  ==> hslColor hue 0.8 0.8
+    forM_ (zip sphere hues) $ \(pos, hue) -> void . spawnChild $ do
+        myPose       ==> mkTransformation 
+                            (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
+        myShape      ==> Sphere
+        myProperties ==> [NoPhysicsShape]
+        mySize       ==> 5
+        myColor      ==> hslColor hue 0.8 0.8

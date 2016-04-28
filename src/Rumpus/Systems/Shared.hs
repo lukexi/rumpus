@@ -7,7 +7,7 @@
 module Rumpus.Systems.Shared where
 import PreludeExtra
 import qualified Data.HashMap.Strict as Map
-
+import qualified Data.List as L
 data ShapeType = Cube | Sphere 
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
@@ -52,11 +52,7 @@ initSharedSystem = do
     registerComponent "ShapeType" myShape (savedComponentInterface myShape)
     registerComponent "Parent" myParent $ (newComponentInterface myParent)
         { ciDeriveComponent = Just $ do
-            withComponent_ myParent $ \parentID -> do
-                childID <- ask
-                getEntityComponent parentID myChildren >>= \case
-                    Nothing -> setEntityComponent myChildren [childID] parentID
-                    Just _ ->  modifyEntityComponent parentID myChildren (return . (childID:))
+            withComponent_ myParent setParent
         }
     registerComponent "Children" myChildren $ (newComponentInterface myChildren)
         { ciRemoveComponent = removeChildren
@@ -68,10 +64,29 @@ initSharedSystem = do
     registerComponent "Update" myUpdate     (newComponentInterface myUpdate)
     registerComponent "State"  myState      (newComponentInterface myState)
 
+setParent newParentID = do
+    childID <- ask
+
+    withComponent_ myParent $ \oldParentID -> 
+        runEntity oldParentID $ do
+            myChildren ==% L.delete childID
+
+    myParent ==> newParentID
+
+    runEntity newParentID $ do
+        getComponent myChildren >>= \case
+            Nothing -> myChildren ==> [childID]
+            Just _ ->  myChildren ==% (childID:)
+
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren = 
     withComponent_ myChildren (mapM_ removeEntity)
 
+spawnChild actions = do
+    thisEntityID <- ask
+    spawnEntity $ do
+        myParent ==> thisEntityID
+        actions
 
 setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
 setEntityColor newColor entityID = setEntityComponent myColor newColor entityID

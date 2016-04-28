@@ -60,7 +60,7 @@ initTextSystem = do
 setEntityText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
 setEntityText entityID text = do
     setEntityComponent myText text entityID
-    modifyEntityComponent entityID myTextRenderer $ \renderer -> 
+    modifyEntityComponentM entityID myTextRenderer $ \renderer -> 
         flip execStateT renderer $ setTextRendererText id text
     -- Recache scale matrix
     setEntityTextPose entityID =<< getEntityTextPose entityID

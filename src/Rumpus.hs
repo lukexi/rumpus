@@ -5,6 +5,7 @@ import PreludeExtra as Exports
 import Rumpus.Types as Exports
 import Rumpus.Systems.Animation as Exports
 import Rumpus.Systems.Attachment as Exports
+import Rumpus.Systems.Clock as Exports
 import Rumpus.Systems.CodeEditor as Exports
 import Rumpus.Systems.Collisions as Exports
 import Rumpus.Systems.Constraint as Exports
