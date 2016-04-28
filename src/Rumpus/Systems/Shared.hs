@@ -130,3 +130,4 @@ getInheritTransform = getEntityInheritTransform =<< ask
 
 getEntityChildren :: (HasComponents s, MonadState s m) => EntityID -> m [EntityID]
 getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID myChildren
+
