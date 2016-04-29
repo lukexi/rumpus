@@ -1,4 +1,4 @@
-[ ] Click-and-hold repeats for arrow keys
+[x] Click-and-hold repeats for arrow keys
 
 
 [ ] Finish keyboard
@@ -20,12 +20,6 @@
     myUpdate ==> do
         newScale <- readKnob scaleKnob
         setSize newScale
-
-[ ] See if there's a way to use System.Timeout.timeout for a simple version of rendering-guarantees.
-    (along with a maximum count of objects to render) 
-
-
-[ ] A real-time-tracking day-night cycle for the city world
 
 [x] Fix keyboard offsets
 [ ] Fix mirror window hiccups
@@ -69,6 +63,12 @@
     [ ] Add line numbers?? Any way to do that easily??
 
 
+
+[ ] See if there's a way to use System.Timeout.timeout for a simple version of rendering-guarantees.
+    (along with a maximum count of objects to render) 
+
+
+[ ] A real-time-tracking day-night cycle for the city world
 
 
 RENDERING

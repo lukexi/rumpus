@@ -14,6 +14,7 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
 import Rumpus.Systems.Animation
+import Rumpus.Systems.Clock
 
 
 import qualified Graphics.UI.GLFW.Pal as GLFW
@@ -119,11 +120,12 @@ keyboardOffsetY = -0.2
 keyboardOffsetZ = 0.1
 
 data KeyboardHandsSystem = KeyboardHandsSystem 
-    { _kbhShiftDown   :: Bool
-    , _kbhKeyIDs      :: [(EntityID, HandKey)]
-    , _kbhCurrentKey  :: Map WhichHand HandKey
-    , _kbhLastKey     :: Map WhichHand HandKey
-    , _kbhKeyboard    :: Map WhichHand EntityID
+    { _kbhShiftDown    :: Bool
+    , _kbhKeyIDs       :: [(EntityID, HandKey)]
+    , _kbhCurrentKey   :: Map WhichHand HandKey
+    , _kbhLastKey      :: Map WhichHand HandKey
+    , _kbhKeyboard     :: Map WhichHand EntityID
+    , _kbhKeyRepeaters :: Map WhichHand EntityID
     } deriving Show
 makeLenses      ''KeyboardHandsSystem
 defineSystemKey ''KeyboardHandsSystem
@@ -170,11 +172,12 @@ startKeyboardHandsSystem = do
         keyboardIDs = Map.fromList (map fst containersAndKeyIDs)
 
     registerSystem sysKeyboardHands $ KeyboardHandsSystem
-        { _kbhShiftDown   = False
-        , _kbhKeyIDs      = keyIDs
-        , _kbhCurrentKey  = mempty
-        , _kbhLastKey     = mempty
-        , _kbhKeyboard    = keyboardIDs
+        { _kbhShiftDown    = False
+        , _kbhKeyIDs       = keyIDs
+        , _kbhCurrentKey   = mempty
+        , _kbhLastKey      = mempty
+        , _kbhKeyboard     = keyboardIDs
+        , _kbhKeyRepeaters = mempty
         }
 
 tickKeyboardHandsSystem :: ECSMonad ()
@@ -208,9 +211,23 @@ tickKeyboardHandsSystem = do
                             isShiftDown <- viewSystem sysKeyboardHands kbhShiftDown
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
                                 sendInternalEvent (GLFWEvent event)
+
+                                -- Add a repeating key action
+                                repeaterID <- spawnEntity $ return ()
+                                runEntity repeaterID $ 
+                                    setDelayedAction 0.25 $ do
+                                        setRepeatingAction 0.1 $ do
+                                            sendInternalEvent (GLFWEvent event)
+                                modifySystemState sysKeyboardHands $ 
+                                    kbhKeyRepeaters . at whichHand ?= repeaterID
+
             HandButtonEvent HandButtonPad ButtonUp -> do
-                
-                return ()
+                mKeyRepeaterID <- viewSystem sysKeyboardHands (kbhKeyRepeaters . at whichHand)
+
+                forM_ mKeyRepeaterID $ \keyRepeaterID -> do
+                    removeEntity keyRepeaterID
+                modifySystemState sysKeyboardHands $ 
+                    kbhKeyRepeaters . at whichHand .= Nothing
 
             _ -> return ()
 
