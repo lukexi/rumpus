@@ -1,7 +1,28 @@
+[ ] Click-and-hold repeats for arrow keys
+
+
+[ ] Finish keyboard
+    [ ] Fullsize keys for space etc.
+    [ ] Variable-width keys like Valve's, for oft-used keys?
+    
+    [x] Fix bad key/thumb mapping
+    [x] Only show keyboard when object selected
+    [x] Haptics for moving thumb on keys
+        [ ] Different vibrations to let you know that you're still on the right key??
+            (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
+
+    [x] Get touchpad down event from steamVR
+    [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
+    (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
+
+[ ] Knob API!
+    scaleKnob <- makeKnob 0 100 "Scale" 50
+    myUpdate ==> do
+        newScale <- readKnob scaleKnob
+        setSize newScale
 
 [ ] See if there's a way to use System.Timeout.timeout for a simple version of rendering-guarantees.
     (along with a maximum count of objects to render) 
-
 
 
 [ ] A real-time-tracking day-night cycle for the city world
@@ -21,13 +42,12 @@
     [x] If doing head, do hands too.
     [x] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
     
-    [ ] Add a ray and visual feedback for what you'll teleport to.
+    [x] Add a ray and visual feedback for what you'll teleport to.
             (and haptics OBVZ)
     [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
     [ ] Allow teleporting to rotated objects
 
 
-[ ] Click-and-hold repeats for arrow keys
 
 [ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
     Except, how to deal with editing without resetting position etc.? 
@@ -45,29 +65,10 @@
     Prototype it in freetype-gl-mini. Basically, render to texture, add curve, add shader.
     Or, just do clipping and put shaders on the text.
     [x] Cursor is way too hard to see!
-    [ ] Add line numbers?? Any way to do that easily??
     [x] Clipping/scrolling
+    [ ] Add line numbers?? Any way to do that easily??
 
 
-[ ] Knob API!
-    scaleKnob <- makeKnob 0 100 "Scale" 50
-    myUpdate ==> do
-        newScale <- readKnob scaleKnob
-        setSize newScale
-
-[ ] Finish keyboard
-    [ ] Fullsize keys for space etc.
-    [ ] Variable-width keys like Valve's, for oft-used keys?
-    
-    [x] Fix bad key/thumb mapping
-    [x] Only show keyboard when object selected
-    [x] Haptics for moving thumb on keys
-        [ ] Different vibrations to let you know that you're still on the right key??
-            (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
-
-    [x] Get touchpad down event from steamVR
-    [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
-    (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
 
 
 RENDERING

@@ -132,10 +132,17 @@ tickSceneEditorSystem = do
                         isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
                         if 
                             | isBeingHeldByOtherHand -> do
-                                duplicateID <- duplicateEntity Persistent grabbedID
-                                --forkCode grabbedID duplicateID
-                                selectEntity duplicateID
-                                attachEntity handEntityID duplicateID True
+
+                                -- Trying things out with this disabled, as it's too
+                                -- easy to cause performance problems by effortlessly
+                                -- duplicating expensive objects. Effort to dupe should
+                                -- roughly scale with how often we want users to do it.
+                                let allowDuplication = False
+                                when allowDuplication $ do
+                                    duplicateID <- duplicateEntity Persistent grabbedID
+                                    --forkCode grabbedID duplicateID
+                                    selectEntity duplicateID
+                                    attachEntity handEntityID duplicateID True
                             | hasDragFunction -> 
                                 beginDrag handEntityID grabbedID
                             | otherwise -> do
