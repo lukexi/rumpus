@@ -7,7 +7,7 @@ module Rumpus.Systems.SceneEditor where
 import PreludeExtra
 
 import Rumpus.Types
-import Rumpus.Systems.Controls
+--import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
@@ -104,27 +104,15 @@ tickSceneEditorSystem = do
                 setEntityPose newHandPose handEntityID
                 continueDrag handEntityID
                 continueHapticDrag whichHand newHandPose
+                updateBeam whichHand
             HandButtonEvent HandButtonGrip ButtonDown -> do
-                --handPose <- getEntityPose handEntityID
-                --_ <- spawnNewEntityAtPose handPose
+                
+                beginBeam whichHand
 
-                handPose <- getEntityPose handEntityID
+            HandButtonEvent HandButtonGrip ButtonUp -> do
+                
+                endBeam whichHand
 
-                let handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1)) :: Ray GLfloat
-
-                mRayResult <- castRay handRay
-                forM_ mRayResult $ \RayResult{..} -> do
-                    entityID <- unCollisionObjectID <$>  getCollisionObjectID rrCollisionObject
-
-                    teleportable <- getIsTeleportable entityID
-                    when teleportable $ do
-                        pose          <- getEntityPose entityID
-                        V3 _ height _ <- getEntitySize entityID
-                        let V3 x y z = pose ^. translation
-                        setPlayerPosition (V3 x (y+height/2) z)
-
-
-                return ()
             HandButtonEvent HandButtonTrigger ButtonDown -> do
 
                 --didPlaceCursor <- raycastCursor handEntityID
@@ -173,8 +161,6 @@ tickSceneEditorSystem = do
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
 
-getIsTeleportable :: MonadState ECS m => EntityID -> m Bool
-getIsTeleportable = fmap (elem Teleportable) . getEntityProperties
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneFolder = do

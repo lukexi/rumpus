@@ -34,12 +34,12 @@ import Control.DeepSeq as Exports
 import Data.Yaml as Exports hiding ((.=), String)
 import GHC.Generics as Exports (Generic)
 
+import Sound.Pd as Exports
 import Control.Lens.Extra as Exports hiding (List, (<.>), children)
 import Linear.Extra as Exports hiding (trace)
 import Graphics.UI.GLFW.Pal as Exports
 import Graphics.GL.Pal as Exports hiding (trace, getNow) -- using a faster getNow in Types
 import Graphics.VR.Pal as Exports hiding (getNow)
-import Sound.Pd as Exports
 import Physics.Bullet as Exports
 import Animation.Pal as Exports hiding (getNow)
 import Data.ECS as Exports hiding (Key)

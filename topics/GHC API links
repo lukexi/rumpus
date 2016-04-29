@@ -14,3 +14,6 @@ https://github.com/DanielG/ghc-mod/issues/554
 
 Hint's configuration:
 https://github.com/mvdan/hint/blob/a8e9d227785574e445b8006407366f9ea8ad73d6/src/Hint/Compat.hs
+
+Garbage collector breakdown:
+http://www.scs.stanford.edu/14sp-cs240h/slides/ghc-rts.pdf

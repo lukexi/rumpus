@@ -24,8 +24,6 @@ import Rumpus.Systems.Text
 import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Unboxed as V
-import Control.DeepSeq
-import Control.Exception
 
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
@@ -60,20 +58,16 @@ initRenderSystem = do
 
     basicProg   <- createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
     singleProg  <- createShaderProgram "resources/shaders/defaultSingle.vert" "resources/shaders/default.frag"
-    putStrLnIO "Render Setup Shader Errors:" >> glGetErrors
 
     cubeGeo     <- cubeGeometry (V3 1 1 1) 1
     sphereGeo   <- octahedronGeometry 0.5 5 -- radius (which we halve to match boxes), subdivisions
-    putStrLnIO "Render Setup Geo Errors:" >> glGetErrors
     
     cubeShape   <- makeShape cubeGeo   basicProg
     sphereShape <- makeShape sphereGeo basicProg
-    putStrLnIO "Render Setup Shape Errors:" >> glGetErrors
 
     
     textPlaneGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     textPlaneShape  <- makeShape textPlaneGeo singleProg
-    putStrLnIO "Render Setup Shape Errors:" >> glGetErrors
 
     --let shapes = [(Cube, cubeShape), (Sphere, sphereShape), (StaticPlaneShape, planeShape)]
     let shapes = [(Cube, cubeShape), (Sphere, sphereShape)]
@@ -105,7 +99,6 @@ initRenderSystem = do
                 , rshInstanceModelM44sBuffer   = modelM44sBuffer
                 , rshResetShapeInstanceBuffers = resetShapeInstanceBuffers
                 }
-    putStrLnIO "Render Setup Errors:" >> glGetErrors
 
     registerSystem sysRender (RenderSystem shapesWithBuffers textPlaneShape)
 
@@ -177,7 +170,7 @@ getFinalMatrices = do
     poseScaledMap             <- getComponentMap myPoseScaled
     childrenMap               <- getComponentMap myChildren
     parentMap                 <- getComponentMap myParent
-    sizeMap                   <- getComponentMap mySize
+    --sizeMap                   <- getComponentMap mySize
     inheritParentTransformMap <- getComponentMap myInheritTransform
     
     let entityIDs           = Set.fromList . Map.keys $ poseMap
@@ -266,6 +259,11 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
     glDisable GL_BLEND
 
+renderTextAsScreen :: MonadIO m => TextRenderer
+                                -> Shape Uniforms 
+                                -> M44 GLfloat 
+                                -> M44 GLfloat 
+                                -> m ()
 renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
 
     glStencilMask 0xFF
@@ -290,6 +288,6 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
 
     renderText textRenderer projViewM44 modelM44
 
-
+textRendererHasText :: TextRenderer -> Bool
 textRendererHasText = not . null . stringFromTextBuffer . view txrTextBuffer
 

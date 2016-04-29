@@ -4,6 +4,15 @@ The algorithm we've currently implemented:
 http://onrendering.blogspot.com/2011/10/buffer-object-streaming-in-opengl.html
 
 
+ADZO GDC 2014: 
+http://gdcvault.com/play/1020791/
+Slides:
+http://www.slideshare.net/CassEveritt/approaching-zero-driver-overhead
+Sample code:
+https://github.com/nvMcJohn/apitest/tree/master/src/framework
+
+http://www.bfilipek.com/2015/01/persistent-mapped-buffers-in-opengl.html
+http://www.bfilipek.com/2015/01/persistent-mapped-buffers-benchmark.html
 
 Instancing section from OpenGL Programming Guide: The Official Guide to Learning OpenGL:
 http://www.informit.com/articles/article.aspx?p=2033340&seqNum=5

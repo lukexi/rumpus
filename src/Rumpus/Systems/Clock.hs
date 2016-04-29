@@ -3,9 +3,7 @@
 module Rumpus.Systems.Clock where
 import PreludeExtra
 
-import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
-import Rumpus.Systems.Physics
 
 type ShouldRepeat = Bool
 data ClockAction = ClockAction UTCTime DiffTime ShouldRepeat (EntityMonad ())
@@ -35,6 +33,9 @@ setClockAction period shouldRepeat action = do
     startTime <- liftIO getCurrentTime
     myClockAction ==> ClockAction startTime (realToFrac period) shouldRepeat action
 
-setRepeatingAction period action = setClockAction period True action 
-setDelayedAction period action = setClockAction period False action 
+setRepeatingAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> EntityMonad () -> m ()
+setRepeatingAction period action = setClockAction period True action
+
+setDelayedAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> EntityMonad () -> m ()
+setDelayedAction period action = setClockAction period False action
 

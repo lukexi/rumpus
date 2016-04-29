@@ -71,6 +71,7 @@ library
                        Rumpus.Systems.Text
   ghc-options:         -O2 -Wall 
   build-depends:       base
+                     , pd-hs
                      , bullet-mini
                      , gl-pal
                      , vr-pal
@@ -82,7 +83,6 @@ library
                      , containers
                      , unordered-containers
                      , MonadRandom
-                     , pd
                      , yaml
                      , aeson
                      , freetype-gl-mini

@@ -94,12 +94,13 @@ deriveRigidBody dynamicsWorld = do
             when (Ghostly `elem` properties) $ 
                 setRigidBodyNoContactResponse rigidBody True
             
-
+setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setFloating isFloating = do
     myProperties ==% nub . (Floating :)
     withRigidBody $ \rigidBody ->
         setRigidBodyKinematic rigidBody isFloating
 
+setGhostly :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setGhostly isGhostly = do
     myProperties ==% nub . (Ghostly :)
     withRigidBody $ \rigidBody ->
@@ -131,6 +132,7 @@ createShapeCollider shapeType size = case shapeType of
 withEntityRigidBody :: MonadState ECS m => EntityID -> (RigidBody -> m b) -> m ()
 withEntityRigidBody entityID = void . withEntityComponent entityID myRigidBody
 
+withRigidBody :: (MonadState ECS m, MonadReader EntityID m) => (RigidBody -> m b) -> m ()
 withRigidBody action = do
     entityID <- ask
     withEntityRigidBody entityID action
@@ -193,22 +195,28 @@ setEntityPoseCacheScale entityID poseM44 = do
     setEntityComponent myPose poseM44 entityID
     setEntityComponent myPoseScaled (poseM44 !*! scaleMatrix size) entityID
 
+setPosition :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
 setPosition position = do
     pose <- getPose
     setPose $ (pose & translation .~ position)
 
-setRotation axis angle = do
+setRotation :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> GLfloat -> m ()
+setRotation rotAxis rotAngle = do
     pose <- getPose
-    setPose $ mkTransformation (axisAngle axis angle) (pose ^. translation)
+    setPose $ mkTransformation (axisAngle rotAxis rotAngle) (pose ^. translation)
 
 
 getEntityProperties :: (HasComponents s, MonadState s f) => EntityID -> f Properties
 getEntityProperties entityID = fromMaybe [] <$> getEntityComponent entityID myProperties
 
 applyForce :: (Real a, MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 a -> m ()
-applyForce force = applyForceToEntity force =<< ask
+applyForce aForce = applyForceToEntity aForce =<< ask
 
 applyForceToEntity :: (Real a, MonadIO m, MonadState ECS m) => V3 a -> EntityID -> m ()
-applyForceToEntity force entityID = do
+applyForceToEntity aForce entityID = do
     withEntityRigidBody entityID $ \rigidBody -> do
-        applyCentralImpulse rigidBody force
+        applyCentralImpulse rigidBody aForce
+
+
+getIsTeleportable :: MonadState ECS m => EntityID -> m Bool
+getIsTeleportable = fmap (elem Teleportable) . getEntityProperties

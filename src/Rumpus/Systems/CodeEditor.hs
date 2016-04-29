@@ -19,6 +19,7 @@ import Rumpus.Systems.Controls
 import Rumpus.Systems.Selection
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
+--import Rumpus.Systems.Hands
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Text
 import Rumpus.Types
@@ -59,63 +60,24 @@ getPlayWhenReady = fromMaybe False <$> getComponent myPlayWhenReady
 getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
 getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID myPlayWhenReady
 
-addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
-            => FilePath
-            -> String
-            -> Key (EntityMap CodeInFile)
-            -> Key (EntityMap a)
-            -> m ()
-addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
-    sceneFolder <- getSceneFolder
-    entityID <- ask
-    let defaultFileName = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
-        entityFileName = sceneFolder </> (show entityID ++ "-" ++ fileName) <.> "hs"
-        codeFile = (entityFileName, exprName)
-    liftIO $ copyFile defaultFileName entityFileName
-    codeFileComponentKey ==> codeFile
-    registerWithCodeEditor codeFile codeComponentKey
-
-forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
-forkCode fromEntityID toEntityID = do
-    let codeFileComponentKey = myStartExpr
-    mCodeExpr <- getEntityComponent fromEntityID codeFileComponentKey
-
-    forM_ mCodeExpr $ \(fullPath, expr) -> do
-        let (path, fileName) = splitFileName fullPath
-            (name, ext)      = splitExtension fileName
-        -- Slightly tricky to get right without overwriting files; need to enumerate directory and find unused name
-        -- so using getPosixTime for now. 
-        --fileNum          = succ . fromMaybe 1 . readMaybe . reverse . takeWhile isDigit . reverse $ fileName
-        now <- liftIO $ getPOSIXTime
-        let newName = name ++ show now
-            newFullPath = path </> newName <.> ext
-        liftIO $ copyFile fullPath newFullPath
-
-        let newCodeInFile = (newFullPath, expr)
-        runEntity toEntityID $ do
-            withComponent_ codeFileComponentKey unregisterWithCodeEditor
-            codeFileComponentKey ==> newCodeInFile
-            registerWithCodeEditor newCodeInFile codeFileComponentKey
-
-
-
 
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
 initCodeEditorSystem = do
 
     -- When in release mode, use the embedded "packages" directory,
     -- otherwise use MSYS2's copy in /usr/local/ghc
+    let alwaysConfig = defaultGHCSessionConfig
+            { gscFixDebounce = DebounceFix
+            --, gscCompilationMode = Compiled
+            } 
     let ghcSessionConfig = if isInReleaseMode 
-            then defaultGHCSessionConfig 
+            then alwaysConfig 
                 { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
                                   , "packages"</>"snapshot"</>"pkgdb"
                                   ]
-                , gscLibDir = "packages"</>"ghc"</>"lib"
-                , gscFixDebounce = DebounceFix
+                , gscLibDir     =   "packages"</>"ghc"</>"lib"
                 }
-            else defaultGHCSessionConfig 
-                { gscFixDebounce = DebounceFix 
-                }
+            else alwaysConfig
 
     ghcChan   <- startGHC ghcSessionConfig
     
@@ -173,7 +135,7 @@ addCodeEditorDependency codeInFile realCodeKey = do
     let updateCodeAction newValue = do
             putStrLnIO $ "Setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
             setEntityComponent realCodeKey (getCompiledValue newValue) entityID
-
+            putStrLnIO $ "Done setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
             -- FIXME: scratch pass at a "PlayWhenReady" system
             -- to begin play when a file has PlayWhenReady set
             -- and its start function finished compiling
@@ -329,3 +291,48 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
         cesCodeEditors . ix codeInFile . cedCodeRenderer .= updatedRenderer
     
     return True
+
+
+
+
+-----------------------------------------------
+-- Experiments in dynamic code addition/cloning
+-----------------------------------------------
+
+addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
+            => FilePath
+            -> String
+            -> Key (EntityMap CodeInFile)
+            -> Key (EntityMap a)
+            -> m ()
+addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
+    sceneFolder <- getSceneFolder
+    entityID <- ask
+    let defaultFileName = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
+        entityFileName = sceneFolder </> (show entityID ++ "-" ++ fileName) <.> "hs"
+        codeFile = (entityFileName, exprName)
+    liftIO $ copyFile defaultFileName entityFileName
+    codeFileComponentKey ==> codeFile
+    registerWithCodeEditor codeFile codeComponentKey
+
+forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
+forkCode fromEntityID toEntityID = do
+    let codeFileComponentKey = myStartExpr
+    mCodeExpr <- getEntityComponent fromEntityID codeFileComponentKey
+
+    forM_ mCodeExpr $ \(fullPath, expr) -> do
+        let (path, fileName) = splitFileName fullPath
+            (name, ext)      = splitExtension fileName
+        -- Slightly tricky to get right without overwriting files; need to enumerate directory and find unused name
+        -- so using getPosixTime for now. 
+        --fileNum          = succ . fromMaybe 1 . readMaybe . reverse . takeWhile isDigit . reverse $ fileName
+        now <- liftIO $ getPOSIXTime
+        let newName = name ++ show now
+            newFullPath = path </> newName <.> ext
+        liftIO $ copyFile fullPath newFullPath
+
+        let newCodeInFile = (newFullPath, expr)
+        runEntity toEntityID $ do
+            withComponent_ codeFileComponentKey unregisterWithCodeEditor
+            codeFileComponentKey ==> newCodeInFile
+            registerWithCodeEditor newCodeInFile codeFileComponentKey

@@ -53,9 +53,10 @@ initSharedSystem = do
     registerComponent "Parent" myParent $ (newComponentInterface myParent)
         { ciDeriveComponent = Just $ do
             withComponent_ myParent setParent
+        , ciRemoveComponent = removeFromParent >> removeComponent myParent
         }
     registerComponent "Children" myChildren $ (newComponentInterface myChildren)
-        { ciRemoveComponent = removeChildren
+        { ciRemoveComponent = removeChildren >> removeComponent myChildren
         }
     registerComponent "InheritTransform" myInheritTransform (newComponentInterface myInheritTransform)
 
@@ -64,24 +65,31 @@ initSharedSystem = do
     registerComponent "Update" myUpdate     (newComponentInterface myUpdate)
     registerComponent "State"  myState      (newComponentInterface myState)
 
+setParent :: (MonadState ECS m, MonadReader EntityID m) => EntityID -> m ()
 setParent newParentID = do
-    childID <- ask
 
-    withComponent_ myParent $ \oldParentID -> 
-        runEntity oldParentID $ do
-            myChildren ==% L.delete childID
+    removeFromParent
 
     myParent ==> newParentID
 
+    childID <- ask
     runEntity newParentID $ do
         getComponent myChildren >>= \case
             Nothing -> myChildren ==> [childID]
             Just _ ->  myChildren ==% (childID:)
 
+removeFromParent :: (MonadReader EntityID m, MonadState ECS m) => m ()
+removeFromParent = do
+    childID <- ask
+    withComponent_ myParent $ \oldParentID -> 
+        runEntity oldParentID $ do
+            myChildren ==% L.delete childID
+
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren = 
     withComponent_ myChildren (mapM_ removeEntity)
 
+spawnChild :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID
 spawnChild actions = do
     thisEntityID <- ask
     spawnEntity $ do

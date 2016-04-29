@@ -5,12 +5,12 @@ packages:
 - ../bullet-mini
 - ../vr-pal
 - ../glfw-pal
-- ../pd-haskell
 - ../halive
 - ../animation-pal
 - ../linear-extra
 - ../lens-extra
 - ../openvr-hs
+- ../pd-hs
 - ../bindings-GLFW
 - ../freetype-gl-mini
 - ../text-gl
