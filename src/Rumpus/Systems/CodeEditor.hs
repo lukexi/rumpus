@@ -79,8 +79,7 @@ initCodeEditorSystem = do
                 }
             else alwaysConfig
 
-    ghcChan   <- startGHC ghcSessionConfig
-    
+    ghcChan <- startGHC ghcSessionConfig
 
     registerSystem sysCodeEditor $ CodeEditorSystem
         { _cesCodeEditors = mempty
@@ -118,7 +117,6 @@ registerWithCodeEditor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                        -> Key (EntityMap a)
                        -> m ()
 registerWithCodeEditor codeInFile realCodeKey = modifySystemState sysCodeEditor $ do
-
     use (cesCodeEditors . at codeInFile) >>= \case
         Just existingEditor -> do
             forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> 
@@ -156,14 +154,12 @@ createCodeEditor codeInFile = do
     font <- lift getFont
     (scriptFullPath, exprString) <- lift $ fullPathForCodeInFile codeInFile
      
-    recompiler   <- recompilerForExpression ghcChan scriptFullPath exprString
-
-    -- FIXME this should be async...
-    -- (note: could implement that using WatchFile/refreshText by writing a phony event)
+    recompiler <- recompilerForExpression ghcChan scriptFullPath exprString
 
     let setupRenderer r = 
             updateMetrics ((txrScreenSize ?~ V2 50 50) r)
-
+    -- FIXME this should be async...
+    -- (note: could implement that using WatchFile/refreshText by writing a phony event)
     codeRenderer  <- setupRenderer =<< textRendererFromFile font scriptFullPath WatchFile
     errorRenderer <- setupRenderer =<< createTextRenderer font (textBufferFromString "")
     

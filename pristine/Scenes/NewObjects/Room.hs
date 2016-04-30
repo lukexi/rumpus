@@ -10,7 +10,7 @@ roomOffset = -wallD/2
 start :: Start
 start = do
 
-    -- Set the pose of the code editor to be centered in the wall
+     Set the pose of the code editor to be centered in the wall
     setPosition (V3 (-2.5) 1 0)
     setRotation (V3 0 1 0) (-pi/2)
     --setPosition (V3 (-1) 1 (-roomD/2 + 0.4))
@@ -40,4 +40,4 @@ start = do
     return ()
 
 -- Acts the same as "touch", creating the file if missing but not modifying an existing one
-touchFile filePath = liftIO $ appendFile filePath "" 
+touchFile filePath = liftIO $ appendFile filePath ""

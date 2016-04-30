@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ViewPatterns #-}
+
 module Rumpus.Systems.Controls where
 import PreludeExtra
 import Rumpus.Systems.PlayPause

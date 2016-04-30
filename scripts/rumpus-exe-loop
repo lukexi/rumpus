@@ -1,0 +1,7 @@
+#!/bin/bash
+#stack build
+#cmd=./rumpus-exe
+# Run the last command repeatedly until failure
+while [ $? -eq 0 ]; do 
+    stack build && ./rumpus-exe
+done

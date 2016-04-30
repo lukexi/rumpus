@@ -1,7 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Rumpus.Systems.Animation where
+module Rumpus.Systems.Animation 
+    ( module Rumpus.Systems.Animation
+    , module Exports
+    ) where
 import PreludeExtra hiding (Key)
+import Animation.Pal as Exports hiding (getNow, exhaustTChan)
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics

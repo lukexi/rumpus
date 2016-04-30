@@ -26,8 +26,6 @@ initTextSystem :: (MonadIO m, MonadState ECS m) => m ()
 initTextSystem = do
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
     font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
-    putStrLnIO "Text system Errors:" >> glGetErrors
-
 
     registerSystem sysText $ TextSystem
         { _txtFont       = font

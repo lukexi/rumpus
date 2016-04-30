@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Rumpus.CopyScenes where
-import Rumpus.Types
 import PreludeExtra
 
 -- | Copy the 'pristine' Scenes folder into the user's Documents/Rumpus directory on startup

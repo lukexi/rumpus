@@ -8,7 +8,7 @@ import Rumpus
 import Rumpus.TestScene
 import Rumpus.CopyScenes
 import Halive.Utils
-import System.Timeout
+--import System.Timeout
 
 rumpusMain :: IO ()
 rumpusMain = withPd $ \pd -> do
@@ -48,18 +48,7 @@ rumpusMain = withPd $ \pd -> do
         if 
             | isInReleaseMode  -> loadScene userSceneFolder
             | not useTestScene -> loadScene (pristineSceneDirWithName scene)
-            | otherwise        -> loadTestScene
-        
-
-
-        --fpsRef <- liftIO . newIORef =<< liftIO getCurrentTime
-        --let checkFPS = liftIO $ do
-        --        now  <- getCurrentTime
-        --        last <- readIORef fpsRef
-        --        writeIORef fpsRef now
-        --        let timeDiff = now `diffUTCTime` last
-        --        putStrLn ("FPS: " ++ show (1/timeDiff))
-
+            -- | otherwise        -> loadTestScene
 
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
@@ -109,3 +98,14 @@ rumpusMain = withPd $ \pd -> do
 --profileMS' "sound"       1 $ 
 --profileMS' "controls"    1 $ 
 --profileMS' "render"      1 $ 
+
+makeCheckFPS :: MonadIO m => m (m ())
+makeCheckFPS = do
+    fpsRef <- liftIO . newIORef =<< liftIO getCurrentTime
+    let checkFPS = liftIO $ do
+            now  <- getCurrentTime
+            last <- readIORef fpsRef
+            writeIORef fpsRef now
+            let timeDiff = now `diffUTCTime` last
+            putStrLn ("FPS: " ++ show (1/timeDiff))
+    return checkFPS
