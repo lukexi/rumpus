@@ -4,6 +4,7 @@ module Rumpus.Systems.Animation
     ( module Rumpus.Systems.Animation
     , module Exports
     ) where
+
 import PreludeExtra hiding (Key)
 import Animation.Pal as Exports hiding (getNow, exhaustTChan)
 import Rumpus.Systems.Shared

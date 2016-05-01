@@ -69,7 +69,7 @@ cp `which libintl-8.dll` .release
 cp `which libiconv-2.dll` .release
 
 echo "Applying icon..."
-rcedit .release/rumpus.exe --set-icon RumpusIcon.ico
+rcedit .release/rumpus.exe --set-icon scripts/RumpusIcon.ico
 
 # DEV ONLY
 # echo "DEV: MOVING STACK WORK DIR AND RUNNING RUMPUS..."

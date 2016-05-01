@@ -179,37 +179,7 @@ unregisterWithCodeEditor codeInFile = modifySystemState sysCodeEditor $ do
 unregisterEntityWithCodeEditor :: (MonadState CodeEditorSystem m) => EntityID -> CodeInFile -> m ()
 unregisterEntityWithCodeEditor entityID codeInFile = cesCodeEditors . ix codeInFile . cedDependents . at entityID .= Nothing
 
--- | Passes keyboard events to the active code editor
-tickCodeEditorInputSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
-    let events = _ctsEvents
-        window = gpWindow _ctsVRPal
-
-
-    mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
-    forM mSelectedEntityID $ \selectedEntityID ->
-        withEntityComponent selectedEntityID myStartExpr $ \codeInFile ->
-            modifySystemState sysCodeEditor $ do
-                
-                didSave <- fmap or . forM events $ \case
-                    GLFWEvent e -> do
-                        -- Make sure our events don't trigger reloading/recompilation
-                        -- (fixme: should be able to ask text buffer whether event will trigger save and only pause if so)
-                        let causesSave = eventWillSaveTextBuffer e
-                        when causesSave $ 
-                            pauseFileWatchers codeInFile
-                        handleTextBufferEvent window e 
-                            (cesCodeEditors . ix codeInFile . cedCodeRenderer)
-                        return causesSave
-                    _ -> return False
-                when didSave $ do
-                    recompileCodeInFile codeInFile
-
-pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => CodeInFile -> m ()
-pauseFileWatchers codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
-    setIgnoreTimeNow (codeEditor ^. cedRecompiler . to recFileEventListener)
-    forM_ (codeEditor ^. cedCodeRenderer . txrFileEventListener) setIgnoreTimeNow 
-
+{-
 recompileCodeInFile :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m)) 
                     => CodeInFile -> t m ()
 recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
@@ -228,7 +198,7 @@ recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) 
             }
 
     writeTChanIO ghcChan compilationRequest
-
+-}
 
 -- | Allows Script system to pass runtime exceptions to the error pane, 
 -- assuming the given entityID has an onStartExpr.
@@ -243,8 +213,6 @@ setErrorText entityID errors = do
 tickCodeEditorResultsSystem :: ECSMonad ()
 tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ 
     traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeInFile, editor) -> do
-        -- Ensure the buffers have the latest code text from disk
-        refreshTextRendererFromFile (cesCodeEditors . ix codeInFile . cedCodeRenderer)
 
         -- Update entities with new code from the compiler
         tryReadTChanIO (editor ^. cedRecompiler . to recResultTChan) >>= \case
@@ -265,36 +233,13 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
                 lift $ forM_ dependents ($ compiledValue)
 
 
-raycastCursor :: (MonadIO m, MonadState ECS m) => EntityID -> m Bool
-raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
-    -- First, see if we can place a cursor into a text buffer.
-    -- If not, then move onto the selection logic.
-    selectedEntityID <- MaybeT $ viewSystem sysSelection selSelectedEntityID
-    codeInFile       <- MaybeT $ getEntityComponent selectedEntityID myStartExpr
-    editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeInFile)
-    handPose         <- getEntityPose handEntityID
-    pose             <- getEntityPose selectedEntityID
-    
-    -- We currently render code editors directly matched with the pose
-    -- of the entity; update this when we make code editors into their own entities
-    -- like the editorFrame children are
-    let model44 = pose
-        codeRenderer = editor ^. cedCodeRenderer
-        handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1))
-    updatedRenderer  <- setCursorTextRendererWithRay handRay codeRenderer model44
-
-    modifySystemState sysCodeEditor $ 
-        cesCodeEditors . ix codeInFile . cedCodeRenderer .= updatedRenderer
-    
-    return True
-
 
 
 
 -----------------------------------------------
 -- Experiments in dynamic code addition/cloning
 -----------------------------------------------
-
+{-
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
             => FilePath
             -> String
@@ -332,3 +277,4 @@ forkCode fromEntityID toEntityID = do
             withComponent_ codeFileComponentKey unregisterWithCodeEditor
             codeFileComponentKey ==> newCodeInFile
             registerWithCodeEditor newCodeInFile codeFileComponentKey
+-}

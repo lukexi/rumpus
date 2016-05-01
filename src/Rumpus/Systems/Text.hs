@@ -5,6 +5,7 @@ module Rumpus.Systems.Text where
 import PreludeExtra hiding (Key)
 import Graphics.GL.Freetype
 import Graphics.GL.TextBuffer
+
 data TextSystem = TextSystem
         { _txtFont :: Font
         , _txtRecycleBin :: [TextRenderer]
@@ -14,10 +15,10 @@ makeLenses ''TextSystem
 defineSystemKey ''TextSystem
 
 defineComponentKey ''TextRenderer
-defineComponentKeyWithType "Text"      [t|String|]
-defineComponentKeyWithType "TextPose"  [t|M44 GLfloat|]
+defineComponentKeyWithType "Text"           [t|String|]
+defineComponentKeyWithType "TextPose"       [t|M44 GLfloat|]
 defineComponentKeyWithType "TextCachedM44"  [t|M44 GLfloat|]
-defineComponentKeyWithType "TextColor" [t|V4 GLfloat|]
+defineComponentKeyWithType "TextColor"      [t|V4 GLfloat|]
 
 getFont :: (MonadState ECS m) => m Font
 getFont = viewSystem sysText txtFont

@@ -11,12 +11,13 @@ import Rumpus.Types
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Sound
+
 import Rumpus.Systems.Attachment
 --import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.KeyboardHands
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Selection
+import Rumpus.Systems.Scene
 
 data SceneEditorSystem = SceneEditorSystem
     { _sedCurrentEditorFrame :: !(Maybe EntityID)
@@ -37,7 +38,7 @@ initSceneEditorSystem = do
     registerSystem sysSceneEditor $ SceneEditorSystem Nothing
 
     registerComponent "DragFrom" myDragFrom (newComponentInterface myDragFrom)
-    registerComponent "Drag"   myDrag   (newComponentInterface myDrag)
+    registerComponent "Drag"     myDrag     (newComponentInterface myDrag)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
@@ -168,15 +169,3 @@ tickSceneEditorSystem = do
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
 
-
-loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
-loadScene sceneFolder = do
-    putStrLnIO $ "Loading scene: " ++ sceneFolder
-    modifySystemState sysSelection (selScene . scnFolder .= sceneFolder)
-    addPdPatchSearchPath sceneFolder
-    loadEntities sceneFolder
-
-saveScene :: ECSMonad ()
-saveScene = do
-    sceneFolder <- viewSystem sysSelection (selScene . scnFolder)
-    saveEntities sceneFolder
