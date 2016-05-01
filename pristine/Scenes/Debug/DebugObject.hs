@@ -1,5 +1,5 @@
 module DebugObject where
-import Rumpus.Systems.Shared
+import Rumpus
 
 start :: Start
 start = do

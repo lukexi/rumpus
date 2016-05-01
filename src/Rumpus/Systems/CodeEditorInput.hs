@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE BangPatterns #-}
 
-module Rumpus.Systems.CodeEditor where
+module Rumpus.Systems.CodeEditorInput where
 import PreludeExtra hiding (Key)
 
 import Graphics.GL.TextBuffer

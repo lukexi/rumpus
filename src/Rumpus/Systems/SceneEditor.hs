@@ -17,7 +17,7 @@ import Rumpus.Systems.Attachment
 import Rumpus.Systems.KeyboardHands
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Selection
-import Rumpus.Systems.Scene
+--import Rumpus.Systems.Scene
 
 data SceneEditorSystem = SceneEditorSystem
     { _sedCurrentEditorFrame :: !(Maybe EntityID)

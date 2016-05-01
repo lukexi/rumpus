@@ -11,7 +11,7 @@ import Halive.Utils
 --import System.Timeout
 
 rumpusMain :: IO ()
-rumpusMain = withPd $ \pd -> do
+rumpusMain = withGHC $ \ghc -> withPd $ \pd -> do
 -- rumpusMain = do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
     --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
@@ -25,7 +25,7 @@ rumpusMain = withPd $ \pd -> do
         initAnimationSystem
         initAttachmentSystem
         initClockSystem
-        initCodeEditorSystem
+        initCodeEditorSystem ghc
         initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
@@ -36,7 +36,8 @@ rumpusMain = withPd $ \pd -> do
         initRenderSystem
         initSceneEditorSystem
         initSoundSystem pd
-        initSelectionSystem userSceneFolder
+        initSelectionSystem
+        initSceneSystem userSceneFolder
         initSharedSystem
         initTextSystem
 
@@ -48,7 +49,7 @@ rumpusMain = withPd $ \pd -> do
         if 
             | isInReleaseMode  -> loadScene userSceneFolder
             | not useTestScene -> loadScene (pristineSceneDirWithName scene)
-            -- | otherwise        -> loadTestScene
+            | otherwise        -> loadTestScene
 
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer

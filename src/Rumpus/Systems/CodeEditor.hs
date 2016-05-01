@@ -12,19 +12,17 @@ import Halive.Recompiler
 import Halive.FileListener
 
 import qualified Data.HashMap.Strict as Map
-import Control.Monad.Trans.Maybe
 import Data.ECS.Vault
 
-import Rumpus.Systems.Controls
-import Rumpus.Systems.Selection
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 --import Rumpus.Systems.Hands
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Text
+import Rumpus.Systems.Scene
 import Rumpus.Types
 
-import Data.Time.Clock.POSIX
+--import Data.Time.Clock.POSIX
 
 -- | Pairs a filename along with an expression 
 -- to evaluate in that filename's environment once compiled
@@ -60,10 +58,7 @@ getPlayWhenReady = fromMaybe False <$> getComponent myPlayWhenReady
 getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
 getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID myPlayWhenReady
 
-
-initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => m ()
-initCodeEditorSystem = do
-
+withGHC action = do
     -- When in release mode, use the embedded "packages" directory,
     -- otherwise use MSYS2's copy in /usr/local/ghc
     let alwaysConfig = defaultGHCSessionConfig
@@ -80,7 +75,11 @@ initCodeEditorSystem = do
             else alwaysConfig
 
     ghcChan <- startGHC ghcSessionConfig
+    action ghcChan
 
+initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => TChan CompilationRequest -> m ()
+initCodeEditorSystem ghcChan = do
+    
     registerSystem sysCodeEditor $ CodeEditorSystem
         { _cesCodeEditors = mempty
         , _cesGHCChan     = ghcChan
@@ -95,7 +94,7 @@ initCodeEditorSystem = do
     registerComponent "PlayWhenReady" myPlayWhenReady (savedComponentInterface myPlayWhenReady)
 
 
-registerCodeExprComponent :: MonadState ECS m 
+registerCodeExprComponent :: (MonadState ECS m, Typeable a) 
                           => String
                           -> Key (EntityMap CodeInFile) 
                           -> Key (EntityMap a) 
@@ -112,27 +111,29 @@ registerCodeExprComponent name codeInFileKey realCodeKey =
             removeComponent codeInFileKey
         }
 
-registerWithCodeEditor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
+registerWithCodeEditor :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
                        => CodeInFile
                        -> Key (EntityMap a)
                        -> m ()
 registerWithCodeEditor codeInFile realCodeKey = modifySystemState sysCodeEditor $ do
     use (cesCodeEditors . at codeInFile) >>= \case
         Just existingEditor -> do
-            forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> 
-                lift $ setComponent realCodeKey (getCompiledValue compiledValue)
+            forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> do
+                forM_ (getCompiledValue compiledValue)
+                    (lift . setComponent realCodeKey) 
         Nothing -> do
             codeEditor <- createCodeEditor codeInFile
             cesCodeEditors . at codeInFile ?= codeEditor
     addCodeEditorDependency codeInFile realCodeKey
 
-addCodeEditorDependency :: (MonadState CodeEditorSystem m, MonadReader EntityID m) 
+addCodeEditorDependency :: (MonadState CodeEditorSystem m, MonadReader EntityID m, Typeable a) 
                         => CodeInFile -> Key (EntityMap a) -> m ()
 addCodeEditorDependency codeInFile realCodeKey = do
     entityID <- ask
     let updateCodeAction newValue = do
             putStrLnIO $ "Setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
-            setEntityComponent realCodeKey (getCompiledValue newValue) entityID
+            forM_ (getCompiledValue newValue) $ \newCode ->
+                setEntityComponent realCodeKey newCode entityID
             putStrLnIO $ "Done setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
             -- FIXME: scratch pass at a "PlayWhenReady" system
             -- to begin play when a file has PlayWhenReady set
@@ -179,7 +180,7 @@ unregisterWithCodeEditor codeInFile = modifySystemState sysCodeEditor $ do
 unregisterEntityWithCodeEditor :: (MonadState CodeEditorSystem m) => EntityID -> CodeInFile -> m ()
 unregisterEntityWithCodeEditor entityID codeInFile = cesCodeEditors . ix codeInFile . cedDependents . at entityID .= Nothing
 
-{-
+
 recompileCodeInFile :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m)) 
                     => CodeInFile -> t m ()
 recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
@@ -198,7 +199,7 @@ recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) 
             }
 
     writeTChanIO ghcChan compilationRequest
--}
+
 
 -- | Allows Script system to pass runtime exceptions to the error pane, 
 -- assuming the given entityID has an onStartExpr.
