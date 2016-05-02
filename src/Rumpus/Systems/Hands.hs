@@ -63,22 +63,25 @@ updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)
     let handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1)) :: Ray GLfloat
 
     mRayResult <- castRay handRay
-    forM_ mRayResult $ \RayResult{..} -> do
+    let noHitLocation = V3 0 0 (-1000) *! handPose ^. _m33
+    (hitLocation, teleportable) <- fmap (fromMaybe (noHitLocation, False)) . forM mRayResult $ \RayResult{..} -> do
         entityID <- unCollisionObjectID <$> getCollisionObjectID rrCollisionObject
         teleportable <- getIsTeleportable entityID
-
-
-        let handLocation = handPose ^. translation 
-            rayLength = distance handLocation rrLocation
-            rayCenter = handLocation + (handLocation - rrLocation) / 2
-
-        -- Update ray's postition/size
-        runEntity beamID $ do
-            setPose (handPose & translation .~ rayCenter)
-            setSize (V3 0.5 0.5 rayLength)
-            setColor $ if teleportable then V4 0 1 0 1 else V4 0.2 0.2 0.2 1
+        
         when teleportable $ do
             hapticPulse whichHand 1000
+
+        return (rrLocation, teleportable)
+
+    let handLocation = handPose ^. translation 
+        rayLength = distance handLocation hitLocation
+        rayCenter = handLocation + (hitLocation - handLocation) / 2
+
+    -- Update ray's postition/size
+    runEntity beamID $ do
+        setPose (handPose & translation .~ rayCenter)
+        setSize (V3 0.05 0.05 rayLength)
+        setColor $ if teleportable then V4 0 1 0 1 else V4 0.2 0.2 0.2 1
 
 endBeam :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 endBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)) $ \beamID -> do
