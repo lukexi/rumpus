@@ -65,7 +65,7 @@ keyToEvent _ HandKeyRight                  = Just (toPressedKey Key'Right)
 keyToEvent _ _ = Nothing
 
 toPressedKey :: Key -> Event
-toPressedKey key = Key key noKeyCode KeyState'Pressed noModifierKeys
+toPressedKey key = KeyboardKey key noKeyCode KeyState'Pressed noModifierKeys
     where
         -- (FIXME: we don't use keycodes anywhere, remove from API for now)
         noKeyCode = 0
