@@ -52,34 +52,40 @@ defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
 
 defineComponentKeyWithType "PlayWhenReady"      [t|Bool|]
 
+
+-- When in release mode, use the embedded "packages" directory,
+-- otherwise use MSYS2's copy in /usr/local/ghc
+sharedGHCSessionConfig = defaultGHCSessionConfig
+    { gscFixDebounce = DebounceFix
+    , gscStartupFile = "resources"</>"Loader.hs"
+    --, gscCompilationMode = Compiled
+    }
+
+ghcSessionConfig = if isInReleaseMode 
+    then sharedGHCSessionConfig 
+        { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
+                          , "packages"</>"snapshot"</>"pkgdb"
+                          ]
+        , gscLibDir     =   "packages"</>"ghc"</>"lib"
+        }
+    else sharedGHCSessionConfig
+
 getPlayWhenReady :: (MonadState ECS m, MonadReader EntityID m) => m Bool
 getPlayWhenReady = fromMaybe False <$> getComponent myPlayWhenReady
 
 getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
 getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID myPlayWhenReady
 
+-- This is used to implement a workaround
 withGHC action = do
-    -- When in release mode, use the embedded "packages" directory,
-    -- otherwise use MSYS2's copy in /usr/local/ghc
-    let alwaysConfig = defaultGHCSessionConfig
-            { gscFixDebounce = DebounceFix
-            --, gscCompilationMode = Compiled
-            } 
-    let ghcSessionConfig = if isInReleaseMode 
-            then alwaysConfig 
-                { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
-                                  , "packages"</>"snapshot"</>"pkgdb"
-                                  ]
-                , gscLibDir     =   "packages"</>"ghc"</>"lib"
-                }
-            else alwaysConfig
+    
 
     ghcChan <- startGHC ghcSessionConfig
     action ghcChan
 
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => TChan CompilationRequest -> m ()
 initCodeEditorSystem ghcChan = do
-    
+
     registerSystem sysCodeEditor $ CodeEditorSystem
         { _cesCodeEditors = mempty
         , _cesGHCChan     = ghcChan
