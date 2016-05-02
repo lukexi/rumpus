@@ -52,6 +52,7 @@ library
                        Rumpus.Systems.Attachment
                        Rumpus.Systems.Clock
                        Rumpus.Systems.CodeEditor
+                       Rumpus.Systems.CodeEditorInput
                        Rumpus.Systems.Collisions
                        Rumpus.Systems.Constraint
                        Rumpus.Systems.Controls
@@ -63,6 +64,7 @@ library
                        Rumpus.Systems.Render
                        Rumpus.Systems.Physics
                        Rumpus.Systems.PlayPause
+                       Rumpus.Systems.Scene
                        Rumpus.Systems.SceneEditor
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared

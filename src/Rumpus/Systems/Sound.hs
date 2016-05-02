@@ -1,11 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Rumpus.Systems.Sound where
+module Rumpus.Systems.Sound 
+    ( module Rumpus.Systems.Sound
+    , module Sound.Pd
+    ) where
+
 import PreludeExtra
+import Sound.Pd
 
 import Rumpus.Systems.Shared
-import Rumpus.Systems.Selection
-import Rumpus.Systems.Hands
+import Rumpus.Systems.Scene
+import Rumpus.Systems.Controls
+
 data SoundSystem = SoundSystem 
     { _sndPd               :: !PureData
     , _sndOpenALSourcePool :: ![(Int, OpenALSource)]

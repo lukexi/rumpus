@@ -8,10 +8,10 @@ import Rumpus
 import Rumpus.TestScene
 import Rumpus.CopyScenes
 import Halive.Utils
-import System.Timeout
+--import System.Timeout
 
 rumpusMain :: IO ()
-rumpusMain = withPd $ \pd -> do
+rumpusMain = withGHC $ \ghc -> withPd $ \pd -> do
 -- rumpusMain = do
     vrPal <- reacquire 0 $ initVRPal "Rumpus" [UseOpenVR]
     --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
@@ -25,7 +25,7 @@ rumpusMain = withPd $ \pd -> do
         initAnimationSystem
         initAttachmentSystem
         initClockSystem
-        initCodeEditorSystem
+        initCodeEditorSystem ghc
         initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
@@ -36,7 +36,8 @@ rumpusMain = withPd $ \pd -> do
         initRenderSystem
         initSceneEditorSystem
         initSoundSystem pd
-        initSelectionSystem userSceneFolder
+        initSelectionSystem
+        initSceneSystem userSceneFolder
         initSharedSystem
         initTextSystem
 
@@ -49,17 +50,6 @@ rumpusMain = withPd $ \pd -> do
             | isInReleaseMode  -> loadScene userSceneFolder
             | not useTestScene -> loadScene (pristineSceneDirWithName scene)
             | otherwise        -> loadTestScene
-        
-
-
-        --fpsRef <- liftIO . newIORef =<< liftIO getCurrentTime
-        --let checkFPS = liftIO $ do
-        --        now  <- getCurrentTime
-        --        last <- readIORef fpsRef
-        --        writeIORef fpsRef now
-        --        let timeDiff = now `diffUTCTime` last
-        --        putStrLn ("FPS: " ++ show (1/timeDiff))
-
 
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
@@ -109,3 +99,14 @@ rumpusMain = withPd $ \pd -> do
 --profileMS' "sound"       1 $ 
 --profileMS' "controls"    1 $ 
 --profileMS' "render"      1 $ 
+
+makeCheckFPS :: MonadIO m => m (m ())
+makeCheckFPS = do
+    fpsRef <- liftIO . newIORef =<< liftIO getCurrentTime
+    let checkFPS = liftIO $ do
+            now  <- getCurrentTime
+            last <- readIORef fpsRef
+            writeIORef fpsRef now
+            let timeDiff = now `diffUTCTime` last
+            putStrLn ("FPS: " ++ show (1/timeDiff))
+    return checkFPS

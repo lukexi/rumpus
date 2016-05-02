@@ -103,9 +103,7 @@ endBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)) $
             let V3 x y z = pose ^. translation
             setPlayerPosition (V3 x (y+height/2) z)
 
--- FIXME should update and get hndHead instead
-getHeadPose :: (MonadState ECS m) => m (M44 GLfloat)
-getHeadPose = viewSystem sysControls ctsHeadPose
+
 
 getLeftHandID :: (MonadState ECS m) => m EntityID
 getLeftHandID  = viewSystem sysHands hndLeftHand

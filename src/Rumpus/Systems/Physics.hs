@@ -3,13 +3,18 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-module Rumpus.Systems.Physics where
+module Rumpus.Systems.Physics 
+    ( module Rumpus.Systems.Physics
+    , module Physics.Bullet
+    ) where
 import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Controls
 import Data.List (nub)
 import Foreign.C
+
+import Physics.Bullet
 
 data PhysicsSystem = PhysicsSystem 
     { _phyDynamicsWorld  :: DynamicsWorld 

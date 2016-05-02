@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ViewPatterns #-}
+
 module Rumpus.Systems.Controls where
 import PreludeExtra
 import Rumpus.Systems.PlayPause
@@ -32,6 +33,10 @@ hapticPulse whichHand duration = do
     let axis = 0 -- none of the others seem to work??
     vrPal <- viewSystem sysControls ctsVRPal
     triggerHandHapticPulse vrPal whichHand axis duration
+
+-- FIXME should update and get hndHead instead
+getHeadPose :: (MonadState ECS m) => m (M44 GLfloat)
+getHeadPose = viewSystem sysControls ctsHeadPose
 
 initControlsSystem :: (MonadState ECS m, MonadIO m) => VRPal -> m ()
 initControlsSystem vrPal = do
@@ -80,7 +85,7 @@ setPlayerPosition :: MonadState ECS m => V3 GLfloat -> m ()
 setPlayerPosition position = modifySystemState sysControls $
     ctsPlayer .= mkTransformation (axisAngle (V3 0 1 0) 0) position
 
-
+{-
 raycastCursorHits :: (MonadIO m, MonadState ECS m)
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()
 raycastCursorHits window dynamicsWorld projMat = withSystem_ sysControls $ \controlSystem -> do
@@ -97,3 +102,4 @@ raycastCursorHits window dynamicsWorld projMat = withSystem_ sysControls $ \cont
         let _hitInWorld = rrLocation rayResult
             entityID = fromIntegral (unCollisionObjectID bodyID) :: EntityID
         return entityID
+-}
