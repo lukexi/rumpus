@@ -120,7 +120,7 @@ keyboardOffsetY = -0.2
 keyboardOffsetZ = 0.1
 
 data KeyPadsSystem = KeyPadsSystem
-    { _kbhShiftDown         :: Bool
+    { _kbhShiftDown         :: Map WhichHand Bool
     , _kbhKeyPadKeys        :: Map WhichHand [(EntityID, HandKey, V2 GLfloat -> Bool)]
     , _kbhCurrentKey        :: Map WhichHand HandKey
     , _kbhLastKey           :: Map WhichHand HandKey
@@ -186,7 +186,7 @@ startKeyPadsSystem = do
         keyPadKeys  = Map.fromList $ zip (view _1) (view _4) containersAndKeyPadKeys
 
     registerSystem sysKeyPads $ KeyPadsSystem
-        { _kbhShiftDown       = False
+        { _kbhShiftDown       = mempty
         , _kbhKeyPadKeys      = keyPadKeys
         , _kbhCurrentKey      = mempty
         , _kbhLastKey         = mempty
@@ -218,13 +218,19 @@ tickKeyPadsSystem = do
                     -- Shift handling
                     if (currentKey == HandKeyShift)
                         then do
-                            isShiftDown <- modifySystemState sysKeyPads (kbhShiftDown <%= not)
+
+                            -- Momentary shift
+                            modifySystemState sysKeyPads (kbhShiftDown . at whichHand ?= True)
+
                             -- Flip the text of all the keys to reflect the shifted state
+                            let shiftIsDown = True
                             forM_ keyIDs $ \(keyID, key) -> do
-                                runEntity keyID $ setText (showKey isShiftDown key)
+                                runEntity keyID $ setText (showKey shiftIsDown key)
+
+
                         -- We don't send any events for Shift, just using it to toggle internal state.
                         else do
-                            isShiftDown <- viewSystem sysKeyPads kbhShiftDown
+                            isShiftDown <- or . Map.elems <$> viewSystem sysKeyPads kbhShiftDown
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
                                 sendInternalEvent (GLFWEvent event)
 
@@ -238,12 +244,21 @@ tickKeyPadsSystem = do
                                     kbhKeyRepeaters . at whichHand ?= repeaterID
 
             HandButtonEvent HandButtonPad ButtonUp -> do
+                -- Stop key-repeating
                 mKeyRepeaterID <- viewSystem sysKeyPads (kbhKeyRepeaters . at whichHand)
 
                 forM_ mKeyRepeaterID $ \keyRepeaterID -> do
                     removeEntity keyRepeaterID
                 modifySystemState sysKeyPads $
                     kbhKeyRepeaters . at whichHand .= Nothing
+
+                -- Stop shifting when both shifts are off
+                wasShiftDown <- or . Map.elems <$> viewSystem sysKeyboardHands kbhShiftDown
+                modifySystemState sysKeyboardHands (kbhShiftDown . at whichHand ?= False)
+                isShiftDown <- or . Map.elems <$> viewSystem sysKeyboardHands kbhShiftDown
+                when (wasShiftDown && not isShiftDown) $ do
+                    forM_ keyIDs $ \(keyID, key) -> do
+                        runEntity keyID $ setText (showKey False key)
 
             _ -> return ()
 

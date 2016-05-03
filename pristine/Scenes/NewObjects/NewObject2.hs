@@ -13,10 +13,9 @@ start = do
             cesCodeEditors . ix codeExprKey . cedCodeRenderer %=~
                 updateMetrics . (txrScreenSize ?~ V2 80 80)
 
-    
+    --
     setRepeatingAction 0.1 $ do
         n <- getNow
         setColor (hslColor n 0.5 0.5)
 
     setColor (hslColor 0.4 0.8 0.1)
-
