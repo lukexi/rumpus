@@ -46,19 +46,23 @@ clearSelection = do
     hideKeyboardHands
 
     removeCurrentEditorFrame
-    
+
     clearSelectedEntityID
 
 
 selectEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 selectEntity entityID = do
 
-    clearSelection
+    getSelectedEntityID >>= \case
+        Just prevSelectedID
+            | prevSelectedID == entityID -> return ()
+        _ -> do
+            clearSelection
 
-    setSelectedEntityID entityID
+            setSelectedEntityID entityID
 
-    showKeyboardHands
-    --addEditorFrame entityID
+            showKeyboardHands entityID
+            --addEditorFrame entityID
 
     return ()
 
@@ -79,7 +83,7 @@ continueDrag draggingHandEntityID = do
             currentPose <- view translation <$> getEntityPose handEntityID
             let dragDistance = currentPose - startPos
 
-            runEntity entityID $ 
+            runEntity entityID $
                 withComponent_ myDrag $ \onDrag ->
                     onDrag dragDistance
 
@@ -92,7 +96,7 @@ endDrag endingDragHandEntityID = do
 
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity $ do
-    myPose          ==> pose 
+    myPose          ==> pose
     myShape     ==> Cube
     mySize          ==> 0.5
     -- myUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
@@ -101,17 +105,17 @@ tickSceneEditorSystem :: ECSMonad ()
 tickSceneEditorSystem = do
     let editSceneWithHand whichHand handEntityID otherHandEntityID event = case event of
             HandStateEvent hand -> do
-                let newHandPose = hand ^. hndMatrix 
+                let newHandPose = hand ^. hndMatrix
                 setEntityPose newHandPose handEntityID
                 continueDrag handEntityID
                 continueHapticDrag whichHand newHandPose
                 updateBeam whichHand
             HandButtonEvent HandButtonGrip ButtonDown -> do
-                
+
                 beginBeam whichHand
 
             HandButtonEvent HandButtonGrip ButtonUp -> do
-                
+
                 endBeam whichHand
 
             HandButtonEvent HandButtonTrigger ButtonDown -> do
@@ -124,14 +128,14 @@ tickSceneEditorSystem = do
                                                 =<< getEntityOverlappingEntityIDs handEntityID
 
                     when (null overlappingEntityIDs) clearSelection
-                    
+
                     forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
                         handPose <- getEntityPose handEntityID
                         beginHapticDrag whichHand handPose
 
                         hasDragFunction        <- entityHasComponent grabbedID myDrag
                         isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
-                        if 
+                        if
                             | isBeingHeldByOtherHand -> do
 
                                 -- Trying things out with this disabled, as it's too
@@ -144,7 +148,7 @@ tickSceneEditorSystem = do
                                     --forkCode grabbedID duplicateID
                                     selectEntity duplicateID
                                     attachEntity handEntityID duplicateID True
-                            | hasDragFunction -> 
+                            | hasDragFunction ->
                                 beginDrag handEntityID grabbedID
                             | otherwise -> do
                                 selectEntity grabbedID
@@ -157,7 +161,7 @@ tickSceneEditorSystem = do
                 -- Saving is currently disabled to simplify the alpha release
                 -- (code will still be saved automatically)
                 --saveScene
-                
+
             _ -> return ()
 
     leftHandID  <- getLeftHandID

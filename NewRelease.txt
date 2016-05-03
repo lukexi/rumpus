@@ -1,6 +1,10 @@
 INTERACTION
     [ ] New object creation
         - Think through the yaml/persistence story one more time.
+        Object library
+        Have Main.hs of room automatically arrange all possible objects on the shelves
+        Scene defines namespace of library
+
     [ ] Compilation feedback (maybe this will be fixed by the new error panel setup)
 
 PERFORMANCE
@@ -8,6 +12,8 @@ PERFORMANCE
     (and later implement the full async rendering plan)
     [ ] Object limit: set to e.g. 5000, see if we can render
         that many Holographic statically, then with update funcs
+        update:
+        we can render 200 animated OK right now.
 
     [ ] Physics efficiency: use mutable vectors like we do in OpenVR;
         possibly get whole transforms rather than quats/positions to reduce calculation?
@@ -25,4 +31,17 @@ KEYBOARD
 VIDEO
     [ ] Test cropped screen recording quality/legibility
         - Use SteamVR as the recorded window to avoid hiccup bug in Rumpus's mirror.
+        UPDATE: from testing with OBS, I think this'll do the job for the first release.
+        Especially if I increase OBS capture res.
 
+[ ] Make shift momentary
+[ ] Fix teleport ray not appearing unless hitting geo
+[x] Attach keyboard to selected object
+[x] Increase keyrepeat speed
+[ ] Use 80columns for all text screens
+[ ] See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
+[ ] I definitely wanted code forking in my last session!!! Test that again.
+
+[ ] Deletion by "putting back" into library, like in The Gallery
+
+[ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)

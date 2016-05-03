@@ -101,13 +101,18 @@ deriveRigidBody dynamicsWorld = do
 
 setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setFloating isFloating = do
-    myProperties ==% nub . (Floating :)
+    getComponent myProperties >>= \case
+        Nothing -> myProperties ==> [Floating]
+        Just _ ->  myProperties ==% nub . (Floating :)
+
     withRigidBody $ \rigidBody ->
         setRigidBodyKinematic rigidBody isFloating
 
 setGhostly :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setGhostly isGhostly = do
-    myProperties ==% nub . (Ghostly :)
+    getComponent myProperties >>= \case
+        Nothing -> myProperties ==> [Ghostly]
+        Just _ ->  myProperties ==% nub . (Ghostly :)
     withRigidBody $ \rigidBody ->
         setRigidBodyNoContactResponse rigidBody isGhostly
 

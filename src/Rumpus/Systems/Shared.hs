@@ -8,7 +8,7 @@ module Rumpus.Systems.Shared where
 import PreludeExtra
 import qualified Data.HashMap.Strict as Map
 import qualified Data.List as L
-data ShapeType = Cube | Sphere 
+data ShapeType = Cube | Sphere
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
 data InheritTransform = InheritFull | InheritPose
@@ -37,10 +37,10 @@ initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
     registerComponent "Name" myName (savedComponentInterface myName)
     registerComponent "Pose" myPose (savedComponentInterface myPose)
-    registerComponent "PoseScaled" myPoseScaled $ (newComponentInterface myPoseScaled) 
+    registerComponent "PoseScaled" myPoseScaled $ (newComponentInterface myPoseScaled)
         {   ciDeriveComponent = Just $ do
                 -- More hax for release; one problem with this is that every entity will now
-                -- get a cached scale (even those without shapes, poses or sizes, 
+                -- get a cached scale (even those without shapes, poses or sizes,
                 -- since getSze and getPose return defaults)
                 -- but I guess there aren't so many without shapes yet
                 size <- getSize
@@ -78,15 +78,18 @@ setParent newParentID = do
             Nothing -> myChildren ==> [childID]
             Just _ ->  myChildren ==% (childID:)
 
+getParent :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe EntityID)
+getParent = getComponent myParent
+
 removeFromParent :: (MonadReader EntityID m, MonadState ECS m) => m ()
 removeFromParent = do
     childID <- ask
-    withComponent_ myParent $ \oldParentID -> 
+    withComponent_ myParent $ \oldParentID ->
         runEntity oldParentID $ do
             myChildren ==% L.delete childID
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
-removeChildren = 
+removeChildren =
     withComponent_ myChildren (mapM_ removeEntity)
 
 spawnChild :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID

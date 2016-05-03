@@ -7,7 +7,7 @@
 {-# LANGUAGE BangPatterns #-}
 
 -- Restricting exports to help GHC optimizer
-module Rumpus.Systems.Render 
+module Rumpus.Systems.Render
     ( initRenderSystem
     , tickRenderSystem
     ) where
@@ -40,7 +40,7 @@ data RenderShape = RenderShape
     , rshResetShapeInstanceBuffers :: IO ()
     }
 
-data RenderSystem = RenderSystem 
+data RenderSystem = RenderSystem
     { _rdsShapes         :: ![RenderShape]
     , _rdsTextPlaneShape :: Shape Uniforms
     }
@@ -60,11 +60,11 @@ initRenderSystem = do
 
     cubeGeo     <- cubeGeometry (V3 1 1 1) 1
     sphereGeo   <- octahedronGeometry 0.5 5 -- radius (which we halve to match boxes), subdivisions
-    
+
     cubeShape   <- makeShape cubeGeo   basicProg
     sphereShape <- makeShape sphereGeo basicProg
 
-    
+
     textPlaneGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     textPlaneShape  <- makeShape textPlaneGeo singleProg
 
@@ -77,7 +77,7 @@ initRenderSystem = do
             sab              <- makeSAB streamingBufferCapacity
             modelM44sBuffer  <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (M44 GLfloat))
             colorsBuffer     <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (V4  GLfloat))
-            
+
             --let resetShapeInstanceBuffers = profileMS "reset" 0 $ withShape shape $ do
             let resetShapeInstanceBuffers = withShape shape $ do
                     shader <- asks sProgram
@@ -90,7 +90,7 @@ initRenderSystem = do
                         assignFloatAttributeInstanced  shader "aInstanceColor" GL_FLOAT 4
             liftIO resetShapeInstanceBuffers
 
-            return RenderShape 
+            return RenderShape
                 { rshShapeType                 = shapeType
                 , rshShape                     = shape
                 , rshStreamingArrayBuffer      = sab
@@ -104,14 +104,14 @@ initRenderSystem = do
 
 tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
-    
+
     finalMatricesByEntityID <- getFinalMatrices
     colorsMap               <- getComponentMap myColor
 
     -- Pulse the currently selected entity in blue
     selectedEntityID <- getSelectedEntityID
     now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
-    let colorForEntity entityID 
+    let colorForEntity entityID
             | Just entityID == selectedEntityID = hslColor 0.6 0.9 now
             | otherwise = fromMaybe 1 $ Map.lookup entityID colorsMap
 
@@ -122,7 +122,7 @@ tickRenderSystem headM44 = do
         --let shapeName = show rshShapeType ++ " "
         entityIDsForShape <- getEntityIDsForShapeType rshShapeType
         let count = V.length entityIDsForShape
-        
+
         writeSAB rshStreamingArrayBuffer (fromIntegral count) rshResetShapeInstanceBuffers $ do
             fillSABBuffer rshInstanceColorsBuffer $ \i -> do
                 let entityID = entityIDsForShape V.! i
@@ -145,10 +145,10 @@ tickRenderSystem headM44 = do
     --putStrLnIO "Render Frame Errors:" >> glGetErrors
 
 
-renderEntities :: (MonadIO m, MonadState ECS m) 
+renderEntities :: (MonadIO m, MonadState ECS m)
                => M44 GLfloat -> [(Shape Uniforms, StreamingArrayBuffer, Int)] -> m ()
 renderEntities projViewM44 shapes = do
-    
+
     headM44 <- getHeadPose
 
     forM_ shapes $ \(shape, sab, shapeCount) -> withShape shape $ do
@@ -160,7 +160,7 @@ renderEntities projViewM44 shapes = do
         drawSAB sab (fromIntegral shapeCount)
 
 
--- Perform a breadth-first traversal of entities with no parents, 
+-- Perform a breadth-first traversal of entities with no parents,
 -- accumulating their matrix mults all the way down into any children.
 -- This avoids duplicate matrix multiplications.
 getFinalMatrices :: (MonadIO m, MonadState ECS m) => m (Map EntityID (M44 GLfloat))
@@ -171,20 +171,20 @@ getFinalMatrices = do
     parentMap                 <- getComponentMap myParent
     --sizeMap                   <- getComponentMap mySize
     inheritParentTransformMap <- getComponentMap myInheritTransform
-    
+
     let entityIDs           = Set.fromList . Map.keys $ poseMap
         entityIDsWithChild  = Set.fromList . Map.keys $ childrenMap
         entityIDsWithParent = Set.fromList . Map.keys $ parentMap
         rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
-        go mParentMatrix !accum entityID = 
+        go mParentMatrix !accum entityID =
 
             let inherit                  = Map.lookup entityID inheritParentTransformMap
                 entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
                 entityMatrixLocal        = Map.lookupDefault identity entityID poseScaledMap
 
                 parentTransform          = case (inherit, mParentMatrix) of
-                    (Just InheritFull, Just (parentMatrix, _))        -> (parentMatrix        !*!) 
-                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!) 
+                    (Just InheritFull, Just (parentMatrix, _))        -> (parentMatrix        !*!)
+                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!)
                     _                                                 -> id
 
                 entityMatrix        = parentTransform entityMatrixLocal
@@ -208,7 +208,7 @@ getEntityIDsForShapeType :: MonadState ECS m => ShapeType -> m (V.Vector EntityI
 getEntityIDsForShapeType shapeType = V.fromList . Map.keys . Map.filter (== shapeType) <$> getComponentMap myShape
 
 
-renderEntitiesText :: (MonadState ECS m, MonadIO m) 
+renderEntitiesText :: (MonadState ECS m, MonadIO m)
                    => M44 GLfloat -> Map EntityID (M44 GLfloat) -> m ()
 renderEntitiesText projViewM44 finalMatricesByEntityID = do
     glEnable GL_BLEND
@@ -221,7 +221,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
         entitiesWithText <- Map.toList <$> getComponentMap myTextRenderer
         forM_ entitiesWithText $ \(entityID, textRenderer) -> do
             --color <- getEntityTextColor entityID
-            
+
             let parentM44 = Map.lookupDefault identity entityID finalMatricesByEntityID
             textM44 <- getEntityTextCachedM44 entityID
 
@@ -233,16 +233,16 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
     glEnable GL_STENCIL_TEST
     planeShape <- viewSystem sysRender rdsTextPlaneShape
     entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
-    forM_ entitiesWithStart $ \(entityID, codeExprKey) -> 
+    forM_ entitiesWithStart $ \(entityID, codeExprKey) ->
         traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
-            parentPose   <- getEntityPose entityID
-            V3 _ _ sizeZ <- getEntitySize entityID
+            parentPose       <- getEntityPose entityID
+            V3 sizeX _ sizeZ <- getEntitySize entityID
 
             let codeModelM44 = parentPose
-                    -- Offset Z by half the Z-scale to place on front of box 
-                    !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01)) 
+                    -- Offset Z by half the Z-scale to place on front of box
+                    !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01))
                     -- Scale by size to fit within edges
-                    !*! scaleMatrix (V3 sizeZ sizeZ 1)
+                    !*! scaleMatrix (V3 sizeX sizeX 1)
 
             -- Render code in white
             renderTextAsScreen (editor ^. cedCodeRenderer)
@@ -259,24 +259,24 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
     glDisable GL_BLEND
 
 renderTextAsScreen :: MonadIO m => TextRenderer
-                                -> Shape Uniforms 
-                                -> M44 GLfloat 
-                                -> M44 GLfloat 
+                                -> Shape Uniforms
+                                -> M44 GLfloat
+                                -> M44 GLfloat
                                 -> m ()
 renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
 
     glStencilMask 0xFF
     glClear GL_STENCIL_BUFFER_BIT           -- Clear stencil buffer  (0 by default)
-    
+
     glStencilOp GL_KEEP GL_KEEP GL_REPLACE  -- stencil-fail, depth-fail, depth-stencil-fail
 
     -- Draw background
     glStencilFunc GL_ALWAYS 1 0xFF          -- Set any stencil to 1
     glStencilMask 0xFF                      -- Write to stencil buffer
-    
+
     withShape planeShape $ do
         Uniforms{..} <- asks sUniforms
-        uniformV4  uColor (V4 0.01 0.02 0.05 1)
+        uniformV4  uColor (V4 1 1 1 1)
         uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.001)))
         uniformM44 uProjectionView projViewM44
         drawShape

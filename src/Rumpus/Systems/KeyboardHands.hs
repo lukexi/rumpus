@@ -120,22 +120,28 @@ keyboardOffsetY = -0.2
 keyboardOffsetZ = 0.1
 
 data KeyboardHandsSystem = KeyboardHandsSystem
-    { _kbhShiftDown    :: Bool
-    , _kbhKeyIDs       :: [(EntityID, HandKey)]
-    , _kbhCurrentKey   :: Map WhichHand HandKey
-    , _kbhLastKey      :: Map WhichHand HandKey
-    , _kbhKeyboard     :: Map WhichHand EntityID
-    , _kbhKeyRepeaters :: Map WhichHand EntityID
+    { _kbhShiftDown         :: Bool
+    , _kbhKeyIDs            :: [(EntityID, HandKey)]
+    , _kbhCurrentKey        :: Map WhichHand HandKey
+    , _kbhLastKey           :: Map WhichHand HandKey
+    , _kbhKeyboard          :: Map WhichHand EntityID
+    , _kbhKeyRepeaters      :: Map WhichHand EntityID
+    , _kbhKeyboardContainer :: EntityID
     } deriving Show
 makeLenses      ''KeyboardHandsSystem
 defineSystemKey ''KeyboardHandsSystem
 
 
-showKeyboardHands :: (MonadIO m, MonadState ECS m) => m ()
-showKeyboardHands = do
+showKeyboardHands :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+showKeyboardHands forEntityID = do
+    keyboardID <- viewSystem sysKeyboardHands kbhKeyboardContainer
+
+    runEntity keyboardID $ setParent forEntityID
+
     keyboardIDs <- viewSystem sysKeyboardHands kbhKeyboard
     forM_ keyboardIDs $ \keyboardID -> runEntity keyboardID $ do
-        animateSizeTo 1 0.2
+        setSize 0.01
+        animateSizeTo 0.3 0.2
 
 hideKeyboardHands :: (MonadIO m, MonadState ECS m) => m ()
 hideKeyboardHands = do
@@ -152,16 +158,21 @@ startKeyboardHandsSystem = do
 
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
-    let handsWithKeys = [ (LeftHand,  leftHandID,  leftHandKeys)
-                        , (RightHand, rightHandID, rightHandKeys)
+    let handsWithKeys = [ (LeftHand,  leftHandID,  leftHandKeys,  V3 (-0.2) (-0.35) 0.1)
+                        , (RightHand, rightHandID, rightHandKeys, V3   0.2  (-0.35) 0.1)
                         ]
-    containersAndKeyIDs <- forM handsWithKeys $ \(whichHand, handID, keyRows) -> do
+    keyboardContainerID <- spawnEntity $ do
+        myInheritTransform ==> InheritPose
+        --myPose ==> translateMatrix (V3 0 1 (-5))
+        return ()
+    containersAndKeyIDs <- forM handsWithKeys $ \(whichHand, handID, keyRows, offset) -> do
         --runEntity handID removeChildren
 
         containerID      <- spawnEntity $ do
-            myParent             ==> handID
+            myParent             ==> keyboardContainerID
             myInheritTransform   ==> InheritPose
             mySize               ==> 0.01
+            myPose               ==> mkTransformation (axisAngle (V3 1 0 0) (pi/2)) offset
         scaleContainerID <- spawnEntity $ do
             myParent             ==> containerID
             myInheritTransform   ==> InheritFull
@@ -178,6 +189,7 @@ startKeyboardHandsSystem = do
         , _kbhLastKey      = mempty
         , _kbhKeyboard     = keyboardIDs
         , _kbhKeyRepeaters = mempty
+        , _kbhKeyboardContainer = keyboardContainerID
         }
 
 tickKeyboardHandsSystem :: ECSMonad ()
@@ -216,7 +228,7 @@ tickKeyboardHandsSystem = do
                                 repeaterID <- spawnEntity $ return ()
                                 runEntity repeaterID $
                                     setDelayedAction 0.25 $ do
-                                        setRepeatingAction 0.1 $ do
+                                        setRepeatingAction 0.025 $ do
                                             sendInternalEvent (GLFWEvent event)
                                 modifySystemState sysKeyboardHands $
                                     kbhKeyRepeaters . at whichHand ?= repeaterID
