@@ -21,22 +21,18 @@ startHandsSystem :: (MonadState ECS m, MonadIO m) => m ()
 startHandsSystem = do
     let handColor = V4 0.6 0.6 0.9 1
 
-    leftHandID <- spawnEntity $ do
-        myColor             ==> handColor
-        mySize              ==> V3 0.1 0.1 0.3
-        myShape         ==> Cube
-        myProperties ==> [Floating, Ghostly, Static]
-        myMass              ==> 0
-        myCollisionStart  ==> \_ impulse -> do
-            hapticPulse LeftHand (floor $ impulse * 10000)
-    rightHandID <- spawnEntity $ do
-        myColor             ==> handColor
-        mySize              ==> V3 0.1 0.1 0.3
-        myShape         ==> Cube
-        myProperties ==> [Floating, Ghostly, Static]
-        myMass              ==> 0
-        myCollisionStart  ==> \_ impulse ->
-            hapticPulse RightHand (floor $ impulse * 10000)
+        makeHand whichHand = do
+            myColor           ==> handColor
+            mySize            ==> V3 0.1 0.1 0.3
+            myShape           ==> Cube
+            myProperties      ==> [Floating, Ghostly, Static]
+            myMass            ==> 0
+            myCollisionStart  ==> \_ impulse -> do
+                hapticPulse whichHand (floor $ impulse * 10000)
+
+    leftHandID <- spawnEntity $ makeHand LeftHand
+    rightHandID <- spawnEntity $ makeHand RightHand
+
     registerSystem sysHands $ HandsSystem
             { _hndLeftHand  = leftHandID
             , _hndRightHand = rightHandID
@@ -77,7 +73,7 @@ updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)
         rayLength = distance handLocation hitLocation
         rayCenter = handLocation + (hitLocation - handLocation) / 2
 
-    -- Update ray's postition/size
+    -- Update ray's position/size
     runEntity beamID $ do
         setPose (handPose & translation .~ rayCenter)
         setSize (V3 0.05 0.05 rayLength)

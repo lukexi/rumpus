@@ -235,14 +235,14 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
     entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
     forM_ entitiesWithStart $ \(entityID, codeExprKey) ->
         traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
-            parentPose   <- getEntityPose entityID
-            V3 _ _ sizeZ <- getEntitySize entityID
+            parentPose       <- getEntityPose entityID
+            V3 sizeX _ sizeZ <- getEntitySize entityID
 
             let codeModelM44 = parentPose
                     -- Offset Z by half the Z-scale to place on front of box
                     !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01))
                     -- Scale by size to fit within edges
-                    !*! scaleMatrix (V3 sizeZ sizeZ 1)
+                    !*! scaleMatrix (V3 sizeX sizeX 1)
 
             -- Render code in white
             renderTextAsScreen (editor ^. cedCodeRenderer)
@@ -277,7 +277,7 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
     headM44 <- getHeadPose
     withShape planeShape $ do
         Uniforms{..} <- asks sUniforms
-        uniformV4  uColor (V4 0.01 0.02 0.05 1)
+        uniformV4  uColor (V4 1 1 1 1)
         uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.001)))
         uniformM44 uProjectionView projViewM44
         uniformV3  uCamera (headM44 ^. translation)
