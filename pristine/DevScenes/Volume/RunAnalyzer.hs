@@ -5,7 +5,7 @@ import Rumpus
 
 update :: Update
 update = do
-    withScriptData $ \receiver -> do
+    withState $ \receiver -> do
         rootID <- ask
         notes <- liftIO $ atomically $ exhaustChan receiver
         forM_ notes $ \case

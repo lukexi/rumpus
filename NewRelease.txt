@@ -1,0 +1,28 @@
+INTERACTION
+    [ ] New object creation
+        - Think through the yaml/persistence story one more time.
+    [ ] Compilation feedback (maybe this will be fixed by the new error panel setup)
+
+PERFORMANCE
+    Do as many simple things as possible to help protect users from getting into gross states
+    (and later implement the full async rendering plan)
+    [ ] Object limit: set to e.g. 5000, see if we can render
+        that many Holographic statically, then with update funcs
+
+    [ ] Physics efficiency: use mutable vectors like we do in OpenVR;
+        possibly get whole transforms rather than quats/positions to reduce calculation?
+        Get all objects in one big pass.
+        Limit number of physics objects to again something like 1000.
+    [ ] Reset button (e.g. hold both application buttons)
+        Possibly automatically reset if low performance is detected?
+
+KEYBOARD
+    [ ] Vari-size keys for space, arrows, enter, backspace etc.
+        - Pass a width/height into the key construction function,
+          and accumulate x and y offsets
+
+    [ ] Knob System/API
+VIDEO
+    [ ] Test cropped screen recording quality/legibility
+        - Use SteamVR as the recorded window to avoid hiccup bug in Rumpus's mirror.
+

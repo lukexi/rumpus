@@ -7,7 +7,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import PreludeExtra
-data HandsSystem = HandsSystem 
+data HandsSystem = HandsSystem
     { _hndLeftHand  :: EntityID
     , _hndRightHand :: EntityID
     , _hndBeams :: Map WhichHand EntityID
@@ -35,7 +35,7 @@ startHandsSystem = do
         myShape         ==> Cube
         myProperties ==> [Floating, Ghostly, Static]
         myMass              ==> 0
-        myCollisionStart  ==> \_ impulse -> 
+        myCollisionStart  ==> \_ impulse ->
             hapticPulse RightHand (floor $ impulse * 10000)
     registerSystem sysHands $ HandsSystem
             { _hndLeftHand  = leftHandID
@@ -50,11 +50,11 @@ beginBeam whichHand = do
 
     beamID <- spawnEntity $ do
         myShape      ==> Cube
-        myProperties ==> [NoPhysicsShape]
+        myProperties ==> [Holographic]
 
     modifySystemState sysHands $ hndBeams . at whichHand ?= beamID
     updateBeam whichHand
-            
+
 updateBeam :: (MonadState ECS m, MonadIO m) => WhichHand -> m ()
 updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)) $ \beamID -> do
     handID <- getHandID whichHand
@@ -68,7 +68,7 @@ updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)
         teleportable <- getIsTeleportable entityID
 
 
-        let handLocation = handPose ^. translation 
+        let handLocation = handPose ^. translation
             rayLength = distance handLocation rrLocation
             rayCenter = handLocation + (handLocation - rrLocation) / 2
 

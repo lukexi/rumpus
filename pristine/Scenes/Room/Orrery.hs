@@ -1,10 +1,10 @@
 module Orrery where
 import Rumpus
 
-data Planet = Planet 
+data Planet = Planet
     { parent      :: EntityID
     , radius      :: Float
-    , orbitRadius :: Float 
+    , orbitRadius :: Float
     , orbitRate   :: Float
     , surfaceHue  :: Float
     }
@@ -20,7 +20,7 @@ start = do
             mySize                     ==> V3 radius radius radius
             myColor                    ==> hslColor hue 0.8 0.5
             myShape                ==> Sphere
-            myProperties        ==> [NoPhysicsShape]
+            myProperties        ==> [Holographic]
 
     let makePlanet Planet{..} = spawnEntity $ do
 
@@ -40,23 +40,23 @@ start = do
 
     -- Create a node that inherits scale from the container node, but whose own scale is 1
     -- (FIXME: this is probably more complicated than it has to be)
-    scaler <- spawnEntity $ do 
+    scaler <- spawnEntity $ do
         myParent                   ==> container
         myInheritTransform   ==> InheritFull
         mySize                     ==> 1
 
     sun <- spawnEntity $ do
         makeCelestialBody scaler 0.1 0.5
-        myPose ==> mkTransformation 
-                        (axisAngle (V3 1 0 0) 0.4) 
+        myPose ==> mkTransformation
+                        (axisAngle (V3 1 0 0) 0.4)
                         (V3 0 1 0)
-    
+
     sun2 <- makePlanet $ Planet { parent = sun,  radius = 0.03,  surfaceHue = 0.68, orbitRadius = 0.4,  orbitRate = 0.1 }
 
     p1   <- makePlanet $ Planet { parent = sun2, radius = 0.1,   surfaceHue = 0.1 , orbitRadius = 0.22, orbitRate = 0.7 }
     m1   <- makePlanet $ Planet { parent = p1,   radius = 0.02,  surfaceHue = 0.24, orbitRadius = 0.13, orbitRate = 2.1 }
-    
+
     p2   <- makePlanet $ Planet { parent = sun2, radius = 0.06,  surfaceHue = 0.18, orbitRadius = 0.55, orbitRate = 0.4 }
     p3   <- makePlanet $ Planet { parent = sun2, radius = 0.25,  surfaceHue = 0.34, orbitRadius = 0.9,  orbitRate = 0.9 }
-    
+
     return ()

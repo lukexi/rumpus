@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-module Rumpus.Systems.Physics 
+module Rumpus.Systems.Physics
     ( module Rumpus.Systems.Physics
     , module Physics.Bullet
     ) where
@@ -16,15 +16,15 @@ import Foreign.C
 
 import Physics.Bullet
 
-data PhysicsSystem = PhysicsSystem 
-    { _phyDynamicsWorld  :: DynamicsWorld 
+data PhysicsSystem = PhysicsSystem
+    { _phyDynamicsWorld  :: DynamicsWorld
     , _phyCollisionPairs :: Map EntityID (Set EntityID)
     } deriving Show
 makeLenses ''PhysicsSystem
 
-data Property = Floating        -- ^ Sets bullet "Kinematic" flag 
+data Property = Floating        -- ^ Sets bullet "Kinematic" flag
               | Ghostly         -- ^ Sets bullet "NoContactResponse" flag
-              | NoPhysicsShape  -- ^ Removes physics shape entirely (Rename to "Holographic"?)
+              | Holographic     -- ^ Removes physics shape entirely
               | Static          -- ^ Marks objects we don't want to grab
               | Teleportable    -- ^ Marks objects we want to allow teleportation to. Must have physics shape.
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
@@ -50,7 +50,7 @@ initPhysicsSystem = do
 
     registerComponent "RigidBody" myRigidBody $ (newComponentInterface myRigidBody)
         { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
-        , ciRemoveComponent  = 
+        , ciRemoveComponent  =
                 withComponent_ myRigidBody $ \rigidBody -> do
                     removeRigidBody dynamicsWorld rigidBody
                     removeComponent myRigidBody
@@ -65,7 +65,7 @@ initPhysicsSystem = do
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do
     properties <- fromMaybe [] <$> getComponent myProperties
-    unless (NoPhysicsShape `elem` properties) $ do
+    unless (Holographic `elem` properties) $ do
         mShapeType <- getComponent myShape
         forM_ mShapeType $ \shapeType -> do
 
@@ -75,7 +75,7 @@ deriveRigidBody dynamicsWorld = do
             size <- getSize
             poseM44 <- getPose
             let pose = poseFromMatrix poseM44
-            
+
             collisionID <- CollisionObjectID <$> ask
             let bodyInfo = mempty { rbPosition       = pose ^. posPosition
                                   , rbRotation       = pose ^. posOrientation
@@ -92,13 +92,13 @@ deriveRigidBody dynamicsWorld = do
             forM_ mGravity $ \gravity -> do
                 setRigidBodyGravity rigidBody gravity
                 setRigidBodyDisableDeactivation rigidBody True
-            
+
             when (Ghostly `elem` properties || Floating `elem` properties) $ do
                 setRigidBodyKinematic rigidBody True
 
-            when (Ghostly `elem` properties) $ 
+            when (Ghostly `elem` properties) $
                 setRigidBodyNoContactResponse rigidBody True
-            
+
 setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setFloating isFloating = do
     myProperties ==% nub . (Floating :)
@@ -146,8 +146,8 @@ getEntityOverlapping :: (MonadState ECS m, MonadIO m) => EntityID -> m [Collisio
 getEntityOverlapping entityID = getEntityComponent entityID myRigidBody  >>= \case
     Nothing          -> return []
     Just rigidBody -> do
-        fmap (fromMaybe []) $ 
-            withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> 
+        fmap (fromMaybe []) $
+            withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) ->
                 contactTest dynamicsWorld rigidBody
 
 castRay :: (MonadIO m, MonadState ECS m) => Ray GLfloat -> m (Maybe (RayResult GLfloat))
@@ -156,9 +156,9 @@ castRay ray = do
     rayTestClosest dynamicsWorld ray
 
 getEntityOverlappingEntityIDs :: (MonadState ECS m, MonadIO m) => EntityID -> m [EntityID]
-getEntityOverlappingEntityIDs entityID = 
-    filter (/= entityID) 
-    . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)]) 
+getEntityOverlappingEntityIDs entityID =
+    filter (/= entityID)
+    . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)])
     <$> getEntityOverlapping entityID
 
 setSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
@@ -173,7 +173,7 @@ setEntitySize newSize entityID = do
     pose <- getEntityPose entityID
     setEntityComponent myPoseScaled (pose !*! scaleMatrix newSize) entityID
 
-    withEntityRigidBody entityID $ \rigidBody -> do 
+    withEntityRigidBody entityID $ \rigidBody -> do
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
             mass       <- fromMaybe 1    <$> getEntityComponent entityID myMass
             shapeType  <- fromMaybe Cube <$> getEntityComponent entityID myShape
@@ -188,7 +188,7 @@ setPose pose = setEntityPose pose =<< ask
 setEntityPose :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> EntityID -> m ()
 setEntityPose poseM44 entityID = do
 
-    setEntityPoseCacheScale entityID poseM44 
+    setEntityPoseCacheScale entityID poseM44
 
     withEntityRigidBody entityID $ \rigidBody -> do
         let pose = poseFromMatrix poseM44

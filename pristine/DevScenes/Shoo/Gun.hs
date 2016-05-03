@@ -14,15 +14,15 @@ start :: Start
 start = do
     removeChildren
 
-    myUpdate ==> withScriptData (\timer -> do
+    myUpdate ==> withState (\timer -> do
         shouldSpawn <- checkTimer timer
-        if shouldSpawn 
+        if shouldSpawn
             then do
                 note <- randomNote
                 sendPd "note" (Atom $ realToFrac note)
                 pose <- getPose
                 childID <- spawnEntity $ do
-                    myPose ==> pose & translation +~ 
+                    myPose ==> pose & translation +~
                         (pose ^. _m33) !* (V3 0 0.3 0)
                     myShape ==> Sphere
                     mySize ==> 0.03

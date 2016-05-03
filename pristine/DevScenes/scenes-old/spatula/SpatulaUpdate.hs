@@ -11,7 +11,7 @@ update entityID = do
         newPose_ = Pose (V3 spatX 0.5   spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
     setEntityPose newPose_ entityID
 
-    withScriptData entityID $ \channel -> do
+    withState entityID $ \channel -> do
         (liftIO . atomically . readTChan) channel >>= \case
             Atom (Float freq) -> setEntityColor (hslColor (freq/1000) 0.9 0.8) entityID
             _ -> return ()

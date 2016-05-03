@@ -1,0 +1,33 @@
+        These could automatically lay themselves out on the object's control panel.
+
+
+        addQuickKnob "Scale" 0 10 50 setSize
+        tickKnobSystem
+
+        for a knob that automatically calls setSize.
+        Takes any EntityMonad function.
+        Can always expose a more explicit version with a readKnob function
+            scaleKnob <- quickKnob "Scale" 0 10 50
+            myUpdate ==> do
+                setSize =<< readKnob scaleKnob
+        for using in myUpdate etc.
+        This could be the basis of an easy FRPish system;
+        addModulator SineWave 0.1 2 (10::Seconds) setSize
+
+        The control panel would house the keys
+
+         O      O     O      O
+        size  shape  color  rate
+[][][][]|                       |[][][][]
+[][][][]|                       |[][][][]
+[][][][]|                       |[][][][]
+[][][][]|                       |[][][][]
+[][][][]|                       |[][][][]
+[][][][]|                       |[][][][]
+
+
+        Code should be small but legible til you click on it.
+        |     |
+        |_____|
+          [~]
+        click on [~] to expand keyboard etc.

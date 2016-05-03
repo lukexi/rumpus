@@ -1,19 +1,37 @@
-[x] Click-and-hold repeats for arrow keys
 
+[ ] Fix mirror window hiccups
+    [ ] Need this for recording, or just use SteamVR
+[ ] Resolve the mismatch between scenegraph-tree objects and physics;
+    should still be able to have physics on things that are parented/scaled
+[ ] Subtle ding when finished compiling (buzz when failed)
 
 [ ] Finish keyboard
-    [ ] Fullsize keys for space etc.
+    [ ] Vari-size keys for space, arrows, enter, backspace etc.
+        - Pass a width/height into the key construction function,
+          and accumulate x and y offsets
+
     [ ] Variable-width keys like Valve's, for oft-used keys?
-    
+
+    [ ] Different vibrations to let you know that you're still on the right key??
+            (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
+
+    [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini
+    (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
+
     [x] Fix bad key/thumb mapping
     [x] Only show keyboard when object selected
     [x] Haptics for moving thumb on keys
-        [ ] Different vibrations to let you know that you're still on the right key??
-            (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
 
+    [x] Click-and-hold repeats for arrows/all keys
     [x] Get touchpad down event from steamVR
-    [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini 
-    (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
+
+
+
+[ ] See if there's a way to use System.Timeout.timeout for a simple version of rendering-guarantees.
+    (along with a maximum count of objects to render)
+
+[ ] A real-time-tracking day-night cycle for the city world
+
 
 [ ] Knob API!
     scaleKnob <- makeKnob 0 100 "Scale" 50
@@ -21,37 +39,16 @@
         newScale <- readKnob scaleKnob
         setSize newScale
 
-[x] Fix keyboard offsets
-[ ] Fix mirror window hiccups
-[ ] Subtle ding when finished compiling (buzz when failed)
-[ ] Resolve the mismatch between scenegraph-tree objects and physics;
-    should still be able to have physics on things that are parented/scaled
-
-[x] Fix keyboard offsets
-
-[x] Rename ShapeType to Shape, Cube to Cube etc.
-
-[x] Teleporting
-    [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
-    [x] If doing head, do hands too.
-    [x] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
-    
-    [x] Add a ray and visual feedback for what you'll teleport to.
-            (and haptics OBVZ)
-    [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
-    [ ] Allow teleporting to rotated objects
-
-
 
 [ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
-    Except, how to deal with editing without resetting position etc.? 
+    Except, how to deal with editing without resetting position etc.?
     Have a separate "initialize" function that is only run at startup?
     Can do a Main.hs that starts the world when it runs?
         And, rather than a separate initialize, Main could spawn the objects and set their positions...
 
     This also nicely simplifies object instances; can just keep track of what haskell files are available.
     But, this doesn't have a good plan for saving state (e.g. positions and colors)
-    Boy it would make the demo a lot better, as you'd start with creating a few objects, 
+    Boy it would make the demo a lot better, as you'd start with creating a few objects,
     setting their size and color, and then specifying their behavior.
 
 
@@ -61,36 +58,45 @@
     [x] Cursor is way too hard to see!
     [x] Clipping/scrolling
     [ ] Add line numbers?? Any way to do that easily??
+        (could do this the lazy way with a display at the bottom of the screen)
 
 
 
-[ ] See if there's a way to use System.Timeout.timeout for a simple version of rendering-guarantees.
-    (along with a maximum count of objects to render) 
+[x] Fix keyboard offsets
 
+[x] Rename ShapeType to Shape, Cube to Cube etc.
 
-[ ] A real-time-tracking day-night cycle for the city world
+[x] Teleporting
+    [x] Player pose stuff is all screwy. Fix the inv44 nonsense etc. in vr-pal.
+    [x] If doing head, do hands too.
+    [x] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
 
+    [x] Add a ray and visual feedback for what you'll teleport to. (and haptics OBVZ)
+    [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
+    [ ] Allow teleporting to rotated objects
+        Allow teleporting to scaled objects
+            (sweeney feature request, for implementing worlds-within-worlds)
 
 RENDERING
     [ ] Do a slightly nicer default shader? Maybe some lights? We are not using the GPU at all so this would be rad...
         (boyyy shadowing would be even cooler!!!)
 
 LAUNCH
-    [ ] Try metaphor of "Exploratorium", or "Computational Museum". 
+    [ ] Try metaphor of "Exploratorium", or "Computational Museum".
         Just like you might visit the Exploratorium and have a great time despite not
         quite understanding how turbulence works, or how parabolic dishes focus sounds, you can
         still enjoy the exhibits. The plaques describe how they work for those who are interested.
 
-    [ ] 1080p render for video? 
+    [ ] 1080p render for video?
         This would be possibly quite easy with a threaded render that takes the last world state and renders it!
         This is where we can let our immutable structures shine :)
         (but make sure we're not querying anything mutable like DynamicsWorld, though I think that's taken care of by how Rumpus is structured.)
 
-    [ ] Add notes to Early Access notes about the intentions of rumpus to become something that "normal people" can use, 
+    [ ] Add notes to Early Access notes about the intentions of rumpus to become something that "normal people" can use,
         but is itself the tool in which such a friendlier and more powerful environment is to be created.
         Current language is the 'assembly language'
 
-    
+
     [ ] Create intro object
             Have it be the only thing that you start out seeing (on a pedestal, with a rotating color-shifting cube), and have the other objects on other platforms?
             TRY EDITING ME
@@ -100,18 +106,18 @@ LAUNCH
 OBJECTS
     [ ] Add microphone-reactive object
     [ ] Add sequencer platform
-        [ ] Note: only have limited voices so ditch the per-note positioning 
-            and just have them all report to a verylogue instance, which will 
-            set things up nicely for doing a full synth+sequencer
+        - Note: only have limited voices so ditch the per-note positioning
+          and just have them all report to a verylogue instance, which will
+          set things up nicely for doing a full synth+sequencer
 
     [ ] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
     [ ] Pull-along music box
     [ ] L-system trees
     [ ] Ball that when thrown, causes a tree to grow
-    [ ] Focus on basic code capabilities: defining and spawning instances of things. 
+    [ ] Focus on basic code capabilities: defining and spawning instances of things.
         Using same set of rules to generate multiple possibilities.
     [ ] Some sort of swarm of cubes, taking advantage of instancing
-        (the most effective version of this would be using a vert-shader for rotation etc. 
+        (the most effective version of this would be using a vert-shader for rotation etc.
         as we seem to be generally CPU bound and barely using the GPU)
 
 
@@ -120,9 +126,9 @@ Jacobs requests:
 - Gaze based cursor placement
 - No flashy selection
 - Fixed keyboard placement, on sides
-- Letter-preview on cursor so you can still 'touch-type'. 
+- Letter-preview on cursor so you can still 'touch-type'.
     Need to figure out how to handle two thumbs though...
-    Two previews? A bit ick but the most accurate...  
+    Two previews? A bit ick but the most accurate...
 - Ideas for improving text editing without massive work? Token-based interaction with the text canvas?
 
 
@@ -137,16 +143,16 @@ Jacobs requests:
 
 
 [ ] Time update/start runs. Remove them if they take too long and set an error.
-    This won't handle nontermination, which will require running a thread and 
+    This won't handle nontermination, which will require running a thread and
     manufacturing dummy data (esp, how to deal with dynamics world?) which will get complicated.
-    It feels like smarter idea is the whole separate-render-thread-from-logic-thread thing, 
+    It feels like smarter idea is the whole separate-render-thread-from-logic-thread thing,
     and let the logic thread crash.
 
 [ ] Do a profiling pass with https://wiki.haskell.org/ThreadScope_Tour/Spark2
 
 [ ] (later!!!) Implement Vlachos's idea of total render-thread asynchrony. This will be easy with our immutable datastructures.
     sendToRenderer :: (MonadIO m, MonadState ECS m) => m ()
-        worldState <- get 
+        worldState <- get
         swapTVarIO worldStateRef worldState.
 
     forkOS $ do
@@ -158,23 +164,23 @@ Jacobs requests:
     renderThread is responsible for WaitGetPoses and Submit. it is a forkOS'd high priority thread.
     It just takes the worldState and runs what is currently in tickRenderer on it.
     In an improved version, we can calculate trajectories to interpolate objects from one frame to another when a frame is missed.
-    But even with just the most boneheaded implementation as above, it will be better than reprojection 
-    since things will render perfectly and only animations will judder. 
+    But even with just the most boneheaded implementation as above, it will be better than reprojection
+    since things will render perfectly and only animations will judder.
     (we could special case the hands to make sure they and their attachments always render correctly)
 
-    think about how to make sure the world doesn't get ahead of render... maybe just as a first stab, 
+    think about how to make sure the world doesn't get ahead of render... maybe just as a first stab,
     worldStateRef is an MVar such that putMVar blocks if the renderer hasn't gotten to our last worlddata yet?
 
     Really, this is so simple that it may be worth trying since the gains would be large; they're be essentially no garbage at all on the renderthread
 
-    (a complication comes to mind: would need to improve the way TextRenderers handle their updateMetrics calls 
-    since currently they synchronously update their GL state whenever they change. 
-    Maybe just an isDirty flag that can get processed on the render thread?? 
+    (a complication comes to mind: would need to improve the way TextRenderers handle their updateMetrics calls
+    since currently they synchronously update their GL state whenever they change.
+    Maybe just an isDirty flag that can get processed on the render thread??
     That would probably do the trick!)
 
     Try having render thread be main thread, logic thread forked and vice versa.
 
-    All in all, especially combined with a hard entity limit that we know we can render smoothly, 
+    All in all, especially combined with a hard entity limit that we know we can render smoothly,
     this would be a pretty good system to making sure user errors don't explode everything as they do currently!
 
 [ ] Another great idea from talk 1: pass BOTH eye M44s in one render call, and output to both framebuffers at the same time
@@ -184,18 +190,18 @@ Jacobs requests:
 
 
 [ ] Fix app freezing when dragging the window
-    [ ] Looks like this requires moving the whole application off the main thread due to GLFW limitations, 
+    [ ] Looks like this requires moving the whole application off the main thread due to GLFW limitations,
         which should be no problem really!
         Have the pollEvents call just be a constantly running thread that passes things to a channel.
         (or, switch to SDL which hopefully doesn't copout on this)
 
-[ ] Recheck initLinker initDynLinker stuff in Halive; 
+[ ] Recheck initLinker initDynLinker stuff in Halive;
     it didn't actually fix the crashes so it may just be slowing down loading for no reason
     See MultipleLinkerInstances; it is indeed bad to run multiple GHC instances, contrary to a note I posted somewhere...
     https://ghc.haskell.org/trac/ghc/ticket/3372
 
 [x] Crasher when turning controllers on after launch
-        - Investigate this in openvr-hs to minimize surface area 
+        - Investigate this in openvr-hs to minimize surface area
 
 [x] Scale matrix caching - parallel holding of scaled and normal matrix... is this possible in an easy way?
 
@@ -207,7 +213,7 @@ Jacobs requests:
 [x] Held object haptics
 
 [x] Fix hands swapping for haptics
-[x] Fix error message positioning 
+[x] Fix error message positioning
 
 [x] Build city
 
@@ -215,9 +221,9 @@ Jacobs requests:
 
 [x] Find Windows documents directory, copy scenes there and load from there
     getUserDocumentsDirectory
-    copy scenes 
+    copy scenes
 
-[x] Fix audio on release builds! 
+[x] Fix audio on release builds!
     Make sure HRTFs are working, we might need to include the openal folder in the release,
     or figure out the openal api
     NOTES: what have I learned:
@@ -231,23 +237,23 @@ Jacobs requests:
     Why are they not affected? What is the remaining link to msys64? msys64 is not in the windows path...
     But regardless, I can probably just ignore this issue since most people won't have an msys64 path to begin with!
     but I do need to fix it so I can develop...
-    Try a tool to see what files are being opened. 
+    Try a tool to see what files are being opened.
 
 [x] Finish faster code-update system.
         Basic idea: we want to pass char buffers to the GHC API.
-        Maybe premature optimization, but could have TextBuffer store each line in parallel as a char buffer and a Seq, 
+        Maybe premature optimization, but could have TextBuffer store each line in parallel as a char buffer and a Seq,
         rebuilding the char buffer on each change to a line, and just gluing the buffers together when dumping its contents as a single char buffer.
 
         While passing it off, also save the file on a background queue thread.
         We also want to pause the file watcher while we save our version of the file so it doesn't resubmit it for recompilation.
 
-        Right now, have selected code hook into CodeEditor and pass a String to Halive via a CompilationRequest. 
+        Right now, have selected code hook into CodeEditor and pass a String to Halive via a CompilationRequest.
         Disable code loading from files to ensure that this fixes things, then implement the filewatcher pausing.
         Switch file saving to be async.
 
         [x] I've commented out refreshTextRendererFromFile in CodeEditor.hs:264
             (since it's the cause of the pauses while typing!) while I figure out
-            the right way to refresh the text - should do the readFile call 
+            the right way to refresh the text - should do the readFile call
             in the background upon receiving the FileEvent, but also want to be able
             to pause that when we are making edits.
 
@@ -273,17 +279,20 @@ objectColor = colorHSL 1 2 3
 
 -- Here's where we actually set up the object!
 start = do
-    myColor ==> objectColor
+    spawnChild $ do
+        myColor ==> objectColor
 
-    -- This is the "Update" function, which gets run 90 times per second to
-    -- to define how the object behaves.
-    -- In this case, we're having the object change 
-    -- its rotation and color 
-    -- based on what time it is.
-    myUpdate ==> do
-        now <- getNow
-        setRotation (V3 0 1 0) (now * rotationSpeed)
-        setColor (newColor {hue = now, saturation = 0.6 brightness = 0.7)
+        -- This is the "Update" function, which gets run 90 times per second to
+        -- to define how the object behaves.
+        -- In this case, we're having the object change
+        -- its rotation and color
+        -- based on what time it is.
+        myUpdate ==> do
+            now <- getNow
+            setRotation (V3 0 1 0) (now * rotationSpeed)
+            setColor (newColor {hue = now, saturation = 0.6 brightness = 0.7)
+    -- Child objects are automatically removed and
+    -- reconstructed whenever you change the code
 
 data Color = Color { hue :: GLfloat, saturation :: GLfloat, brightness :: GLfloat }
 

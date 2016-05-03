@@ -13,7 +13,7 @@ import Rumpus
 loadTestScene :: ECSMonad ()
 loadTestScene = do
     -- testEntity <- spawnEntity $ return ()
-    -- addCodeExpr testEntity "CollisionStart" "collisionStart" myCollisionStartExpr myCollisionStart        
+    -- addCodeExpr testEntity "CollisionStart" "collisionStart" myCollisionStartExpr myCollisionStart
     -- selectEntity testEntity
 
 
@@ -45,7 +45,7 @@ room = do
     builderID <- ask
     let makeWall pos size hue = spawnEntity $ do
             myParent            ==> builderID
-            myPose              ==> mkTransformation 
+            myPose              ==> mkTransformation
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
             myShape         ==> Cube
             myProperties ==> [Floating, Static]
@@ -58,21 +58,21 @@ room = do
     --makeWall (V3 (roomW/2)  0 0) (V3 wallD roomH roomD) 0.4 -- right
     makeWall (V3 0 (-roomH/2) 0) (V3 roomW wallD roomD) 0.5 -- floor
     makeWall (V3 0 (roomH/2)  0) (V3 roomW wallD roomD) 0.6 -- ceiling
-    
+
     let numShelves = 4
     forM_ [1..(numShelves - 1)] $ \n -> do
-        let shelfY = (roomH/realToFrac numShelves) 
+        let shelfY = (roomH/realToFrac numShelves)
                         * fromIntegral n - (roomH/2)
-        makeWall (V3 0 shelfY (roomD/2)) 
+        makeWall (V3 0 shelfY (roomD/2))
                  (V3 roomW shelfH (wallD*2)) 0.7 -- shelf
 
 
 -------------------------------------------------------------------------------
 -- City
 
--- Golden Section Spiral 
+-- Golden Section Spiral
 -- (via http://www.softimageblog.com/archives/115)
-pointsOnSphere (fromIntegral -> n) = 
+pointsOnSphere (fromIntegral -> n) =
     let inc = pi * (3 - sqrt 5)
         off = 2 / n
     in flip map [0..n] $ \k ->
@@ -96,13 +96,13 @@ createBuildings = do
         buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
     forM_ (zip [0..] buildSites) $ \(i, V3 x y z) -> do
         hue <- liftIO randomIO
-        
+
         when (x /= 0 && z /= 0) $ void . spawnEntity $ do
             myParent               ==> rootEntityID
-            myPose                 ==> mkTransformation 
+            myPose                 ==> mkTransformation
                                             (axisAngle (V3 0 0 1) 0) (V3 x y z)
             myShape            ==> Cube
-            myProperties    ==> [NoPhysicsShape]
+            myProperties    ==> [Holographic]
             --myUpdate ==> do
             --    now <- getNow
             --    let newHeight = ((sin (now+i) + 1) + 1) * height
@@ -113,16 +113,16 @@ createBuildings = do
 createStars :: EntityMonad ()
 createStars = do
     rootEntityID <- ask
-    
+
     let numPoints = 300 :: Int
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
         myParent               ==> rootEntityID
-        myPose                 ==> mkTransformation 
+        myPose                 ==> mkTransformation
                                         (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
         myShape            ==> Sphere
-        myProperties    ==> [NoPhysicsShape]
+        myProperties    ==> [Holographic]
         mySize                 ==> 5
         myColor                ==> hslColor hue 0.8 0.8
 
@@ -145,11 +145,11 @@ fountain = do
                 -- Play a note
                 note <- randomFrom majorScale
                 sendPd "note" (Atom $ realToFrac note)
-                
+
                 -- Spawn a ball
                 pose <- getPose
                 spawnEntity $ do
-                    myPose      ==> pose & translation +~ 
+                    myPose      ==> pose & translation +~
                                         (pose ^. _m33) !* (V3 0 0.3 0)
                     myShape ==> Sphere
                     mySize      ==> 0.03
@@ -158,7 +158,7 @@ fountain = do
                     myStart     ==> do
                         setLifetime 10
                         applyForce $ (pose ^. _m33) !* (V3 0 0.3 0)
-                
+
                 -- Create a new timer
                 newTimer <- createNewTimer rate
                 setState newTimer

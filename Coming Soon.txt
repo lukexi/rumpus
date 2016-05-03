@@ -1,0 +1,11 @@
+Coming Soon
+
+Multiplayer
+Shareable Object libraries
+A much, much friendlier VR native language (no typing)
+In-world audio synth-graph building
+In-world shader and geometry editing
+Built-in transparency & shadows
+Customizable render pipeline
+Boiling language down to a kernel and fallback renderer (entire system live-editable)
+In-world web browser as a catchall for non-VR content

@@ -74,13 +74,13 @@ toPressedKey key = Key key noKeyCode KeyState'Pressed noModifierKeys
 
 leftHandKeys :: [[HandKey]]
 leftHandKeys =
-    [ replicate 4 HandKeyUp                                      
-    , HandKeyLeft :                cs "`12345" "~!@#$%" ++ [HandKeyRight] 
-    , HandKeyLeft : HandKeyTab   : cs "qwert"  "QWERT"  ++ [HandKeyRight] 
+    [ replicate 4 HandKeyUp
+    , HandKeyLeft :                cs "`12345" "~!@#$%" ++ [HandKeyRight]
+    , HandKeyLeft : HandKeyTab   : cs "qwert"  "QWERT"  ++ [HandKeyRight]
     , HandKeyLeft : HandKeyBlank : cs "asdfg"  "ASDFG"  ++ [HandKeyRight]
     , HandKeyLeft : HandKeyShift : cs "zxcvb"  "ZXCVB"  ++ [HandKeyRight]
     , replicate 4 (HandKeyChar ' ' ' ')
-    , replicate 4 HandKeyDown 
+    , replicate 4 HandKeyDown
     ]
     where
         cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
@@ -119,7 +119,7 @@ keyboardOffsetY = -0.2
 -- How far off the controllers the keyboard floats
 keyboardOffsetZ = 0.1
 
-data KeyboardHandsSystem = KeyboardHandsSystem 
+data KeyboardHandsSystem = KeyboardHandsSystem
     { _kbhShiftDown    :: Bool
     , _kbhKeyIDs       :: [(EntityID, HandKey)]
     , _kbhCurrentKey   :: Map WhichHand HandKey
@@ -149,7 +149,7 @@ startKeyboardHandsSystem = do
 
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
-    
+
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
     let handsWithKeys = [ (LeftHand,  leftHandID,  leftHandKeys)
@@ -200,7 +200,7 @@ tickKeyboardHandsSystem = do
                 forM_ mCurrentKey $ \currentKey -> do
 
                     -- Shift handling
-                    if (currentKey == HandKeyShift) 
+                    if (currentKey == HandKeyShift)
                         then do
                             isShiftDown <- modifySystemState sysKeyboardHands (kbhShiftDown <%= not)
                             -- Flip the text of all the keys to reflect the shifted state
@@ -214,11 +214,11 @@ tickKeyboardHandsSystem = do
 
                                 -- Add a repeating key action
                                 repeaterID <- spawnEntity $ return ()
-                                runEntity repeaterID $ 
+                                runEntity repeaterID $
                                     setDelayedAction 0.25 $ do
                                         setRepeatingAction 0.1 $ do
                                             sendInternalEvent (GLFWEvent event)
-                                modifySystemState sysKeyboardHands $ 
+                                modifySystemState sysKeyboardHands $
                                     kbhKeyRepeaters . at whichHand ?= repeaterID
 
             HandButtonEvent HandButtonPad ButtonUp -> do
@@ -226,7 +226,7 @@ tickKeyboardHandsSystem = do
 
                 forM_ mKeyRepeaterID $ \keyRepeaterID -> do
                     removeEntity keyRepeaterID
-                modifySystemState sysKeyboardHands $ 
+                modifySystemState sysKeyboardHands $
                     kbhKeyRepeaters . at whichHand .= Nothing
 
             _ -> return ()
@@ -244,7 +244,7 @@ spawnKeysForHand whichHand containerID keyRows = do
     fmap concat . forM (zip [0..] keyRows) $ \(y, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM (zip [0..] keyRow) $ \(x, key) -> do
-            keyID <- spawnEntity $ 
+            keyID <- spawnEntity $
                 makeKeyboardKey whichHand containerID x y numKeys keyboardDims key
             return (keyID, key)
 
@@ -256,16 +256,16 @@ makeKeyboardKey whichHand containerID (fromIntegral -> x) (fromIntegral -> y) nu
         keyXY@(V2 keyX keyY)  = V2 (keyOffsetX + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
         keyOffsetX            = -keyWidthT * (numKeys - 1) / 2
         pose                  = V3 keyX keyboardOffsetZ keyY
-        
+
         keyTitleScale         = 1 / (fromIntegral (length keyTitle))
-        keyTitle              = showKey False key 
+        keyTitle              = showKey False key
     myParent                 ==> containerID
     myText                   ==> keyTitle
-    myTextPose               ==> mkTransformation 
+    myTextPose               ==> mkTransformation
                                       (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0) !*! scaleMatrix keyTitleScale
     myColor                  ==> keyColorOff
     myShape              ==> Cube
-    myProperties      ==> [NoPhysicsShape]
+    myProperties      ==> [Holographic]
     myPose                   ==> (identity & translation .~ pose)
     mySize                   ==> V3 keyWidth keyDepth keyHeight
     myInheritTransform ==> InheritPose
@@ -282,8 +282,8 @@ makeKeyboardKey whichHand containerID (fromIntegral -> x) (fromIntegral -> y) nu
             _ -> return ()
 
 getThumbPos :: Hand -> V2 GLfloat
-getThumbPos hand = hand ^. hndXY 
-    & _y  *~ (-1) -- y is flipped 
+getThumbPos hand = hand ^. hndXY
+    & _y  *~ (-1) -- y is flipped
     & _xy *~ 0.5  -- scale to -0.5 - 0.5
 
 thumbPosInKeyboard :: Hand -> V2 GLfloat -> V3 GLfloat
@@ -294,16 +294,16 @@ thumbPosInKeyboard hand keyboardDims = V3 x keyboardOffsetZ offsetY
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
 makeThumbNub :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> V2 GLfloat -> m ()
 makeThumbNub whichHand containerID keyboardDims = do
-    
+
     myParent                 ==> containerID
     myColor                  ==> keyColorOn
     myShape              ==> Sphere
-    myProperties      ==> [NoPhysicsShape]
+    myProperties      ==> [Holographic]
     mySize                   ==> realToFrac keyDepth * 2
     myInheritTransform ==> InheritPose
     myUpdate               ==> do
         withHandEvents whichHand $ \case
-            HandStateEvent hand -> do                
+            HandStateEvent hand -> do
                 let pose = thumbPosInKeyboard hand keyboardDims
                 setPose (identity & translation .~ pose)
             _ -> return ()
