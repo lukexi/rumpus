@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module Rumpus.Systems.KeyboardHands where
+module Rumpus.Systems.KeyPads where
 import PreludeExtra
 
 import Rumpus.Systems.Controls
@@ -119,39 +119,39 @@ keyboardOffsetY = -0.2
 -- How far off the controllers the keyboard floats
 keyboardOffsetZ = 0.1
 
-data KeyboardHandsSystem = KeyboardHandsSystem
+data KeyPadsSystem = KeyPadsSystem
     { _kbhShiftDown         :: Bool
-    , _kbhKeyIDs            :: [(EntityID, HandKey)]
+    , _kbhKeyPadKeys        :: Map WhichHand [(EntityID, HandKey, V2 GLfloat -> Bool)]
     , _kbhCurrentKey        :: Map WhichHand HandKey
     , _kbhLastKey           :: Map WhichHand HandKey
-    , _kbhKeyboard          :: Map WhichHand EntityID
+    , _kbhKeyPad            :: Map WhichHand EntityID
     , _kbhKeyRepeaters      :: Map WhichHand EntityID
-    , _kbhKeyboardContainer :: EntityID
-    } deriving Show
-makeLenses      ''KeyboardHandsSystem
-defineSystemKey ''KeyboardHandsSystem
+    , _kbhKeyPadContainer   :: EntityID
+    }
+makeLenses      ''KeyPadsSystem
+defineSystemKey ''KeyPadsSystem
 
 
-showKeyboardHands :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
-showKeyboardHands forEntityID = do
-    keyboardID <- viewSystem sysKeyboardHands kbhKeyboardContainer
+showKeyPads :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+showKeyPads forEntityID = do
+    keyboardID <- viewSystem sysKeyPads kbhKeyPadContainer
 
     runEntity keyboardID $ setParent forEntityID
 
-    keyboardIDs <- viewSystem sysKeyboardHands kbhKeyboard
+    keyboardIDs <- viewSystem sysKeyPads kbhKeyPad
     forM_ keyboardIDs $ \keyboardID -> runEntity keyboardID $ do
         setSize 0.01
         animateSizeTo 0.3 0.2
 
-hideKeyboardHands :: (MonadIO m, MonadState ECS m) => m ()
-hideKeyboardHands = do
-    keyboardIDs <- viewSystem sysKeyboardHands kbhKeyboard
+hideKeyPads :: (MonadIO m, MonadState ECS m) => m ()
+hideKeyPads = do
+    keyboardIDs <- viewSystem sysKeyPads kbhKeyPad
     forM_ keyboardIDs $ \keyboardID -> runEntity keyboardID $ do
         animateSizeTo 0.01 0.2
 
 
-startKeyboardHandsSystem :: ECSMonad ()
-startKeyboardHandsSystem = do
+startKeyPadsSystem :: ECSMonad ()
+startKeyPadsSystem = do
 
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
@@ -161,66 +161,70 @@ startKeyboardHandsSystem = do
     let handsWithKeys = [ (LeftHand,  leftHandID,  leftHandKeys,  V3 (-0.2) (-0.35) 0.1)
                         , (RightHand, rightHandID, rightHandKeys, V3   0.2  (-0.35) 0.1)
                         ]
-    keyboardContainerID <- spawnEntity $ do
+    keyPadContainerID <- spawnEntity $ do
         myInheritTransform ==> InheritPose
-        --myPose ==> translateMatrix (V3 0 1 (-5))
         return ()
-    containersAndKeyIDs <- forM handsWithKeys $ \(whichHand, handID, keyRows, offset) -> do
-        --runEntity handID removeChildren
+    containersAndKeyPadKeys <- forM handsWithKeys $ \(whichHand, handID, keyRows, offset) -> do
 
-        containerID      <- spawnEntity $ do
-            myParent             ==> keyboardContainerID
+        keyPadID         <- spawnEntity $ do
+            myParent             ==> keyPadContainerID
             myInheritTransform   ==> InheritPose
             mySize               ==> 0.01
             myPose               ==> mkTransformation (axisAngle (V3 1 0 0) (pi/2)) offset
         scaleContainerID <- spawnEntity $ do
-            myParent             ==> containerID
+            myParent             ==> keyPadID
             myInheritTransform   ==> InheritFull
 
-        keyIDsForHand <- spawnKeysForHand whichHand scaleContainerID keyRows
-        return ((whichHand, containerID), keyIDsForHand)
-    let keyIDs = concatMap snd containersAndKeyIDs
-        keyboardIDs = Map.fromList (map fst containersAndKeyIDs)
+        -- Add the indicator of thumb position
+        thumbNubID <- spawnEntity $ makeThumbNub whichHand keyPadID
 
-    registerSystem sysKeyboardHands $ KeyboardHandsSystem
-        { _kbhShiftDown    = False
-        , _kbhKeyIDs       = keyIDs
-        , _kbhCurrentKey   = mempty
-        , _kbhLastKey      = mempty
-        , _kbhKeyboard     = keyboardIDs
-        , _kbhKeyRepeaters = mempty
-        , _kbhKeyboardContainer = keyboardContainerID
+        keyPadKeys <- spawnKeysForHand whichHand scaleContainerID keyRows
+        return (whichHand, keyPadID, thumbNubID, keyPadKeys)
+
+    let keyPadIDs   = Map.fromList $ zip (view _1) (view _2) containersAndKeyPadKeys
+        thumbNubIDs = Map.fromList $ zip (view _1) (view _3) containersAndKeyPadKeys
+        keyPadKeys  = Map.fromList $ zip (view _1) (view _4) containersAndKeyPadKeys
+
+    registerSystem sysKeyPads $ KeyPadsSystem
+        { _kbhShiftDown       = False
+        , _kbhKeyPadKeys      = keyPadKeys
+        , _kbhCurrentKey      = mempty
+        , _kbhLastKey         = mempty
+        , _kbhKeyPad          = keyPadIDs
+        , _kbhKeyRepeaters    = mempty
+        , _kbhKeyPadContainer = keyPadContainerID
+        , _kbhThumbNubs       = mempty
         }
 
-tickKeyboardHandsSystem :: ECSMonad ()
-tickKeyboardHandsSystem = do
+tickKeyPadsSystem :: ECSMonad ()
+tickKeyPadsSystem = do
     handIDs <- getHandIDs
 
-    keyIDs <- viewSystem sysKeyboardHands kbhKeyIDs
+    keyIDs <- viewSystem sysKeyPads kbhKeyPadKeys
 
     forM_ handIDs $ \(whichHand, _handID) -> do
         withHandEvents whichHand $ \case
             HandStateEvent _ -> do
-                modifySystemState sysKeyboardHands $ do
+                modifySystemState sysKeyPads $ do
                     currentKey <- use $ kbhCurrentKey . at whichHand
                     lastKey    <- use $ kbhLastKey    . at whichHand
                     when (currentKey /= lastKey) $ do
                         lift $ hapticPulse whichHand 1000
                     kbhLastKey . at whichHand .= currentKey
             HandButtonEvent HandButtonPad ButtonDown -> do
-                mCurrentKey <- viewSystem sysKeyboardHands (kbhCurrentKey . at whichHand)
+                mCurrentKey <- viewSystem sysKeyPads (kbhCurrentKey . at whichHand)
                 forM_ mCurrentKey $ \currentKey -> do
 
                     -- Shift handling
                     if (currentKey == HandKeyShift)
                         then do
-                            isShiftDown <- modifySystemState sysKeyboardHands (kbhShiftDown <%= not)
+                            isShiftDown <- modifySystemState sysKeyPads (kbhShiftDown <%= not)
                             -- Flip the text of all the keys to reflect the shifted state
                             forM_ keyIDs $ \(keyID, key) -> do
                                 runEntity keyID $ setText (showKey isShiftDown key)
                         -- We don't send any events for Shift, just using it to toggle internal state.
                         else do
-                            isShiftDown <- viewSystem sysKeyboardHands kbhShiftDown
+                            isShiftDown <- viewSystem sysKeyPads kbhShiftDown
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
                                 sendInternalEvent (GLFWEvent event)
 
@@ -230,15 +234,15 @@ tickKeyboardHandsSystem = do
                                     setDelayedAction 0.25 $ do
                                         setRepeatingAction 0.025 $ do
                                             sendInternalEvent (GLFWEvent event)
-                                modifySystemState sysKeyboardHands $
+                                modifySystemState sysKeyPads $
                                     kbhKeyRepeaters . at whichHand ?= repeaterID
 
             HandButtonEvent HandButtonPad ButtonUp -> do
-                mKeyRepeaterID <- viewSystem sysKeyboardHands (kbhKeyRepeaters . at whichHand)
+                mKeyRepeaterID <- viewSystem sysKeyPads (kbhKeyRepeaters . at whichHand)
 
                 forM_ mKeyRepeaterID $ \keyRepeaterID -> do
                     removeEntity keyRepeaterID
-                modifySystemState sysKeyboardHands $
+                modifySystemState sysKeyPads $
                     kbhKeyRepeaters . at whichHand .= Nothing
 
             _ -> return ()
@@ -249,49 +253,64 @@ spawnKeysForHand whichHand containerID keyRows = do
         maxNumKeys   = fromIntegral $ maximum (map length keyRows)
         keyboardDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
 
-    -- Add the indicator of thumb position
-    void $ spawnEntity $ makeThumbNub whichHand containerID keyboardDims
-
     -- Spawn the keys and return their entityIDs
     fmap concat . forM (zip [0..] keyRows) $ \(y, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
         forM (zip [0..] keyRow) $ \(x, key) -> do
+            let keyPose = getKeyPose x y numKeys keyboardDims
             keyID <- spawnEntity $
-                makeKeyboardKey whichHand containerID x y numKeys keyboardDims key
+                makeKeyboardKey whichHand containerID key keyPose
             return (keyID, key)
 
 
-makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> Int-> Int -> GLfloat -> V2 GLfloat -> HandKey -> m ()
-makeKeyboardKey whichHand containerID (fromIntegral -> x) (fromIntegral -> y) numKeys keyboardDims key = do
-    let pointIsInKey          = inRect (keyXY - keyDimsT/2) keyDimsT
+getKeyPose (fromIntegral -> x) (fromIntegral -> y) keyboardDims numKeys = (keyPose, pointIsInKey)
+    where
+        pointIsInKey          = inRect (keyXY - keyDimsT/2) keyDimsT
 
         keyXY@(V2 keyX keyY)  = V2 (keyOffsetX + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
         keyOffsetX            = -keyWidthT * (numKeys - 1) / 2
-        pose                  = V3 keyX keyboardOffsetZ keyY
+        keyPose               = V3 keyX keyboardOffsetZ keyY
 
-        keyTitleScale         = 1 / (fromIntegral (length keyTitle))
+tickKeyPadsSystem = do
+    forM_ [LeftHand, RightHand] $ \whichHand -> withHandEvents whichHand $ \case
+        HandStateEvent hand -> do
+            let thumbPos = thumbPosInKeyboard hand keyboardDims
+                thumbXY = thumbPose ^. _xz
+            -- Update thumb nub
+            thumbNubID <- getThumbNub whichHand
+            runEntity thumbNubID (setPosition thumbPos)
+
+            -- Update active keys
+            -- Default to no key, in case of thumb moving off keys all together.
+            -- This will be overwritten below if a key is found.
+            modifySystemState sysKeyPads $ kbhCurrentKey . at whichHand .= Nothing
+            keysForHand <- getKeysForHand whichHand
+            forM keysForHand $ \(keyID, key, pointIsInKey) -> do
+
+                let isInKey  = pointIsInKey thumbXY
+                    color    = if isInKey then keyColorOn else keyColorOff
+
+                runEntity keyID (myColor ==> color)
+                when isInKey $ do
+                    modifySystemState sysKeyPads $ kbhCurrentKey . at whichHand ?= key
+        _ -> return ()
+
+makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> HandKey -> V3 GLfloat -> m ()
+makeKeyboardKey whichHand containerID key keyPosition = do
+    let keyTitleScale         = 1 / (fromIntegral (length keyTitle))
         keyTitle              = showKey False key
     myParent                 ==> containerID
     myText                   ==> keyTitle
     myTextPose               ==> mkTransformation
-                                      (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0) !*! scaleMatrix keyTitleScale
+                                      (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0)
+                                    !*! scaleMatrix keyTitleScale
     myColor                  ==> keyColorOff
-    myShape              ==> Cube
-    myProperties      ==> [Holographic]
-    myPose                   ==> (identity & translation .~ pose)
+    myShape                  ==> Cube
+    myProperties             ==> [Holographic]
+    myPose                   ==> translateMatrix keyPosition
     mySize                   ==> V3 keyWidth keyDepth keyHeight
-    myInheritTransform ==> InheritPose
-    myUpdate ==> do
-        withHandEvents whichHand $ \case
-            HandStateEvent hand -> do
-                let thumbXY  = thumbPosInKeyboard hand keyboardDims ^. _xz
-                    isInKey  = pointIsInKey thumbXY
-                    color    = if isInKey then keyColorOn else keyColorOff
-                myColor ==> color
+    myInheritTransform       ==> InheritPose
 
-                when isInKey $ do
-                    modifySystemState sysKeyboardHands $ kbhCurrentKey . at whichHand ?= key
-            _ -> return ()
 
 getThumbPos :: Hand -> V2 GLfloat
 getThumbPos hand = hand ^. hndXY
@@ -307,17 +326,16 @@ thumbPosInKeyboard hand keyboardDims = V3 x keyboardOffsetZ offsetY
 makeThumbNub :: (MonadState ECS m, MonadReader EntityID m) => WhichHand -> EntityID -> V2 GLfloat -> m ()
 makeThumbNub whichHand containerID keyboardDims = do
 
-    myParent                 ==> containerID
-    myColor                  ==> keyColorOn
-    myShape              ==> Sphere
-    myProperties      ==> [Holographic]
-    mySize                   ==> realToFrac keyDepth * 2
+    myParent           ==> containerID
+    myColor            ==> keyColorOn
+    myShape            ==> Sphere
+    myProperties       ==> [Holographic]
+    mySize             ==> realToFrac keyDepth * 2
     myInheritTransform ==> InheritPose
-    myUpdate               ==> do
+    myUpdate           ==> do
         withHandEvents whichHand $ \case
             HandStateEvent hand -> do
-                let pose = thumbPosInKeyboard hand keyboardDims
-                setPose (identity & translation .~ pose)
+
             _ -> return ()
 
 -- | Check if a point is in the given rectangle

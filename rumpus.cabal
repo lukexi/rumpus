@@ -16,9 +16,9 @@ cabal-version:       >=1.10
 
 Flag RumpusRelease
   Description:
-    Configures Rumpus for release mode. 
+    Configures Rumpus for release mode.
     For executable:
-    * Routes console output to rumpus.log 
+    * Routes console output to rumpus.log
     For library:
     * Instructs rumpus to copy and use the user document version of Scenes
     * Tells the CodeEditor system to use embedded versions of the package databases.
@@ -26,7 +26,7 @@ Flag RumpusRelease
 
 Flag RumpusReleaseWithLogs
   Description:
-    Overrides the logging portion of RumpusRelease so we can still 
+    Overrides the logging portion of RumpusRelease so we can still
     see realtime console output from a release build of Rumpus.
   Default:     False
 
@@ -35,7 +35,7 @@ Flag RumpusProfile
     Sets a runtime flag so we can tell if we're being profiled and turn off hot-code-loading
   Default:     False
 
-library 
+library
   hs-source-dirs:      src
   if flag(RumpusRelease)
     cpp-options: -DRUMPUS_RELEASE
@@ -59,7 +59,7 @@ library
                        Rumpus.Systems.EditorFrame
                        Rumpus.Systems.Hands
                        Rumpus.Systems.Haptics
-                       Rumpus.Systems.KeyboardHands
+                       Rumpus.Systems.KeyPads
                        Rumpus.Systems.Lifetime
                        Rumpus.Systems.Render
                        Rumpus.Systems.Physics
@@ -71,7 +71,7 @@ library
                        Rumpus.Systems.Sound
                        Rumpus.Systems.Selection
                        Rumpus.Systems.Text
-  ghc-options:         -O2 -Wall 
+  ghc-options:         -O2 -Wall
   build-depends:       base
                      , pd-hs
                      , bullet-mini
@@ -119,7 +119,7 @@ executable rumpus
 
   build-depends:       base, rumpus, glfw-pal
   default-language:    Haskell2010
-  
+
   -- -dynamic on OS X fixes an "unknown ___dso_handle symbol" error
   -- A different bug than what halive was hitting (https://ghc.haskell.org/trac/ghc/ticket/9278)
   -- but maybe just masking it and that one would pop up later.

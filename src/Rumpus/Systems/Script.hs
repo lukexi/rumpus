@@ -7,6 +7,8 @@ import Rumpus.Systems.PlayPause
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
 
+import System.Timeout
+
 tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenWorldPlaying $ do
     forEntitiesWithComponent myStart $

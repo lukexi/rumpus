@@ -14,7 +14,7 @@ import Rumpus.Systems.Physics
 
 import Rumpus.Systems.Attachment
 --import Rumpus.Systems.CodeEditor
-import Rumpus.Systems.KeyboardHands
+import Rumpus.Systems.KeyPads
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Selection
 --import Rumpus.Systems.Scene
@@ -43,7 +43,7 @@ initSceneEditorSystem = do
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
 
-    hideKeyboardHands
+    hideKeyPads
 
     removeCurrentEditorFrame
 
@@ -61,7 +61,7 @@ selectEntity entityID = do
 
             setSelectedEntityID entityID
 
-            showKeyboardHands entityID
+            showKeyPads entityID
             --addEditorFrame entityID
 
     return ()

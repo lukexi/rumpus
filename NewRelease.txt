@@ -34,14 +34,15 @@ VIDEO
         UPDATE: from testing with OBS, I think this'll do the job for the first release.
         Especially if I increase OBS capture res.
 
-[ ] Make shift momentary
 [ ] Fix teleport ray not appearing unless hitting geo
-[x] Attach keyboard to selected object
-[x] Increase keyrepeat speed
-[ ] Use 80columns for all text screens
 [ ] See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
 [ ] I definitely wanted code forking in my last session!!! Test that again.
 
 [ ] Deletion by "putting back" into library, like in The Gallery
 
 [ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
+
+[x] Use 80columns for all text screens
+[x] Make shift momentary
+[x] Attach keyboard to selected object
+[x] Increase keyrepeat speed

@@ -24,7 +24,7 @@ import Rumpus.Types
 
 --import Data.Time.Clock.POSIX
 
--- | Pairs a filename along with an expression 
+-- | Pairs a filename along with an expression
 -- to evaluate in that filename's environment once compiled
 type CodeInFile = (FilePath, String)
 
@@ -37,8 +37,8 @@ data CodeEditor = CodeEditor
     }
 makeLenses ''CodeEditor
 
-data CodeEditorSystem = CodeEditorSystem 
-    { _cesCodeEditors :: !(Map CodeInFile CodeEditor) 
+data CodeEditorSystem = CodeEditorSystem
+    { _cesCodeEditors :: !(Map CodeInFile CodeEditor)
     , _cesGHCChan     :: !(TChan CompilationRequest)
     }
 makeLenses ''CodeEditorSystem
@@ -55,14 +55,16 @@ defineComponentKeyWithType "PlayWhenReady"      [t|Bool|]
 
 -- When in release mode, use the embedded "packages" directory,
 -- otherwise use MSYS2's copy in /usr/local/ghc
+sharedGHCSessionConfig :: GHCSessionConfig
 sharedGHCSessionConfig = defaultGHCSessionConfig
     { gscFixDebounce = DebounceFix
     --, gscStartupFile = "resources"</>"Loader.hs"
     --, gscCompilationMode = Compiled
     }
 
-ghcSessionConfig = if isInReleaseMode 
-    then sharedGHCSessionConfig 
+rumpusGHCSessionConfig :: GHCSessionConfig
+rumpusGHCSessionConfig = if isInReleaseMode
+    then sharedGHCSessionConfig
         { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
                           , "packages"</>"snapshot"</>"pkgdb"
                           ]
@@ -77,9 +79,8 @@ getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
 getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID myPlayWhenReady
 
 -- This is used to implement a workaround
-withGHC action = do
-    
-
+withGHC :: MonadIO m => GHCSessionConfig -> (TChan CompilationRequest -> m b) -> m b
+withGHC ghcSessionConfig action = do
     ghcChan <- startGHC ghcSessionConfig
     action ghcChan
 
@@ -100,24 +101,24 @@ initCodeEditorSystem ghcChan = do
     registerComponent "PlayWhenReady" myPlayWhenReady (savedComponentInterface myPlayWhenReady)
 
 
-registerCodeExprComponent :: (MonadState ECS m, Typeable a) 
+registerCodeExprComponent :: (MonadState ECS m, Typeable a)
                           => String
-                          -> Key (EntityMap CodeInFile) 
-                          -> Key (EntityMap a) 
+                          -> Key (EntityMap CodeInFile)
+                          -> Key (EntityMap a)
                           -> m ()
-registerCodeExprComponent name codeInFileKey realCodeKey = 
+registerCodeExprComponent name codeInFileKey realCodeKey =
     registerComponent name codeInFileKey $ (savedComponentInterface codeInFileKey)
         { ciDeriveComponent  = Just (
-            withComponent_ codeInFileKey $ \codeInFile -> 
+            withComponent_ codeInFileKey $ \codeInFile ->
                 registerWithCodeEditor codeInFile realCodeKey
             )
         , ciRemoveComponent = do
-            withComponent_ codeInFileKey $ \codeInFile -> 
+            withComponent_ codeInFileKey $ \codeInFile ->
                 unregisterWithCodeEditor codeInFile
             removeComponent codeInFileKey
         }
 
-registerWithCodeEditor :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m) 
+registerWithCodeEditor :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)
                        => CodeInFile
                        -> Key (EntityMap a)
                        -> m ()
@@ -126,13 +127,13 @@ registerWithCodeEditor codeInFile realCodeKey = modifySystemState sysCodeEditor 
         Just existingEditor -> do
             forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> do
                 forM_ (getCompiledValue compiledValue)
-                    (lift . setComponent realCodeKey) 
+                    (lift . setComponent realCodeKey)
         Nothing -> do
             codeEditor <- createCodeEditor codeInFile
             cesCodeEditors . at codeInFile ?= codeEditor
     addCodeEditorDependency codeInFile realCodeKey
 
-addCodeEditorDependency :: (MonadState CodeEditorSystem m, MonadReader EntityID m, Typeable a) 
+addCodeEditorDependency :: (MonadState CodeEditorSystem m, MonadReader EntityID m, Typeable a)
                         => CodeInFile -> Key (EntityMap a) -> m ()
 addCodeEditorDependency codeInFile realCodeKey = do
     entityID <- ask
@@ -154,27 +155,27 @@ fullPathForCodeInFile (fileName, exprString) = do
     sceneFolder <- getSceneFolder
     return (sceneFolder </> fileName, exprString)
 
-createCodeEditor :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m)) 
+createCodeEditor :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m))
                  => CodeInFile -> t m CodeEditor
 createCodeEditor codeInFile = do
     ghcChan <- use cesGHCChan
     font <- lift getFont
     (scriptFullPath, exprString) <- lift $ fullPathForCodeInFile codeInFile
-     
+
     recompiler <- recompilerForExpression ghcChan scriptFullPath exprString
 
-    let setupRenderer r = 
-            updateMetrics ((txrScreenSize ?~ V2 50 50) r)
+    let setupRenderer r =
+            updateMetrics ((txrScreenSize ?~ V2 80 80) r)
     -- FIXME this should be async...
     -- (note: could implement that using WatchFile/refreshText by writing a phony event)
     codeRenderer  <- setupRenderer =<< textRendererFromFile font scriptFullPath WatchFile
     errorRenderer <- setupRenderer =<< createTextRenderer font (textBufferFromString "")
-    
-    return CodeEditor 
+
+    return CodeEditor
             { _cedCodeRenderer  = codeRenderer
             , _cedErrorRenderer = errorRenderer
             , _cedRecompiler    = recompiler
-            , _cedCompiledValue = Nothing 
+            , _cedCompiledValue = Nothing
             , _cedDependents    = mempty
             }
 
@@ -187,7 +188,7 @@ unregisterEntityWithCodeEditor :: (MonadState CodeEditorSystem m) => EntityID ->
 unregisterEntityWithCodeEditor entityID codeInFile = cesCodeEditors . ix codeInFile . cedDependents . at entityID .= Nothing
 
 
-recompileCodeInFile :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m)) 
+recompileCodeInFile :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m))
                     => CodeInFile -> t m ()
 recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
     ghcChan <- use cesGHCChan
@@ -207,18 +208,18 @@ recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) 
     writeTChanIO ghcChan compilationRequest
 
 
--- | Allows Script system to pass runtime exceptions to the error pane, 
+-- | Allows Script system to pass runtime exceptions to the error pane,
 -- assuming the given entityID has an onStartExpr.
 setErrorText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
 setErrorText entityID errors = do
     traverseM_ (getEntityComponent entityID myStartExpr) $ \codeInFile ->
-        modifySystemState sysCodeEditor $ 
+        modifySystemState sysCodeEditor $
             setTextRendererText (cesCodeEditors . ix codeInFile . cedErrorRenderer) errors
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
 tickCodeEditorResultsSystem :: ECSMonad ()
-tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $ 
+tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
     traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeInFile, editor) -> do
 
         -- Update entities with new code from the compiler
@@ -234,7 +235,7 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
 
                 -- Cache the compiled value for use by new objects using this same codeInFile
                 cesCodeEditors . ix codeInFile . cedCompiledValue ?= compiledValue
-                
+
                 -- Pass the compiled value to each registered "dependent" of the code editor
                 dependents <- use (cesCodeEditors . ix codeInFile . cedDependents)
                 lift $ forM_ dependents ($ compiledValue)
@@ -247,7 +248,7 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
 -- Experiments in dynamic code addition/cloning
 -----------------------------------------------
 {-
-addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
+addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
             => FilePath
             -> String
             -> Key (EntityMap CodeInFile)
@@ -272,7 +273,7 @@ forkCode fromEntityID toEntityID = do
         let (path, fileName) = splitFileName fullPath
             (name, ext)      = splitExtension fileName
         -- Slightly tricky to get right without overwriting files; need to enumerate directory and find unused name
-        -- so using getPosixTime for now. 
+        -- so using getPosixTime for now.
         --fileNum          = succ . fromMaybe 1 . readMaybe . reverse . takeWhile isDigit . reverse $ fileName
         now <- liftIO $ getPOSIXTime
         let newName = name ++ show now

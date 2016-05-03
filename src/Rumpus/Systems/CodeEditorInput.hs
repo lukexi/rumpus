@@ -9,21 +9,14 @@ module Rumpus.Systems.CodeEditorInput where
 import PreludeExtra hiding (Key)
 
 import Graphics.GL.TextBuffer
-import Halive.SubHalive
 import Halive.Recompiler
 import Halive.FileListener
 
 import qualified Data.HashMap.Strict as Map
 import Control.Monad.Trans.Maybe
-import Data.ECS.Vault
 
 import Rumpus.Systems.Shared
 
-import Rumpus.Systems.PlayPause
-import Rumpus.Systems.Text
-import Rumpus.Types
-
-import Data.Time.Clock.POSIX
 
 --import Rumpus.Systems.Hands
 import Rumpus.Systems.Controls
@@ -40,7 +33,7 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeInFile)
     handPose         <- getEntityPose handEntityID
     pose             <- getEntityPose selectedEntityID
-    
+
     -- We currently render code editors directly matched with the pose
     -- of the entity; update this when we make code editors into their own entities
     -- like the editorFrame children are
@@ -49,9 +42,9 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
         handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1))
     updatedRenderer  <- setCursorTextRendererWithRay handRay codeRenderer model44
 
-    modifySystemState sysCodeEditor $ 
+    modifySystemState sysCodeEditor $
         cesCodeEditors . ix codeInFile . cedCodeRenderer .= updatedRenderer
-    
+
     return True
 
 
@@ -63,7 +56,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
         window = gpWindow _ctsVRPal
 
     modifySystemState sysCodeEditor $
-        traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeInFile, editor) -> do
+        traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeInFile, _editor) -> do
             -- Ensure the buffers have the latest code text from disk
             refreshTextRendererFromFile (cesCodeEditors . ix codeInFile . cedCodeRenderer)
 
@@ -71,15 +64,15 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     forM mSelectedEntityID $ \selectedEntityID ->
         withEntityComponent selectedEntityID myStartExpr $ \codeInFile ->
             modifySystemState sysCodeEditor $ do
-                
+
                 didSave <- fmap or . forM events $ \case
                     GLFWEvent e -> do
                         -- Make sure our events don't trigger reloading/recompilation
                         -- (fixme: should be able to ask text buffer whether event will trigger save and only pause if so)
                         let causesSave = eventWillSaveTextBuffer e
-                        when causesSave $ 
+                        when causesSave $
                             pauseFileWatchers codeInFile
-                        handleTextBufferEvent window e 
+                        handleTextBufferEvent window e
                             (cesCodeEditors . ix codeInFile . cedCodeRenderer)
                         return causesSave
                     _ -> return False
@@ -90,4 +83,4 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => CodeInFile -> m ()
 pauseFileWatchers codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
     setIgnoreTimeNow (codeEditor ^. cedRecompiler . to recFileEventListener)
-    forM_ (codeEditor ^. cedCodeRenderer . txrFileEventListener) setIgnoreTimeNow 
+    forM_ (codeEditor ^. cedCodeRenderer . txrFileEventListener) setIgnoreTimeNow
