@@ -57,7 +57,7 @@ defineComponentKeyWithType "PlayWhenReady"      [t|Bool|]
 -- otherwise use MSYS2's copy in /usr/local/ghc
 sharedGHCSessionConfig = defaultGHCSessionConfig
     { gscFixDebounce = DebounceFix
-    , gscStartupFile = "resources"</>"Loader.hs"
+    --, gscStartupFile = "resources"</>"Loader.hs"
     --, gscCompilationMode = Compiled
     }
 
@@ -285,3 +285,4 @@ forkCode fromEntityID toEntityID = do
             codeFileComponentKey ==> newCodeInFile
             registerWithCodeEditor newCodeInFile codeFileComponentKey
 -}
+--
