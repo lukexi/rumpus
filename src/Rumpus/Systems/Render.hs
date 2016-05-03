@@ -274,11 +274,13 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
     glStencilFunc GL_ALWAYS 1 0xFF          -- Set any stencil to 1
     glStencilMask 0xFF                      -- Write to stencil buffer
 
+    headM44 <- getHeadPose
     withShape planeShape $ do
         Uniforms{..} <- asks sUniforms
         uniformV4  uColor (V4 1 1 1 1)
         uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.001)))
         uniformM44 uProjectionView projViewM44
+        uniformV3  uCamera (headM44 ^. translation)
         drawShape
 
     -- Draw clipped thing
