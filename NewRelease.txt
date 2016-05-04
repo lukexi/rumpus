@@ -1,11 +1,3 @@
-[ ] See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
-    - Looks like GHC can't detect let x = x. Let's try System.Timeout for this,
-    and if it fails, set a flag to stop executing scripts until new code is received.
-[ ] I definitely wanted code forking in my last session!!! Test that again.
-
-[ ] Deletion by "putting back" into library, like in The Gallery
-
-[ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
 
 INTERACTION
     [ ] New object creation
@@ -13,6 +5,16 @@ INTERACTION
         Object library
         Have Main.hs of room automatically arrange all possible objects on the shelves
         Scene defines namespace of library
+    [ ] I definitely wanted code forking in my last session!!! Test that again.
+
+    [ ] See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
+    - Looks like GHC can't detect let x = x. Let's try System.Timeout for this,
+    and if it fails, set a flag to stop executing scripts until new code is received.
+
+    [ ] Deletion by "putting back" into library, like in The Gallery
+        Deletion of consoles by throwing
+
+    [ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
 
 
 PERFORMANCE
@@ -27,6 +29,7 @@ PERFORMANCE
         possibly get whole transforms rather than quats/positions to reduce calculation?
         Get all objects in one big pass.
         Limit number of physics objects to again something like 1000.
+
     [ ] Reset button (e.g. hold both application buttons)
         Possibly automatically reset if low performance is detected?
 

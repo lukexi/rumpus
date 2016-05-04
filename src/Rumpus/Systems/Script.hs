@@ -18,7 +18,7 @@ tickScriptSystem = whenWorldPlaying $ do
             -- Automatically remove children when start runs.
             -- This should probably be configurable but it's what
             -- I always find myself doing so I'm hardcoding it for now.
-            --removeChildren
+            removeChildren
 
             -- Only call Start once.
             -- Handle any exceptions therein by writing them to the error pane.

@@ -13,6 +13,7 @@ import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
+import Rumpus.Systems.Selection
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Clock
 
@@ -152,10 +153,6 @@ viewSystemP systemKey viewLens = preview viewLens <$> getSystem systemKey
 
 showKeyPads :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 showKeyPads forEntityID = do
-    keyPadContainerID <- viewSystem sysKeyPads kpsKeyPadContainer
-
-    runEntity keyPadContainerID $ setParent forEntityID
-
     keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
     forM_ keyPadIDs $ \keyPadID -> runEntity keyPadID $ do
         setSize 0.01
@@ -167,6 +164,7 @@ hideKeyPads = do
     forM_ keyPadIDs $ \keyPadID -> runEntity keyPadID $ do
         animateSizeTo 0.01 0.2
 
+getKeyPadContainerID = viewSystem sysKeyPads kpsKeyPadContainer
 
 startKeyPadsSystem :: ECSMonad ()
 startKeyPadsSystem = do
@@ -227,6 +225,14 @@ getAllKeys = viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeys . traverse)
 
 tickKeyPadsSystem :: ECSMonad ()
 tickKeyPadsSystem = do
+
+    -- Sync the keys to the selected object manually to avoid interacting
+    -- with the Child system (which the selected object might be using)
+    -- This may become unnecessary with the proposed Deck system.
+    traverseM_ getSelectedEntityID $ \selectedEntityID -> do
+        keyPadContainerID <- getKeyPadContainerID
+        selectedEntityPose <- getEntityPose selectedEntityID
+        runEntity keyPadContainerID $ setPose selectedEntityPose
 
     forM_ [LeftHand, RightHand] $ \whichHand -> do
         keysForHand <- getKeysForHand whichHand
