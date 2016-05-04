@@ -249,6 +249,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
             let headPos = headM44 ^. translation
             renderTextAsScreen (editor ^. cedCodeRenderer)
                 planeShape projViewM44 codeModelM44 headPos
+                (V4 0.1 0.2 0.2 1)
 
             when (textRendererHasText $ editor ^. cedErrorRenderer) $ do
                 -- Render errors in light red in panel below main
@@ -256,6 +257,7 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
                 renderTextAsScreen (editor ^. cedErrorRenderer)
                     planeShape projViewM44 errorsModelM44 headPos
+                    (V4 0.2 0.1 0.1 1)
     glDisable GL_STENCIL_TEST
 
     glDisable GL_BLEND
@@ -265,8 +267,9 @@ renderTextAsScreen :: MonadIO m => TextRenderer
                                 -> M44 GLfloat
                                 -> M44 GLfloat
                                 -> V3 GLfloat
+                                -> V4 GLfloat
                                 -> m ()
-renderTextAsScreen textRenderer planeShape projViewM44 modelM44 cameraPos = do
+renderTextAsScreen textRenderer planeShape projViewM44 modelM44 cameraPos bgColor = do
 
     glStencilMask 0xFF
     glClear GL_STENCIL_BUFFER_BIT           -- Clear stencil buffer  (0 by default)
@@ -280,7 +283,7 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 cameraPos = do
 
     withShape planeShape $ do
         Uniforms{..} <- asks sUniforms
-        uniformV4  uColor (V4 1 1 1 1)
+        uniformV4  uColor bgColor
         uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.001)))
         uniformM44 uProjectionView projViewM44
         uniformV3  uCamera cameraPos

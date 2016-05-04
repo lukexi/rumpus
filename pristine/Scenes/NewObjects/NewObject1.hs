@@ -26,3 +26,4 @@ start = do
         myPose ==> translateMatrix (V3 0 0 (-10))
         myProperties ==> [Floating,Teleportable]
     return ()
+    
