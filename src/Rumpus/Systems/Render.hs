@@ -245,15 +245,17 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
                     !*! scaleMatrix (V3 sizeX sizeX 1)
 
             -- Render code in white
+            headM44 <- getHeadPose
+            let headPos = headM44 ^. translation
             renderTextAsScreen (editor ^. cedCodeRenderer)
-                planeShape projViewM44 codeModelM44
+                planeShape projViewM44 codeModelM44 headPos
 
             when (textRendererHasText $ editor ^. cedErrorRenderer) $ do
                 -- Render errors in light red in panel below main
                 let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 0 (-1) 0)
 
                 renderTextAsScreen (editor ^. cedErrorRenderer)
-                    planeShape projViewM44 errorsModelM44
+                    planeShape projViewM44 errorsModelM44 headPos
     glDisable GL_STENCIL_TEST
 
     glDisable GL_BLEND
@@ -262,8 +264,9 @@ renderTextAsScreen :: MonadIO m => TextRenderer
                                 -> Shape Uniforms
                                 -> M44 GLfloat
                                 -> M44 GLfloat
+                                -> V3 GLfloat
                                 -> m ()
-renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
+renderTextAsScreen textRenderer planeShape projViewM44 modelM44 cameraPos = do
 
     glStencilMask 0xFF
     glClear GL_STENCIL_BUFFER_BIT           -- Clear stencil buffer  (0 by default)
@@ -274,13 +277,13 @@ renderTextAsScreen textRenderer planeShape projViewM44 modelM44 = do
     glStencilFunc GL_ALWAYS 1 0xFF          -- Set any stencil to 1
     glStencilMask 0xFF                      -- Write to stencil buffer
 
-    headM44 <- getHeadPose
+
     withShape planeShape $ do
         Uniforms{..} <- asks sUniforms
         uniformV4  uColor (V4 1 1 1 1)
         uniformM44 uModel (modelM44 !*! translateMatrix (V3 0 0 (-0.001)))
         uniformM44 uProjectionView projViewM44
-        uniformV3  uCamera (headM44 ^. translation)
+        uniformV3  uCamera cameraPos
         drawShape
 
     -- Draw clipped thing
