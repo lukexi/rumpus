@@ -59,8 +59,8 @@ updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)
     let handRay = poseToRay (poseFromMatrix handPose) (V3 0 0 (-1)) :: Ray GLfloat
 
     mRayResult <- castRay handRay
-    let noHitLocation = V3 0 0 (-1000) *! handPose ^. _m33
-    (hitLocation, teleportable) <- fmap (fromMaybe (noHitLocation, False)) . forM mRayResult $ \RayResult{..} -> do
+    let noHitLocation = projectRay handRay 500
+    maybeHit <- forM mRayResult $ \RayResult{..} -> do
         entityID <- unCollisionObjectID <$> getCollisionObjectID rrCollisionObject
         teleportable <- getIsTeleportable entityID
 
@@ -69,7 +69,8 @@ updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)
 
         return (rrLocation, teleportable)
 
-    let handLocation = handPose ^. translation
+    let (hitLocation, teleportable) = fromMaybe (noHitLocation, False) maybeHit
+        handLocation = handPose ^. translation
         rayLength = distance handLocation hitLocation
         rayCenter = handLocation + (hitLocation - handLocation) / 2
 
@@ -77,7 +78,7 @@ updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)
     runEntity beamID $ do
         setPose (handPose & translation .~ rayCenter)
         setSize (V3 0.05 0.05 rayLength)
-        setColor $ if teleportable then V4 0 1 0 1 else V4 0.2 0.2 0.2 1
+        setColor $ if teleportable then V4 0 1 0 1 else V4 0.8 0.1 0.2 1
 
 endBeam :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 endBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)) $ \beamID -> do

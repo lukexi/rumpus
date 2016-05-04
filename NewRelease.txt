@@ -1,3 +1,12 @@
+[ ] See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
+    - Looks like GHC can't detect let x = x. Let's try System.Timeout for this,
+    and if it fails, set a flag to stop executing scripts until new code is received.
+[ ] I definitely wanted code forking in my last session!!! Test that again.
+
+[ ] Deletion by "putting back" into library, like in The Gallery
+
+[ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
+
 INTERACTION
     [ ] New object creation
         - Think through the yaml/persistence story one more time.
@@ -5,7 +14,6 @@ INTERACTION
         Have Main.hs of room automatically arrange all possible objects on the shelves
         Scene defines namespace of library
 
-    [ ] Compilation feedback (maybe this will be fixed by the new error panel setup)
 
 PERFORMANCE
     Do as many simple things as possible to help protect users from getting into gross states
@@ -23,26 +31,38 @@ PERFORMANCE
         Possibly automatically reset if low performance is detected?
 
 KEYBOARD
+    [ ] ConsoleSystem that encompasses screen, keys and knobs
+        Consoles start out as mini-computers that are attached to the object
+        Click on them to make them full size, bring up knobs, etc.
+        At full size, they still default to being attached to their object(?)
+        Pull them away and they become strung-out from their object,
+        with a connecting wire. You can dock them again by dragging them back, or
+        just click away from them. In this way you can remote-control code from anywhere,
+        and this gives a good option for plucking objects out of the library to edit.
+        You can grab either from your inventory:
+        BACKPACK
+        [Object][Code]
+        [Object][Code]
+        [Object][Code]
+        (Ah, maybe there's something here for instance vs. copy!
+        grab object to make an instance, duplicate code to make copy?)
+
+    [ ] Knob System/API
     [ ] Vari-size keys for space, arrows, enter, backspace etc.
         - Pass a width/height into the key construction function,
           and accumulate x and y offsets
 
-    [ ] Knob System/API
 VIDEO
-    [ ] Test cropped screen recording quality/legibility
+    [x] Test cropped screen recording quality/legibility
         - Use SteamVR as the recorded window to avoid hiccup bug in Rumpus's mirror.
-        UPDATE: from testing with OBS, I think this'll do the job for the first release.
+        DONE: From testing with OBS, I think this'll do the job for the first release.
         Especially if I increase OBS capture res.
-
-[ ] Fix teleport ray not appearing unless hitting geo
-[ ] See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
-[ ] I definitely wanted code forking in my last session!!! Test that again.
-
-[ ] Deletion by "putting back" into library, like in The Gallery
-
-[ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
 
 [x] Use 80columns for all text screens
 [x] Make shift momentary
 [x] Attach keyboard to selected object
 [x] Increase keyrepeat speed
+[x] Fix stale key bugs
+[x] Implement momentary shift
+[x] Fix teleport ray not appearing unless hitting geo
+[x] Compilation feedback (maybe this will be fixed by the new error panel setup)
