@@ -87,6 +87,7 @@ removeFromParent = do
     withComponent_ myParent $ \oldParentID ->
         runEntity oldParentID $ do
             myChildren ==% L.delete childID
+    removeComponent myParent
 
 removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren =

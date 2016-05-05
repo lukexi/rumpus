@@ -250,8 +250,8 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
 -----------------------------------------------
 -- Experiments in dynamic code addition/cloning
 -----------------------------------------------
-{-
-addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+
+addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
             => FilePath
             -> String
             -> Key (EntityMap CodeInFile)
@@ -266,7 +266,7 @@ addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
     liftIO $ copyFile defaultFileName entityFileName
     codeFileComponentKey ==> codeFile
     registerWithCodeEditor codeFile codeComponentKey
-
+{-
 forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 forkCode fromEntityID toEntityID = do
     let codeFileComponentKey = myStartExpr

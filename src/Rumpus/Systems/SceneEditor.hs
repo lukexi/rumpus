@@ -29,8 +29,10 @@ defineSystemKey ''SceneEditorSystem
 data DragFrom = DragFrom HandEntityID (V3 GLfloat)
 
 type Drag = V3 GLfloat -> EntityMonad ()
+type DragBegan = EntityMonad ()
 
 defineComponentKey ''DragFrom
+defineComponentKey ''DragBegan
 defineComponentKey ''Drag
 
 initSceneEditorSystem :: MonadState ECS m => m ()
@@ -38,6 +40,7 @@ initSceneEditorSystem = do
     registerSystem sysSceneEditor $ SceneEditorSystem Nothing
 
     registerComponent "DragFrom" myDragFrom (newComponentInterface myDragFrom)
+    registerComponent "DragBegan"     myDragBegan     (newComponentInterface myDragBegan)
     registerComponent "Drag"     myDrag     (newComponentInterface myDrag)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
@@ -77,7 +80,7 @@ beginDrag handEntityID draggedID = do
     setEntityComponent myDragFrom (DragFrom handEntityID startPos) draggedID
 
     runEntity draggedID $
-        withComponent_ myDrag ($ 0)
+        withComponent_ myDragBegan id
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do

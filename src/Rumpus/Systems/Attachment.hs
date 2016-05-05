@@ -7,9 +7,9 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import qualified Data.Set as Set
-data Attachment = Attachment 
+data Attachment = Attachment
     { atcToEntityID :: !EntityID
-    , atcOffset     :: !(M44 GLfloat) 
+    , atcOffset     :: !(M44 GLfloat)
     } deriving (Ord, Eq)
 type Attachments = Set Attachment
 
@@ -22,7 +22,7 @@ initAttachmentSystem = do
 tickAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAttachmentSystem =
     forEntitiesWithComponent myAttachments $
-        \(entityID, attachments) -> 
+        \(entityID, attachments) ->
             forM_ attachments $ \(Attachment toEntityID offset) -> do
                 pose <- getEntityPose entityID
                 setEntityPose (pose `addMatrix` offset) toEntityID
@@ -30,29 +30,34 @@ tickAttachmentSystem =
 attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> Bool -> m ()
 attachEntity entityID toEntityID exclusive = do
     -- Detach any current attachments
-    when exclusive $ 
+    when exclusive $
         detachAttachedEntities entityID
 
     entityPose   <- getEntityPose entityID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractMatrix` entityPose
-    
+
     addAttachmentToSet entityID (Attachment toEntityID offset)
 
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
+detachAttachedEntity :: (HasComponents s, MonadState s m) => EntityID -> EntityID -> m ()
+detachAttachedEntity ofEntityID entityID =
+    modifyEntityComponent ofEntityID myAttachments
+        (Set.filter (not . (== entityID) . atcToEntityID))
+
 detachAttachedEntities :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
-detachAttachedEntities entityID =
-    withAttachments entityID $ \attachments -> do
+detachAttachedEntities ofEntityID =
+    withAttachments ofEntityID $ \attachments -> do
         forM_ attachments $ \(Attachment attachedEntityID _offset) -> do
 
-            physProps <- getEntityProperties attachedEntityID
-            unless (Floating `elem` physProps) $ 
+            properties <- getEntityProperties attachedEntityID
+            unless (Floating `elem` properties) $
                 withEntityRigidBody attachedEntityID $ \rigidBody ->
                     setRigidBodyKinematic rigidBody False
 
-        removeEntityComponent myAttachments entityID
+        removeEntityComponent myAttachments ofEntityID
 
 addAttachmentToSet :: (MonadState s m, HasComponents s) => EntityID -> Attachment -> m ()
 addAttachmentToSet entityID attachment = getEntityComponent entityID myAttachments >>= \case
