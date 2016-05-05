@@ -32,8 +32,8 @@ addQuickKnob :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
 addQuickKnob name (low, high) action = do
     knobID <- spawnEntity $ do
         myShape ==> Cube
-        myDrag ==> \change -> do
-            action (translateMatrix change)
+        myDrag ==> \changeM44 -> do
+            action changeM44
     let knob = Knob
             { knbName = name
             , knbRange = (low, high)

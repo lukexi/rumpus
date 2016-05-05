@@ -9,10 +9,9 @@ import PreludeExtra
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 
--- data DragFrom = DragFrom HandEntityID (M44 GLfloat)
-data DragFrom = DragFrom HandEntityID (V3 GLfloat)
+data DragFrom = DragFrom HandEntityID (M44 GLfloat)
 
-type Drag = V3 GLfloat -> EntityMonad ()
+type Drag = M44 GLfloat -> EntityMonad ()
 type DragBegan = EntityMonad ()
 
 defineComponentKey ''DragFrom
@@ -29,18 +28,18 @@ initDragSystem = do
 
 beginDrag :: EntityID -> EntityID -> ECSMonad ()
 beginDrag handEntityID draggedID = do
-    startPos <- view translation <$> getEntityPose handEntityID
-    setEntityComponent myDragFrom (DragFrom handEntityID startPos) draggedID
+    startM44 <- getEntityPose handEntityID
+    setEntityComponent myDragFrom (DragFrom handEntityID startM44) draggedID
 
     runEntity draggedID $
         withComponent_ myDragBegan id
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
-    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID startPos) ->
+    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID startM44) ->
         when (handEntityID == draggingHandEntityID) $ do
-            currentPose <- view translation <$> getEntityPose handEntityID
-            let dragDistance = currentPose - startPos
+            currentM44 <- getEntityPose handEntityID
+            let dragDistance = currentM44 `subtractMatrix` startM44
 
             runEntity entityID $
                 withComponent_ myDrag ($ dragDistance)

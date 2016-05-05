@@ -27,8 +27,8 @@ addEditorFrame entityID = do
             mySize       ==> 0.1
             myProperties ==> [Floating, Ghostly]
             myConstraint ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
-            myDrag       ==> \dragDistance -> do
-                let x = dragDistance ^. _x
+            myDrag       ==> \changeM44 -> do
+                let x = changeM44 ^. translation . _x
                     newColor = colorHSL (mod' x 1) 0.9 0.6
                 setColor newColor
                 setEntityColor newColor entityID
@@ -40,8 +40,8 @@ addEditorFrame entityID = do
             mySize       ==> 0.2
             myProperties ==> [Floating, Ghostly]
             myConstraint ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
-            myDrag       ==> \dragDistance -> do
-                let size = max 0.05 (abs dragDistance)
+            myDrag       ==> \changeM44 -> do
+                let size = max 0.05 (abs $ changeM44 ^. translation)
                 -- Set the edited entity's size, not the editor-widget's : )
                 setEntitySize size entityID
 
