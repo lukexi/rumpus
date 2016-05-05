@@ -29,6 +29,7 @@ rumpusMain = withGHC rumpusGHCSessionConfig $ \ghc -> withPd $ \pd -> do
         initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
+        initDragSystem
         initHapticsSystem
         initLifetimeSystem
         initPhysicsSystem

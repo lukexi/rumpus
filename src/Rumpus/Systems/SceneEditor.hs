@@ -6,8 +6,8 @@
 module Rumpus.Systems.SceneEditor where
 import PreludeExtra
 
-import Rumpus.Types
 --import Rumpus.Systems.Controls
+import Rumpus.Systems.Drag
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
@@ -25,23 +25,10 @@ data SceneEditorSystem = SceneEditorSystem
 makeLenses ''SceneEditorSystem
 defineSystemKey ''SceneEditorSystem
 
--- data DragFrom = DragFrom HandEntityID (M44 GLfloat)
-data DragFrom = DragFrom HandEntityID (V3 GLfloat)
-
-type Drag = V3 GLfloat -> EntityMonad ()
-type DragBegan = EntityMonad ()
-
-defineComponentKey ''DragFrom
-defineComponentKey ''DragBegan
-defineComponentKey ''Drag
 
 initSceneEditorSystem :: MonadState ECS m => m ()
 initSceneEditorSystem = do
     registerSystem sysSceneEditor $ SceneEditorSystem Nothing
-
-    registerComponent "DragFrom" myDragFrom (newComponentInterface myDragFrom)
-    registerComponent "DragBegan"     myDragBegan     (newComponentInterface myDragBegan)
-    registerComponent "Drag"     myDrag     (newComponentInterface myDrag)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
@@ -72,32 +59,6 @@ selectEntity entityID = do
 removeCurrentEditorFrame :: (MonadIO m, MonadState ECS m) => m ()
 removeCurrentEditorFrame = traverseM_ (viewSystem sysSceneEditor sedCurrentEditorFrame) removeEntity
 
-
-
-beginDrag :: EntityID -> EntityID -> ECSMonad ()
-beginDrag handEntityID draggedID = do
-    startPos <- view translation <$> getEntityPose handEntityID
-    setEntityComponent myDragFrom (DragFrom handEntityID startPos) draggedID
-
-    runEntity draggedID $
-        withComponent_ myDragBegan id
-
-continueDrag :: HandEntityID -> ECSMonad ()
-continueDrag draggingHandEntityID = do
-    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID startPos) ->
-        when (handEntityID == draggingHandEntityID) $ do
-            currentPose <- view translation <$> getEntityPose handEntityID
-            let dragDistance = currentPose - startPos
-
-            runEntity entityID $
-                withComponent_ myDrag ($ dragDistance)
-
-endDrag :: MonadState ECS m => HandEntityID -> m ()
-endDrag endingDragHandEntityID = do
-    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID _) -> do
-        when (handEntityID == endingDragHandEntityID) $ do
-            removeEntityComponent myDragFrom entityID
-
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity $ do
     myPose  ==> pose
@@ -119,9 +80,7 @@ tickSceneEditorSystem = do
             HandButtonEvent HandButtonGrip ButtonUp -> do
                 endBeam whichHand
             HandButtonEvent HandButtonTrigger ButtonDown -> do
-                --didPlaceCursor <- raycastCursor handEntityID
-                --when (not didPlaceCursor) $ do
-                    initiateGrab whichHand handEntityID otherHandEntityID
+                initiateGrab whichHand handEntityID otherHandEntityID
             HandButtonEvent HandButtonTrigger ButtonUp -> do
                 endHapticDrag whichHand
                 endDrag handEntityID
@@ -141,12 +100,15 @@ tickSceneEditorSystem = do
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
 
+initiateGrab :: WhichHand -> EntityID -> EntityID -> ECSMonad ()
 initiateGrab whichHand handEntityID otherHandEntityID = do
     -- Find the entities overlapping the hand, and attach them to it
     overlappingEntityIDs <- filterStaticEntityIDs
                                 =<< getEntityOverlappingEntityIDs handEntityID
 
-    when (null overlappingEntityIDs) clearSelection
+    when (null overlappingEntityIDs) $ do
+        clearSelection
+        --didPlaceCursor <- raycastCursor handEntityID
 
     forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
         handPose <- getEntityPose handEntityID
@@ -171,6 +133,7 @@ initiateGrab whichHand handEntityID otherHandEntityID = do
             | otherwise ->
                 grabEntity handEntityID grabbedID
 
+grabEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 grabEntity handEntityID grabbedID = do
     selectEntity grabbedID
     attachEntity handEntityID grabbedID True

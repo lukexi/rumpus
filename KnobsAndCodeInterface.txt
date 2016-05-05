@@ -5,7 +5,7 @@
         tickKnobSystem
 
         for a knob that automatically calls setSize.
-        Takes any EntityMonad function.
+        Takes any (Float -> EntityMonad) function.
         Can always expose a more explicit version with a readKnob function
             scaleKnob <- quickKnob "Scale" 0 10 50
             myUpdate ==> do

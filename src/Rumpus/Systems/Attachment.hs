@@ -60,9 +60,11 @@ detachAttachedEntities ofEntityID =
         removeEntityComponent myAttachments ofEntityID
 
 addAttachmentToSet :: (MonadState s m, HasComponents s) => EntityID -> Attachment -> m ()
-addAttachmentToSet entityID attachment = getEntityComponent entityID myAttachments >>= \case
-    Nothing          -> setEntityComponent myAttachments (Set.singleton attachment) entityID
-    Just attachments -> setEntityComponent myAttachments (Set.insert attachment attachments) entityID
+addAttachmentToSet entityID attachment =
+    runEntity entityID $ appendComponent myAttachments  (Set.singleton attachment)
+--getEntityComponent entityID myAttachments >>= \case
+--    Nothing          -> setEntityComponent myAttachments (Set.singleton attachment) entityID
+--    Just attachments -> setEntityComponent myAttachments (Set.insert attachment attachments) entityID
 
 withAttachments :: MonadState ECS m => EntityID -> (Attachments -> m b) -> m ()
 withAttachments entityID = withEntityComponent_ entityID myAttachments
@@ -74,8 +76,3 @@ isEntityAttachedTo :: (HasComponents s, MonadState s m) => EntityID -> EntityID 
 isEntityAttachedTo childID parentID = maybe False (Set.member childID . Set.map atcToEntityID) <$> getEntityAttachments parentID
 
 
-addMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
-addMatrix a b = a !*! b
-
-subtractMatrix :: M44 GLfloat -> M44 GLfloat -> M44 GLfloat
-subtractMatrix a b = inv44 b !*! a

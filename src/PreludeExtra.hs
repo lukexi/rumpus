@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE LambdaCase #-}
-module PreludeExtra 
+module PreludeExtra
     ( module Exports
     , module PreludeExtra
     ) where
@@ -8,6 +8,7 @@ module PreludeExtra
 import Control.Monad.State as Exports hiding (withState, withStateT)
 import Control.Monad.Reader as Exports hiding (local)
 import Data.Maybe as Exports
+import Data.Monoid as Exports
 import Data.Foldable as Exports
 import Control.Arrow as Exports
 import Control.Concurrent as Exports

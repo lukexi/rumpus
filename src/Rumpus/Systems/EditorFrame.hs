@@ -7,6 +7,7 @@ module Rumpus.Systems.EditorFrame where
 import PreludeExtra
 
 import Rumpus.Systems.Shared
+import Rumpus.Systems.Drag
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Constraint
 import Rumpus.Systems.SceneEditor
@@ -16,7 +17,7 @@ addEditorFrame entityID = do
     editorFrame <- spawnEntity $ do
         myConstraint ==> RelativePositionTo entityID 0
 
-    runEntity editorFrame $ do
+    _ <- runEntity editorFrame $ do
         ------------------------
         -- Define a color editor
         color <- getEntityColor entityID

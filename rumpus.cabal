@@ -51,15 +51,18 @@ library
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
                        Rumpus.Systems.Clock
+                       Rumpus.Systems.Creator
                        Rumpus.Systems.CodeEditor
                        Rumpus.Systems.CodeEditorInput
                        Rumpus.Systems.Collisions
                        Rumpus.Systems.Constraint
                        Rumpus.Systems.Controls
+                       Rumpus.Systems.Drag
                        Rumpus.Systems.EditorFrame
                        Rumpus.Systems.Hands
                        Rumpus.Systems.Haptics
                        Rumpus.Systems.KeyPads
+                       Rumpus.Systems.Knobs
                        Rumpus.Systems.Lifetime
                        Rumpus.Systems.Render
                        Rumpus.Systems.Physics

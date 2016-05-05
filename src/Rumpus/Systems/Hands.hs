@@ -7,10 +7,13 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import PreludeExtra
+
+type HandEntityID = EntityID
+
 data HandsSystem = HandsSystem
-    { _hndLeftHand  :: EntityID
-    , _hndRightHand :: EntityID
-    , _hndBeams :: Map WhichHand EntityID
+    { _hndLeftHand  :: HandEntityID
+    , _hndRightHand :: HandEntityID
+    , _hndBeams     :: Map WhichHand EntityID
     --, _hndHead      :: EntityID
     } deriving Show
 makeLenses ''HandsSystem
