@@ -61,10 +61,7 @@ detachAttachedEntities ofEntityID =
 
 addAttachmentToSet :: (MonadState s m, HasComponents s) => EntityID -> Attachment -> m ()
 addAttachmentToSet entityID attachment =
-    runEntity entityID $ appendComponent myAttachments  (Set.singleton attachment)
---getEntityComponent entityID myAttachments >>= \case
---    Nothing          -> setEntityComponent myAttachments (Set.singleton attachment) entityID
---    Just attachments -> setEntityComponent myAttachments (Set.insert attachment attachments) entityID
+    appendEntityComponent entityID myAttachments (Set.singleton attachment)
 
 withAttachments :: MonadState ECS m => EntityID -> (Attachments -> m b) -> m ()
 withAttachments entityID = withEntityComponent_ entityID myAttachments
