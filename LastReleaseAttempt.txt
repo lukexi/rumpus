@@ -296,5 +296,5 @@ start = do
 
 data Color = Color { hue :: GLfloat, saturation :: GLfloat, brightness :: GLfloat }
 
-setColor Color{..} = setColorV4 (hslColor hue saturation brightness)
+setColor Color{..} = setColorV4 (colorHSL hue saturation brightness)
 

@@ -8,7 +8,7 @@ import Rumpus
 import Rumpus.TestScene
 import Rumpus.CopyScenes
 import Halive.Utils
-
+import Halive.Recompiler
 
 rumpusMain :: IO ()
 rumpusMain = withGHC rumpusGHCSessionConfig $ \ghc -> withPd $ \pd -> do

@@ -24,17 +24,17 @@ initCollisionsSystem = do
     registerComponent "CollisionStart" myCollisionStart (newComponentInterface myCollisionStart)
     registerComponent "CollisionEnd"   myCollisionEnd   (newComponentInterface myCollisionEnd)
 
--- | Loop through the collisions for this frame and call any 
+-- | Loop through the collisions for this frame and call any
 -- entities' registered collision callbacks
 tickCollisionsSystem :: ECSMonad ()
 tickCollisionsSystem = do
     isPlaying <- viewSystem sysPlayPause plyPlaying
-    if isPlaying 
+    if isPlaying
         then do
-            -- NOTE: we get stale collisions with bullet-mini's getCollisions, 
+            -- NOTE: we get stale collisions with bullet-mini's getCollisions,
             -- so I've switched to the "contactTest" API which works.
-            
-            -- NOTE: duplicating some work here for code simplicty; should really 
+
+            -- NOTE: duplicating some work here for code simplicity; should really
             -- only do calculateCollisionDiffs once.
             -- But laziness will at least protect unused Set computations.
 
@@ -50,7 +50,7 @@ tickCollisionsSystem = do
                 (newCollisions, _, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ newCollisions $ \collidingID ->
                     runEntity entityID $ onCollisionStart collidingID 0.1
-            
+
             forEntitiesWithComponent myCollisionEnd $ \(entityID, onCollisionEnd) -> do
                 (_, oldCollisions, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ oldCollisions $ \collidingID ->
@@ -60,7 +60,7 @@ tickCollisionsSystem = do
             dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
             performDiscreteCollisionDetection dynamicsWorld
 
-calculateCollisionDiffs :: (MonadIO m, MonadState ECS m) 
+calculateCollisionDiffs :: (MonadIO m, MonadState ECS m)
                         => EntityID
                         -> Map EntityID (Set EntityID)
                         -> m (Set EntityID, Set EntityID, Set EntityID)
@@ -69,7 +69,7 @@ calculateCollisionDiffs entityID lastCollisionPairs = modifySystemState sysPhysi
 
     let currentCollisions = Set.fromList collidingIDs
         lastCollisions = fromMaybe Set.empty (Map.lookup entityID lastCollisionPairs)
-        newCollisions = Set.difference currentCollisions lastCollisions 
+        newCollisions = Set.difference currentCollisions lastCollisions
         oldCollisions = Set.difference lastCollisions currentCollisions
     -- This is redundantly called in the quick-and-dirty implementation but should be idempotent
     phyCollisionPairs . at entityID ?= currentCollisions

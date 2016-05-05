@@ -14,7 +14,7 @@ start = do
                 myProperties       ==> [Holographic]
                 myInheritTransform ==> InheritFull
                 mySize             ==> V3 0.5 0.5 0.5
-                myColor            ==> hslColor (fromIntegral n/9) 0.8 0.5
+                myColor            ==> colorHSL (fromIntegral n/9) 0.8 0.5
                 myUpdate ==> do
                     now <- sin <$> getNow
                     let V3 pX pY pZ = pos

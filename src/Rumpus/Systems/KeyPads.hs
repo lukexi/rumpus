@@ -99,22 +99,19 @@ rightHandKeys =
     where
         cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
 
-keyWidth, keyHeight, keyDepth, keyPad :: GLfloat
+keyWidth, keyHeight, keyDepth, keyPadding :: GLfloat
 keyWidth        = 0.05
 keyHeight       = 0.05
 keyDepth        = 0.02
-keyPad          = 0.01
+keyPadding          = 0.01
 
 keyHeightT, keyWidthT :: GLfloat
-keyWidthT       = keyWidth + keyPad
-keyHeightT      = keyHeight + keyPad
-
-keyDimsT :: V2 GLfloat
-keyDimsT        = V2 keyWidthT keyHeightT
+keyWidthT       = keyWidth + keyPadding
+keyHeightT      = keyHeight + keyPadding
 
 keyColorOn, keyColorOff :: V4 GLfloat
-keyColorOn               = hslColor 0.2 0.8 0.8
-keyColorOff              = hslColor 0.3 0.8 0.4
+keyColorOn               = colorHSL 0.2 0.8 0.8
+keyColorOff              = colorHSL 0.3 0.8 0.4
 
 -- How far up the keyboard appears
 keyboardOffsetY, keyboardOffsetZ :: GLfloat
@@ -151,8 +148,8 @@ viewSystemL systemKey viewLens = toListOf viewLens <$> getSystem systemKey
 viewSystemP systemKey viewLens = preview viewLens <$> getSystem systemKey
 
 
-showKeyPads :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
-showKeyPads forEntityID = do
+showKeyPads :: (MonadIO m, MonadState ECS m) => m ()
+showKeyPads = do
     keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
     forM_ keyPadIDs $ \keyPadID -> runEntity keyPadID $ do
         setSize 0.01
@@ -164,6 +161,7 @@ hideKeyPads = do
     forM_ keyPadIDs $ \keyPadID -> runEntity keyPadID $ do
         animateSizeTo 0.01 0.2
 
+getKeyPadContainerID :: MonadState ECS m => m EntityID
 getKeyPadContainerID = viewSystem sysKeyPads kpsKeyPadContainer
 
 startKeyPadsSystem :: ECSMonad ()
@@ -350,7 +348,9 @@ spawnKeysForHand containerID keyRows = do
 getKeyPose :: Int -> Int -> GLfloat -> (V3 GLfloat, V2 GLfloat -> Bool)
 getKeyPose (fromIntegral -> x) (fromIntegral -> y) numKeys = (keyPose, pointIsInKey)
     where
-        pointIsInKey          = inRect (keyXY - keyDimsT/2) keyDimsT
+        keyTopLeft            = keyXY - keyDimsT/2
+        keyDimsT              = V2 keyWidthT keyHeightT
+        pointIsInKey          = inRect keyTopLeft keyDimsT
 
         keyXY@(V2 keyX keyY)  = V2 (keyOffsetX + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
         keyOffsetX            = -keyWidthT * (numKeys - 1) / 2

@@ -78,12 +78,6 @@ getPlayWhenReady = fromMaybe False <$> getComponent myPlayWhenReady
 getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
 getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID myPlayWhenReady
 
--- This is used to implement a workaround
-withGHC :: MonadIO m => GHCSessionConfig -> (TChan CompilationRequest -> m b) -> m b
-withGHC ghcSessionConfig action = do
-    ghcChan <- startGHC ghcSessionConfig
-    action ghcChan
-
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => TChan CompilationRequest -> m ()
 initCodeEditorSystem ghcChan = do
 
@@ -122,45 +116,47 @@ registerWithCodeEditor :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader 
                        => CodeInFile
                        -> Key (EntityMap a)
                        -> m ()
-registerWithCodeEditor codeInFile realCodeKey = modifySystemState sysCodeEditor $ do
-    use (cesCodeEditors . at codeInFile) >>= \case
+registerWithCodeEditor codeInFile realCodeKey = do
+    viewSystem sysCodeEditor (cesCodeEditors . at codeInFile) >>= \case
         Just existingEditor -> do
             forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> do
                 forM_ (getCompiledValue compiledValue)
-                    (lift . setComponent realCodeKey)
+                    (setComponent realCodeKey)
         Nothing -> do
             codeEditor <- createCodeEditor codeInFile
-            cesCodeEditors . at codeInFile ?= codeEditor
+            modifySystemState sysCodeEditor $
+                cesCodeEditors . at codeInFile ?= codeEditor
     addCodeEditorDependency codeInFile realCodeKey
 
-addCodeEditorDependency :: (MonadState CodeEditorSystem m, MonadReader EntityID m, Typeable a)
+addCodeEditorDependency :: (MonadState ECS m, MonadReader EntityID m, Typeable a)
                         => CodeInFile -> Key (EntityMap a) -> m ()
 addCodeEditorDependency codeInFile realCodeKey = do
     entityID <- ask
     let updateCodeAction newValue = do
-            putStrLnIO $ "Setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
+            --putStrLnIO $ "Setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
             forM_ (getCompiledValue newValue) $ \newCode ->
                 setEntityComponent realCodeKey newCode entityID
-            putStrLnIO $ "Done setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
-            -- FIXME: scratch pass at a "PlayWhenReady" system
-            -- to begin play when a file has PlayWhenReady set
+            --putStrLnIO $ "Done setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
+            -- Scratch pass at a "PlayWhenReady" system.
+            -- Begins play when a file has PlayWhenReady set
             -- and its start function finished compiling
             playWhenReady <- getEntityPlayWhenReady entityID
             when (playWhenReady && snd codeInFile == "start") $
                 setWorldPlaying True
-    cesCodeEditors . at codeInFile . traverse . cedDependents . at entityID ?= updateCodeAction
+    modifySystemState sysCodeEditor $
+        cesCodeEditors . at codeInFile . traverse . cedDependents . at entityID ?= updateCodeAction
 
 fullPathForCodeInFile :: MonadState ECS m => (FilePath, String) -> m (FilePath, String)
 fullPathForCodeInFile (fileName, exprString) = do
     sceneFolder <- getSceneFolder
     return (sceneFolder </> fileName, exprString)
 
-createCodeEditor :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m))
-                 => CodeInFile -> t m CodeEditor
+createCodeEditor :: (MonadIO m, MonadState ECS m)
+                 => CodeInFile -> m CodeEditor
 createCodeEditor codeInFile = do
-    ghcChan <- use cesGHCChan
-    font <- lift getFont
-    (scriptFullPath, exprString) <- lift $ fullPathForCodeInFile codeInFile
+    ghcChan                      <- viewSystem sysCodeEditor cesGHCChan
+    font                         <- getFont
+    (scriptFullPath, exprString) <- fullPathForCodeInFile codeInFile
 
     recompiler <- recompilerForExpression ghcChan scriptFullPath exprString
 
@@ -180,26 +176,33 @@ createCodeEditor codeInFile = do
             }
 
 unregisterWithCodeEditor :: (MonadReader EntityID m, MonadState ECS m) => CodeInFile -> m ()
-unregisterWithCodeEditor codeInFile = modifySystemState sysCodeEditor $ do
+unregisterWithCodeEditor codeInFile = do
     entityID <- ask
-    unregisterEntityWithCodeEditor entityID codeInFile
+    modifySystemState sysCodeEditor $ do
+        unregisterEntityWithCodeEditor entityID codeInFile
 
-unregisterEntityWithCodeEditor :: (MonadState CodeEditorSystem m) => EntityID -> CodeInFile -> m ()
-unregisterEntityWithCodeEditor entityID codeInFile = cesCodeEditors . ix codeInFile . cedDependents . at entityID .= Nothing
+unregisterEntityWithCodeEditor :: (MonadState CodeEditorSystem m)
+                               => EntityID -> CodeInFile -> m ()
+unregisterEntityWithCodeEditor entityID codeInFile =
+    cesCodeEditors . ix codeInFile . cedDependents . at entityID .= Nothing
 
+withCodeEditor :: MonadState ECS m => (FilePath, String) -> (CodeEditor -> m b) -> m ()
+withCodeEditor codeInFile =
+    traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeInFile))
 
-recompileCodeInFile :: (MonadTrans t, MonadIO (t m), MonadState ECS m, MonadState CodeEditorSystem (t m))
-                    => CodeInFile -> t m ()
-recompileCodeInFile codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
-    ghcChan <- use cesGHCChan
+recompileCodeInFile :: (MonadIO m, MonadState ECS m)
+                    => CodeInFile -> m ()
+recompileCodeInFile codeInFile = withCodeEditor codeInFile $ \codeEditor -> do
+    ghcChan <- viewSystem sysCodeEditor cesGHCChan
 
-    (fullPath, exprString) <- lift $ fullPathForCodeInFile codeInFile
+    (fullPath, exprString) <- fullPathForCodeInFile codeInFile
 
     let resultsChan = codeEditor ^. cedRecompiler . to recResultTChan
         textBuffer  = codeEditor ^. cedCodeRenderer . txrTextBuffer
         compilationRequest = CompilationRequest
             { crResultTChan      = resultsChan
-            -- NOTE: we want to make sure this isn't evaluated on this thread. Let the SubHalive thread do it:
+            -- NOTE: we want to make sure this isn't
+            -- evaluated on this thread. Let the SubHalive thread do it:
             , crFileContents     = Just (stringFromTextBuffer textBuffer)
             , crFilePath         = fullPath
             , crExpressionString = exprString

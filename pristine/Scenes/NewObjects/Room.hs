@@ -20,7 +20,7 @@ start = do
         myShape      ==> Cube
         myProperties ==> [Floating, Static, Teleportable]
         mySize       ==> V3 roomW wallD roomD
-        myColor      ==> hslColor 0.1 0.8 0.6
+        myColor      ==> colorHSL 0.1 0.8 0.6
         myMass       ==> 0
 
     spawnChild $ do

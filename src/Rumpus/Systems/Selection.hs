@@ -7,11 +7,10 @@ module Rumpus.Systems.Selection where
 import Data.ECS
 import PreludeExtra
 
-data SelectionSystem = SelectionSystem 
-    { _selSelectedEntityID :: !(Maybe EntityID) 
+data SelectionSystem = SelectionSystem
+    { _selSelectedEntityID :: !(Maybe EntityID)
     }
 makeLenses ''SelectionSystem
-
 defineSystemKey ''SelectionSystem
 
 initSelectionSystem :: MonadState ECS m => m ()

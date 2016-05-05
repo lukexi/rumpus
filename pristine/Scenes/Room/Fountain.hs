@@ -13,18 +13,18 @@ start = do
         -- Play a note
         note <- randomFrom majorScale
         sendPd "note" (Atom $ realToFrac note)
-        
+
         -- Spawn a ball
         pose <- getPose
         spawnEntity $ do
             -- Spawn upwards from our parent's pose
             let parentRotation = pose ^. _m33
-                offset = parentRotation !* V3 0 0.3 0 
+                offset = parentRotation !* V3 0 0.3 0
             myPose  ==> pose & translation +~ offset
             myShape ==> Sphere
             mySize  ==> 0.03
             myMass  ==> 0.1
-            myColor ==> hslColor (note / 12) 0.9 0.8
+            myColor ==> colorHSL (note / 12) 0.9 0.8
             myStart ==> do
                 setLifetime 10
                 applyForce (parentRotation !* V3 0 0.3 0)

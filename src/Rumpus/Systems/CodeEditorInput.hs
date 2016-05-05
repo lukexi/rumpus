@@ -62,10 +62,9 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 
     mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
     forM mSelectedEntityID $ \selectedEntityID ->
-        withEntityComponent selectedEntityID myStartExpr $ \codeInFile ->
-            modifySystemState sysCodeEditor $ do
-
-                didSave <- fmap or . forM events $ \case
+        withEntityComponent selectedEntityID myStartExpr $ \codeInFile -> do
+            didSave <- modifySystemState sysCodeEditor $
+                fmap or . forM events $ \case
                     GLFWEvent e -> do
                         -- Make sure our events don't trigger reloading/recompilation
                         -- (fixme: should be able to ask text buffer whether event will trigger save and only pause if so)
@@ -76,8 +75,8 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                             (cesCodeEditors . ix codeInFile . cedCodeRenderer)
                         return causesSave
                     _ -> return False
-                when didSave $ do
-                    recompileCodeInFile codeInFile
+            when didSave $ do
+                recompileCodeInFile codeInFile
 
 
 pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => CodeInFile -> m ()

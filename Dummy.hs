@@ -1,4 +1,4 @@
 module Foo where
 import Rumpus
-foo :: Start
+foo::Start
 foo=return ()

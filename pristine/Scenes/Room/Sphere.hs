@@ -28,7 +28,7 @@ start = do
         myProperties      ==> [Holographic]
         myInheritTransform ==> InheritFull
         mySize                   ==> V3 0.5 0.5 0.5
-        myColor                  ==> hslColor hue 0.8 0.5
+        myColor                  ==> colorHSL hue 0.8 0.5
         myUpdate ==> do
             now <- sin <$> getNow
             setSize (realToFrac ((sin now + 1) * 0.1 + 0.01))

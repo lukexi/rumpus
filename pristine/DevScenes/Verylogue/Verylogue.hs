@@ -19,7 +19,7 @@ pianokey parentID n = do
     mySize              ==> 0.5
     myCollisionStart  ==> \_ _ -> do
         hue <- liftIO randomIO
-        myColor ==> hslColor hue 0.8 0.4
+        myColor ==> colorHSL hue 0.8 0.4
         sendEntityPd parentID "piano-key" (List [fromIntegral note, 1])
     myCollisionEnd    ==> \_ -> do
         sendEntityPd parentID "piano-key" (List [fromIntegral note, 0])

@@ -61,7 +61,7 @@ selectEntity entityID = do
 
             setSelectedEntityID entityID
 
-            showKeyPads entityID
+            showKeyPads
             --addEditorFrame entityID
 
     return ()
@@ -71,10 +71,13 @@ removeCurrentEditorFrame = traverseM_ (viewSystem sysSceneEditor sedCurrentEdito
 
 
 
-beginDrag :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
+beginDrag :: EntityID -> EntityID -> ECSMonad ()
 beginDrag handEntityID draggedID = do
     startPos <- view translation <$> getEntityPose handEntityID
     setEntityComponent myDragFrom (DragFrom handEntityID startPos) draggedID
+
+    runEntity draggedID $
+        withComponent_ myDrag ($ 0)
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
@@ -84,21 +87,19 @@ continueDrag draggingHandEntityID = do
             let dragDistance = currentPose - startPos
 
             runEntity entityID $
-                withComponent_ myDrag $ \onDrag ->
-                    onDrag dragDistance
+                withComponent_ myDrag ($ dragDistance)
 
 endDrag :: MonadState ECS m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do
     forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID _) -> do
         when (handEntityID == endingDragHandEntityID) $ do
-
-            runEntity entityID $ removeComponent myDragFrom
+            removeEntityComponent myDragFrom entityID
 
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity $ do
-    myPose          ==> pose
-    myShape     ==> Cube
-    mySize          ==> 0.5
+    myPose  ==> pose
+    myShape ==> Cube
+    mySize  ==> 0.5
     -- myUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
 
 tickSceneEditorSystem :: ECSMonad ()
@@ -111,48 +112,13 @@ tickSceneEditorSystem = do
                 continueHapticDrag whichHand newHandPose
                 updateBeam whichHand
             HandButtonEvent HandButtonGrip ButtonDown -> do
-
                 beginBeam whichHand
-
             HandButtonEvent HandButtonGrip ButtonUp -> do
-
                 endBeam whichHand
-
             HandButtonEvent HandButtonTrigger ButtonDown -> do
-
                 --didPlaceCursor <- raycastCursor handEntityID
-                let didPlaceCursor = False
-                when (not didPlaceCursor) $ do
-                    -- Find the entities overlapping the hand, and attach them to it
-                    overlappingEntityIDs <- filterStaticEntityIDs
-                                                =<< getEntityOverlappingEntityIDs handEntityID
-
-                    when (null overlappingEntityIDs) clearSelection
-
-                    forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
-                        handPose <- getEntityPose handEntityID
-                        beginHapticDrag whichHand handPose
-
-                        hasDragFunction        <- entityHasComponent grabbedID myDrag
-                        isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
-                        if
-                            | isBeingHeldByOtherHand -> do
-
-                                -- Trying things out with this disabled, as it's too
-                                -- easy to cause performance problems by effortlessly
-                                -- duplicating expensive objects. Effort to dupe should
-                                -- roughly scale with how often we want users to do it.
-                                let allowDuplication = False
-                                when allowDuplication $ do
-                                    duplicateID <- duplicateEntity Persistent grabbedID
-                                    --forkCode grabbedID duplicateID
-                                    selectEntity duplicateID
-                                    attachEntity handEntityID duplicateID True
-                            | hasDragFunction ->
-                                beginDrag handEntityID grabbedID
-                            | otherwise -> do
-                                selectEntity grabbedID
-                                attachEntity handEntityID grabbedID True
+                --when (not didPlaceCursor) $ do
+                    initiateGrab whichHand handEntityID otherHandEntityID
             HandButtonEvent HandButtonTrigger ButtonUp -> do
                 endHapticDrag whichHand
                 endDrag handEntityID
@@ -169,7 +135,39 @@ tickSceneEditorSystem = do
     withLeftHandEvents  (editSceneWithHand LeftHand leftHandID  rightHandID)
     withRightHandEvents (editSceneWithHand RightHand rightHandID leftHandID)
 
-
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
 
+initiateGrab whichHand handEntityID otherHandEntityID = do
+    -- Find the entities overlapping the hand, and attach them to it
+    overlappingEntityIDs <- filterStaticEntityIDs
+                                =<< getEntityOverlappingEntityIDs handEntityID
+
+    when (null overlappingEntityIDs) clearSelection
+
+    forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
+        handPose <- getEntityPose handEntityID
+        beginHapticDrag whichHand handPose
+
+        hasDragFunction        <- entityHasComponent grabbedID myDrag
+        isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
+        if
+            | isBeingHeldByOtherHand -> do
+
+                -- Trying things out with this disabled, as it's too
+                -- easy to cause performance problems by effortlessly
+                -- duplicating expensive objects. Effort to dupe should
+                -- roughly scale with how often we want users to do it.
+                let allowDuplication = False
+                when allowDuplication $ do
+                    duplicateID <- duplicateEntity Persistent grabbedID
+                    --forkCode grabbedID duplicateID
+                    grabEntity handEntityID duplicateID
+            | hasDragFunction ->
+                beginDrag handEntityID grabbedID
+            | otherwise ->
+                grabEntity handEntityID grabbedID
+
+grabEntity handEntityID grabbedID = do
+    selectEntity grabbedID
+    attachEntity handEntityID grabbedID True

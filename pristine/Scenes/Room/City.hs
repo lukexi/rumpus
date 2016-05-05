@@ -31,7 +31,7 @@ createBuildings = do
         myShape       ==> Cube
         myProperties  ==> [Holographic]
         mySize        ==> V3 (dim * n * 8) 1 (dim * n * 8)
-        myColor       ==> hslColor 0.7 0.6 0.2
+        myColor       ==> colorHSL 0.7 0.6 0.2
     forM_ buildSites $ \(V3 x y z) -> do
         hue <- liftIO randomIO
 
@@ -41,7 +41,7 @@ createBuildings = do
             myShape      ==> Cube
             myProperties ==> [Holographic]
             mySize       ==> V3 dim (abs x) dim
-            myColor      ==> hslColor hue 0.8 0.8
+            myColor      ==> colorHSL hue 0.8 0.8
             -- myUpdate             ==> do
             --    let rate = 7000
             --    now <- getNow
@@ -60,4 +60,4 @@ createStars = do
         myShape      ==> Sphere
         myProperties ==> [Holographic]
         mySize       ==> 5
-        myColor      ==> hslColor hue 0.8 0.8
+        myColor      ==> colorHSL hue 0.8 0.8

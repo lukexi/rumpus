@@ -12,7 +12,7 @@ start = do
     rootEntityID <- ask
     rootPose <- getPose
     forM_ (zip [0..] majorScale) $ \(i, note) -> do
-        keyID <- spawnEntity $ 
+        keyID <- spawnEntity $
             makePianoKey rootEntityID rootPose i note
         attachEntity rootEntityID keyID False
     return Nothing
@@ -22,8 +22,8 @@ makePianoKey parentID parentPose i noteDegree = do
         x = (1/12) * fromIntegral i - 0.27
         pose = V3 x 0.4 0
         hue  = fromIntegral i / fromIntegral (length majorScale)
-        colorOn = hslColor hue 0.8 0.8
-        colorOff = hslColor hue 0.8 0.4
+        colorOn = colorHSL hue 0.8 0.8
+        colorOff = colorHSL hue 0.8 0.4
     myColor ==> colorOff
     myParent            ==> parentID
     myShape         ==> Cube

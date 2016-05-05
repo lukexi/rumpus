@@ -13,6 +13,6 @@ update entityID = do
 
     withState entityID $ \channel -> do
         (liftIO . atomically . readTChan) channel >>= \case
-            Atom (Float freq) -> setEntityColor (hslColor (freq/1000) 0.9 0.8) entityID
+            Atom (Float freq) -> setEntityColor (colorHSL (freq/1000) 0.9 0.8) entityID
             _ -> return ()
 

@@ -50,7 +50,7 @@ room = do
             myShape         ==> Cube
             myProperties ==> [Floating, Static]
             mySize              ==> size
-            myColor             ==> hslColor hue 0.8 0.6
+            myColor             ==> colorHSL hue 0.8 0.6
             myMass              ==> 0
     --makeWall (V3 0 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 -- back
     --makeWall (V3 0 0 (roomD/2))  (V3 roomW roomH wallD) 0.2 -- front
@@ -108,7 +108,7 @@ createBuildings = do
             --    let newHeight = ((sin (now+i) + 1) + 1) * height
             --    setSize (V3 dim newHeight dim)
             mySize                 ==> V3 dim height dim
-            myColor                ==> hslColor hue 0.8 0.8
+            myColor                ==> colorHSL hue 0.8 0.8
 
 createStars :: EntityMonad ()
 createStars = do
@@ -124,7 +124,7 @@ createStars = do
         myShape            ==> Sphere
         myProperties    ==> [Holographic]
         mySize                 ==> 5
-        myColor                ==> hslColor hue 0.8 0.8
+        myColor                ==> colorHSL hue 0.8 0.8
 
 -------------------------
 -- Fountain
@@ -154,7 +154,7 @@ fountain = do
                     myShape ==> Sphere
                     mySize      ==> 0.03
                     myMass      ==> 0.1
-                    myColor     ==> hslColor (note / 12) 0.9 0.8
+                    myColor     ==> colorHSL (note / 12) 0.9 0.8
                     myStart     ==> do
                         setLifetime 10
                         applyForce $ (pose ^. _m33) !* (V3 0 0.3 0)

@@ -112,7 +112,7 @@ tickRenderSystem headM44 = do
     selectedEntityID <- getSelectedEntityID
     now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
     let colorForEntity entityID
-            | Just entityID == selectedEntityID = hslColor 0.6 0.9 now
+            | Just entityID == selectedEntityID = colorHSL 0.6 0.9 now
             | otherwise = fromMaybe 1 $ Map.lookup entityID colorsMap
 
     -- Batch by entities sharing the same shape type

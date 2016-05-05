@@ -15,7 +15,7 @@ start = do
             myPdPatchFile     ==> "scenes/sampleverse/recorder"
             myCollisionStart  ==> \_ _ -> do
                 hue <- liftIO randomIO
-                myColor ==> hslColor hue 0.8 0.4 1
+                myColor ==> colorHSL hue 0.8 0.4 1
                 sendPd "record-toggle" (Atom 1)
             myCollisionEnd    ==> \_ -> do
                 sendPd "record-toggle" (Atom 0)
@@ -37,7 +37,7 @@ start = do
                 forM_ (zip children fftSample) $ \(childID, sample) -> runEntity childID $ do
                     let val = sample * 2
                     mySize  ==> (0.1 & _yz .~ realToFrac val)
-                    myColor ==> hslColor (realToFrac val) 0.8 0.4
+                    myColor ==> colorHSL (realToFrac val) 0.8 0.4
                 )
 
     forM_ [1, 2] $ \y -> spawnEntity $ recorderAt y

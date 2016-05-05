@@ -16,7 +16,7 @@ update = do
                     myParent  ==> rootID
                     myPose    ==> headPose
                     myGravity ==> 0
-                    myColor   ==> hslColor (realToFrac note / 100) 0.8 0.6
+                    myColor   ==> colorHSL (realToFrac note / 100) 0.8 0.6
                 let headOrient = poseFromMatrix headPose ^. posOrientation
                 applyForceToEntity (rotate headOrient (V3 0 0 (-2))) childID
             _ -> return ()

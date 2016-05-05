@@ -16,7 +16,7 @@ start = do
             mySize ==> 0.2
             myMass ==> 0.1
             let h = (fromIntegral $ (i * 27) `mod` 37) / 37
-            myColor ==> hslColor h 0.9 0.8
+            myColor ==> colorHSL h 0.9 0.8
             myUpdate ==> do
                 now <- getNow
                 let iF = fromIntegral i
@@ -27,7 +27,7 @@ start = do
                     z = 1 + 0.3 * iF * sin t
                 setPose (identity & translation .~ V3 x y z)
             myCollisionStart ==> \_ _ -> do
-                myColor ==> hslColor 1 0.5 0.5
+                myColor ==> colorHSL 1 0.5 0.5
 
         return ()
     return Nothing

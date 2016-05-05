@@ -34,8 +34,8 @@ pianokey parentID parentPose i j noteDegree = do
         x = (1/10) * fromIntegral i - 0.16 + 0.011 * fromIntegral j
         pose = V3 x 0.4 0
         hue  = fromIntegral i / fromIntegral (length majorScale)
-        colorOn = hslColor hue 0.8 0.8
-        colorOff = hslColor hue 0.8 0.4
+        colorOn = colorHSL hue 0.8 0.8
+        colorOff = colorHSL hue 0.8 0.4
     myColor ==> colorOff
     myParent            ==> parentID
     myShape         ==> Cube

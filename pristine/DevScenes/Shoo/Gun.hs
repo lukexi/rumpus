@@ -27,7 +27,7 @@ start = do
                     myShape ==> Sphere
                     mySize ==> 0.03
                     myMass ==> 0.1
-                    myColor ==> hslColor (note / 12) 0.9 0.8
+                    myColor ==> colorHSL (note / 12) 0.9 0.8
                 runEntity childID $ do
                     setLifetime 10
                     applyForce $ (pose ^. _m33) !* (V3 0 3.9 0)
