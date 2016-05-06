@@ -17,7 +17,9 @@ rumpusMain = withGHC rumpusGHCSessionConfig $ \ghc -> withPd $ \pd -> do
     --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
     -- pd    <- reacquire 1 $ initLibPd
 
-    scene <- fromMaybe "Room" . listToMaybe <$> getArgs
+    --let defaultScene = "Room"
+    let defaultScene = "NewObjects"
+    scene <- fromMaybe defaultScene . listToMaybe <$> getArgs
     userSceneFolder <- copyStartScene scene
 
     void . flip runStateT newECS $ do
@@ -29,6 +31,7 @@ rumpusMain = withGHC rumpusGHCSessionConfig $ \ghc -> withPd $ \pd -> do
         initCollisionsSystem
         initConstraintSystem
         initControlsSystem vrPal
+        initCreatorSystem
         initDragSystem
         initHapticsSystem
         initLifetimeSystem

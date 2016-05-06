@@ -85,21 +85,21 @@ initiateGrab whichHand handEntityID otherHandEntityID = do
         handPose <- getEntityPose handEntityID
         beginHapticDrag whichHand handPose
 
-        hasDragFunction        <- entityHasComponent grabbedID myDrag
-        isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
+        hasDragBeganFunction   <- entityHasComponent grabbedID myDragBegan
+        --isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
         if
-            | isBeingHeldByOtherHand -> do
+            -- | isBeingHeldByOtherHand -> do
 
-                -- Trying things out with this disabled, as it's too
-                -- easy to cause performance problems by effortlessly
-                -- duplicating expensive objects. Effort to dupe should
-                -- roughly scale with how often we want users to do it.
-                let allowDuplication = False
-                when allowDuplication $ do
-                    duplicateID <- duplicateEntity Persistent grabbedID
-                    --forkCode grabbedID duplicateID
-                    grabEntity handEntityID duplicateID
-            | hasDragFunction ->
+            --    -- Trying things out with this disabled, as it's too
+            --    -- easy to cause performance problems by effortlessly
+            --    -- duplicating expensive objects. Effort to dupe should
+            --    -- roughly scale with how often we want users to do it.
+            --    let allowDuplication = False
+            --    when allowDuplication $ do
+            --        duplicateID <- duplicateEntity Persistent grabbedID
+            --        --forkCode grabbedID duplicateID
+            --        grabEntity handEntityID duplicateID
+            | hasDragBeganFunction ->
                 beginDrag handEntityID grabbedID
             | otherwise ->
                 grabEntity handEntityID grabbedID

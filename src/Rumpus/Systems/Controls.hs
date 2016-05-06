@@ -70,6 +70,7 @@ tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
     internalEvents <- liftIO . atomically . exhaustTChan =<< use ctsInternalEvents
     ctsEvents <>= internalEvents
 
+    -- Apply non-roomscale controls if applicable
     when (gpRoomScale /= RoomScale) $ do
         hasSelection <- isJust <$> lift getSelectedEntityID
         unless hasSelection $

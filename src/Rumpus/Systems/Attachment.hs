@@ -14,10 +14,19 @@ data Attachment = Attachment
 type Attachments = Set Attachment
 
 defineComponentKey ''Attachments
+defineComponentKeyWithType "Holder" [t|EntityID|]
 
 initAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAttachmentSystem = do
     registerComponent "Attachments" myAttachments (newComponentInterface myAttachments)
+    registerComponent "Holder" myHolder $ (newComponentInterface myHolder)
+        -- Haven't needed this yet, but defining it since it's logical enough
+        { ciDeriveComponent = Just $ do
+            withComponent_ myHolder $ \holderID -> do
+                entityID <- ask
+                attachEntity holderID entityID False
+        , ciRemoveComponent = detachFromHolder >> removeComponent myHolder
+        }
 
 tickAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAttachmentSystem =
@@ -27,29 +36,45 @@ tickAttachmentSystem =
                 pose <- getEntityPose entityID
                 setEntityPose (pose `addMatrix` offset) toEntityID
 
+--detachEntityFromAnyHolders entityID =
+--    forEntitiesWithComponent myAttachments $
+--        \(holderEntityID, attachments) ->
+--            forM_ attachments $ \(Attachment toEntityID _) -> do
+--                when (entityID == toEntityID) $ do
+--                    detachAttachedEntity holderEntityID entityID
+detachFromHolder :: (MonadState ECS m, MonadReader EntityID m) => m ()
+detachFromHolder = detachEntityFromHolder =<< ask
+
+detachEntityFromHolder entityID = do
+    traverseM_ (getEntityComponent entityID myHolder) $ \holderID -> do
+        detachAttachedEntity holderID entityID
+
 attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> Bool -> m ()
-attachEntity entityID toEntityID exclusive = do
+attachEntity holderEntityID toEntityID exclusive = do
+
+    detachEntityFromHolder toEntityID
+
     -- Detach any current attachments
     when exclusive $
-        detachAttachedEntities entityID
+        detachAttachedEntities holderEntityID
 
-    entityPose   <- getEntityPose entityID
+    entityPose   <- getEntityPose holderEntityID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractMatrix` entityPose
 
-    addAttachmentToSet entityID (Attachment toEntityID offset)
-
+    addAttachmentToSet holderEntityID (Attachment toEntityID offset)
+    runEntity toEntityID (myHolder ==> holderEntityID)
     withEntityRigidBody toEntityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
 detachAttachedEntity :: (HasComponents s, MonadState s m) => EntityID -> EntityID -> m ()
-detachAttachedEntity ofEntityID entityID =
-    modifyEntityComponent ofEntityID myAttachments
+detachAttachedEntity holderEntityID entityID =
+    modifyEntityComponent holderEntityID myAttachments
         (Set.filter (not . (== entityID) . atcToEntityID))
 
 detachAttachedEntities :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
-detachAttachedEntities ofEntityID =
-    withAttachments ofEntityID $ \attachments -> do
+detachAttachedEntities holderEntityID =
+    withAttachments holderEntityID $ \attachments -> do
         forM_ attachments $ \(Attachment attachedEntityID _offset) -> do
 
             properties <- getEntityProperties attachedEntityID
@@ -57,7 +82,7 @@ detachAttachedEntities ofEntityID =
                 withEntityRigidBody attachedEntityID $ \rigidBody ->
                     setRigidBodyKinematic rigidBody False
 
-        removeEntityComponent myAttachments ofEntityID
+        removeEntityComponent myAttachments holderEntityID
 
 addAttachmentToSet :: (MonadState s m, HasComponents s) => EntityID -> Attachment -> m ()
 addAttachmentToSet entityID attachment =
