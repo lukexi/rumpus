@@ -26,7 +26,7 @@ defineSystemKey ''ControlsSystem
 getNow :: (MonadState ECS m, MonadIO m) => m GLfloat
 getNow = do
     vrPal <- viewSystem sysControls ctsVRPal
-    realToFrac . utctDayTime <$> VRPal.getNow vrPal 
+    realToFrac . utctDayTime <$> VRPal.getNow vrPal
 
 hapticPulse :: (MonadIO m, MonadState ECS m) => WhichHand -> CUShort -> m ()
 hapticPulse whichHand duration = do
@@ -45,7 +45,7 @@ initControlsSystem vrPal = do
         { _ctsVRPal = vrPal
         , _ctsPlayer = if gpRoomScale vrPal == RoomScale
                         then identity
-                        else mkTransformation (axisAngle (V3 0 1 0) pi) (V3 0 1 0) 
+                        else mkTransformation (axisAngle (V3 0 1 0) pi) (V3 0 1 0)
         , _ctsEvents = []
         , _ctsHeadPose = identity
         , _ctsInternalEvents = internalEvents
@@ -62,7 +62,7 @@ tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
     ctsHeadPose .= headM44
 
     VRPal{..} <- use ctsVRPal
-    
+
     -- Clear the events list
     ctsEvents .= events
 
@@ -72,14 +72,12 @@ tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
 
     when (gpRoomScale /= RoomScale) $ do
         hasSelection <- isJust <$> lift getSelectedEntityID
-        unless hasSelection $ 
+        unless hasSelection $
             applyWASD gpWindow (ctsPlayer . iso poseFromMatrix transformationFromPose)
 
-    use ctsEvents >>= mapM_ (\case
-        VREvent (HandEvent _ (HandButtonEvent HandButtonStart ButtonDown)) -> lift toggleWorldPlaying
+    useTraverseM_ ctsEvents $ \case
         GLFWEvent e -> closeOnEscape gpWindow e
-        --GLFWEvent e -> onKeyDown e Key'Space (lift toggleWorldPlaying)
-        _ -> return ())
+        _           -> return ()
 
 setPlayerPosition :: MonadState ECS m => V3 GLfloat -> m ()
 setPlayerPosition position = modifySystemState sysControls $

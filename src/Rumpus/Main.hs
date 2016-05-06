@@ -77,7 +77,7 @@ rumpusMain = withGHC rumpusGHCSessionConfig $ \ghc -> withPd $ \pd -> do
             tickPhysicsSystem
             tickSyncPhysicsPosesSystem
             tickCollisionsSystem
-            tickSceneEditorSystem
+            tickHandControlsSystem
             tickSoundSystem
 
 

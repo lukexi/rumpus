@@ -5,7 +5,6 @@ module Rumpus.Systems.Teleport where
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import PreludeExtra
 
@@ -65,8 +64,9 @@ endBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)) $
         when teleportable $
             teleportPlayerTo entityID
 
+teleportPlayerTo :: MonadState ECS m => EntityID -> m ()
 teleportPlayerTo entityID = do
     pose          <- getEntityPose entityID
     V3 _ height _ <- getEntitySize entityID
     let V3 x y z = pose ^. translation
-    setPlayerPosition (V3 x (y+height/2) z)
+    setPlayerPosition (V3 x (y + height / 2) z)

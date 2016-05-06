@@ -67,36 +67,6 @@ spawnNewEntityAtPose pose = spawnEntity $ do
     mySize  ==> 0.5
     -- myUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
 
-tickSceneEditorSystem :: ECSMonad ()
-tickSceneEditorSystem = do
-    let editSceneWithHand whichHand handEntityID otherHandEntityID event = case event of
-            HandStateEvent hand -> do
-                let newHandPose = hand ^. hndMatrix
-                setEntityPose newHandPose handEntityID
-                continueDrag handEntityID
-                continueHapticDrag whichHand newHandPose
-                updateBeam whichHand
-            HandButtonEvent HandButtonGrip ButtonDown -> do
-                beginBeam whichHand
-            HandButtonEvent HandButtonGrip ButtonUp -> do
-                endBeam whichHand
-            HandButtonEvent HandButtonTrigger ButtonDown -> do
-                initiateGrab whichHand handEntityID otherHandEntityID
-            HandButtonEvent HandButtonTrigger ButtonUp -> do
-                endHapticDrag whichHand
-                endDrag handEntityID
-                detachAttachedEntities handEntityID
-
-                -- Saving is currently disabled to simplify the alpha release
-                -- (code will still be saved automatically)
-                --saveScene
-
-            _ -> return ()
-
-    leftHandID  <- getLeftHandID
-    rightHandID <- getRightHandID
-    withLeftHandEvents  (editSceneWithHand LeftHand leftHandID  rightHandID)
-    withRightHandEvents (editSceneWithHand RightHand rightHandID leftHandID)
 
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)

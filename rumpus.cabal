@@ -59,6 +59,7 @@ library
                        Rumpus.Systems.Controls
                        Rumpus.Systems.Drag
                        Rumpus.Systems.EditorFrame
+                       Rumpus.Systems.HandControls
                        Rumpus.Systems.Hands
                        Rumpus.Systems.Haptics
                        Rumpus.Systems.KeyPads
