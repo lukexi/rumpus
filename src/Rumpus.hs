@@ -26,6 +26,7 @@ import Rumpus.Systems.Selection as Exports
 import Rumpus.Systems.Shared as Exports
 import Rumpus.Systems.Sound as Exports
 import Rumpus.Systems.Text as Exports
+import Rumpus.Systems.Teleport as Exports
 
 import RumpusLib as Exports
 

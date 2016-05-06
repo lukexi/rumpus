@@ -73,6 +73,7 @@ library
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound
                        Rumpus.Systems.Selection
+                       Rumpus.Systems.Teleport
                        Rumpus.Systems.Text
   ghc-options:         -O2 -Wall
   build-depends:       base
