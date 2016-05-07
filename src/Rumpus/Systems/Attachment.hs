@@ -7,6 +7,7 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import qualified Data.Set as Set
+
 data Attachment = Attachment
     { atcToEntityID :: !EntityID
     , atcOffset     :: !(M44 GLfloat)
@@ -36,15 +37,10 @@ tickAttachmentSystem =
                 pose <- getEntityPose entityID
                 setEntityPose (pose `addMatrix` offset) toEntityID
 
---detachEntityFromAnyHolders entityID =
---    forEntitiesWithComponent myAttachments $
---        \(holderEntityID, attachments) ->
---            forM_ attachments $ \(Attachment toEntityID _) -> do
---                when (entityID == toEntityID) $ do
---                    detachAttachedEntity holderEntityID entityID
 detachFromHolder :: (MonadState ECS m, MonadReader EntityID m) => m ()
 detachFromHolder = detachEntityFromHolder =<< ask
 
+detachEntityFromHolder :: (MonadState ECS m) => EntityID -> m ()
 detachEntityFromHolder entityID = do
     traverseM_ (getEntityComponent entityID myHolder) $ \holderID -> do
         detachAttachedEntity holderID entityID

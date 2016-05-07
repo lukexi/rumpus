@@ -41,8 +41,6 @@ primeNewEntity whichHand = do
             now <- getNow
             setColor (colorHSL now 0.3 0.8)
 
-         --It might be more elegant to use the exclusive-attachment system
-         --and just piggyback on SceneEditor's grabbing functionality here.
         myDragBegan ==> do
             traverseM_ (getComponent myDragFrom) $ \(DragFrom handEntityID _) -> do
                 removePendingEntity whichHand
