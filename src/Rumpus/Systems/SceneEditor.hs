@@ -8,7 +8,6 @@ import PreludeExtra
 
 --import Rumpus.Systems.Controls
 import Rumpus.Systems.Drag
-import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 
@@ -16,27 +15,16 @@ import Rumpus.Systems.Attachment
 --import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.KeyPads
 import Rumpus.Systems.Haptics
-import Rumpus.Systems.Teleport
 import Rumpus.Systems.Selection
+--import Rumpus.Systems.EditorFrame
 --import Rumpus.Systems.Scene
-
-data SceneEditorSystem = SceneEditorSystem
-    { _sedCurrentEditorFrame :: !(Maybe EntityID)
-    }
-makeLenses ''SceneEditorSystem
-defineSystemKey ''SceneEditorSystem
-
-
-initSceneEditorSystem :: MonadState ECS m => m ()
-initSceneEditorSystem = do
-    registerSystem sysSceneEditor $ SceneEditorSystem Nothing
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
 
     hideKeyPads
 
-    removeCurrentEditorFrame
+    --removeCurrentEditorFrame
 
     clearSelectedEntityID
 
@@ -57,8 +45,6 @@ selectEntity entityID = do
 
     return ()
 
-removeCurrentEditorFrame :: (MonadIO m, MonadState ECS m) => m ()
-removeCurrentEditorFrame = traverseM_ (viewSystem sysSceneEditor sedCurrentEditorFrame) removeEntity
 
 spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
 spawnNewEntityAtPose pose = spawnEntity $ do
@@ -72,7 +58,7 @@ filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
 
 initiateGrab :: WhichHand -> EntityID -> EntityID -> ECSMonad ()
-initiateGrab whichHand handEntityID otherHandEntityID = do
+initiateGrab whichHand handEntityID _otherHandEntityID = do
     -- Find the entities overlapping the hand, and attach them to it
     overlappingEntityIDs <- filterStaticEntityIDs
                                 =<< getEntityOverlappingEntityIDs handEntityID

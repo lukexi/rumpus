@@ -6,19 +6,13 @@
 module Rumpus.Systems.HandControls where
 import PreludeExtra
 
---import Rumpus.Systems.Controls
 import Rumpus.Systems.Drag
 import Rumpus.Systems.Hands
-import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-
 import Rumpus.Systems.Attachment
---import Rumpus.Systems.CodeEditor
-import Rumpus.Systems.KeyPads
 import Rumpus.Systems.Creator
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Teleport
-import Rumpus.Systems.Selection
 import Rumpus.Systems.SceneEditor
 
 tickHandControlsSystem :: ECSMonad ()

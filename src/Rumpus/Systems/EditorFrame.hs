@@ -10,7 +10,16 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Drag
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Constraint
-import Rumpus.Systems.SceneEditor
+
+data EditorFrameSystem = EditorFrameSystem
+    { _edfCurrentEditorFrame :: !(Maybe EntityID)
+    }
+makeLenses ''EditorFrameSystem
+defineSystemKey ''EditorFrameSystem
+
+initEditorFrameSystem :: MonadState ECS m => m ()
+initEditorFrameSystem = do
+    registerSystem sysEditorFrame $ EditorFrameSystem Nothing
 
 addEditorFrame :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 addEditorFrame entityID = do
@@ -21,7 +30,7 @@ addEditorFrame entityID = do
         ------------------------
         -- Define a color editor
         color <- getEntityColor entityID
-        spawnChild $ do
+        _ <- spawnChild $ do
             myShape      ==> Sphere
             myColor      ==> color
             mySize       ==> 0.1
@@ -34,7 +43,7 @@ addEditorFrame entityID = do
                 setEntityColor entityID newColor
         -----------------------
         -- Define a size editor
-        spawnChild $ do
+        _ <- spawnChild $ do
             myShape      ==> Cube
             myColor      ==> V4 0.3 0.3 1 1
             mySize       ==> 0.2
@@ -44,6 +53,11 @@ addEditorFrame entityID = do
                 let size = max 0.05 (abs $ changeM44 ^. translation)
                 -- Set the edited entity's size, not the editor-widget's : )
                 setEntitySize entityID size
+        return ()
 
-    modifySystemState sysSceneEditor $
-        sedCurrentEditorFrame ?= editorFrame
+    modifySystemState sysEditorFrame $
+        edfCurrentEditorFrame ?= editorFrame
+
+
+removeCurrentEditorFrame :: (MonadIO m, MonadState ECS m) => m ()
+removeCurrentEditorFrame = traverseM_ (viewSystem sysEditorFrame edfCurrentEditorFrame) removeEntity

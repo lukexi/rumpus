@@ -22,10 +22,12 @@ data CreatorSystem = CreatorSystem
 makeLenses ''CreatorSystem
 defineSystemKey ''CreatorSystem
 
+setPrimedEntity :: MonadState ECS m => WhichHand -> EntityID -> m ()
 setPrimedEntity whichHand newEntityID =
     modifySystemState sysCreator $
         crtPrimedEntities . at whichHand ?= newEntityID
 
+unsetPrimedEntity :: MonadState ECS m => WhichHand -> m ()
 unsetPrimedEntity whichHand =
     modifySystemState sysCreator $
         crtPrimedEntities . at whichHand .= Nothing

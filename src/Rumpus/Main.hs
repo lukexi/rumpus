@@ -38,7 +38,6 @@ rumpusMain = withGHC rumpusGHCSessionConfig $ \ghc -> withPd $ \pd -> do
         initPhysicsSystem
         initPlayPauseSystem
         initRenderSystem
-        initSceneEditorSystem
         initSoundSystem pd
         initSelectionSystem
         initSceneSystem userSceneFolder
@@ -108,9 +107,9 @@ makeCheckFPS :: MonadIO m => m (m ())
 makeCheckFPS = do
     fpsRef <- liftIO . newIORef =<< liftIO getCurrentTime
     let checkFPS = liftIO $ do
-            now  <- getCurrentTime
-            last <- readIORef fpsRef
+            now    <- getCurrentTime
+            before <- readIORef fpsRef
             writeIORef fpsRef now
-            let timeDiff = now `diffUTCTime` last
+            let timeDiff = now `diffUTCTime` before
             putStrLn ("FPS: " ++ show (1/timeDiff))
     return checkFPS

@@ -2,6 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Rumpus.TestScene where
 
@@ -31,6 +32,7 @@ loadTestScene = do
 
 ------------------------------------------------------------------------------
 -- Room
+roomCube, roomW, roomH, roomD, wallD, shelfH, roomOffset :: GLfloat
 roomCube = 4
 (roomW, roomH, roomD) = (roomCube,roomCube,roomCube)
 wallD = 1
@@ -43,7 +45,7 @@ room = do
     setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     removeChildren
     builderID <- ask
-    let makeWall pos size hue = spawnEntity $ do
+    let makeWall pos size hue = void . spawnEntity $ do
             myParent            ==> builderID
             myPose              ==> mkTransformation
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
@@ -62,7 +64,7 @@ room = do
     let numShelves = 4
     forM_ [1..(numShelves - 1)] $ \n -> do
         let shelfY = (roomH/realToFrac numShelves)
-                        * fromIntegral n - (roomH/2)
+                        * n - (roomH/2)
         makeWall (V3 0 shelfY (roomD/2))
                  (V3 roomW shelfH (wallD*2)) 0.7 -- shelf
 
@@ -72,6 +74,7 @@ room = do
 
 -- Golden Section Spiral
 -- (via http://www.softimageblog.com/archives/115)
+pointsOnSphere :: Int -> [V3 GLfloat]
 pointsOnSphere (fromIntegral -> n) =
     let inc = pi * (3 - sqrt 5)
         off = 2 / n
@@ -94,7 +97,7 @@ createBuildings = do
         dim = 200
         height = dim * 5
         buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
-    forM_ (zip [0..] buildSites) $ \(i, V3 x y z) -> do
+    forM_ (zip [0..] buildSites) $ \(_i::Int, V3 x y z) -> do
         hue <- liftIO randomIO
 
         when (x /= 0 && z /= 0) $ void . spawnEntity $ do
@@ -105,7 +108,7 @@ createBuildings = do
             myProperties    ==> [Holographic]
             --myUpdate ==> do
             --    now <- getNow
-            --    let newHeight = ((sin (now+i) + 1) + 1) * height
+            --    let newHeight = ((sin (now+_i) + 1) + 1) * height
             --    setSize (V3 dim newHeight dim)
             mySize                 ==> V3 dim height dim
             myColor                ==> colorHSL hue 0.8 0.8
@@ -132,6 +135,7 @@ createStars = do
 rate :: Float
 rate = 10
 
+majorScale :: [GLfloat]
 majorScale = map (+60) [0,2,4,7,9]
 
 fountain :: Start
@@ -148,7 +152,7 @@ fountain = do
 
                 -- Spawn a ball
                 pose <- getPose
-                spawnEntity $ do
+                _ <- spawnEntity $ do
                     myPose      ==> pose & translation +~
                                         (pose ^. _m33) !* (V3 0 0.3 0)
                     myShape ==> Sphere

@@ -60,13 +60,23 @@ attachEntity holderEntityID toEntityID exclusive = do
 
     addAttachmentToSet holderEntityID (Attachment toEntityID offset)
     runEntity toEntityID (myHolder ==> holderEntityID)
-    withEntityRigidBody toEntityID $ \rigidBody ->
-        setRigidBodyKinematic rigidBody True
+    overrideSetKinematicMode toEntityID
 
 detachAttachedEntity :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 detachAttachedEntity holderEntityID entityID = do
+    restoreSetKinematicMode entityID
     modifyEntityComponent holderEntityID myAttachments
         (Set.filter (not . (== entityID) . atcToEntityID))
+
+-- | Force kinematic mode to on to allow objects to be carried
+overrideSetKinematicMode :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+overrideSetKinematicMode entityID =
+    withEntityRigidBody entityID $ \rigidBody ->
+        setRigidBodyKinematic rigidBody True
+
+-- | Restores the kinematic mode requested in the entity's myProperties
+restoreSetKinematicMode :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+restoreSetKinematicMode entityID = do
     properties <- getEntityProperties entityID
     unless (Floating `elem` properties) $
         withEntityRigidBody entityID $ \rigidBody ->
@@ -76,11 +86,7 @@ detachAttachedEntities :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
 detachAttachedEntities holderEntityID =
     withAttachments holderEntityID $ \attachments -> do
         forM_ attachments $ \(Attachment attachedEntityID _offset) -> do
-
-            properties <- getEntityProperties attachedEntityID
-            unless (Floating `elem` properties) $
-                withEntityRigidBody attachedEntityID $ \rigidBody ->
-                    setRigidBodyKinematic rigidBody False
+            restoreSetKinematicMode attachedEntityID
 
         removeEntityComponent myAttachments holderEntityID
 

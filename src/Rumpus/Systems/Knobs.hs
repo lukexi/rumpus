@@ -30,7 +30,7 @@ initKnobsSystem = do
 addQuickKnob :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
              => String -> (Float, Float) -> (M44 GLfloat -> EntityMonad ()) -> m ()
 addQuickKnob name (low, high) action = do
-    knobID <- spawnEntity $ do
+    _knobID <- spawnEntity $ do
         myShape ==> Cube
         myDrag ==> \changeM44 -> do
             action changeM44

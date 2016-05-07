@@ -143,8 +143,10 @@ makeLenses ''KeyPadKey
 makeLenses ''KeyPad
 makeLenses ''KeyPadsSystem
 
---viewSystem :: MonadState ECS m => Key s -> Lens' s a -> m a
+viewSystemL :: MonadState ECS m => Key s -> Getting (Endo [a]) s a -> m [a]
 viewSystemL systemKey viewLens = toListOf viewLens <$> getSystem systemKey
+
+viewSystemP :: MonadState ECS m => Key s -> Getting (First a) s a -> m (Maybe a)
 viewSystemP systemKey viewLens = preview viewLens <$> getSystem systemKey
 
 
