@@ -26,7 +26,7 @@ setPrimedEntity whichHand newEntityID =
     modifySystemState sysCreator $
         crtPrimedEntities . at whichHand ?= newEntityID
 
-removePrimedEntity whichHand =
+unsetPrimedEntity whichHand =
     modifySystemState sysCreator $
         crtPrimedEntities . at whichHand .= Nothing
 
@@ -40,6 +40,7 @@ unprimeNewEntity whichHand = do
     mEntityID <- viewSystem sysCreator (crtPrimedEntities . at whichHand)
     forM_ mEntityID $ \entityID ->
         runEntity entityID (setLifetime 0.3)
+    unsetPrimedEntity whichHand
 
 primeNewEntity :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 primeNewEntity whichHand = do
@@ -53,7 +54,7 @@ primeNewEntity whichHand = do
 
         myDragBegan ==> do
             traverseM_ (getComponent myDragFrom) $ \(DragFrom handEntityID _) -> do
-                removePrimedEntity whichHand
+                unsetPrimedEntity whichHand
                 removeComponent myDragBegan
                 entityID <- ask
                 handEntityID `grabEntity` entityID

@@ -101,18 +101,17 @@ deriveRigidBody dynamicsWorld = do
 
 setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setFloating isFloating = do
-    getComponent myProperties >>= \case
-        Nothing -> myProperties ==> [Floating]
-        Just _ ->  myProperties ==% nub . (Floating :)
+    prependComponent myProperties [Floating]
+    myProperties ==% nub
 
     withRigidBody $ \rigidBody ->
         setRigidBodyKinematic rigidBody isFloating
 
 setGhostly :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setGhostly isGhostly = do
-    getComponent myProperties >>= \case
-        Nothing -> myProperties ==> [Ghostly]
-        Just _ ->  myProperties ==% nub . (Ghostly :)
+    prependComponent myProperties [Ghostly]
+    myProperties ==% nub
+
     withRigidBody $ \rigidBody ->
         setRigidBodyNoContactResponse rigidBody isGhostly
 
@@ -163,7 +162,7 @@ castRay ray = do
 getEntityOverlappingEntityIDs :: (MonadState ECS m, MonadIO m) => EntityID -> m [EntityID]
 getEntityOverlappingEntityIDs entityID =
     filter (/= entityID)
-    . concatMap (\c -> [unCollisionObjectID (cbBodyAID c), unCollisionObjectID (cbBodyBID c)])
+    . concatMap (\c -> map unCollisionObjectID [cbBodyAID c, cbBodyBID c])
     <$> getEntityOverlapping entityID
 
 setSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()

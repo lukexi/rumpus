@@ -1,10 +1,8 @@
-{-# LANGUAGE FlexibleContexts #-}
-module DefaultStart where
+module Sequencer where
 import Rumpus
 
 start :: Start
 start = do
-    removeChildren
 
     forM_ majorScale $ \n -> do
         let note = fromIntegral $ n + 60
@@ -24,15 +22,15 @@ makePianoKey parentID parentPose i noteDegree = do
         hue  = fromIntegral i / fromIntegral (length majorScale)
         colorOn = colorHSL hue 0.8 0.8
         colorOff = colorHSL hue 0.8 0.4
-    myColor ==> colorOff
-    myParent            ==> parentID
-    myShape         ==> Cube
+    myColor      ==> colorOff
+    myParent     ==> parentID
+    myShape      ==> Cube
     myProperties ==> [Floating, Ghostly]
-    myPose              ==> parentPose !*! (identity & translation .~ pose)
-    mySize              ==> V3 0.01 0.2 0.3
+    myPose       ==> parentPose !*! (identity & translation .~ pose)
+    mySize       ==> V3 0.01 0.2 0.3
     myCollisionStart  ==> \_ _ -> do
         myColor ==> colorOn
         sendEntityPd parentID "piano-key" (List [note, 1])
-    myCollisionEnd    ==> \_ -> do
+    myCollisionEnd ==> \_ -> do
         myColor ==> colorOff
         sendEntityPd parentID "piano-key" (List [note, 0])
