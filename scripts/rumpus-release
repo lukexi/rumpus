@@ -50,7 +50,7 @@ ghc-pkg \
 echo "Copying resources..."
 cp -r resources/ .release/
 cp -r pristine/ .release/
-
+cp Dummy.hs .release/
 
 echo "Copying dlls..."
 cp `which libfreetype-6.dll` .release

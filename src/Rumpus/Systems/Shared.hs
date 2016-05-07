@@ -49,7 +49,7 @@ initSharedSystem = do
         }
     registerComponent "Size" mySize (savedComponentInterface mySize)
     registerComponent "Color" myColor (savedComponentInterface myColor)
-    registerComponent "ShapeType" myShape (savedComponentInterface myShape)
+    registerComponent "Shape" myShape (savedComponentInterface myShape)
     registerComponent "Parent" myParent $ (newComponentInterface myParent)
         { ciDeriveComponent = Just $ do
             withComponent_ myParent setParent

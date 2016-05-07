@@ -1,7 +1,7 @@
 module Fountain where
 import Rumpus
 
-rate :: Float
+--rate :: Float
 rate = 5
 
 majorScale = map (+60) [0,2,4,7,9]
@@ -28,3 +28,4 @@ start = do
             myStart ==> do
                 setLifetime 10
                 applyForce (parentRotation !* V3 0 0.3 0)
+        return ()

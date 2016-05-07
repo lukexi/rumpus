@@ -21,18 +21,13 @@ start = do
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
-        myParent                 ==> rootEntityID
-        myPose                   ==> mkTransformation
-                                        (axisAngle (V3 0 0 1) 0.3) pos
-        myShape              ==> Sphere
-        myProperties      ==> [Holographic]
+        myParent           ==> rootEntityID
+        myPose             ==> translateMatrix pos
+        myShape            ==> Sphere
+        myProperties       ==> [Holographic]
         myInheritTransform ==> InheritFull
-        mySize                   ==> V3 0.5 0.5 0.5
-        myColor                  ==> colorHSL hue 0.8 0.5
+        mySize             ==> V3 0.5 0.5 0.5
+        myColor            ==> colorHSL hue 0.8 0.5
         myUpdate ==> do
             now <- sin <$> getNow
             setSize (realToFrac ((sin now + 1) * 0.1 + 0.01))
-            --let V3 pX pY pZ = pos
-            --myPose ==> mkTransformation
-            --    (axisAngle (V3 0 1 1) (now*2))
-            --    (V3 (pX+now) pY pZ)
