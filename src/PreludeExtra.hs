@@ -38,12 +38,12 @@ import GHC.Generics as Exports (Generic)
 
 import Control.Lens.Extra as Exports hiding (List, (<.>), children)
 import Linear.Extra as Exports hiding (trace)
-import Graphics.UI.GLFW.Pal as Exports
+--import Graphics.UI.GLFW.Pal as Exports hiding (Key)
 import Graphics.GL.Pal as Exports hiding (trace, getNow) -- using a faster getNow in Types
-import Graphics.VR.Pal as Exports hiding (getNow)
+import Graphics.VR.Pal as Exports hiding (getNow, Key)
 
 
-import Data.ECS as Exports hiding (Key)
+import Data.ECS as Exports
 
 -- import qualified Data.Map as Map
 

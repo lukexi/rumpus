@@ -14,12 +14,22 @@ import Rumpus.Systems.Attachment
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Physics
+import Rumpus.Systems.Scene
 
 data CreatorSystem = CreatorSystem
-    { _crtNewEntityID :: !(Map WhichHand EntityID)
+    { _crtPrimedEntities :: !(Map WhichHand EntityID)
     }
 makeLenses ''CreatorSystem
 defineSystemKey ''CreatorSystem
+
+setPrimedEntity whichHand newEntityID =
+    modifySystemState sysCreator $
+        crtPrimedEntities . at whichHand ?= newEntityID
+
+removePrimedEntity whichHand =
+    modifySystemState sysCreator $
+        crtPrimedEntities . at whichHand .= Nothing
+
 
 initCreatorSystem :: MonadState ECS m => m ()
 initCreatorSystem = do
@@ -27,7 +37,7 @@ initCreatorSystem = do
 
 unprimeNewEntity :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 unprimeNewEntity whichHand = do
-    mEntityID <- viewSystem sysCreator (crtNewEntityID . at whichHand)
+    mEntityID <- viewSystem sysCreator (crtPrimedEntities . at whichHand)
     forM_ mEntityID $ \entityID ->
         runEntity entityID (setLifetime 0.3)
 
@@ -43,11 +53,12 @@ primeNewEntity whichHand = do
 
         myDragBegan ==> do
             traverseM_ (getComponent myDragFrom) $ \(DragFrom handEntityID _) -> do
-                removePendingEntity whichHand
+                removePrimedEntity whichHand
                 removeComponent myDragBegan
                 entityID <- ask
                 handEntityID `grabEntity` entityID
-                --addCodeExpr "Start" "start" myStartExpr myStart
+                animateSizeTo 0.3 0.3
+                addCodeExpr "Start" "start" myStartExpr myStart
 
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
@@ -56,11 +67,22 @@ primeNewEntity whichHand = do
 
     runEntity newEntityID $ animateSizeTo 0.1 0.3
 
-    setPendingEntity whichHand newEntityID
+    setPrimedEntity whichHand newEntityID
 
-setPendingEntity whichHand newEntityID =
-    modifySystemState sysCreator $
-        crtNewEntityID . at whichHand ?= newEntityID
-removePendingEntity whichHand =
-    modifySystemState sysCreator $
-        crtNewEntityID . at whichHand .= Nothing
+
+addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
+            => FilePath
+            -> String
+            -> Key (EntityMap CodeInFile)
+            -> Key (EntityMap a)
+            -> m ()
+addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
+    sceneFolder <- getSceneFolder
+    entityID <- ask
+    let defaultFilePath = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
+        entityFileName = (show entityID ++ "-" ++ fileName) <.> "hs"
+        entityFilePath = sceneFolder </> entityFileName
+        codeFile = (entityFileName, exprName)
+    liftIO $ copyFile defaultFilePath entityFilePath
+    codeFileComponentKey ==> codeFile
+    registerWithCodeEditor codeFile codeComponentKey

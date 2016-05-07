@@ -251,21 +251,7 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
 -- Experiments in dynamic code addition/cloning
 -----------------------------------------------
 
-addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
-            => FilePath
-            -> String
-            -> Key (EntityMap CodeInFile)
-            -> Key (EntityMap a)
-            -> m ()
-addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
-    sceneFolder <- getSceneFolder
-    entityID <- ask
-    let defaultFileName = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
-        entityFileName = sceneFolder </> (show entityID ++ "-" ++ fileName) <.> "hs"
-        codeFile = (entityFileName, exprName)
-    liftIO $ copyFile defaultFileName entityFileName
-    codeFileComponentKey ==> codeFile
-    registerWithCodeEditor codeFile codeComponentKey
+
 {-
 forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 forkCode fromEntityID toEntityID = do

@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Rumpus.Systems.Text where
-import PreludeExtra hiding (Key)
+import PreludeExtra
 import Graphics.GL.Freetype
 import Graphics.GL.TextBuffer
 
@@ -59,7 +59,7 @@ initTextSystem = do
 setEntityText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
 setEntityText entityID text = do
     setEntityComponent myText text entityID
-    modifyEntityComponentM entityID myTextRenderer $ \renderer -> 
+    modifyEntityComponentM entityID myTextRenderer $ \renderer ->
         flip execStateT renderer $ setTextRendererText id text
     -- Recache scale matrix
     setEntityTextPose entityID =<< getEntityTextPose entityID
@@ -87,7 +87,7 @@ setEntityTextPose :: (MonadState ECS m) => EntityID -> M44 GLfloat -> m ()
 setEntityTextPose entityID textPose = do
     setEntityComponent myTextPose textPose entityID
 
-    withEntityComponent_ entityID myTextRenderer $ \textRenderer -> 
+    withEntityComponent_ entityID myTextRenderer $ \textRenderer ->
         setEntityComponent myTextCachedM44 (textPose !*! textRenderer ^. txrCorrectionM44) entityID
 
 

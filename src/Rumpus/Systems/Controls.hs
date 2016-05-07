@@ -7,7 +7,6 @@
 
 module Rumpus.Systems.Controls where
 import PreludeExtra
-import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Selection
 
 import Foreign.C.Types

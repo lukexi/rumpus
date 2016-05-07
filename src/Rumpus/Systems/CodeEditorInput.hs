@@ -6,7 +6,7 @@
 {-# LANGUAGE BangPatterns #-}
 
 module Rumpus.Systems.CodeEditorInput where
-import PreludeExtra hiding (Key)
+import PreludeExtra
 
 import Graphics.GL.TextBuffer
 import Halive.Recompiler

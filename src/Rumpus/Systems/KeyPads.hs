@@ -65,7 +65,7 @@ keyToEvent _ HandKeyLeft                   = Just (toPressedKey Key'Left)
 keyToEvent _ HandKeyRight                  = Just (toPressedKey Key'Right)
 keyToEvent _ _ = Nothing
 
-toPressedKey :: Key -> Event
+toPressedKey :: GLFW.Key -> Event
 toPressedKey key = KeyboardKey key noKeyCode KeyState'Pressed noModifierKeys
     where
         -- (FIXME: we don't use keycodes anywhere, remove from API for now)

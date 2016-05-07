@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Rumpus.Systems.Animation 
+module Rumpus.Systems.Animation
     ( module Rumpus.Systems.Animation
     , module Exports
     ) where
 
-import PreludeExtra hiding (Key)
+import PreludeExtra
 import Animation.Pal as Exports hiding (getNow, exhaustTChan)
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
@@ -26,18 +26,18 @@ initAnimationSystem = do
 tickAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAnimationSystem = whenWorldPlaying $ do
     now <- realToFrac <$> getNow
-    
+
     tickComponentAnimation now myColorAnimation setColor
     tickComponentAnimation now mySizeAnimation  setSize
     -- tickComponentAnimation now myPoseAnimation  myPose
 
-tickComponentAnimation :: MonadState ECS m 
+tickComponentAnimation :: MonadState ECS m
                        => DiffTime
                        -> Key (EntityMap (Animation struct))
                        -> (struct -> ReaderT EntityID m a)
                        -> m ()
-tickComponentAnimation now animComponentKey setter = 
-    forEntitiesWithComponent animComponentKey $ 
+tickComponentAnimation now animComponentKey setter =
+    forEntitiesWithComponent animComponentKey $
         \(entityID, animation) -> runEntity entityID $ do
             let evaled = evalAnim now animation
 
