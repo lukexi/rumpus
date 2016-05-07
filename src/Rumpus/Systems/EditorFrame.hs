@@ -31,7 +31,7 @@ addEditorFrame entityID = do
                 let x = changeM44 ^. translation . _x
                     newColor = colorHSL (mod' x 1) 0.9 0.6
                 setColor newColor
-                setEntityColor newColor entityID
+                setEntityColor entityID newColor
         -----------------------
         -- Define a size editor
         spawnChild $ do
@@ -43,7 +43,7 @@ addEditorFrame entityID = do
             myDrag       ==> \changeM44 -> do
                 let size = max 0.05 (abs $ changeM44 ^. translation)
                 -- Set the edited entity's size, not the editor-widget's : )
-                setEntitySize size entityID
+                setEntitySize entityID size
 
     modifySystemState sysSceneEditor $
         sedCurrentEditorFrame ?= editorFrame

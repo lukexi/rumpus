@@ -99,6 +99,7 @@ deriveRigidBody dynamicsWorld = do
             when (Ghostly `elem` properties) $
                 setRigidBodyNoContactResponse rigidBody True
 
+
 setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setFloating isFloating = do
     prependComponent myProperties [Floating]
@@ -166,10 +167,10 @@ getEntityOverlappingEntityIDs entityID =
     <$> getEntityOverlapping entityID
 
 setSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
-setSize newSize = setEntitySize newSize =<< ask
+setSize newSize = ask >>= \eid -> setEntitySize eid newSize
 
-setEntitySize :: (MonadIO m, MonadState ECS m) => V3 GLfloat -> EntityID -> m ()
-setEntitySize newSize entityID = do
+setEntitySize :: (MonadIO m, MonadState ECS m) => EntityID -> V3 GLfloat -> m ()
+setEntitySize entityID newSize  = do
 
     setEntityComponent mySize newSize entityID
 
@@ -182,15 +183,22 @@ setEntitySize newSize entityID = do
             mass       <- fromMaybe 1    <$> getEntityComponent entityID myMass
             shapeType  <- fromMaybe Cube <$> getEntityComponent entityID myShape
 
+            collisionGroup <- fromMaybe 1 <$> getEntityComponent entityID myCollisionGroup
+            collisionMask  <- fromMaybe 1 <$> getEntityComponent entityID myCollisionMask
+            let bodyInfo = mempty { rbMass           = mass
+                                  , rbCollisionGroup = collisionGroup
+                                  , rbCollisionMask  = collisionMask
+                                  }
+
             -- FIXME this max 0.01 should be moved into bullet-mini; infinitesimal objects break the whole simulation
             shapeCollider <- createShapeCollider shapeType (max 0.01 newSize)
-            setRigidBodyShape dynamicsWorld rigidBody shapeCollider mass
+            setRigidBodyShape dynamicsWorld rigidBody shapeCollider bodyInfo
 
 setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => M44 GLfloat -> m ()
-setPose pose = setEntityPose pose =<< ask
+setPose pose = ask >>= \eid -> setEntityPose eid pose
 
-setEntityPose :: (MonadState ECS m, MonadIO m) => M44 GLfloat -> EntityID -> m ()
-setEntityPose poseM44 entityID = do
+setEntityPose :: (MonadState ECS m, MonadIO m) => EntityID -> M44 GLfloat -> m ()
+setEntityPose entityID poseM44  = do
 
     setEntityPoseCacheScale entityID poseM44
 
@@ -219,10 +227,10 @@ getEntityProperties :: (HasComponents s, MonadState s f) => EntityID -> f Proper
 getEntityProperties entityID = fromMaybe [] <$> getEntityComponent entityID myProperties
 
 applyForce :: (Real a, MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 a -> m ()
-applyForce aForce = applyForceToEntity aForce =<< ask
+applyForce aForce =  ask >>= \eid -> applyForceToEntity eid aForce
 
-applyForceToEntity :: (Real a, MonadIO m, MonadState ECS m) => V3 a -> EntityID -> m ()
-applyForceToEntity aForce entityID = do
+applyForceToEntity :: (Real a, MonadIO m, MonadState ECS m) => EntityID -> V3 a -> m ()
+applyForceToEntity entityID aForce = do
     withEntityRigidBody entityID $ \rigidBody -> do
         applyCentralImpulse rigidBody aForce
 

@@ -100,8 +100,8 @@ spawnChild actions = do
         myParent ==> thisEntityID
         actions
 
-setEntityColor :: (MonadState ECS m, MonadIO m) => V4 GLfloat -> EntityID -> m ()
-setEntityColor newColor entityID = setEntityComponent myColor newColor entityID
+setEntityColor :: (MonadState ECS m, MonadIO m) => EntityID -> V4 GLfloat -> m ()
+setEntityColor entityID newColor = setEntityComponent myColor newColor entityID
 
 setColor :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => V4 GLfloat -> m ()
 setColor newColor = setComponent myColor newColor

@@ -26,12 +26,12 @@ initScene = do
     _ <- spawnEntity Persistent "MessyBall"
     _ <- spawnEntity Persistent "SoundCube"
 
-    
+
     return ()
 
 leftHand :: Entity
-leftHand = newEntity 
-        { _entColor       = V4 1 0.8 0.7 1 
+leftHand = newEntity
+        { _entColor       = V4 1 0.8 0.7 1
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = Cube
         , _entPose        = newPose & posPosition .~ (V3 0 0.1 0)
@@ -40,8 +40,8 @@ leftHand = newEntity
         }
 
 rightHand :: Entity
-rightHand = newEntity 
-        { _entColor       = V4 0.7 1 0.8 1 
+rightHand = newEntity
+        { _entColor       = V4 0.7 1 0.8 1
         , _entSize        = V3 0.1 0.1 0.4
         , _entShape       = Cube
         , _entProperties   = [Ghostly]
@@ -105,7 +105,7 @@ attachWithSpring entityID = do
     withRightHandEvents $ \case
         HandStateEvent hand -> do
             let pose = poseFromMatrix (hand ^. hndMatrix)
-            setEntityPose pose entityID
+            setEntityPose entityID pose
 
             useTraverseM_ (wldComponents . mySpring . at entityID) $ \spring ->
                 setSpringWorldPose spring (pose ^. posPosition) (pose ^. posOrientation)

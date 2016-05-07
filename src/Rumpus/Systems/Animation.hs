@@ -11,7 +11,6 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Controls
-import Data.ECS.Vault
 
 defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
 defineComponentKeyWithType "SizeAnimation"  [t|Animation (V3 GLfloat)|]

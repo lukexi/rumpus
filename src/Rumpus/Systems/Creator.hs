@@ -63,7 +63,7 @@ primeNewEntity whichHand = do
 
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
-    setEntityPose (handPose !*! translateMatrix (V3 0 0 (-0.25))) newEntityID
+    setEntityPose newEntityID (handPose !*! translateMatrix (V3 0 0 (-0.25)))
     attachEntity handID newEntityID True
 
     runEntity newEntityID $ animateSizeTo 0.1 0.3

@@ -17,7 +17,7 @@ initLifetimeSystem = do
 tickLifetimeSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickLifetimeSystem = whenWorldPlaying $ do
     now <- liftIO getCurrentTime
-    
+
 
     forEntitiesWithComponent myLifetime $ \(entityID, Lifetime birthtime lifetime) -> do
         let age       = now `diffUTCTime` birthtime
@@ -26,11 +26,11 @@ tickLifetimeSystem = whenWorldPlaying $ do
         when (age > fadeStart) $ do
             let fadeProgress = lifetime - age
             size <- getEntitySize entityID
-            setEntitySize (size * realToFrac fadeProgress) entityID
+            setEntitySize entityID (size * realToFrac fadeProgress)
 
         when (age > lifetime) $ do
             removeEntity entityID
-        
+
 
 setLifetime :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> m ()
 setLifetime lifetime = do

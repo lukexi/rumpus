@@ -26,7 +26,7 @@ tickHandControlsSystem = do
     let editSceneWithHand whichHand handEntityID otherHandEntityID event = case event of
             HandStateEvent hand -> do
                 let newHandPose = hand ^. hndMatrix
-                setEntityPose newHandPose handEntityID
+                setEntityPose handEntityID newHandPose
                 continueDrag handEntityID
                 continueHapticDrag whichHand newHandPose
                 updateBeam whichHand

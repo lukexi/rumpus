@@ -9,7 +9,7 @@ update entityID = do
         spatX = (*a) . sin  $ now
         spatZ = (*a) . cos  $ now
         newPose_ = Pose (V3 spatX 0.5   spatZ) (axisAngle (V3 0 1 0) (now + (pi/2)))
-    setEntityPose newPose_ entityID
+    setEntityPose entityID newPose_
 
     withState entityID $ \channel -> do
         (liftIO . atomically . readTChan) channel >>= \case
