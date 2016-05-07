@@ -37,7 +37,7 @@ tickHandControlsSystem = do
 
                 -- Saving is currently disabled to simplify the alpha release
                 -- (code will still be saved automatically)
-                --saveScene
+                saveScene
             HandButtonEvent HandButtonStart ButtonDown -> do
                 primeNewEntity whichHand
             HandButtonEvent HandButtonStart ButtonUp -> do

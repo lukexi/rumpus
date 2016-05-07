@@ -47,10 +47,11 @@ unprimeNewEntity whichHand = do
 primeNewEntity :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 primeNewEntity whichHand = do
 
-    newEntityID <- spawnEntity $ do
-        myShape     ==> Cube
-        mySize      ==> 0.01
-        myUpdate    ==> do
+    newEntityID <- spawnPersistentEntity $ do
+        myShape      ==> Cube
+        mySize       ==> 0.01
+        myProperties ==> [Floating]
+        myUpdate     ==> do
             now <- getNow
             setColor (colorHSL now 0.3 0.8)
 
@@ -61,7 +62,7 @@ primeNewEntity whichHand = do
                 entityID <- ask
                 handEntityID `grabEntity` entityID
                 animateSizeTo 0.3 0.3
-                addCodeExpr "Start" "start" myStartExpr myStart
+                addStartExpr
 
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
@@ -73,6 +74,21 @@ primeNewEntity whichHand = do
     setPrimedEntity whichHand newEntityID
 
 
+addStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
+             => m ()
+addStartExpr = do
+    sceneFolder <- getSceneFolder
+    entityID <- ask
+    let defaultFilePath = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
+        entityFileName  = show entityID <.> "hs"
+        entityFilePath  = sceneFolder </> entityFileName
+        codeFile        = (entityFileName, "start")
+    liftIO $ copyFile defaultFilePath entityFilePath
+    myStartExpr ==> codeFile
+    registerWithCodeEditor codeFile myStart
+
+
+{-
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
             => FilePath
             -> String
@@ -89,3 +105,4 @@ addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
     liftIO $ copyFile defaultFilePath entityFilePath
     codeFileComponentKey ==> codeFile
     registerWithCodeEditor codeFile codeComponentKey
+-}
