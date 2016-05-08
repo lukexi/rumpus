@@ -14,6 +14,7 @@ import Rumpus.Systems.Creator
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Teleport
 import Rumpus.Systems.SceneEditor
+import Rumpus.Systems.Scene
 
 tickHandControlsSystem :: ECSMonad ()
 tickHandControlsSystem = do

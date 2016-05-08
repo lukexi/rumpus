@@ -74,12 +74,12 @@ primeNewEntity whichHand = do
     setPrimedEntity whichHand newEntityID
 
 
-addStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
+addStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
              => m ()
 addStartExpr = do
     sceneFolder <- getSceneFolder
     entityID <- ask
-    let defaultFilePath = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
+    let defaultFilePath = "resources" </> "default-code" </> "DefaultStart" <.> "hs"
         entityFileName  = show entityID <.> "hs"
         entityFilePath  = sceneFolder </> entityFileName
         codeFile        = (entityFileName, "start")

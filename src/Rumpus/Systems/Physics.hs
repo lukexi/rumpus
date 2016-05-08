@@ -50,10 +50,7 @@ initPhysicsSystem = do
 
     registerComponent "RigidBody" myRigidBody $ (newComponentInterface myRigidBody)
         { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
-        , ciRemoveComponent  =
-                withComponent_ myRigidBody $ \rigidBody -> do
-                    removeRigidBody dynamicsWorld rigidBody
-                    removeComponent myRigidBody
+        , ciRemoveComponent = removeRigidBodyComponent dynamicsWorld
         }
     registerComponent "Mass"              myMass               (savedComponentInterface myMass)
     registerComponent "Gravity"           myGravity            (savedComponentInterface myGravity)
@@ -62,8 +59,20 @@ initPhysicsSystem = do
     registerComponent "CollisionGroup"    myCollisionGroup     (newComponentInterface myCollisionGroup)
     registerComponent "CollisionMask"     myCollisionMask      (newComponentInterface myCollisionMask)
 
+
+removeRigidBodyComponent dynamicsWorld = do
+    withComponent_ myRigidBody $ \rigidBody -> do
+        removeRigidBody dynamicsWorld rigidBody
+        removeComponent myRigidBody
+
 deriveRigidBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DynamicsWorld -> m ()
 deriveRigidBody dynamicsWorld = do
+    -- TODO: this suggests we might want to build the behavior running
+    -- ciRemoveComponent into ciDeriveComponent,
+    -- just as we want to automatically run
+    -- removeComponent after ciRemoveComponent
+    removeRigidBodyComponent dynamicsWorld
+
     properties <- fromMaybe [] <$> getComponent myProperties
     unless (Holographic `elem` properties) $ do
         mShapeType <- getComponent myShape
@@ -118,7 +127,7 @@ setGhostly isGhostly = do
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
-    dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
+    dynamicsWorld <- getDynamicsWorld
     vrPal         <- viewSystem sysControls ctsVRPal
     dt            <- getDeltaTime vrPal
     stepSimulationSimple dynamicsWorld dt
@@ -157,7 +166,7 @@ getEntityOverlapping entityID = getEntityComponent entityID myRigidBody  >>= \ca
 
 castRay :: (MonadIO m, MonadState ECS m) => Ray GLfloat -> m (Maybe (RayResult GLfloat))
 castRay ray = do
-    dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld
+    dynamicsWorld <- getDynamicsWorld
     rayTestClosest dynamicsWorld ray
 
 getEntityOverlappingEntityIDs :: (MonadState ECS m, MonadIO m) => EntityID -> m [EntityID]
@@ -165,6 +174,15 @@ getEntityOverlappingEntityIDs entityID =
     filter (/= entityID)
     . concatMap (\c -> map unCollisionObjectID [cbBodyAID c, cbBodyBID c])
     <$> getEntityOverlapping entityID
+
+getDynamicsWorld :: MonadState ECS m => m DynamicsWorld
+getDynamicsWorld = viewSystem sysPhysics phyDynamicsWorld
+
+setShape :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ShapeType -> m ()
+setShape newShape = do
+    myShape ==> newShape
+    dynamicsWorld <- getDynamicsWorld
+    deriveRigidBody dynamicsWorld
 
 setSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
 setSize newSize = ask >>= \eid -> setEntitySize eid newSize
