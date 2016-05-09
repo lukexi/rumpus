@@ -94,12 +94,13 @@ addDestructionOrb whichHand = do
                 modifySystemState sysCreator $
                     crtPendingDestruction . at whichHand ?= entityID
 
-    setEntityPose newEntityID (handPose !*! translateMatrix (V3 0 0 (-0.3)))
+    setEntityPose newEntityID (handPose !*! translateMatrix creatorOffset)
     attachEntity handID newEntityID False
 
     runEntity newEntityID $ animateSizeTo 0.05 0.3
     return newEntityID
 
+creatorOffset = V3 0 0 (-0.4)
 
 getOtherHand whichHand = case whichHand of
     LeftHand  -> RightHand
@@ -117,8 +118,8 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
         myProperties ==> [Floating]
         myText       ==> maybe "New Object" takeBaseName maybeCodePath
         myTextPose   ==> mkTransformation
-                            (axisAngle (V3 1 0 0) (-pi/2))
-                            (V3 0 0 1)
+                            (axisAngle (V3 1 0 0) (0))
+                            (V3 0 (-1) 0)
                             !*! scaleMatrix 0.3
         myColor      ==> V4 0.1 0.1 0.1 1
         -- Make the new object pulse
@@ -144,7 +145,11 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                     Just codePath -> setStartExpr codePath
                     Nothing       -> addNewStartExpr
 
-    setEntityPose newEntityID (handPose !*! translateMatrix (V3 0 0 (-0.3)) !*! translateMatrix (spherePosition * 0.2))
+    -- Hand is usually held vertically, so we rotate objects such that they'll
+    -- have their code facing towards the user in that case
+    setEntityPose newEntityID
+        (handPose !*! translateMatrix creatorOffset
+                  !*! mkTransformation (axisAngle (V3 1 0 0) (-pi/2)) (spherePosition * 0.2))
     attachEntity handID newEntityID False
 
     runEntity newEntityID $ animateSizeTo 0.05 0.3

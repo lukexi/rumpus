@@ -26,7 +26,7 @@ startHandsSystem = do
 
         makeHand whichHand = do
             myColor           ==> handColor
-            mySize            ==> V3 0.1 0.1 0.3
+            mySize            ==> V3 0.1 0.1 0.25
             myShape           ==> Cube
             myProperties      ==> [Floating, Ghostly, Static]
             myMass            ==> 0

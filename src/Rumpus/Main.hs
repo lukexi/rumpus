@@ -17,8 +17,8 @@ rumpusMain = withGHC rumpusGHCSessionConfig $ \ghc -> withPd $ \pd -> do
     --vrPal <- reacquire 0 $ initVRPal "Rumpus" []
     -- pd    <- reacquire 1 $ initLibPd
 
-    --let defaultScene = "Room"
-    let defaultScene = "NewObjects"
+    let defaultScene = "Room"
+    --let defaultScene = "NewObjects"
     scene <- fromMaybe defaultScene . listToMaybe <$> getArgs
     userSceneFolder <- copyStartScene scene
 

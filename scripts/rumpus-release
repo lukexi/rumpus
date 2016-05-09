@@ -2,6 +2,7 @@
 
 rm -rf .release/
 
+stack clean rumpus
 stack install --flag rumpus:RumpusRelease rumpus:rumpus --local-bin-path=.release
 
 mkdir -p .release/packages/ghc/mingw/bin

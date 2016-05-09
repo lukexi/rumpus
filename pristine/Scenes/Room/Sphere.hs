@@ -14,7 +14,7 @@ pointsOnSphere (fromIntegral -> n) =
 
 start :: Start
 start = do
-    removeChildren
+    
     rootEntityID <- ask
 
     let numPoints = 30 :: Int

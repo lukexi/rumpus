@@ -3,7 +3,6 @@ import Rumpus
 
 start :: Start
 start = do
-    removeChildren
 
     let branch parentID n pos = do
             childID <- spawnEntity $ do

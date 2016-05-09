@@ -20,7 +20,12 @@ tickHandControlsSystem :: ECSMonad ()
 tickHandControlsSystem = do
     let editSceneWithHand whichHand handEntityID otherHandEntityID event = case event of
             HandStateEvent hand -> do
-                let newHandPose = hand ^. hndMatrix
+                -- Shift the hands down a bit, since OpenVR gives us the position
+                -- of center of the controller's ring rather than its body
+                let newHandPoseRaw = hand ^. hndMatrix
+                    handRotation = newHandPoseRaw ^. _m33
+                    handOffset = handRotation !* V3 0 0 0.05
+                    newHandPose = newHandPoseRaw & translation +~ handOffset
                 setEntityPose handEntityID newHandPose
                 continueDrag handEntityID
                 continueHapticDrag whichHand newHandPose

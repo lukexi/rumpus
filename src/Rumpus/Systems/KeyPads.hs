@@ -232,7 +232,8 @@ tickKeyPadsSystem = do
     traverseM_ getSelectedEntityID $ \selectedEntityID -> do
         keyPadContainerID <- getKeyPadContainerID
         selectedEntityPose <- getEntityPose selectedEntityID
-        runEntity keyPadContainerID $ setPose selectedEntityPose
+        V3 _ _ sizeZ <- getEntitySize selectedEntityID
+        runEntity keyPadContainerID $ setPose (selectedEntityPose !*! translateMatrix (V3 0 0 (sizeZ/2)))
 
     forM_ [LeftHand, RightHand] $ \whichHand -> do
         keysForHand <- getKeysForHand whichHand
