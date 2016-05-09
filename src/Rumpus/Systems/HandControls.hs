@@ -40,9 +40,9 @@ tickHandControlsSystem = do
                 -- (code will still be saved automatically)
                 saveScene
             HandButtonEvent HandButtonStart ButtonDown -> do
-                primeNewEntity whichHand
+                openEntityLibrary whichHand
             HandButtonEvent HandButtonStart ButtonUp -> do
-                unprimeNewEntity whichHand
+                closeEntityLibrary whichHand
             _ -> return ()
 
     leftHandID  <- getLeftHandID

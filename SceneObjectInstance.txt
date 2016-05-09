@@ -1,3 +1,17 @@
+loadScene folder = do
+    removeAllEntitiesExceptHands
+    library = list *.hs
+    for value in list worldstate/*.yaml
+        restoreentityfromyaml value
+
+spawnNameAtPose name pose = do
+    codeFile = (name.hs, "start")
+    entityID <- spawnPersistentEntity $ do
+        startExpr ==> codeFile
+        position ==> pose
+    handID `grabEntity` entityID
+
+
 SUMMARY 1:
 HS files in a scene folder establish the namespace.
 No YAML files in scene folder, only HS.

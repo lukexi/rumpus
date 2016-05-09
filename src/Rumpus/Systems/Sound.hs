@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Rumpus.Systems.Sound 
+module Rumpus.Systems.Sound
     ( module Rumpus.Systems.Sound
     , module Sound.Pd
     ) where
@@ -12,7 +12,7 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Scene
 import Rumpus.Systems.Controls
 
-data SoundSystem = SoundSystem 
+data SoundSystem = SoundSystem
     { _sndPd               :: !PureData
     , _sndOpenALSourcePool :: ![(Int, OpenALSource)]
     }
@@ -33,26 +33,31 @@ initSoundSystem pd = do
     mapM_ (addToLibPdSearchPath pd)
         ["resources/pd-kit", "resources/pd-kit/list-abs"]
 
-    let soundSystem = SoundSystem { _sndPd = pd, _sndOpenALSourcePool = zip [1..] (pdSources pd) }
+    let soundSystem = SoundSystem
+            { _sndPd = pd
+            , _sndOpenALSourcePool = zip [1..] (pdSources pd)
+            }
 
     registerSystem sysSound soundSystem
 
     registerComponent "PdPatchFile" myPdPatchFile (savedComponentInterface myPdPatchFile)
     registerComponent "OpenALSource" myOpenALSource (newComponentInterface myOpenALSource)
     registerComponent "PdPatch" myPdPatch $ (newComponentInterface myPdPatch)
-        { ciDeriveComponent = Just (derivePdPatchComponent pd) 
-        , ciRemoveComponent = removePdPatchComponent 
+        { ciDeriveComponent = Just (derivePdPatchComponent pd)
+        , ciRemoveComponent = removePdPatchComponent
         }
 
 tickSoundSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickSoundSystem = do
-    headM44 <- getHeadPose 
+    headM44 <- getHeadPose
     -- Update source and listener positions
     alListenerPose (poseFromMatrix headM44)
     forEntitiesWithComponent myOpenALSource $ \(entityID, sourceID) -> do
         position <- view translation <$> getEntityPose entityID
         alSourcePosition sourceID position
 
+-- | We currently implement this by voice stealing,
+-- so the oldest object will lose sound.
 dequeueOpenALSource :: MonadState ECS m => m (Maybe (Int, OpenALSource))
 dequeueOpenALSource = modifySystemState sysSound $ do
     openALSourcePool <- use sndOpenALSourcePool
@@ -62,10 +67,21 @@ dequeueOpenALSource = modifySystemState sysSound $ do
             sndOpenALSourcePool .= xs ++ [x]
             return (Just x)
 
-derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => PureData -> m ()
+setPdPatchFile :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
+               => FilePath
+               -> m ()
+setPdPatchFile patchFile = do
+    myPdPatchFile ==> patchFile
+    pd <- viewSystem sysSound sndPd
+    derivePdPatchComponent pd
+
+derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
+                       => PureData -> m ()
 derivePdPatchComponent pd = do
+    removePdPatchComponent
     withComponent_ myPdPatchFile $ \patchFile -> do
         sceneFolder <- getSceneFolder
+        addPdPatchSearchPath sceneFolder
         patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
         myPdPatch ==> patch
 
@@ -78,7 +94,7 @@ derivePdPatchComponent pd = do
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()
 removePdPatchComponent = do
     pd <- viewSystem sysSound sndPd
-    _ <- withPdPatch $ closePatch pd
+    _ <- withPdPatch (closePatch pd)
 
     removeComponent myPdPatch
     removeComponent myOpenALSource
@@ -91,17 +107,17 @@ withEntityPdPatch :: (HasComponents s, MonadState s m) => EntityID -> (Patch -> 
 withEntityPdPatch entityID = withEntityComponent entityID myPdPatch
 
 sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
-sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem -> 
+sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem ->
     send (soundSystem ^. sndPd) patch receiver message
 
 sendEntityPd :: (MonadIO m, MonadState ECS m) => EntityID -> Receiver -> Message -> m ()
-sendEntityPd entityID receiver message = 
-    void . withEntityPdPatch entityID $ \patch -> 
+sendEntityPd entityID receiver message =
+    void . withEntityPdPatch entityID $ \patch ->
         sendToPdPatch patch receiver message
 
 sendPd :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Receiver -> Message -> m ()
-sendPd receiver message = 
-    void . withPdPatch $ \patch -> 
+sendPd receiver message =
+    void . withPdPatch $ \patch ->
         sendToPdPatch patch receiver message
 
 

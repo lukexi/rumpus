@@ -7,14 +7,13 @@
 module Rumpus.Systems.Scene where
 import Data.ECS
 import PreludeExtra
---import Rumpus.Systems.Sound
 
 data Scene = Scene
-    { _scnFolder :: !FilePath
+    { _scnFolder  :: !FilePath
     }
 makeLenses ''Scene
 
-data SceneSystem = SceneSystem 
+data SceneSystem = SceneSystem
     { _scnScene            :: !Scene
     }
 makeLenses ''SceneSystem
@@ -28,16 +27,17 @@ initSceneSystem sceneFolder = do
 getSceneFolder :: (MonadState ECS m) => m FilePath
 getSceneFolder = viewSystem sysScene (scnScene . scnFolder)
 
-
+setSceneFolder :: MonadState ECS m => FilePath -> m ()
+setSceneFolder sceneFolder = modifySystemState sysScene (scnScene . scnFolder .= sceneFolder)
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneFolder = do
     putStrLnIO $ "Loading scene: " ++ sceneFolder
-    modifySystemState sysScene (scnScene . scnFolder .= sceneFolder)
-    --addPdPatchSearchPath sceneFolder
-    loadEntities sceneFolder
+    setSceneFolder sceneFolder
+
+    loadEntities (sceneFolder </> "WorldState")
 
 saveScene :: ECSMonad ()
 saveScene = do
-    sceneFolder <- viewSystem sysScene (scnScene . scnFolder)
-    saveEntities sceneFolder
+    sceneFolder <- getSceneFolder
+    saveEntities (sceneFolder </> "WorldState")

@@ -59,7 +59,8 @@ initPhysicsSystem = do
     registerComponent "CollisionGroup"    myCollisionGroup     (newComponentInterface myCollisionGroup)
     registerComponent "CollisionMask"     myCollisionMask      (newComponentInterface myCollisionMask)
 
-
+removeRigidBodyComponent :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+                         => DynamicsWorld -> m ()
 removeRigidBodyComponent dynamicsWorld = do
     withComponent_ myRigidBody $ \rigidBody -> do
         removeRigidBody dynamicsWorld rigidBody
