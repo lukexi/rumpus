@@ -1,0 +1,15 @@
+StartExpr:
+- Room.hs
+- start
+Shape: Cube
+Size:
+- 0.3
+- 0.3
+- 0.3
+Color:
+- 0.1
+- 0.1
+- 0.2
+- 1.0
+Properties:
+- Floating
