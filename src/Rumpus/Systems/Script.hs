@@ -10,6 +10,7 @@ import Rumpus.Systems.Shared
 import System.Timeout
 import qualified Data.HashMap.Strict as Map
 
+checkIfReadyToStart :: ECSMonad ()
 checkIfReadyToStart = do
     startExprIDs <- Map.keys <$> getComponentMap myStartExpr
     haveStart <- forM startExprIDs $ \entityID ->

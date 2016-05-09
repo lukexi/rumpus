@@ -17,7 +17,7 @@ import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
-import Data.List (delete)
+import Data.List (delete, isPrefixOf)
 import RumpusLib
 -- NOTE: this illustrates how very handy it will be to have arbitrary components;
 -- rather than creating yet more maps, we can just say
@@ -61,7 +61,11 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
         mySize       ==> 0.01
         myProperties ==> [Floating]
         myText       ==> maybe "New Object" takeBaseName maybeCodePath
-        myTextPose   ==> translateMatrix (V3 0 (-0.5) 0)
+        myTextPose   ==> mkTransformation
+                            (axisAngle (V3 1 0 0) (-pi/2))
+                            (V3 0 0 1)
+                            !*! scaleMatrix 0.3
+        myColor      ==> V4 0.1 0.1 0.1 1
         -- Make the new object pulse
         when (isNothing maybeCodePath) $ do
             myUpdate ==> do
@@ -72,10 +76,11 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                 entityID <- ask
                 removeFromOpenLibrary whichHand entityID
 
+                removeComponent myUpdate
                 removeComponent myDragBegan
                 removeComponent myText
                 removeComponent myTextPose
-                removeComponent myUpdate
+                removeTextRendererComponent
 
                 makeEntityPersistent entityID
                 handEntityID `grabEntity` entityID
@@ -84,10 +89,10 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                     Just codePath -> setStartExpr codePath
                     Nothing       -> addNewStartExpr
 
-    setEntityPose newEntityID (handPose !*! translateMatrix (spherePosition * 0.1))
+    setEntityPose newEntityID (handPose !*! translateMatrix (V3 0 0 (-0.3)) !*! translateMatrix (spherePosition * 0.2))
     attachEntity handID newEntityID False
 
-    runEntity newEntityID $ animateSizeTo 0.1 0.3
+    runEntity newEntityID $ animateSizeTo 0.05 0.3
     return newEntityID
 
 removeFromOpenLibrary :: MonadState ECS m => WhichHand -> EntityID -> m ()
@@ -111,7 +116,7 @@ addNewStartExpr = do
     sceneFolder <- getSceneFolder
     files <- getDirectoryContentsWithExtension "hs" sceneFolder
 
-    let newObjectCodeName = findNextNumberedName "NewObject" (map takeBaseName files)
+    let newObjectCodeName = findNextNumberedName "MyObject" (map takeBaseName files)
     entityID <- ask
     let defaultFilePath = "resources" </> "default-code" </> "DefaultStart" <.> "hs"
         entityFileName  = newObjectCodeName <.> "hs"
@@ -124,7 +129,7 @@ addNewStartExpr = do
 -- | Given a list of names like [NewObject1, NewObject3, NewObject7]
 findNextNumberedName name inList =
     let newObjects = filter (isPrefixOf name) inList
-        existingNumbers =  catMaybes $ map (readMaybe . drop (length name)) newObjects
+        existingNumbers = catMaybes $ map (readMaybe . drop (length name)) newObjects :: [Int]
     in name ++ show (succ (maximum existingNumbers))
 
 setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)

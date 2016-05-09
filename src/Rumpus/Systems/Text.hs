@@ -49,12 +49,15 @@ initTextSystem = do
             myTextRenderer ==> textRenderer
             -- Retrigger pose caching
             setTextPose =<< getTextPose
-        , ciRemoveComponent = withComponent_ myTextRenderer $ \textRenderer -> do
-            -- FIXME at some point we should start actually destroying TextRenderers if the bin has enough
-            clearedTextRenderer <- flip execStateT textRenderer $ setTextRendererText id ""
-            modifySystemState sysText $ txtRecycleBin %= (clearedTextRenderer:)
-            removeComponent myTextRenderer
+        , ciRemoveComponent = removeTextRendererComponent
         }
+
+removeTextRendererComponent :: (MonadState ECS m, MonadIO m, MonadReader EntityID m) => m ()
+removeTextRendererComponent = withComponent_ myTextRenderer $ \textRenderer -> do
+    -- FIXME at some point we should start actually destroying TextRenderers if the bin has enough
+    clearedTextRenderer <- flip execStateT textRenderer $ setTextRendererText id ""
+    modifySystemState sysText $ txtRecycleBin %= (clearedTextRenderer:)
+    removeComponent myTextRenderer
 
 setEntityText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
 setEntityText entityID text = do

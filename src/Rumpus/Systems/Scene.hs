@@ -35,9 +35,11 @@ loadScene sceneFolder = do
     putStrLnIO $ "Loading scene: " ++ sceneFolder
     setSceneFolder sceneFolder
 
-    loadEntities (sceneFolder </> "WorldState")
+    loadEntities (sceneFolder </> ".world-state")
 
 saveScene :: ECSMonad ()
 saveScene = do
     sceneFolder <- getSceneFolder
-    saveEntities (sceneFolder </> "WorldState")
+    -- FIXME: move the .world-state concept into extensible-ecs
+    liftIO $ removeDirectoryRecursive (sceneFolder </> ".world-state")
+    saveEntities (sceneFolder </> ".world-state")
