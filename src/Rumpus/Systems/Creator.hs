@@ -191,7 +191,8 @@ addNewStartExpr = do
 findNextNumberedName name inList =
     let newObjects = filter (isPrefixOf name) inList
         existingNumbers = catMaybes $ map (readMaybe . drop (length name)) newObjects :: [Int]
-    in name ++ show (succ (maximum existingNumbers))
+        highest = if null existingNumbers then 0 else maximum existingNumbers
+    in name ++ show (succ highest)
 
 setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
              => FilePath -> m ()

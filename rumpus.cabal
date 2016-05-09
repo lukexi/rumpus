@@ -99,6 +99,8 @@ library
                      , time
                      , directory
                      , filepath
+                     , shelly
+                     , system-filepath
                      , template-haskell
                      , vault
                      , extensible-ecs

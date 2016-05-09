@@ -42,4 +42,5 @@ saveScene = do
     sceneFolder <- getSceneFolder
     -- FIXME: move the .world-state concept into extensible-ecs
     liftIO $ removeDirectoryRecursive (sceneFolder </> ".world-state")
+    liftIO $ createDirectoryIfMissing True (sceneFolder </> ".world-state")
     saveEntities (sceneFolder </> ".world-state")
