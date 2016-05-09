@@ -17,7 +17,6 @@ import Data.ECS.Vault
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 --import Rumpus.Systems.Hands
-import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Types
@@ -50,9 +49,6 @@ defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
 defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
 defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
 
-defineComponentKeyWithType "PlayWhenReady"      [t|Bool|]
-
-
 -- When in release mode, use the embedded "packages" directory,
 -- otherwise use MSYS2's copy in /usr/local/ghc
 sharedGHCSessionConfig :: GHCSessionConfig
@@ -72,12 +68,6 @@ rumpusGHCSessionConfig = if isInReleaseMode
         }
     else sharedGHCSessionConfig
 
-getPlayWhenReady :: (MonadState ECS m, MonadReader EntityID m) => m Bool
-getPlayWhenReady = fromMaybe False <$> getComponent myPlayWhenReady
-
-getEntityPlayWhenReady :: (MonadState ECS m) => EntityID -> m Bool
-getEntityPlayWhenReady entityID = fromMaybe False <$> getEntityComponent entityID myPlayWhenReady
-
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => TChan CompilationRequest -> m ()
 initCodeEditorSystem ghcChan = do
 
@@ -91,8 +81,6 @@ initCodeEditorSystem ghcChan = do
     registerCodeExprComponent "UpdateExpr"         myUpdateExpr         myUpdate
     registerCodeExprComponent "CollidingExpr"      myCollidingExpr      myColliding
     registerCodeExprComponent "CollisionStartExpr" myCollisionStartExpr myCollisionStart
-
-    registerComponent "PlayWhenReady" myPlayWhenReady (savedComponentInterface myPlayWhenReady)
 
 
 registerCodeExprComponent :: (MonadState ECS m, Typeable a)
@@ -137,12 +125,6 @@ addCodeEditorDependency codeInFile realCodeKey = do
             forM_ (getCompiledValue newValue) $ \newCode ->
                 setEntityComponent realCodeKey newCode entityID
             --putStrLnIO $ "Done setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
-            -- Scratch pass at a "PlayWhenReady" system.
-            -- Begins play when a file has PlayWhenReady set
-            -- and its start function finished compiling
-            playWhenReady <- getEntityPlayWhenReady entityID
-            when (playWhenReady && snd codeInFile == "start") $
-                setWorldPlaying True
     modifySystemState sysCodeEditor $
         cesCodeEditors . at codeInFile . traverse . cedDependents . at entityID ?= updateCodeAction
 

@@ -1,7 +1,6 @@
 StartExpr:
 - Room.hs
 - start
-PlayWhenReady: true
 Shape: Cube
 Size:
 - 0.3

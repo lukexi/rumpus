@@ -8,9 +8,25 @@ import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
 
 import System.Timeout
+import qualified Data.HashMap.Strict as Map
+
+checkIfReadyToStart = do
+    startExprIDs <- Map.keys <$> getComponentMap myStartExpr
+    haveStart <- forM startExprIDs $ \entityID ->
+        entityHasComponent entityID myStart
+
+    let allReadyToStart = and haveStart
+    when allReadyToStart $
+        setWorldPlaying True
 
 tickScriptSystem :: ECSMonad ()
-tickScriptSystem = whenWorldPlaying $ do
+tickScriptSystem = do
+    isWorldPlaying <- getWorldPlaying
+    if isWorldPlaying
+        then runScripts
+        else checkIfReadyToStart
+
+runScripts = do
     forEntitiesWithComponent myStart $
         \(entityID, onStart) -> runEntity entityID $ do
             --putStrLnIO ("Running Start for " ++ show entityID)
