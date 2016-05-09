@@ -55,7 +55,7 @@ runScripts = do
                 (\e -> putStrLnIO $ "Error in Update for entity" ++ show entityID ++ ": " ++ show e)
 
 withState :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)
-               => (a -> m ()) -> m ()
+          => (a -> m ()) -> m ()
 withState f =
     withComponent_ myState $ \dynState -> do
         case fromDynamic dynState of

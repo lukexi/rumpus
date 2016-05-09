@@ -53,7 +53,7 @@ openEntityLibrary whichHand = do
 
 addHandLibraryItem :: (MonadIO m, MonadState ECS m)
                    => WhichHand -> V3 GLfloat -> Maybe FilePath -> m EntityID
-addHandLibraryItem whichHand position maybeCodePath = do
+addHandLibraryItem whichHand spherePosition maybeCodePath = do
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
     newEntityID <- spawnEntity $ do
@@ -61,7 +61,7 @@ addHandLibraryItem whichHand position maybeCodePath = do
         mySize       ==> 0.01
         myProperties ==> [Floating]
         myText       ==> maybe "New Object" takeBaseName maybeCodePath
-        myTextPose   ==> translateMatrix (V3 0 (-0.1) 0)
+        myTextPose   ==> translateMatrix (V3 0 (-0.5) 0)
         -- Make the new object pulse
         when (isNothing maybeCodePath) $ do
             myUpdate ==> do
@@ -84,8 +84,8 @@ addHandLibraryItem whichHand position maybeCodePath = do
                     Just codePath -> setStartExpr codePath
                     Nothing       -> addNewStartExpr
 
-    setEntityPose newEntityID (handPose !*! translateMatrix position)
-    attachEntity handID newEntityID True
+    setEntityPose newEntityID (handPose !*! translateMatrix (spherePosition * 0.1))
+    attachEntity handID newEntityID False
 
     runEntity newEntityID $ animateSizeTo 0.1 0.3
     return newEntityID
@@ -109,14 +109,23 @@ addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
              => m ()
 addNewStartExpr = do
     sceneFolder <- getSceneFolder
+    files <- getDirectoryContentsWithExtension "hs" sceneFolder
+
+    let newObjectCodeName = findNextNumberedName "NewObject" (map takeBaseName files)
     entityID <- ask
     let defaultFilePath = "resources" </> "default-code" </> "DefaultStart" <.> "hs"
-        entityFileName  = show entityID <.> "hs"
+        entityFileName  = newObjectCodeName <.> "hs"
         entityFilePath  = sceneFolder </> entityFileName
     liftIO $ copyFile defaultFilePath entityFilePath
 
     -- Scene folder is auto-appended in CodeEditor, so we just need the filename with no path.
     setStartExpr entityFileName
+
+-- | Given a list of names like [NewObject1, NewObject3, NewObject7]
+findNextNumberedName name inList =
+    let newObjects = filter (isPrefixOf name) inList
+        existingNumbers =  catMaybes $ map (readMaybe . drop (length name)) newObjects
+    in name ++ show (succ (maximum existingNumbers))
 
 setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
              => FilePath -> m ()
@@ -124,6 +133,8 @@ setStartExpr fileName = do
     let codeInFile = (fileName, "start")
     myStartExpr ==> codeInFile
     registerWithCodeEditor codeInFile myStart
+
+
 
 {-
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
@@ -143,3 +154,34 @@ addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
     codeFileComponentKey ==> codeFile
     registerWithCodeEditor codeFile codeComponentKey
 -}
+
+
+-----------------------------------------------
+-- Experiments in dynamic code addition/cloning
+-----------------------------------------------
+
+
+{-
+forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
+forkCode fromEntityID toEntityID = do
+    let codeFileComponentKey = myStartExpr
+    mCodeExpr <- getEntityComponent fromEntityID codeFileComponentKey
+
+    forM_ mCodeExpr $ \(fullPath, expr) -> do
+        let (path, fileName) = splitFileName fullPath
+            (name, ext)      = splitExtension fileName
+        -- Slightly tricky to get right without overwriting files; need to enumerate directory and find unused name
+        -- so using getPosixTime for now.
+        --fileNum          = succ . fromMaybe 1 . readMaybe . reverse . takeWhile isDigit . reverse $ fileName
+        now <- liftIO $ getPOSIXTime
+        let newName = name ++ show now
+            newFullPath = path </> newName <.> ext
+        liftIO $ copyFile fullPath newFullPath
+
+        let newCodeInFile = (newFullPath, expr)
+        runEntity toEntityID $ do
+            withComponent_ codeFileComponentKey unregisterWithCodeEditor
+            codeFileComponentKey ==> newCodeInFile
+            registerWithCodeEditor newCodeInFile codeFileComponentKey
+-}
+--
