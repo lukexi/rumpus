@@ -11,6 +11,7 @@ import Rumpus.Systems.Animation
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Controls
+import Rumpus.Systems.Collisions
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.CodeEditor
@@ -24,7 +25,8 @@ import RumpusLib
 -- defineComponent OpenLibrary EntityID
 -- and then be able to access those instantly on the hands.
 data CreatorSystem = CreatorSystem
-    { _crtOpenLibrary :: !(Map WhichHand [EntityID])
+    { _crtOpenLibrary        :: !(Map WhichHand [EntityID])
+    , _crtPendingDestruction :: !(Map WhichHand EntityID)
     }
 makeLenses ''CreatorSystem
 defineSystemKey ''CreatorSystem
@@ -32,9 +34,13 @@ defineSystemKey ''CreatorSystem
 
 initCreatorSystem :: MonadState ECS m => m ()
 initCreatorSystem = do
-    registerSystem sysCreator (CreatorSystem mempty)
+    registerSystem sysCreator (CreatorSystem mempty mempty)
 
-
+checkForDestruction whichHand = do
+    let otherHand = getOtherHand whichHand
+    maybePendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at otherHand)
+    forM_ maybePendingDestruction $ \destroyID -> do
+        removeEntity destroyID
 
 openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
@@ -48,8 +54,57 @@ openEntityLibrary whichHand = do
     libraryEntities <- forM positionsAndCodePaths $ \(position, maybeCodePath) -> do
         addHandLibraryItem whichHand position maybeCodePath
 
+    destructionOrb <- addDestructionOrb whichHand
+
     modifySystemState sysCreator $
-        crtOpenLibrary . at whichHand ?= libraryEntities
+        crtOpenLibrary . at whichHand ?= destructionOrb:libraryEntities
+
+addDestructionOrb :: (MonadIO m, MonadState ECS m)
+                   => WhichHand -> m EntityID
+addDestructionOrb whichHand = do
+    let normalPulse = do
+            now <- getNow
+            let brightness = (* 0.5) . (+1) . (/2) . sin $ now
+            setColor (colorHSL 0.7 0.8 brightness)
+        angryPulse = do
+            now <- getNow
+            let brightness = (* 0.5) . (+1) . (/2) . sin . (*10) $ now
+            setColor (colorHSL 0.1 0.8 brightness)
+    handID   <- getHandID whichHand
+    handPose <- getEntityPose handID
+    newEntityID <- spawnEntity $ do
+        myShape      ==> Sphere
+        mySize       ==> 0.01
+        myProperties ==> [Floating]
+        myUpdate     ==> normalPulse
+
+        myCollisionEnd ==> \entityID -> do
+            pendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at whichHand)
+            when (pendingDestruction == Just entityID) $ do
+                myUpdate ==> normalPulse
+                animateSizeTo 0.05 0.3
+                modifySystemState sysCreator $
+                    crtPendingDestruction . at whichHand .= Nothing
+        myCollisionStart ==> \entityID _ -> do
+            otherHandID <- getOtherHandID whichHand
+            isBeingHeldByOtherHand <- isEntityAttachedTo entityID otherHandID
+            when isBeingHeldByOtherHand $ do
+                animateSizeTo 0.6 0.3
+                myUpdate ==> angryPulse
+                modifySystemState sysCreator $
+                    crtPendingDestruction . at whichHand ?= entityID
+
+    setEntityPose newEntityID (handPose !*! translateMatrix (V3 0 0 (-0.3)))
+    attachEntity handID newEntityID False
+
+    runEntity newEntityID $ animateSizeTo 0.05 0.3
+    return newEntityID
+
+
+getOtherHand whichHand = case whichHand of
+    LeftHand  -> RightHand
+    RightHand -> LeftHand
+getOtherHandID whichHand = getHandID (getOtherHand whichHand)
 
 addHandLibraryItem :: (MonadIO m, MonadState ECS m)
                    => WhichHand -> V3 GLfloat -> Maybe FilePath -> m EntityID
@@ -106,7 +161,8 @@ closeEntityLibrary whichHand = do
     forM_ libraryEntities $ \entityID ->
         runEntity entityID (setLifetime 0.3)
 
-    modifySystemState sysCreator $
+    modifySystemState sysCreator $ do
+        crtPendingDestruction . at whichHand .= Nothing
         crtOpenLibrary . at whichHand .= Nothing
 
 

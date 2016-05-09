@@ -32,6 +32,7 @@ tickHandControlsSystem = do
             HandButtonEvent HandButtonTrigger ButtonDown -> do
                 initiateGrab whichHand handEntityID otherHandEntityID
             HandButtonEvent HandButtonTrigger ButtonUp -> do
+                checkForDestruction whichHand
                 endHapticDrag whichHand
                 endDrag handEntityID
                 detachAttachedEntities handEntityID

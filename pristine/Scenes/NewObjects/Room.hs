@@ -17,4 +17,4 @@ start = do
         mySize       ==> V3 roomW wallD roomD
         myColor      ==> colorHSL 0.1 0.8 0.6
         myMass       ==> 0
-
+    return ()
