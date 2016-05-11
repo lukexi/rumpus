@@ -8,7 +8,7 @@
     https://www.opengl.org/wiki/Multisampling
 
 [x] See if calling swapBuffers every other frame fixes skips!
-    (i.e., thinking that maybe it is because the vive is triggering us at 90hz 
+    (i.e., thinking that maybe it is because the vive is triggering us at 90hz
     and that upsets something when blitting to the screen at 60hz.)
 
 TONIGHT:
@@ -41,7 +41,7 @@ U o E
 \ | /
  \|/
   |
-[hand]  
+[hand]
 
 
 THEN:
@@ -101,7 +101,7 @@ Modules
 - [ ] Animation component
 - [ ] Text editor module
 - [ ] Shader editor windows
-- [ ] Haptics
+- [x] Haptics
 - [ ] FFT module
 - [ ] Chain link module
 
@@ -116,7 +116,7 @@ Modules
 
 - Show the clipboard contents! Place it on your right wrist or something...
 
-- [x] Extensible 
+- [x] Extensible
     Need a better way to define component-systems.
     E.g, would like a "Lifetime" component-system that makes a thing automatically expire.
 
@@ -218,7 +218,7 @@ https://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc/StringBuffer.h
 
 NOTE: also reconsider the idea of a pure haskell markup file, interpreted by Subhalive.
 Basically use a quasiquoter to capture haskell code as a string, which should play well with
-external editors' syntax highlighting. 
+external editors' syntax highlighting.
 (at first I thought this would enable using control structures in object defs, but that wouldn't be re-serializable)
 Or, just add a different extension for the YAML, embed the Haskell code and tell Sublime that it is Haskell.
 
@@ -235,7 +235,7 @@ http://stackoverflow.com/questions/15236238/current-state-of-haskell-soft-real-t
 https://wiki.haskell.org/Numeric_Haskell:_A_Vector_Tutorial
 
 http://dis.um.es/~alberto/hmatrix/st.html
-See 
+See
 mutable
 glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) `appMatrix` perspective 0.01 100 (pi/2) (4/3)
 https://hackage.haskell.org/package/hmatrix-0.17.0.1/docs/Numeric-LinearAlgebra-Devel.html

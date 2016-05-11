@@ -1,13 +1,13 @@
 [ ] BUG: Fix audio not working in standalone executable!
 
 
-[ ] Implement the larger scene plan with 
+[ ] Implement the larger scene plan with
         [ ] Sequencer room
                 Playheads could have handles they move relative to so they could be picked up and moved
                 Play/pause? Or just code it as demo
                 Precompose some sequences and then duplicate the playhead and carry it over to the next sequence
                 to increase intensity of music
-                    (maybe need to think of how to quantize/synchronize playheads effectively; 
+                    (maybe need to think of how to quantize/synchronize playheads effectively;
                     have handle snap-to-grid on release?)
                 Could do sampler here too
 
@@ -23,10 +23,10 @@
                 Animated windows turning on and off, stars in the sky.
 
 
-[ ] Teleporting!
-        [ ] I think I like predefined teleport balls that exist in each room when you're not in them.
+[x] Teleporting!
+        [x] I think I like predefined teleport balls that exist in each room when you're not in them.
 
-        We want to move the player's view and hands, not the world, 
+        We want to move the player's view and hands, not the world,
         so just add that to the hands and head when updating them
 
 [ ] Entity registry for non-local communication making scoreboards etc.
@@ -53,10 +53,10 @@
         but rather the grip button is like a lock. Or maybe just make sure grip works when already holding with trigger?
 
 [ ] Simplify language
-    
+
         Use tutorial as an opportunity to simplify lang examples as much as possible
         e.g. pull out 'align-vector-to-entity' code from fountain; we'll need it for guns!
-        should mySize etc. be selfSize or cSize or eSize or thisSize or 
+        should mySize etc. be selfSize or cSize or eSize or thisSize or
         s'size e_color?
 
         s'size  ==> V3 1 2 4
@@ -70,24 +70,24 @@
         eSize   ==> V3 1 3 2 -- I think I like eNames best, they feel friendly and Haskelly. As does ==>. := looks too other-languagey.
 
         Think of what protection we can put in for users - we can protect against exceptions easily enough,
-        but non-termination is a little more difficult. 
+        but non-termination is a little more difficult.
         An idea: run the code in a thread sandbox for a single frame and deny it if it takes longer than 10ms??
             That would be preeeeetty cool and helpful even when coding intelligently to force VR compatability : ))
             Obviously this won't help once you start forking off your own threads but at that point you're advanced
-            enough that it's OK! 
+            enough that it's OK!
 
 [x] Object duplication
         If holding with one hand, grab with other hand and pull out a copy. Simple!
-        [ ] Figure out getting new instance of code.
+        [x] Figure out getting new instance of code.
         	Should copy the CompiledValue from the CodeEditor to avoid delay when cloning.
 	        Name by just incrementing a counter?
 	        Put the name on one side of the cube??
-        [ ] "Make Independent" option after cloning that does the copying of the code files. 
+        [x] "Make Independent" option after cloning that does the copying of the code files.
             I think this fits what you'd want most of the time?
             E.g. in the sequencer I definitely want all notes to share behavior,
             and when spawning a new object (e.g. a bullet) we want to share behavior.
 
-[ ] Blank object creation
+[x] Blank object creation
 
 [ ] Fix undo, check if it was the culprit in causing judder and switch design if so
 
@@ -111,7 +111,7 @@
 
 Later thoughts:
 - Clean up GLFW gamepad API for local multiplayer games!
-- Think about registering components at runtime in user scripts. 
+- Think about registering components at runtime in user scripts.
 	This would be probably handier than the ScriptData system.
     (Perhaps just have files that are automatically loaded like a Types.hs?)
 
@@ -138,6 +138,7 @@ Later thoughts:
 - Idea for making GPU handle transform stacks:
     Pass a list of indices into an M44 buffer that the shader should look up to assemble into the actual model transform.
     This requires keeping all transforms in one buffer and dealing with whatever rejiggering that causes.
+    (Remember this should be in a compute/geo shader, we don't want to run on every vertex)
 
     Look up "skeletal animation" to see more approaches
         "Also uniform buffers can be used to store the matrices of bones and use them for implementing skeletal animation, however, I personally prefer using normal 2D textures for this purpose to take advantage of the free interpolation thanks to the dedicated texture fetching units but that’s another story."

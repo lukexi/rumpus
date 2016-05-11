@@ -20,7 +20,7 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Types
-
+import System.IO.Error
 --import Data.Time.Clock.POSIX
 
 -- | Pairs a filename along with an expression
@@ -76,7 +76,6 @@ initCodeEditorSystem ghcChan = do
         , _cesGHCChan     = ghcChan
         }
 
-    -- Will require (scriptPath, "start") (or "update" or "collision") to be added somewhere!
     registerCodeExprComponent "StartExpr"          myStartExpr          myStart
     registerCodeExprComponent "UpdateExpr"         myUpdateExpr         myUpdate
     registerCodeExprComponent "CollidingExpr"      myCollidingExpr      myColliding
@@ -128,25 +127,21 @@ addCodeEditorDependency codeInFile realCodeKey = do
     modifySystemState sysCodeEditor $
         cesCodeEditors . at codeInFile . traverse . cedDependents . at entityID ?= updateCodeAction
 
-fullPathForCodeInFile :: MonadState ECS m => (FilePath, String) -> m (FilePath, String)
-fullPathForCodeInFile (fileName, exprString) = do
-    sceneFolder <- getSceneFolder
-    return (sceneFolder </> fileName, exprString)
 
 createCodeEditor :: (MonadIO m, MonadState ECS m)
                  => CodeInFile -> m CodeEditor
-createCodeEditor codeInFile = do
-    ghcChan                      <- viewSystem sysCodeEditor cesGHCChan
-    font                         <- getFont
-    (scriptFullPath, exprString) <- fullPathForCodeInFile codeInFile
+createCodeEditor (codeFile, codeExpr) = do
+    ghcChan         <- viewSystem sysCodeEditor cesGHCChan
+    font            <- getFont
+    codeFileInScene <- fileInScene codeFile
 
-    recompiler <- recompilerForExpression ghcChan scriptFullPath exprString
+    recompiler <- recompilerForExpression ghcChan codeFileInScene codeExpr True
 
     let setupRenderer r =
             updateMetrics ((txrScreenSize ?~ V2 80 80) r)
     -- FIXME this should be async...
     -- (note: could implement that using WatchFile/refreshText by writing a phony event)
-    codeRenderer  <- setupRenderer =<< textRendererFromFile font scriptFullPath WatchFile
+    codeRenderer  <- setupRenderer =<< textRendererFromFile font codeFileInScene WatchFile
     errorRenderer <- setupRenderer =<< createTextRenderer font (textBufferFromString "")
 
     return CodeEditor
@@ -174,10 +169,10 @@ withCodeEditor codeInFile =
 
 recompileCodeInFile :: (MonadIO m, MonadState ECS m)
                     => CodeInFile -> m ()
-recompileCodeInFile codeInFile = withCodeEditor codeInFile $ \codeEditor -> do
+recompileCodeInFile codeInFile@(codeFile, codeExpr) = withCodeEditor codeInFile $ \codeEditor -> do
     ghcChan <- viewSystem sysCodeEditor cesGHCChan
 
-    (fullPath, exprString) <- fullPathForCodeInFile codeInFile
+    codeFileInScene <- fileInScene codeFile
 
     let resultsChan = codeEditor ^. cedRecompiler . to recResultTChan
         textBuffer  = codeEditor ^. cedCodeRenderer . txrTextBuffer
@@ -186,8 +181,8 @@ recompileCodeInFile codeInFile = withCodeEditor codeInFile $ \codeEditor -> do
             -- NOTE: we want to make sure this isn't
             -- evaluated on this thread. Let the SubHalive thread do it:
             , crFileContents     = Just (stringFromTextBuffer textBuffer)
-            , crFilePath         = fullPath
-            , crExpressionString = exprString
+            , crFilePath         = codeFileInScene
+            , crExpressionString = codeExpr
             }
 
     writeTChanIO ghcChan compilationRequest
@@ -195,11 +190,15 @@ recompileCodeInFile codeInFile = withCodeEditor codeInFile $ \codeEditor -> do
 
 -- | Allows Script system to pass runtime exceptions to the error pane,
 -- assuming the given entityID has an onStartExpr.
-setErrorText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
-setErrorText entityID errors = do
+setEntityErrorText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
+setEntityErrorText entityID errorText = do
     traverseM_ (getEntityComponent entityID myStartExpr) $ \codeInFile ->
-        modifySystemState sysCodeEditor $
-            setTextRendererText (cesCodeEditors . ix codeInFile . cedErrorRenderer) errors
+        setErrorTextForCodeInFile codeInFile errorText
+
+setErrorTextForCodeInFile :: (MonadIO m, MonadState ECS m) => CodeInFile -> String -> m ()
+setErrorTextForCodeInFile codeInFile errorText = modifySystemState sysCodeEditor $
+    setTextRendererText (cesCodeEditors . ix codeInFile . cedErrorRenderer) errorText
+
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
@@ -225,36 +224,32 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
                 dependents <- use (cesCodeEditors . ix codeInFile . cedDependents)
                 lift $ forM_ dependents ($ compiledValue)
 
+moveCodeEditorFile :: (MonadIO m, MonadState ECS m) => FilePath -> FilePath -> String -> m ()
+moveCodeEditorFile oldFileName newFileName codeExpr = do
+    let oldCodeInFile = (oldFileName, codeExpr)
+        newCodeInFile = (newFileName, codeExpr)
+    oldFileInScene <- fileInScene oldFileName
+    newFileInScene <- fileInScene newFileName
+    successful <- liftIO $ tryIOError $ renameFile oldFileInScene newFileInScene
+    case successful of
+        Left moveError -> do
+            setErrorTextForCodeInFile oldCodeInFile (show moveError)
+            putStrLnIO $ "In moveCodeEditorFile: " ++ show moveError
+        Right _ -> modifySystemState sysCodeEditor $ do
+            renameTextRendererFile newFileInScene (cesCodeEditors . ix oldCodeInFile . cedCodeRenderer)
+
+            ghcChan <- use cesGHCChan
+            mOldCodeEditor <- use (cesCodeEditors . at oldCodeInFile)
+            -- Should never be missing, but we handle it anyway
+            case mOldCodeEditor of
+                Just oldCodeEditor -> do
+                    let oldRecompiler = oldCodeEditor ^. cedRecompiler
+                    newRecompiler <- renameRecompilerForExpression oldRecompiler ghcChan newFileInScene codeExpr
+                    let newCodeEditor = oldCodeEditor & cedRecompiler .~ newRecompiler
+                    cesCodeEditors . at oldCodeInFile .= Nothing
+                    cesCodeEditors . at newCodeInFile ?= newCodeEditor
+                Nothing            -> do
+                    codeEditor <- lift $ createCodeEditor newCodeInFile
+                    cesCodeEditors . at newCodeInFile ?= codeEditor
 
 
-
-
------------------------------------------------
--- Experiments in dynamic code addition/cloning
------------------------------------------------
-
-
-{-
-forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
-forkCode fromEntityID toEntityID = do
-    let codeFileComponentKey = myStartExpr
-    mCodeExpr <- getEntityComponent fromEntityID codeFileComponentKey
-
-    forM_ mCodeExpr $ \(fullPath, expr) -> do
-        let (path, fileName) = splitFileName fullPath
-            (name, ext)      = splitExtension fileName
-        -- Slightly tricky to get right without overwriting files; need to enumerate directory and find unused name
-        -- so using getPosixTime for now.
-        --fileNum          = succ . fromMaybe 1 . readMaybe . reverse . takeWhile isDigit . reverse $ fileName
-        now <- liftIO $ getPOSIXTime
-        let newName = name ++ show now
-            newFullPath = path </> newName <.> ext
-        liftIO $ copyFile fullPath newFullPath
-
-        let newCodeInFile = (newFullPath, expr)
-        runEntity toEntityID $ do
-            withComponent_ codeFileComponentKey unregisterWithCodeEditor
-            codeFileComponentKey ==> newCodeInFile
-            registerWithCodeEditor newCodeInFile codeFileComponentKey
--}
---

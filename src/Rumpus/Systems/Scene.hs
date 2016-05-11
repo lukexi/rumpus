@@ -44,3 +44,8 @@ saveScene = do
     liftIO $ removeDirectoryRecursive (sceneFolder </> ".world-state")
     liftIO $ createDirectoryIfMissing True (sceneFolder </> ".world-state")
     saveEntities (sceneFolder </> ".world-state")
+
+fileInScene :: MonadState ECS m => FilePath -> m FilePath
+fileInScene fileName = do
+    sceneFolder <- getSceneFolder
+    return (sceneFolder </> fileName)

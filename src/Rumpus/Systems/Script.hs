@@ -44,7 +44,7 @@ runScripts = do
                 return ""
 
             when (not (null runtimeErrors)) $ putStrLnIO runtimeErrors
-            setErrorText entityID runtimeErrors
+            setEntityErrorText entityID runtimeErrors
 
             removeComponent myStart
 

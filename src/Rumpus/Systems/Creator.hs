@@ -107,6 +107,11 @@ getOtherHand whichHand = case whichHand of
     RightHand -> LeftHand
 getOtherHandID whichHand = getHandID (getOtherHand whichHand)
 
+-- FIXME: it would be extra cool to add the startExpr immediately rather than on grab,
+-- so that we can see tiny versions of the code on each object.
+-- This would require a 'paused' flag to keep the script from actually running,
+-- and we would not want code on the NewObject (or, just make sure it isn't copied right away.)
+-- See if this is a performance problem.
 addHandLibraryItem :: (MonadIO m, MonadState ECS m)
                    => WhichHand -> V3 GLfloat -> Maybe FilePath -> m EntityID
 addHandLibraryItem whichHand spherePosition maybeCodePath = do
@@ -170,6 +175,13 @@ closeEntityLibrary whichHand = do
         crtPendingDestruction . at whichHand .= Nothing
         crtOpenLibrary . at whichHand .= Nothing
 
+defaultStartCodeWithModuleName moduleName = unlines
+    [ "module " ++ moduleName ++ " where"
+    , "import Rumpus"
+    , ""
+    , "start :: Start"
+    , "start = return ()"
+    ]
 
 addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
              => m ()
@@ -179,10 +191,9 @@ addNewStartExpr = do
 
     let newObjectCodeName = findNextNumberedName "MyObject" (map takeBaseName files)
     entityID <- ask
-    let defaultFilePath = "resources" </> "default-code" </> "DefaultStart" <.> "hs"
-        entityFileName  = newObjectCodeName <.> "hs"
+    let entityFileName  = newObjectCodeName <.> "hs"
         entityFilePath  = sceneFolder </> entityFileName
-    liftIO $ copyFile defaultFilePath entityFilePath
+    liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName newObjectCodeName)
 
     -- Scene folder is auto-appended in CodeEditor, so we just need the filename with no path.
     setStartExpr entityFileName

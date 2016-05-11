@@ -8,19 +8,25 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Drag
 
+type KnobName = String
+
 data Knob = Knob
-    { knbName   :: String
+    { knbName   :: KnobName
     , knbRange  :: (Float, Float)
     , knbValue  :: Float
     , knbAction :: M44 GLfloat -> EntityMonad ()
     }
 
 type Knobs = [Knob]
+type KnobsData = Map KnobName Float
+
 defineComponentKey ''Knobs
+defineComponentKey ''KnobsData
 
 initKnobsSystem :: MonadState ECS m => m ()
 initKnobsSystem = do
     registerComponent "Knobs" myKnobs (newComponentInterface myKnobs)
+    registerComponent "KnobsData" myKnobsData (savedComponentInterface myKnobsData)
 
 
 
