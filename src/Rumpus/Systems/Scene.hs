@@ -21,6 +21,35 @@ makeLenses ''SceneSystem
 
 defineSystemKey ''SceneSystem
 
+getUserSceneFolder :: MonadIO m => m FilePath
+getUserSceneFolder = liftIO $ do
+    userDocsDir <- getUserDocumentsDirectory
+    let userRumpusRoot   = userDocsDir </> "Rumpus"
+        userSceneRoot    = userRumpusRoot </> "Scenes"
+        userRedirectFile = userRumpusRoot </> "redirect.txt"
+
+        protect f = f `catchIOError`
+                        (\e -> putStrLnIO ("getUserSceneFolder: " ++ show e)
+                                >> return userSceneRoot)
+    hasRedirect <- doesFileExist userRedirectFile
+    when hasRedirect $ putStrLnIO $ "Attempting redirect"
+    protect $ if hasRedirect
+        then do
+            redirectContents <- readFile userRedirectFile
+            let maybeLine = fmap (dropWhile isSpace) . listToMaybe . lines
+                            $ redirectContents
+            case maybeLine of
+                Just pathLine
+                    | isAbsolute pathLine -> do
+                            redirectPath <- canonicalizePath pathLine
+                            exists <- doesDirectoryExist redirectPath
+                            if exists
+                                then return redirectPath
+                                else return userSceneRoot
+                _ -> return userSceneRoot
+        else return userSceneRoot
+
+
 initSceneSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSceneSystem = do
     let defaultScene = "Room"
@@ -28,9 +57,9 @@ initSceneSystem = do
     sceneFolderName <- fromMaybe defaultScene . listToMaybe <$> liftIO getArgs
 
 
-    userDocsDir <- liftIO getUserDocumentsDirectory
 
-    let userSceneFolder      = userDocsDir </> "Rumpus" </> "Scenes" </> sceneFolderName
+    userScenesRootDir <- getUserSceneFolder
+    let userSceneFolder      = userScenesRootDir </> sceneFolderName
         pristineSceneFolder  = pristineSceneDirWithName sceneFolderName
 
     copyStartScene pristineSceneFolder userSceneFolder

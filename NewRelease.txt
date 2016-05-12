@@ -1,3 +1,6 @@
+[ ] Implement folder versioning
+    (have rumpus make its folders in a folder of its build date)
+
 INTERACTION
     [ ] See performance impact of System.Timeout on Scripts.
         If run on outer loop, should hopefully be OK, but can't detect which script caused problem then
