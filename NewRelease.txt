@@ -1,29 +1,14 @@
 INTERACTION
-    [x] New object creation
-        - Think through the yaml/persistence story one more time.
-        Object library
-        Have Main.hs of room automatically arrange all possible objects on the shelves
-        Scene defines namespace of library
+    [ ] See performance impact of System.Timeout on Scripts.
+        If run on outer loop, should hopefully be OK, but can't detect which script caused problem then
+        so must pause all scripts.
 
-        Click app button to summon a spinning cube; grab it to create a new object.
-        Have that object start with default code that can be edited.
-            (find all files in scene with name NewObject##, split ##, parse int, grab highest, increment.)
-        Split an object to create a shared instance.
-        Split a code editor to fork a new file.
-        Throw an object into the void to delete.
-    [ ] I definitely wanted code forking in my last session!!! Test that again.
-
-    [ ] See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
+        See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
 
         - Looks like GHC can't detect let x = x. Let's try System.Timeout for this,
         and if it fails, set a flag to stop executing scripts until new code is received.
 
-    [x] Deletion by "putting back" into library, like in The Gallery
-        []  Deletion of consoles by throwing (they float normally,
-            but with enough velocity become airborn and fly and shrink)
-
     [ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
-
 
 PERFORMANCE
     Do as many simple things as possible to help protect users from getting into gross states
@@ -42,22 +27,8 @@ PERFORMANCE
         Possibly automatically reset if low performance is detected?
 
 KEYBOARD
-    [ ] ConsoleSystem that encompasses screen, keys and knobs
-        Consoles start out as mini-computers that are attached to the object
-        Click on them to make them full size, bring up knobs, etc.
-        At full size, they still default to being attached to their object(?)
-        Pull them away and they become strung-out from their object,
-        with a connecting wire. You can dock them again by dragging them back, or
-        just click away from them. In this way you can remote-control code from anywhere,
-        and this gives a good option for plucking objects out of the library to edit.
-        You can grab either from your inventory:
-        BACKPACK
-        [Object][Code]
-        [Object][Code]
-        [Object][Code]
-        (Ah, maybe there's something here for instance vs. copy!
-        grab object to make an instance, duplicate code to make copy?)
-
+[ ] Fix selection with keypads
+            (add tab, select all, copy, paste buttons)
     [ ] Knob System/API
     [ ] Vari-size keys for space, arrows, enter, backspace etc.
         - Pass a width/height into the key construction function,
@@ -77,3 +48,17 @@ VIDEO
 [x] Implement momentary shift
 [x] Fix teleport ray not appearing unless hitting geo
 [x] Compilation feedback (maybe this will be fixed by the new error panel setup)
+[x] New object creation
+    - Think through the yaml/persistence story one more time.
+    Object library
+    Have Main.hs of room automatically arrange all possible objects on the shelves
+    Scene defines namespace of library
+
+    Click app button to summon a spinning cube; grab it to create a new object.
+    Have that object start with default code that can be edited.
+        (find all files in scene with name NewObject##, split ##, parse int, grab highest, increment.)
+    Split an object to create a shared instance.
+    Split a code editor to fork a new file.
+    Throw an object into the void to delete.
+
+[x] Deletion by "putting back" into library, like in The Gallery

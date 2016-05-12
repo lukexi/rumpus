@@ -46,7 +46,6 @@ library
                        PreludeExtra
                        Rumpus.Main
                        Rumpus.TestScene
-                       Rumpus.CopyScenes
                        Rumpus.Types
                        Rumpus.Systems.Animation
                        Rumpus.Systems.Attachment
@@ -99,8 +98,6 @@ library
                      , time
                      , directory
                      , filepath
-                     , shelly
-                     , system-filepath
                      , template-haskell
                      , vault
                      , extensible-ecs

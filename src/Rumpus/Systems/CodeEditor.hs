@@ -58,15 +58,17 @@ sharedGHCSessionConfig = defaultGHCSessionConfig
     --, gscCompilationMode = Compiled
     }
 
-rumpusGHCSessionConfig :: GHCSessionConfig
-rumpusGHCSessionConfig = if isInReleaseMode
-    then sharedGHCSessionConfig
-        { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
-                          , "packages"</>"snapshot"</>"pkgdb"
-                          ]
-        , gscLibDir     =   "packages"</>"ghc"</>"lib"
-        }
-    else sharedGHCSessionConfig
+withRumpusGHC action = do
+    useEmbeddedPackages <- liftIO (doesDirectoryExist "packages")
+    let config = if useEmbeddedPackages
+            then sharedGHCSessionConfig
+                { gscPackageDBs = [ "packages"</>"local"</>"pkgdb"
+                                  , "packages"</>"snapshot"</>"pkgdb"
+                                  ]
+                , gscLibDir     =   "packages"</>"ghc"</>"lib"
+                }
+            else sharedGHCSessionConfig
+    withGHC config action
 
 initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => TChan CompilationRequest -> m ()
 initCodeEditorSystem ghcChan = do

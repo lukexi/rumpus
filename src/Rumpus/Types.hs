@@ -3,6 +3,8 @@
 module Rumpus.Types where
 import Control.Monad.Trans
 import Graphics.GL.Pal
+import Data.IORef
+import Data.Time
 
 isInReleaseMode :: Bool
 #if defined(RUMPUS_RELEASE)
@@ -26,3 +28,17 @@ profileMS' = profileMS
 profileFPS' :: (MonadIO m) => String -> Int -> m a -> m a
 --profileFPS' = profileFPS
 profileFPS' _ _ = id
+
+
+
+
+makeCheckFPS :: MonadIO m => m (m ())
+makeCheckFPS = do
+    fpsRef <- liftIO . newIORef =<< liftIO getCurrentTime
+    let checkFPS = liftIO $ do
+            now    <- getCurrentTime
+            before <- readIORef fpsRef
+            writeIORef fpsRef now
+            let timeDiff = now `diffUTCTime` before
+            putStrLn ("FPS: " ++ show (1/timeDiff))
+    return checkFPS

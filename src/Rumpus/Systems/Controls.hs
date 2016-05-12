@@ -83,6 +83,14 @@ setPlayerPosition :: MonadState ECS m => V3 GLfloat -> m ()
 setPlayerPosition position = modifySystemState sysControls $
     ctsPlayer .= mkTransformation (axisAngle (V3 0 1 0) 0) position
 
+setPlayerScale :: MonadState ECS m => V3 GLfloat -> m ()
+setPlayerScale newScale = modifySystemState sysControls $ do
+    player <- use ctsPlayer
+    ctsPlayer .= mkTransformation
+        (axisAngle (V3 0 1 0) 0)
+        (player ^. translation)
+        !*! scaleMatrix newScale
+
 {-
 raycastCursorHits :: (MonadIO m, MonadState ECS m)
                   => Window -> DynamicsWorld -> M44 GLfloat -> m ()

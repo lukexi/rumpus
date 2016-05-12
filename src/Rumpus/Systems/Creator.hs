@@ -180,11 +180,12 @@ defaultStartCodeWithModuleName moduleName = unlines
     , "import Rumpus"
     , ""
     , "start :: Start"
-    , "start = return ()"
+    , "start = do"
+    , "    return ()"
     ]
 
 addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
-             => m ()
+                => m ()
 addNewStartExpr = do
     sceneFolder <- getSceneFolder
     files <- getDirectoryContentsWithExtension "hs" sceneFolder
