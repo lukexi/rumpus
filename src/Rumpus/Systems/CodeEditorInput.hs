@@ -49,9 +49,13 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                     _ -> return False
             when didSave $ do
                 mBuffer <- viewSystemP sysCodeEditor (cesCodeEditors . ix codeInFile . cedCodeRenderer . txrTextBuffer)
-                wasModuleNameChange <- case mBuffer of
-                    Just buffer -> checkForModuleNameChange buffer
-                    Nothing -> return False
+
+                -- Disabling til I have energy to debug this
+                --wasModuleNameChange <- case mBuffer of
+                --    Just buffer -> checkForModuleNameChange buffer
+                --    Nothing -> return False
+
+                let wasModuleNameChange = False
                 unless wasModuleNameChange $
                     recompileCodeInFile codeInFile
 
@@ -80,6 +84,9 @@ getChangedModuleName textBuffer = do
     guard (bufPath textBuffer /= Just moduleName)
     return moduleName
 
+-- | A facility to rename files and objects based on their module name,
+-- to avoid introducing any extra interface for naming things.
+-- Tricky as we must handle all the file watchers associated with the file.
 checkForModuleNameChange :: (MonadState ECS m, MonadIO m)
                          => TextBuffer -> m Bool
 checkForModuleNameChange textBuffer = do

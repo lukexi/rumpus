@@ -13,6 +13,8 @@ INTERACTION
 
     [ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
 
+    [ ] investigate glitches when code reloading
+
 PERFORMANCE
     Do as many simple things as possible to help protect users from getting into gross states
     (and later implement the full async rendering plan)
