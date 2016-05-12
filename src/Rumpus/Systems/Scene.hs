@@ -23,20 +23,26 @@ defineSystemKey ''SceneSystem
 
 initSceneSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSceneSystem = do
-
     let defaultScene = "Room"
     --let defaultScene = "NewObjects"
-    scene <- fromMaybe defaultScene . listToMaybe <$> liftIO getArgs
-    sceneFolder <- copyStartScene scene
+    sceneFolderName <- fromMaybe defaultScene . listToMaybe <$> liftIO getArgs
+
+
+    userDocsDir <- liftIO getUserDocumentsDirectory
+
+    let userSceneFolder      = userDocsDir </> "Rumpus" </> "Scenes" </> sceneFolderName
+        pristineSceneFolder  = pristineSceneDirWithName sceneFolderName
+
+    copyStartScene pristineSceneFolder userSceneFolder
 
     let
         --useUserFolder = isInReleaseMode
         useUserFolder = True
-        sceneFolder' = if useUserFolder
-            then sceneFolder
-            else pristineSceneDirWithName scene
+        sceneFolder = if useUserFolder
+            then userSceneFolder
+            else pristineSceneFolder
 
-    registerSystem sysScene (SceneSystem (Scene sceneFolder'))
+    registerSystem sysScene (SceneSystem (Scene sceneFolder))
 
 startSceneSystem :: (MonadIO m, MonadState ECS m) => m ()
 startSceneSystem = do
@@ -76,20 +82,13 @@ fileInScene fileName = do
 -- | Copy the 'pristine' Scenes folder into the user's Documents/Rumpus directory on startup
 -- if the Documents/Rumpus folder is missing.
 
-copyStartScene :: MonadIO m => String -> m FilePath
-copyStartScene sceneFolderName = liftIO $ do
-
-    userDocsDir <- getUserDocumentsDirectory
-
-    let userSceneDir      = userDocsDir </> "Rumpus" </> "Scenes" </> sceneFolderName
-        pristineSceneDir  = pristineSceneDirWithName sceneFolderName
+copyStartScene :: MonadIO m => FilePath -> FilePath -> m ()
+copyStartScene pristineSceneDir userSceneDir = liftIO $ do
 
     exists <- doesDirectoryExist userSceneDir
     when (not exists) $ do
         copyDirectory pristineSceneDir userSceneDir
             `catchIOError` (\e -> putStrLnIO ("copyStartScene: " ++ show e))
-
-    return userSceneDir
 
 pristineSceneDirWithName :: String -> FilePath
 pristineSceneDirWithName name = "pristine" </> "Scenes" </> name
