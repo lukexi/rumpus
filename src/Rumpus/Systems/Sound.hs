@@ -71,9 +71,11 @@ setPdPatchFile :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
                => FilePath
                -> m ()
 setPdPatchFile patchFile = do
-    myPdPatchFile ==> patchFile
-    pd <- viewSystem sysSound sndPd
-    derivePdPatchComponent pd
+    oldPatchFile <- getComponent myPdPatchFile
+    when (oldPatchFile /= Just patchFile) $ do
+        myPdPatchFile ==> patchFile
+        pd <- viewSystem sysSound sndPd
+        derivePdPatchComponent pd
 
 derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
                        => PureData -> m ()

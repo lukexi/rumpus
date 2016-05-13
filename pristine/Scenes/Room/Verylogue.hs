@@ -5,7 +5,7 @@ majorScale = [0,2,4,5,7,9,11,12]
 
 start :: Start
 start = do
-    removeChildren
+    setPdPatchFile "verylogue.pd"
 
     forM_ majorScale $ \n -> do
         let note = fromIntegral $ n + 60

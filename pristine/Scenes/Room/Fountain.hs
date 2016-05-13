@@ -8,6 +8,7 @@ majorScale = map (+60) [0,2,4,7,9]
 
 start :: Start
 start = do
+    setPdPatchFile "fountain-voice.pd"
 
     setRepeatingAction (1/rate) $ do
         -- Play a note
