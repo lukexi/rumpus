@@ -1,21 +1,10 @@
-[ ] Implement folder versioning
-    (have rumpus make its folders in a folder of its build date)
 
 INTERACTION
-    [ ] See performance impact of System.Timeout on Scripts.
-        If run on outer loop, should hopefully be OK, but can't detect which script caused problem then
-        so must pause all scripts.
-
-        See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
-
-        - Looks like GHC can't detect let x = x. Let's try System.Timeout for this,
-        and if it fails, set a flag to stop executing scripts until new code is received.
-
-    [ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
-
-    [ ] investigate glitches when code reloading
+    [ ] Implement folder versioning
+        (have rumpus make its folders in a folder of its build date)
 
 PERFORMANCE
+
     Do as many simple things as possible to help protect users from getting into gross states
     (and later implement the full async rendering plan)
     [ ] Object limit: set to e.g. 5000, see if we can render
@@ -31,8 +20,19 @@ PERFORMANCE
     [ ] Reset button (e.g. hold both application buttons)
         Possibly automatically reset if low performance is detected?
 
+    [ ] See performance impact of System.Timeout on Scripts.
+        If run on outer loop, should hopefully be OK, but can't detect which script caused problem then
+        so must pause all scripts.
+
+        See if we can fix loop detection (i.e. let x = x in a myUpdate, which crashed rumpus earlier)
+
+        - Looks like GHC can't detect let x = x. Let's try System.Timeout for this,
+        and if it fails, set a flag to stop executing scripts until new code is received.
+
+    [ ] investigate glitches when code reloading
+
 KEYBOARD
-[ ] Fix selection with keypads
+    [ ] Fix selection with keypads
             (add tab, select all, copy, paste buttons)
     [ ] Knob System/API
     [ ] Vari-size keys for space, arrows, enter, backspace etc.

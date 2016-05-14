@@ -20,7 +20,7 @@ import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Data.List (delete, isPrefixOf)
 import RumpusLib
--- NOTE: this illustrates how very handy it will be to have arbitrary components;
+-- NOTE: this illustrates how handy it will be to have arbitrary components;
 -- rather than creating yet more maps, we can just say
 -- defineComponent OpenLibrary EntityID
 -- and then be able to access those instantly on the hands.

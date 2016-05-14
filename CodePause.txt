@@ -1,0 +1,35 @@
+Thinking through a way to pause user code when slowness is detected
+
+This will not protect against too many objects. So must limit that too.
+
+Biggest priority for launch is trying to catch the worst of "wedged"
+states. i.e., states where
+
+Set a flag
+myInternal ==> True
+on all internal rumpus entities.
+
+Set a hard limit on rendering, update & simulation that matches what we have observed is possible.
+(say, 1000 sim, 1000 render?)
+
+Prioritize myInternal objects so that they are always simulated and rendered.
+
+run myStart/myUpdate within a Timeout of 0.05. If Timeout exceeded,
+pause the world until the next code update comes in.
+(We can do this immediately as there are no significant uses of Script in the core)
+
+Then, extend that checking to all user-settable code:
+(in some of these cases we will need to use the myInternal flag
+to still run code for internal objects like the hands, picker, etc)
+myStart
+myUpdate
+myCollisionStart
+myColliding
+myCollisionEnd
+myDragBegan
+myDragging
+myDragEnded
+myClockAction
+
+
+Reset button should delete all non myInternal objects.

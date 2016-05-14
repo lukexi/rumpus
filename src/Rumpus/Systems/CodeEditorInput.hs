@@ -29,7 +29,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
         window = gpWindow _ctsVRPal
 
     modifySystemState sysCodeEditor $
-        traverseM_ (Map.toList <$> use cesCodeEditors) $ \(codeInFile, _editor) -> do
+        traverseM_ (Map.keys <$> use cesCodeEditors) $ \codeInFile -> do
             -- Ensure the buffers have the latest code text from disk
             refreshTextRendererFromFile (cesCodeEditors . ix codeInFile . cedCodeRenderer)
 
@@ -48,9 +48,10 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                         return causesSave
                     _ -> return False
             when didSave $ do
-                mBuffer <- viewSystemP sysCodeEditor (cesCodeEditors . ix codeInFile . cedCodeRenderer . txrTextBuffer)
 
                 -- Disabling til I have energy to debug this
+                --mBuffer <- viewSystemP sysCodeEditor
+                --    (cesCodeEditors . ix codeInFile . cedCodeRenderer . txrTextBuffer)
                 --wasModuleNameChange <- case mBuffer of
                 --    Just buffer -> checkForModuleNameChange buffer
                 --    Nothing -> return False
@@ -58,48 +59,6 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                 let wasModuleNameChange = False
                 unless wasModuleNameChange $
                     recompileCodeInFile codeInFile
-
-modulePrefix = Seq.fromList "module "
-modulePrefixLen = Seq.length modulePrefix
-
-getTheModuleName textSeq = maybeModuleName
-  where
-    maybeModuleName = do
-        moduleLine <- getModuleLine textSeq
-        let moduleName = getModuleName moduleLine
-        guard (not (Seq.null moduleName))
-        return (toList moduleName)
-    getModuleName = Seq.takeWhileL (/= ' ') . Seq.drop modulePrefixLen
-
-    -- Find the first line beginning with 'module '
-    getModuleLine         = seqHead . Seq.filter isModuleLine . Seq.filter isPotentialModuleLine
-      where
-        -- Do a quick first pass for lines beginning with m before looking for the full module prefix
-        isPotentialModuleLine = (== Just 'm') . seqHead
-        isModuleLine          = (== modulePrefix) . Seq.take modulePrefixLen
-
-
-getChangedModuleName textBuffer = do
-    moduleName <- getTheModuleName (bufText textBuffer)
-    guard (bufPath textBuffer /= Just moduleName)
-    return moduleName
-
--- | A facility to rename files and objects based on their module name,
--- to avoid introducing any extra interface for naming things.
--- Tricky as we must handle all the file watchers associated with the file.
-checkForModuleNameChange :: (MonadState ECS m, MonadIO m)
-                         => TextBuffer -> m Bool
-checkForModuleNameChange textBuffer = do
-    let maybeNewModuleName = getChangedModuleName textBuffer
-    case (maybeNewModuleName, bufPath textBuffer) of
-        (Just newModuleName, Just oldFilePath) -> do
-            let oldFileName = takeFileName oldFilePath
-            moveCodeEditorFile oldFileName (newModuleName <.> "hs") "start"
-            return True
-        (Just newModuleName, Nothing) -> do
-            putStrLnIO $ "Tried to rename a textBuffer with no existing path to: " ++ newModuleName
-            return False
-        _ -> return False
 
 pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => CodeInFile -> m ()
 pauseFileWatchers codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
@@ -129,3 +88,48 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
         cesCodeEditors . ix codeInFile . cedCodeRenderer .= updatedRenderer
 
     return True
+
+------------------
+-- Module renaming
+
+modulePrefix = Seq.fromList "module "
+modulePrefixLen = Seq.length modulePrefix
+
+getModuleName textSeq = maybeModuleName
+  where
+    maybeModuleName = do
+        moduleLine <- getModuleLine textSeq
+        let moduleName = getModuleNameInLine moduleLine
+        guard (not (Seq.null moduleName))
+        return (toList moduleName)
+    getModuleNameInLine = Seq.takeWhileL (/= ' ') . Seq.drop modulePrefixLen
+
+    -- Find the first line beginning with 'module '
+    getModuleLine = seqHead . Seq.filter isModuleLine . Seq.filter isPotentialModuleLine
+      where
+        -- Do a quick first pass for lines beginning with m before looking for the full module prefix
+        isPotentialModuleLine = (== Just 'm') . seqHead
+        isModuleLine          = (== modulePrefix) . Seq.take modulePrefixLen
+
+
+getChangedModuleName textBuffer = do
+    moduleName <- getModuleName (bufText textBuffer)
+    guard (bufPath textBuffer /= Just moduleName)
+    return moduleName
+
+-- | A facility to rename files and objects based on their module name,
+-- to avoid introducing any extra interface for naming things.
+-- Tricky as we must handle all the file watchers associated with the file.
+checkForModuleNameChange :: (MonadState ECS m, MonadIO m)
+                         => TextBuffer -> m Bool
+checkForModuleNameChange textBuffer = do
+    let maybeNewModuleName = getChangedModuleName textBuffer
+    case (maybeNewModuleName, bufPath textBuffer) of
+        (Just newModuleName, Just oldFilePath) -> do
+            let oldFileName = takeFileName oldFilePath
+            moveCodeEditorFile oldFileName (newModuleName <.> "hs") "start"
+            return True
+        (Just newModuleName, Nothing) -> do
+            putStrLnIO $ "Tried to rename a textBuffer with no existing path to: " ++ newModuleName
+            return False
+        _ -> return False

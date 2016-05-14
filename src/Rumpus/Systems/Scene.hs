@@ -28,7 +28,6 @@ initSceneSystem = do
     sceneFolderName <- fromMaybe defaultScene . listToMaybe <$> liftIO getArgs
 
 
-
     userScenesRootDir <- getUserSceneFolder
     let userSceneFolder      = userScenesRootDir </> sceneFolderName
         pristineSceneFolder  = pristineSceneDirWithName sceneFolderName

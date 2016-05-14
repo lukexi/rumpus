@@ -14,14 +14,14 @@ data ShapeType = Cube | Sphere
 data InheritTransform = InheritFull | InheritPose
 
 defineComponentKey ''InheritTransform
-defineComponentKeyWithType "Shape"                  [t|ShapeType|]
-defineComponentKeyWithType "Name"                   [t|String|]
-defineComponentKeyWithType "Pose"                   [t|M44 GLfloat|]
-defineComponentKeyWithType "PoseScaled"             [t|M44 GLfloat|]
-defineComponentKeyWithType "Size"                   [t|V3 GLfloat|]
-defineComponentKeyWithType "Color"                  [t|V4 GLfloat|]
-defineComponentKeyWithType "Parent"                 [t|EntityID|]
-defineComponentKeyWithType "Children"               [t|[EntityID]|]
+defineComponentKeyWithType "Shape"      [t|ShapeType|]
+defineComponentKeyWithType "Name"       [t|String|]
+defineComponentKeyWithType "Pose"       [t|M44 GLfloat|]
+defineComponentKeyWithType "PoseScaled" [t|M44 GLfloat|]
+defineComponentKeyWithType "Size"       [t|V3 GLfloat|]
+defineComponentKeyWithType "Color"      [t|V4 GLfloat|]
+defineComponentKeyWithType "Parent"     [t|EntityID|]
+defineComponentKeyWithType "Children"   [t|[EntityID]|]
 
 -- Script System components (shared by Script and CodeEditor systems)
 type Start  = EntityMonad ()

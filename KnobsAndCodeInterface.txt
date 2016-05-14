@@ -57,3 +57,8 @@
         grab object to make an instance, duplicate code to make copy?)
 
         Throw console with enough velocity to dismiss it
+
+[ ] Buttons and toggles as well as knobs, to make it easy to
+    do things like add a button to toggle Floating.
+
+[ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)

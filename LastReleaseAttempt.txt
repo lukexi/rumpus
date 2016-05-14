@@ -15,8 +15,8 @@
     [ ] Different vibrations to let you know that you're still on the right key??
             (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
 
-    [ ] Add Tab, Shift-Tab, Control-Enter support to freetype-gl-mini
-    (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
+    [x] Add Tab, Shift-Tab, Control-Enter support to text-gl
+        (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
 
     [x] Fix bad key/thumb mapping
     [x] Only show keyboard when object selected
@@ -27,7 +27,8 @@
 
 
 
-[ ] See if there's a way to use System.Timeout.timeout for a simple version of rendering-guarantees.
+[ ] See if there's a way to use System.Timeout.timeout
+    for a simple version of rendering-guarantees.
     (along with a maximum count of objects to render)
 
 [ ] A real-time-tracking day-night cycle for the city world
@@ -40,7 +41,7 @@
         setSize newScale
 
 
-[ ] Ditch the yaml files?? I think this is the right idea for what's shipping...
+[x] Ditch the yaml files?? I think this is the right idea for what's shipping...
     Except, how to deal with editing without resetting position etc.?
     Have a separate "initialize" function that is only run at startup?
     Can do a Main.hs that starts the world when it runs?

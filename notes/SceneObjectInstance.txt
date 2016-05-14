@@ -29,9 +29,9 @@ Delete by putting back into library.
 
 
 
-Sleeve idea: holding down button unfurls your sleeve to make the library appear in some way.
-When sleeve is tucked, you can reach into it to grab an object.
-Either make it the last thing you spawned or a new object.
+[ ] Sleeve idea: holding down button unfurls your sleeve to make the library appear in some way.
+        When sleeve is tucked, you can reach into it to grab an object.
+        Either make it the last thing you spawned or a new object.
 
 
 

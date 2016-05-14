@@ -21,8 +21,10 @@ getSelectedEntityID :: (MonadState ECS m) => m (Maybe EntityID)
 getSelectedEntityID = viewSystem sysSelection selSelectedEntityID
 
 setSelectedEntityID :: (MonadState ECS m) => EntityID -> m ()
-setSelectedEntityID entityID = modifySystemState sysSelection $ selSelectedEntityID ?= entityID
+setSelectedEntityID entityID = modifySystemState sysSelection $
+    selSelectedEntityID ?= entityID
 
 clearSelectedEntityID :: (MonadState ECS m) => m ()
-clearSelectedEntityID = modifySystemState sysSelection $ selSelectedEntityID .= Nothing
+clearSelectedEntityID = modifySystemState sysSelection $
+    selSelectedEntityID .= Nothing
 
