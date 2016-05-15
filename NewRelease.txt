@@ -39,6 +39,9 @@ KEYBOARD
         - Pass a width/height into the key construction function,
           and accumulate x and y offsets
 
+BUGS
+    [ ] Crashes if a .yaml object has a StartExpr for a .hs file that no longer exists.
+
 VIDEO
     [x] Test cropped screen recording quality/legibility
         - Use SteamVR as the recorded window to avoid hiccup bug in Rumpus's mirror.
