@@ -45,15 +45,6 @@ selectEntity entityID = do
 
     return ()
 
-
-spawnNewEntityAtPose :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m EntityID
-spawnNewEntityAtPose pose = spawnEntity $ do
-    myPose  ==> pose
-    myShape ==> Cube
-    mySize  ==> 0.5
-    -- myUpdateExpr  ==> ("scenes/minimal/DefaultUpdate.hs", "update")
-
-
 filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
 

@@ -4,7 +4,7 @@ MultiplaySession.txt
 [x] Control-Enter, Control-f, Control-b
 [ ] Increase indent after do
     (easy to extend this to if, then, else, ->, let)
-
+[ ] Control-(shift)-tab to cycle between selected entities!
 
 [ ] Filewatch the .world-state dir.
 [ ] Have entityIDs match filenames again

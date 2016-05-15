@@ -61,7 +61,10 @@ loadScene sceneFolder = do
     putStrLnIO $ "Loading scene: " ++ sceneFolder
     setSceneFolder sceneFolder
 
-    loadEntities (sceneFolder </> ".world-state")
+    let stateFolder = (sceneFolder </> ".world-state")
+
+    liftIO $ createDirectoryIfMissing True stateFolder
+    loadEntities stateFolder
 
 -- FIXME: move the .world-state concept into extensible-ecs
 saveScene :: ECSMonad ()

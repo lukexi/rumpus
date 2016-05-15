@@ -10,8 +10,7 @@ roomOffset = (roomH/2 - wallD/2)
 
 start :: Start
 start = do
-    setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
-
+    --setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     let makeWall pos size hue extraProps = spawnChild $ do
             myPose       ==> translateMatrix (pos & _y +~ roomOffset)
             myShape      ==> Cube

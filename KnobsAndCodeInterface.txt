@@ -62,3 +62,6 @@
     do things like add a button to toggle Floating.
 
 [ ] Add letter-to-buffer animation where they fly off the keyboard (add a grey version for immediate feedback)
+
+[ ] Indent after do and ->
+[ ] Grab-with-both-hands scaling

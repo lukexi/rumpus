@@ -108,6 +108,7 @@ library
                      , parallel
                      , deepseq
                      , text-gl
+                     , lifted-base
   default-language:    Haskell2010
 
 executable rumpus

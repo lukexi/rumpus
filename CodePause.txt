@@ -3,7 +3,8 @@ Thinking through a way to pause user code when slowness is detected
 This will not protect against too many objects. So must limit that too.
 
 Biggest priority for launch is trying to catch the worst of "wedged"
-states. i.e., states where
+states. i.e., states we can't recover from. So framerate issues (while crucial) are still
+second class to e.g. infinite loops that require fixing outside of rumpus entirely.
 
 Set a flag
 myInternal ==> True

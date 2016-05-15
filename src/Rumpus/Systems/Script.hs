@@ -6,9 +6,13 @@ import PreludeExtra
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
+import Rumpus.Systems.Selection
 
-import System.Timeout
+import System.Timeout.Lifted
 import qualified Data.HashMap.Strict as Map
+
+
+
 
 checkIfReadyToStart :: ECSMonad ()
 checkIfReadyToStart = do
@@ -21,10 +25,20 @@ checkIfReadyToStart = do
         setWorldPlaying True
 
 tickScriptSystem :: ECSMonad ()
-tickScriptSystem = do
+tickScriptSystem = whenScriptsEnabled $ do
     isWorldPlaying <- getWorldPlaying
     if isWorldPlaying
-        then runScripts
+        -- Timeout takes microseconds (1e6)
+        then do
+            --let maxTime = floor (1/90) * 1000000
+            let maxTime = floor 1 * 1000000
+            finishedInTime <- isJust <$> timeout maxTime runScripts
+            setScriptsEnabled finishedInTime
+
+            when (not finishedInTime) $ do
+                putStrLnIO "A script failed to finish in time, pausing script system."
+                traverseM_ getSelectedEntityID $ \selectedID -> do
+                    setEntityErrorText selectedID "Some script (maybe this one!) failed to finish in time!"
         else checkIfReadyToStart
 
 

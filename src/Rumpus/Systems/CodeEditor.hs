@@ -16,10 +16,10 @@ import Data.ECS.Vault
 
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
+import Rumpus.Systems.PlayPause
 --import Rumpus.Systems.Hands
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
-import Rumpus.Types
 import System.IO.Error
 --import Data.Time.Clock.POSIX
 
@@ -58,6 +58,7 @@ sharedGHCSessionConfig = defaultGHCSessionConfig
     --, gscCompilationMode = Compiled
     }
 
+withRumpusGHC :: MonadIO m => (TChan CompilationRequest -> m a) -> m a
 withRumpusGHC action = do
     useEmbeddedPackages <- liftIO (doesDirectoryExist "packages")
     let config = if useEmbeddedPackages
@@ -225,6 +226,10 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
                 -- Pass the compiled value to each registered "dependent" of the code editor
                 dependents <- use (cesCodeEditors . ix codeInFile . cedDependents)
                 lift $ forM_ dependents ($ compiledValue)
+
+                -- Toggle scripts on whenever new code comes in.
+                -- They'll turn themselves off again if the code runs poorly.
+                lift $ setScriptsEnabled True
 
 moveCodeEditorFile :: (MonadIO m, MonadState ECS m) => FilePath -> FilePath -> String -> m ()
 moveCodeEditorFile oldFileName newFileName codeExpr = do
