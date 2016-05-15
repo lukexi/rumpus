@@ -236,10 +236,16 @@ setPosition position = do
     pose <- getPose
     setPose $ (pose & translation .~ position)
 
+getPosition :: (MonadState ECS m, MonadReader EntityID m) => m (V3 GLfloat)
+getPosition = view translation <$> getPose
+
 setRotation :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> GLfloat -> m ()
-setRotation rotAxis rotAngle = do
+setRotation rotAxis rotAngle = setRotationQ (axisAngle rotAxis rotAngle)
+
+setRotationQ :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Quaternion GLfloat -> m ()
+setRotationQ rotQuat = do
     pose <- getPose
-    setPose $ mkTransformation (axisAngle rotAxis rotAngle) (pose ^. translation)
+    setPose $ mkTransformation rotQuat (pose ^. translation)
 
 
 getEntityProperties :: (HasComponents s, MonadState s f) => EntityID -> f Properties

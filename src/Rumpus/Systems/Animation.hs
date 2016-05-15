@@ -14,13 +14,15 @@ import Rumpus.Systems.Controls
 
 defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
 defineComponentKeyWithType "SizeAnimation"  [t|Animation (V3 GLfloat)|]
--- defineComponentKeyWithType "PoseAnimation"  [t|Animation (Pose GLfloat)|]
+defineComponentKeyWithType "PositionAnimation"  [t|Animation (V3 GLfloat)|]
+defineComponentKeyWithType "RotationAnimation"  [t|Animation (Quaternion GLfloat)|]
 
 initAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAnimationSystem = do
     registerComponent "ColorAnimation" myColorAnimation (newComponentInterface myColorAnimation)
     registerComponent "SizeAnimation"  mySizeAnimation  (newComponentInterface mySizeAnimation)
-    -- registerComponent "PoseAnimation"  myPoseAnimation  (newComponentInterface myPoseAnimation)
+    registerComponent "PositionAnimation"  myPositionAnimation  (newComponentInterface myPositionAnimation)
+    registerComponent "RotationAnimation"  myRotationAnimation  (newComponentInterface myRotationAnimation)
 
 tickAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAnimationSystem = whenWorldPlaying $ do
@@ -28,7 +30,8 @@ tickAnimationSystem = whenWorldPlaying $ do
 
     tickComponentAnimation now myColorAnimation setColor
     tickComponentAnimation now mySizeAnimation  setSize
-    -- tickComponentAnimation now myPoseAnimation  myPose
+    tickComponentAnimation now myPositionAnimation setPosition
+    tickComponentAnimation now myRotationAnimation setRotationQ
 
 tickComponentAnimation :: MonadState ECS m
                        => DiffTime
