@@ -6,13 +6,9 @@ import PreludeExtra
 
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
-import qualified Data.Set as Set
+import qualified Data.HashMap.Strict as Map
 
-data Attachment = Attachment
-    { atcToEntityID :: !EntityID
-    , atcOffset     :: !(M44 GLfloat)
-    } deriving (Ord, Eq)
-type Attachments = Set Attachment
+type Attachments = Map EntityID (M44 GLfloat)
 
 defineComponentKey ''Attachments
 defineComponentKeyWithType "Holder" [t|EntityID|]
@@ -33,7 +29,7 @@ tickAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAttachmentSystem =
     forEntitiesWithComponent myAttachments $
         \(entityID, attachments) ->
-            forM_ attachments $ \(Attachment toEntityID offset) -> do
+            forM_ (Map.toList attachments) $ \(toEntityID, offset) -> do
                 pose <- getEntityPose entityID
                 setEntityPose toEntityID (pose `addMatrix` offset)
 
@@ -45,28 +41,33 @@ detachEntityFromHolder entityID = do
     traverseM_ (getEntityComponent entityID myHolder) $ \holderID -> do
         detachAttachedEntity holderID entityID
 
+setAttachmentOffset newOffset = do
+    withComponent_ myHolder $ \holderID -> do
+        myID <- ask
+        modifyEntityComponent holderID myAttachments (Map.adjust (const newOffset) myID)
+
 attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> Bool -> m ()
-attachEntity holderEntityID toEntityID exclusive = do
+attachEntity holderID toEntityID exclusive = do
 
     detachEntityFromHolder toEntityID
 
     -- Detach any current attachments
     when exclusive $
-        detachAttachedEntities holderEntityID
+        detachAttachedEntities holderID
 
-    entityPose   <- getEntityPose holderEntityID
+    entityPose   <- getEntityPose holderID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractMatrix` entityPose
 
-    addAttachmentToSet holderEntityID (Attachment toEntityID offset)
-    runEntity toEntityID (myHolder ==> holderEntityID)
+    appendAttachment holderID toEntityID offset
+    runEntity toEntityID (myHolder ==> holderID)
     overrideSetKinematicMode toEntityID
 
 detachAttachedEntity :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
-detachAttachedEntity holderEntityID entityID = do
+detachAttachedEntity holderID entityID = do
     restoreSetKinematicMode entityID
-    modifyEntityComponent holderEntityID myAttachments
-        (Set.filter (not . (== entityID) . atcToEntityID))
+    modifyEntityComponent holderID myAttachments (Map.delete entityID)
+    removeEntityComponent myHolder entityID
 
 -- | Force kinematic mode to on to allow objects to be carried
 overrideSetKinematicMode :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
@@ -83,24 +84,25 @@ restoreSetKinematicMode entityID = do
             setRigidBodyKinematic rigidBody False
 
 detachAttachedEntities :: (MonadState ECS m, MonadIO m) => EntityID -> m ()
-detachAttachedEntities holderEntityID =
-    withAttachments holderEntityID $ \attachments -> do
-        forM_ attachments $ \(Attachment attachedEntityID _offset) -> do
+detachAttachedEntities holderID =
+    withAttachments holderID $ \attachments -> do
+        forM_ (Map.keys attachments) $ \attachedEntityID -> do
             restoreSetKinematicMode attachedEntityID
+            removeEntityComponent myHolder attachedEntityID
 
-        removeEntityComponent myAttachments holderEntityID
+        removeEntityComponent myAttachments holderID
 
-addAttachmentToSet :: (MonadState ECS m) => EntityID -> Attachment -> m ()
-addAttachmentToSet entityID attachment =
-    appendEntityComponent entityID myAttachments (Set.singleton attachment)
+appendAttachment :: (MonadState ECS m) => EntityID -> EntityID -> M44 GLfloat -> m ()
+appendAttachment holderID entityID offset =
+    appendEntityComponent holderID myAttachments (Map.singleton entityID offset)
 
 withAttachments :: MonadState ECS m => EntityID -> (Attachments -> m b) -> m ()
 withAttachments entityID = withEntityComponent_ entityID myAttachments
 
-getEntityAttachments :: (MonadState ECS m) => EntityID -> m (Maybe Attachments)
-getEntityAttachments entityID = getEntityComponent entityID myAttachments
+getEntityAttachments :: (MonadState ECS m) => EntityID -> m (Map EntityID (M44 GLfloat))
+getEntityAttachments entityID = fromMaybe mempty <$> getEntityComponent entityID myAttachments
 
 isEntityAttachedTo :: (MonadState ECS m) => EntityID -> EntityID -> m Bool
-isEntityAttachedTo childID parentID = maybe False (Set.member childID . Set.map atcToEntityID) <$> getEntityAttachments parentID
+isEntityAttachedTo childID parentID = Map.member childID <$> getEntityAttachments parentID
 
 
