@@ -36,6 +36,7 @@ initCreatorSystem :: MonadState ECS m => m ()
 initCreatorSystem = do
     registerSystem sysCreator (CreatorSystem mempty mempty)
 
+checkForDestruction :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 checkForDestruction whichHand = do
     let otherHand = getOtherHand whichHand
     maybePendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at otherHand)
@@ -100,11 +101,14 @@ addDestructionOrb whichHand = do
     runEntity newEntityID $ animateSizeTo 0.05 0.3
     return newEntityID
 
+creatorOffset :: V3 GLfloat
 creatorOffset = V3 0 0 (-0.4)
 
+getOtherHand :: WhichHand -> WhichHand
 getOtherHand whichHand = case whichHand of
     LeftHand  -> RightHand
     RightHand -> LeftHand
+getOtherHandID :: MonadState ECS m => WhichHand -> m EntityID
 getOtherHandID whichHand = getHandID (getOtherHand whichHand)
 
 -- FIXME: it would be extra cool to add the startExpr immediately rather than on grab,
@@ -175,6 +179,7 @@ closeEntityLibrary whichHand = do
         crtPendingDestruction . at whichHand .= Nothing
         crtOpenLibrary . at whichHand .= Nothing
 
+defaultStartCodeWithModuleName :: String -> String
 defaultStartCodeWithModuleName moduleName = unlines
     [ "module " ++ moduleName ++ " where"
     , "import Rumpus"
@@ -200,6 +205,7 @@ addNewStartExpr = do
     setStartExpr entityFileName
 
 -- | Given a list of names like [NewObject1, NewObject3, NewObject7]
+findNextNumberedName :: String -> [String] -> String
 findNextNumberedName name inList =
     let newObjects = filter (isPrefixOf name) inList
         existingNumbers = catMaybes $ map (readMaybe . drop (length name)) newObjects :: [Int]
