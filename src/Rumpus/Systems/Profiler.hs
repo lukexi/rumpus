@@ -25,7 +25,7 @@ initProfilerSystem = do
     registerSystem sysProfiler (ProfilerSystem mempty)
 
 
-maxProfilerHistory = 10
+maxProfilerHistory = 20
 
 addSample name value = do
     modifySystemState sysProfiler $ do

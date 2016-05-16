@@ -1,31 +1,40 @@
 module Profiler where
 import Rumpus
 import qualified Data.HashMap.Strict as Map
-import System.Metrics
+
 start :: Start
 start = do
-    setRotation (V3 0 1 0) pi
+    setSize (V3 0.4 0.4 0.1)
+    --setRotation (V3 0 1 0) pi
 
     rootSample <- getSampleHistory
     let indexedSamples = zip [0..] (Map.toList rootSample)
         numSamples = Map.size rootSample
-    gauges <- Map.fromList <$> forM indexedSamples (\(i, (name, values)) -> do
-        let y = i*0.1 - 1
+    containerID <- spawnChild $ do
+        myInheritTransform ==> InheritPose
+        mySize ==> 0.3
+    gauges <- runEntity containerID $ do
+      Map.fromList <$> forM indexedSamples (\(i, (name, values)) -> do
+        let y = i*0.1 + 1
         spawnChild $ do
-                myPose ==> translateMatrix (V3 0 y 0)
+                myPose ==> translateMatrix (V3 0 y 0.1 )
                 myTextPose         ==> scaleMatrix 0.05
                 myText             ==> name
-                myInheritTransform ==> InheritPose
+                myInheritTransform ==> InheritFull
         childIDs <- forM [0..maxProfilerHistory-1] $ \z -> do
+            let brightness = 1 -
+                    (fromIntegral z / 
+                    fromIntegral maxProfilerHistory
+                    * 0.5 + 0.3)
             spawnChild $ do
                 myShape            ==> Cube
                 myProperties       ==> [Holographic]
-                myInheritTransform ==> InheritPose
+                myInheritTransform ==> InheritFull
                 mySize             ==> 0.1
                 myColor            ==> colorHSL
                     (i / fromIntegral numSamples)
-                    0.8
-                    (fromIntegral z / fromIntegral maxProfilerHistory)
+                    1
+                    brightness
                 myPose             ==> translateMatrix (V3 0 y (-fromIntegral z*0.1))
         return (name, childIDs))
 
