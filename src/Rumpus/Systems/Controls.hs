@@ -75,9 +75,10 @@ tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
         unless hasSelection $
             applyWASD gpWindow (ctsPlayer . iso poseFromMatrix transformationFromPose)
 
-    useTraverseM_ ctsEvents $ \case
-        GLFWEvent e -> closeOnEscape gpWindow e
-        _           -> return ()
+    -- SteamVR seems to be sending us an escape event when we bring up the desktop
+    --useTraverseM_ ctsEvents $ \case
+    --    GLFWEvent e -> closeOnEscape gpWindow e
+    --    _           -> return ()
 
 setPlayerPosition :: MonadState ECS m => V3 GLfloat -> m ()
 setPlayerPosition position = modifySystemState sysControls $
