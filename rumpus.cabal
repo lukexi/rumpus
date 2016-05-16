@@ -109,6 +109,8 @@ library
                      , deepseq
                      , text-gl
                      , lifted-base
+                     , ekg-core
+                     , text
   default-language:    Haskell2010
 
 executable rumpus
@@ -116,8 +118,9 @@ executable rumpus
   main-is:             Main.hs
   -- -s/-S prints GC info (-S as it happens)
   -- -L50 changes length of cost center profile names in the .prof/.hp files
+  -- -T collects GC statistics and according to JohanTibell is cheap enough to leave on.
   -- ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -s -H512M -A4M"
-  ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -H512m -A4M"
+  ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -H512m -A4M -T"
   -- ghc-options:         -O2 -Wall -threaded -rtsopts "-with-rtsopts=-N -s -H512M"
   -- -T collects runtime stats for use with GHC.Stats
   ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -S -H512M -A4M -L100"
