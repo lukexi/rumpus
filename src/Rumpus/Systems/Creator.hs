@@ -196,15 +196,17 @@ addNewStartExpr = do
     files <- getDirectoryContentsWithExtension "hs" sceneFolder
 
     let newObjectCodeName = findNextNumberedName "MyObject" (map takeBaseName files)
-    entityID <- ask
-    let entityFileName  = newObjectCodeName <.> "hs"
+        entityFileName  = newObjectCodeName <.> "hs"
         entityFilePath  = sceneFolder </> entityFileName
     liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName newObjectCodeName)
 
     -- Scene folder is auto-appended in CodeEditor, so we just need the filename with no path.
     setStartExpr entityFileName
 
--- | Given a list of names like [NewObject1, NewObject3, NewObject7]
+-- | Given a list of names like [NewObject1, NewObject3, NewObject17],
+-- and their common prefix (in example, NewObject),
+-- finds the successor name of the highest name.
+-- Example list would return NewObject18.
 findNextNumberedName :: String -> [String] -> String
 findNextNumberedName name inList =
     let newObjects = filter (isPrefixOf name) inList
