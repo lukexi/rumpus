@@ -67,6 +67,7 @@ library
                        Rumpus.Systems.Render
                        Rumpus.Systems.Physics
                        Rumpus.Systems.PlayPause
+                       Rumpus.Systems.Profiler
                        Rumpus.Systems.Scene
                        Rumpus.Systems.SceneEditor
                        Rumpus.Systems.Script

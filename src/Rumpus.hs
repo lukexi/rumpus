@@ -20,6 +20,7 @@ import Rumpus.Systems.KeyPads as Exports
 import Rumpus.Systems.Lifetime as Exports
 import Rumpus.Systems.Physics as Exports
 import Rumpus.Systems.PlayPause as Exports
+import Rumpus.Systems.Profiler as Exports
 import Rumpus.Systems.Render as Exports
 import Rumpus.Systems.Scene as Exports
 import Rumpus.Systems.SceneEditor as Exports
@@ -29,6 +30,5 @@ import Rumpus.Systems.Shared as Exports
 import Rumpus.Systems.Sound as Exports
 import Rumpus.Systems.Text as Exports
 import Rumpus.Systems.Teleport as Exports
-
 import RumpusLib as Exports
 

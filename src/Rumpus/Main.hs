@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Rumpus.Main where
 import Rumpus
 import Rumpus.TestScene
@@ -21,6 +23,7 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         initLifetimeSystem
         initPhysicsSystem
         initPlayPauseSystem
+        initProfilerSystem
         initRenderSystem
         initSoundSystem pd
         initSelectionSystem
@@ -43,17 +46,17 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
             -- without traversing all of memory
             --liftIO performMinorGC
 
-            tickKeyPadsSystem
-            tickClockSystem
-            tickCodeEditorInputSystem
-            tickCodeEditorResultsSystem
-            tickAttachmentSystem
-            tickConstraintSystem
-            tickScriptSystem
-            tickLifetimeSystem
-            tickAnimationSystem
-            tickPhysicsSystem
-            tickSyncPhysicsPosesSystem
-            tickCollisionsSystem
-            tickHandControlsSystem
-            tickSoundSystem
+            profile "tickKeyPadsSystem" $ tickKeyPadsSystem
+            profile "tickClockSystem" $ tickClockSystem
+            profile "tickCodeEditorInputSystem" $ tickCodeEditorInputSystem
+            profile "tickCodeEditorResultsSystem" $ tickCodeEditorResultsSystem
+            profile "tickAttachmentSystem" $ tickAttachmentSystem
+            profile "tickConstraintSystem" $ tickConstraintSystem
+            profile "tickScriptSystem" $ tickScriptSystem
+            profile "tickLifetimeSystem" $ tickLifetimeSystem
+            profile "tickAnimationSystem" $ tickAnimationSystem
+            profile "tickPhysicsSystem" $ tickPhysicsSystem
+            profile "tickSyncPhysicsPosesSystem" $ tickSyncPhysicsPosesSystem
+            profile "tickCollisionsSystem" $ tickCollisionsSystem
+            profile "tickHandControlsSystem" $ tickHandControlsSystem
+            profile "tickSoundSystem" $ tickSoundSystem
