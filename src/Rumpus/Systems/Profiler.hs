@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Rumpus.Systems.Profiler where
-import PreludeExtra
+import PreludeExtra hiding ((<|))
 import System.Metrics
 import qualified System.Metrics.Counter as Counter
 import qualified System.Metrics.Distribution as Distribution
@@ -11,51 +11,38 @@ import System.Metrics.Distribution (Distribution)
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Sequence as Seq
 import Data.Sequence (Seq, (<|), (|>))
-import Data.Text
 import Data.Time
+import GHC.Stats
 
 data ProfilerSystem = ProfilerSystem
-    { _prfStore         :: Store
-    , _prfDistributions :: Map Text Distribution
-    , _prfSampleHistory :: Seq Sample
+    { _prfSampleHistory :: !(Map String (Seq Double))
     }
 makeLenses ''ProfilerSystem
 defineSystemKey ''ProfilerSystem
 
 initProfilerSystem :: (MonadIO m, MonadState ECS m) => m ()
 initProfilerSystem = do
+    registerSystem sysProfiler (ProfilerSystem mempty)
 
-    store <- liftIO $ newStore
-    liftIO $ registerGcMetrics store
 
-    registerSystem sysProfiler (ProfilerSystem store mempty mempty)
+maxProfilerHistory = 10
 
-getProfilerStore :: MonadState ECS m => m Store
-getProfilerStore = sysProfiler `viewSystem` prfStore
+addSample name value = do
+    modifySystemState sysProfiler $ do
+        hist <- use (prfSampleHistory . at name)
+        prfSampleHistory . at name ?= case hist of
+            Just existing -> Seq.take maxProfilerHistory (value <| existing)
+            Nothing       -> Seq.singleton value
 
-getDistributionNamed name = do
-    distributions <- sysProfiler `viewSystem` prfDistributions
-    case Map.lookup name distributions of
-        Just distribution -> return distribution
-        Nothing -> do
-            store <- getProfilerStore
-            distribution <- liftIO (createDistribution name store)
-            modifySystemState sysProfiler $ prfDistributions . at name ?= distribution
-            return distribution
+getSampleHistory :: MonadState ECS m => m (Map String (Seq Double))
+getSampleHistory = viewSystem sysProfiler prfSampleHistory
 
-profile :: Text -> ECSMonad a -> ECSMonad a
+profile :: String -> ECSMonad a -> ECSMonad a
 profile name action = do
     before <- liftIO getCurrentTime
-    a <- action
+    a      <- action
     after  <- liftIO getCurrentTime
 
-    timeDistribution <- getDistributionNamed name
-    liftIO $ Distribution.add timeDistribution (realToFrac $ after `diffUTCTime` before)
+    addSample name (realToFrac $ after `diffUTCTime` before)
 
     return a
-
-getProfilerSample :: (MonadState ECS m, MonadIO m) => m Sample
-getProfilerSample = liftIO . sampleAll =<< getProfilerStore
-
-logProfile :: (MonadState ECS m, MonadIO m) => m ()
-logProfile = printIO =<< getProfilerSample
