@@ -21,7 +21,7 @@ initAttachmentSystem = do
         { ciDeriveComponent = Just $ do
             withComponent_ myHolder $ \holderID -> do
                 entityID <- ask
-                attachEntity holderID entityID False
+                attachEntityToEntity holderID entityID False
         , ciRemoveComponent = detachFromHolder >> removeComponent myHolder
         }
 
@@ -46,8 +46,12 @@ setAttachmentOffset newOffset = do
         myID <- ask
         modifyEntityComponent holderID myAttachments (Map.adjust (const newOffset) myID)
 
-attachEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> Bool -> m ()
-attachEntity holderID toEntityID exclusive = do
+attachEntity toEntityID = do
+    holderID <- ask
+    attachEntityToEntity holderID toEntityID False
+
+attachEntityToEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> Bool -> m ()
+attachEntityToEntity holderID toEntityID exclusive = do
 
     detachEntityFromHolder toEntityID
 

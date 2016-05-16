@@ -84,4 +84,4 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
 grabEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 grabEntity handEntityID grabbedID = do
     selectEntity grabbedID
-    attachEntity handEntityID grabbedID True
+    attachEntityToEntity handEntityID grabbedID True

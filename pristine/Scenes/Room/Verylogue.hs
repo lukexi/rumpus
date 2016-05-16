@@ -15,7 +15,7 @@ start = do
     forM_ (zip [0..] majorScale) $ \(i, note) -> do
         keyID <- spawnEntity $
             makePianoKey rootEntityID rootPose i note
-        attachEntity rootEntityID keyID False
+        attachEntity keyID
 
 makePianoKey parentID parentPose i noteDegree = do
     let note = fromIntegral $ noteDegree + 60

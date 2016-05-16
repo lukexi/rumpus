@@ -95,7 +95,7 @@ addDestructionOrb whichHand = do
                     crtPendingDestruction . at whichHand ?= entityID
 
     setEntityPose newEntityID (handPose !*! translateMatrix creatorOffset)
-    attachEntity handID newEntityID False
+    attachEntityToEntity handID newEntityID False
 
     runEntity newEntityID $ animateSizeTo 0.05 0.3
     return newEntityID
@@ -155,7 +155,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
     setEntityPose newEntityID
         (handPose !*! translateMatrix creatorOffset
                   !*! mkTransformation (axisAngle (V3 1 0 0) (-pi/2)) (spherePosition * 0.2))
-    attachEntity handID newEntityID False
+    attachEntityToEntity handID newEntityID False
 
     runEntity newEntityID $ animateSizeTo 0.05 0.3
     return newEntityID
