@@ -70,6 +70,7 @@ library
                        Rumpus.Systems.Profiler
                        Rumpus.Systems.Scene
                        Rumpus.Systems.SceneEditor
+                       Rumpus.Systems.SceneWatcher
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound
@@ -114,6 +115,7 @@ library
                      , monad-control
                      , ekg-core
                      , text
+                     , fsnotify
   default-language:    Haskell2010
 
 executable rumpus

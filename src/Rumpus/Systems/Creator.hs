@@ -18,6 +18,7 @@ import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
+import Rumpus.Systems.SceneWatcher
 import Data.List (delete, isPrefixOf)
 import RumpusLib
 -- NOTE: this illustrates how handy it will be to have arbitrary components;
@@ -41,7 +42,7 @@ checkForDestruction whichHand = do
     let otherHand = getOtherHand whichHand
     maybePendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at otherHand)
     forM_ maybePendingDestruction $ \destroyID -> do
-        removeEntity destroyID
+        sceneWatcherRemoveEntity destroyID
 
 openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do

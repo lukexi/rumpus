@@ -24,7 +24,7 @@ checkIfReadyToStart = do
         setWorldPlaying True
 
 tickScriptSystem :: ECSMonad ()
-tickScriptSystem = whenScriptsEnabled $ do
+tickScriptSystem = do
     isWorldPlaying <- getWorldPlaying
     if isWorldPlaying
         then runScripts

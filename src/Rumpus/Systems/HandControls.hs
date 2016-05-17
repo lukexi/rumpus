@@ -15,6 +15,7 @@ import Rumpus.Systems.Haptics
 import Rumpus.Systems.Teleport
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Scene
+import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.CodeProtect
 
 tickHandControlsSystem :: ECSMonad ()
@@ -38,14 +39,14 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
             HandButtonEvent HandButtonTrigger ButtonDown -> do
                 initiateGrab whichHand handEntityID otherHandEntityID
             HandButtonEvent HandButtonTrigger ButtonUp -> do
+                maybeHeldEntity <- getOneEntityAttachment handEntityID
                 checkForDestruction whichHand
                 endHapticDrag whichHand
                 endDrag handEntityID
                 detachAttachedEntities handEntityID
 
-                -- Saving is currently disabled to simplify the alpha release
-                -- (code will still be saved automatically)
-                saveScene
+                forM_ maybeHeldEntity
+                    sceneWatcherSaveEntity
             HandButtonEvent HandButtonStart ButtonDown -> do
                 openEntityLibrary whichHand
             HandButtonEvent HandButtonStart ButtonUp -> do

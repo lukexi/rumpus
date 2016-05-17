@@ -28,12 +28,14 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         initSoundSystem pd
         initSelectionSystem
         initSceneSystem
+        initSceneWatcherSystem
         initSharedSystem
         initTextSystem
 
         startHandsSystem
         startKeyPadsSystem
         startSceneSystem
+        startSceneWatcherSystem
         when isBeingProfiled loadTestScene
 
         whileWindow (gpWindow vrPal) $ do
@@ -46,17 +48,18 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
             -- without traversing all of memory
             --liftIO performMinorGC
 
-            profile "tickKeyPadsSystem" $ tickKeyPadsSystem
-            profile "tickClockSystem" $ tickClockSystem
-            profile "tickCodeEditorInputSystem" $ tickCodeEditorInputSystem
-            profile "tickCodeEditorResultsSystem" $ tickCodeEditorResultsSystem
-            profile "tickAttachmentSystem" $ tickAttachmentSystem
-            profile "tickConstraintSystem" $ tickConstraintSystem
-            profile "tickScriptSystem" $ tickScriptSystem
-            profile "tickLifetimeSystem" $ tickLifetimeSystem
-            profile "tickAnimationSystem" $ tickAnimationSystem
-            profile "tickPhysicsSystem" $ tickPhysicsSystem
-            profile "tickSyncPhysicsPosesSystem" $ tickSyncPhysicsPosesSystem
-            profile "tickCollisionsSystem" $ tickCollisionsSystem
-            profile "tickHandControlsSystem" $ tickHandControlsSystem
-            profile "tickSoundSystem" $ tickSoundSystem
+            profile "KeyPads" $ tickKeyPadsSystem
+            profile "Clock" $ tickClockSystem
+            profile "CodeEditorInput" $ tickCodeEditorInputSystem
+            profile "CodeEditorResults" $ tickCodeEditorResultsSystem
+            profile "Attachment" $ tickAttachmentSystem
+            profile "Constraint" $ tickConstraintSystem
+            profile "Script" $ tickScriptSystem
+            profile "Lifetime" $ tickLifetimeSystem
+            profile "Animation" $ tickAnimationSystem
+            profile "Physics" $ tickPhysicsSystem
+            profile "SyncPhysicsPoses" $ tickSyncPhysicsPosesSystem
+            profile "Collisions" $ tickCollisionsSystem
+            profile "HandControls" $ tickHandControlsSystem
+            profile "Sound" $ tickSoundSystem
+            profile "SceneWatcher" $ tickSceneWatcherSystem

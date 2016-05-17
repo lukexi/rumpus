@@ -41,7 +41,6 @@ data CodeEditorSystem = CodeEditorSystem
     , _cesGHCChan     :: !(TChan CompilationRequest)
     }
 makeLenses ''CodeEditorSystem
-
 defineSystemKey ''CodeEditorSystem
 
 -- FIXME: these should move to their companion definitions (i.e. myStart, myUpdate etc.)
@@ -234,10 +233,6 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
                 -- Pass the compiled value to each registered "dependent" of the code editor
                 dependents <- use (cesCodeEditors . ix codeInFile . cedDependents)
                 lift $ forM_ dependents ($ compiledValue)
-
-                -- Toggle scripts on whenever new code comes in.
-                -- They'll turn themselves off again if the code runs poorly.
-                lift $ setScriptsEnabled True
 
 moveCodeEditorFile :: (MonadIO m, MonadState ECS m) => FilePath -> FilePath -> String -> m ()
 moveCodeEditorFile oldFileName newFileName codeExpr = do

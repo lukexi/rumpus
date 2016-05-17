@@ -53,6 +53,9 @@ startSceneSystem = do
 getSceneFolder :: MonadState ECS m => m FilePath
 getSceneFolder = viewSystem sysScene (scnScene . scnFolder)
 
+getSceneStateFolder :: MonadState ECS m => m FilePath
+getSceneStateFolder = (</> ".world-state") <$> getSceneFolder
+
 setSceneFolder :: MonadState ECS m => FilePath -> m ()
 setSceneFolder sceneFolder = modifySystemState sysScene (scnScene . scnFolder .= sceneFolder)
 

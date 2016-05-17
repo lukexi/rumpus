@@ -41,11 +41,14 @@ detachEntityFromHolder entityID = do
     traverseM_ (getEntityComponent entityID myHolder) $ \holderID -> do
         detachAttachedEntity holderID entityID
 
+setAttachmentOffset :: (MonadState ECS m, MonadReader EntityID m)
+                    => M44 GLfloat -> m ()
 setAttachmentOffset newOffset = do
     withComponent_ myHolder $ \holderID -> do
         myID <- ask
         modifyEntityComponent holderID myAttachments (Map.adjust (const newOffset) myID)
 
+attachEntity :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => EntityID -> m ()
 attachEntity toEntityID = do
     holderID <- ask
     attachEntityToEntity holderID toEntityID False
@@ -110,3 +113,5 @@ isEntityAttachedTo :: (MonadState ECS m) => EntityID -> EntityID -> m Bool
 isEntityAttachedTo childID parentID = Map.member childID <$> getEntityAttachments parentID
 
 
+getOneEntityAttachment :: MonadState ECS m => EntityID -> m (Maybe EntityID)
+getOneEntityAttachment entityID = listToMaybe . Map.keys <$> getEntityAttachments entityID
