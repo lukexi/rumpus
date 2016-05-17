@@ -70,7 +70,9 @@ runScripts = do
             runEntity entityID update
                 `catchAll`
                 -- FIXME display this in world somewhere...
-                (\e -> putStrLnIO $ "Error in Update for entity" ++ show entityID ++ ": " ++ show e)
+                (\e -> do
+                    removeComponent myUpdate
+                    putStrLnIO $ "Error in Update for entity" ++ show entityID ++ ": " ++ show e)
 
 withState :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)
           => (a -> m ()) -> m ()

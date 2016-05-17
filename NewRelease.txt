@@ -1,6 +1,6 @@
 
 INTERACTION
-    [ ] Implement folder versioning
+    [x] Implement folder versioning
         (have rumpus make its folders in a folder of its build date)
 
 PERFORMANCE
@@ -20,7 +20,7 @@ PERFORMANCE
     [ ] Reset button (e.g. hold both application buttons)
         Possibly automatically reset if low performance is detected?
 
-    [ ] See performance impact of System.Timeout on Scripts.
+    [x] See performance impact of System.Timeout on Scripts.
         If run on outer loop, should hopefully be OK, but can't detect which script caused problem then
         so must pause all scripts.
 

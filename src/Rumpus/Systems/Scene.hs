@@ -117,13 +117,14 @@ copyDirectory src dst = liftIO $ do
         orM xs = or <$> sequence xs
         whenM s r = s >>= flip when r
 
-
+versionString :: String
+versionString = "0.1.0"
 
 getUserSceneFolder :: MonadIO m => m FilePath
 getUserSceneFolder = liftIO $ do
     userDocsDir <- getUserDocumentsDirectory
     let userRumpusRoot   = userDocsDir </> "Rumpus"
-        userSceneRoot    = userRumpusRoot </> "Scenes"
+        userSceneRoot    = userRumpusRoot </> versionString
         userRedirectFile = userRumpusRoot </> "redirect.txt"
 
         protect f = f `catchIOError`

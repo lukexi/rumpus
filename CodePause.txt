@@ -34,3 +34,10 @@ myClockAction
 
 
 Reset button should delete all non myInternal objects.
+
+
+5-16
+Noticed something wonderful: the current exception catcher that runs on each
+myUpdate call catches the exception, removes the code and sets the error
+as part of the normal exception handling behavior! Generalize this to all user code
+and we're done!
