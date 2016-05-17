@@ -36,7 +36,7 @@ PERFORMANCE
         them (e.g. setting a new myUpdate on them), though that requires extra care.
 
 KEYBOARD
-    [ ] Fix selection with keypads
+    [x] Fix selection with keypads
             (add tab, select all, copy, paste buttons)
     [ ] Knob System/API
     [ ] Vari-size keys for space, arrows, enter, backspace etc.

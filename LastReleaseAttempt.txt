@@ -27,7 +27,7 @@
 
 
 
-[ ] See if there's a way to use System.Timeout.timeout
+[x] See if there's a way to use System.Timeout.timeout
     for a simple version of rendering-guarantees.
     (along with a maximum count of objects to render)
 

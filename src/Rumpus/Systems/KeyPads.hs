@@ -25,6 +25,13 @@ data HandKey = HandKeyChar Char Char
              | HandKeyEnter
              | HandKeyBackspace
              | HandKeyTab
+             | HandKeyCut
+             | HandKeyCopy
+             | HandKeyPaste
+             | HandKeyMoveLineUp
+             | HandKeyMoveLineDown
+             | HandKeyIndent
+             | HandKeyUnIndent
              | HandKeyUp
              | HandKeyDown
              | HandKeyLeft
@@ -47,6 +54,13 @@ showKey _ HandKeyEnter                  = "Enter"
 showKey _ HandKeyShift                  = "Shift"
 showKey _ HandKeyBackspace              = "Backspace"
 showKey _ HandKeyTab                    = "Tab"
+showKey _ HandKeyCut                    = "Cut"
+showKey _ HandKeyCopy                   = "Copy"
+showKey _ HandKeyPaste                  = "Paste"
+showKey _ HandKeyMoveLineUp             = "Line ^"
+showKey _ HandKeyMoveLineDown           = "Line v"
+showKey _ HandKeyIndent                 = "Indent"
+showKey _ HandKeyUnIndent               = "Unindent"
 showKey _ HandKeyUp                     = "^"
 showKey _ HandKeyDown                   = "v"
 showKey _ HandKeyLeft                   = "<"
@@ -56,26 +70,32 @@ showKey _ HandKeyBlank                  = ""
 keyToEvent :: Bool -> HandKey -> Maybe Event
 keyToEvent False (HandKeyChar unshifted _) = Just (Character unshifted)
 keyToEvent True  (HandKeyChar _ shifted)   = Just (Character shifted)
-keyToEvent _ HandKeyEnter                  = Just (toPressedKey Key'Enter)
-keyToEvent _ HandKeyBackspace              = Just (toPressedKey Key'Backspace)
-keyToEvent _ HandKeyTab                    = Just (toPressedKey Key'Tab)
-keyToEvent _ HandKeyUp                     = Just (toPressedKey Key'Up)
-keyToEvent _ HandKeyDown                   = Just (toPressedKey Key'Down)
-keyToEvent _ HandKeyLeft                   = Just (toPressedKey Key'Left)
-keyToEvent _ HandKeyRight                  = Just (toPressedKey Key'Right)
+keyToEvent shift HandKeyEnter              = Just (toPressedKey shift False Key'Enter)
+keyToEvent shift HandKeyBackspace          = Just (toPressedKey shift False Key'Backspace)
+keyToEvent shift HandKeyTab                = Just (toPressedKey shift False Key'Tab)
+keyToEvent shift HandKeyUp                 = Just (toPressedKey shift False Key'Up)
+keyToEvent shift HandKeyDown               = Just (toPressedKey shift False Key'Down)
+keyToEvent shift HandKeyLeft               = Just (toPressedKey shift False Key'Left)
+keyToEvent shift HandKeyRight              = Just (toPressedKey shift False Key'Right)
+keyToEvent shift HandKeyIndent             = Just (toPressedKey shift True Key'RightBracket)
+keyToEvent shift HandKeyUnIndent           = Just (toPressedKey shift True Key'LeftBracket)
+keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True True Key'Up)
+keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True True Key'Down)
 keyToEvent _ _ = Nothing
 
-toPressedKey :: GLFW.Key -> Event
-toPressedKey key = KeyboardKey key noKeyCode KeyState'Pressed noModifierKeys
+toPressedKey :: Bool -> Bool -> GLFW.Key -> Event
+toPressedKey shift control key = KeyboardKey key noKeyCode KeyState'Pressed modifierKeys
     where
         -- (FIXME: we don't use keycodes anywhere, remove from API for now)
         noKeyCode = 0
-        noModifierKeys = GLFW.ModifierKeys False False False False
+        modifierKeys = GLFW.ModifierKeys shift control alt super
+        (alt, super) = (False, False)
 
 
 leftHandKeys :: [[HandKey]]
 leftHandKeys =
     [ replicate 4 HandKeyUp
+    , [HandKeyCut, HandKeyCopy, HandKeyPaste, HandKeyIndent, HandKeyUnIndent, HandKeyMoveLineUp, HandKeyMoveLineDown]
     , HandKeyLeft :                cs "`12345" "~!@#$%" ++ [HandKeyRight]
     , HandKeyLeft : HandKeyTab   : cs "qwert"  "QWERT"  ++ [HandKeyRight]
     , HandKeyLeft : HandKeyBlank : cs "asdfg"  "ASDFG"  ++ [HandKeyRight]
@@ -89,6 +109,7 @@ leftHandKeys =
 rightHandKeys :: [[HandKey]]
 rightHandKeys =
     [ replicate 4 HandKeyUp
+    , [HandKeyCut, HandKeyCopy, HandKeyPaste, HandKeyIndent, HandKeyUnIndent, HandKeyMoveLineUp, HandKeyMoveLineDown]
     , HandKeyLeft : cs "67890-="   "^&*()_+"  ++ [HandKeyBackspace,           HandKeyRight]
     , HandKeyLeft : cs "yuiop[]\\" "YUIOP{}|" ++ [                            HandKeyRight]
     , HandKeyLeft : cs "hjkl;'"    "HJKL:\""  ++ [HandKeyEnter, HandKeyEnter, HandKeyRight]
