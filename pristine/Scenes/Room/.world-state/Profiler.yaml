@@ -1,0 +1,10 @@
+StartExpr:
+- Profiler.hs
+- start
+Properties:
+- Floating
+Shape: Cube
+Size:
+- 0.3
+- 0.3
+- 0.3
