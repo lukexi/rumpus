@@ -76,6 +76,7 @@ library
                        Rumpus.Systems.Selection
                        Rumpus.Systems.Teleport
                        Rumpus.Systems.Text
+                       Rumpus.Systems.CodeProtect
   ghc-options:         -O2 -Wall
   build-depends:       base
                      , pd-hs
@@ -110,6 +111,7 @@ library
                      , deepseq
                      , text-gl
                      , lifted-base
+                     , monad-control
                      , ekg-core
                      , text
   default-language:    Haskell2010

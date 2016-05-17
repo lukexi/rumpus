@@ -6,9 +6,8 @@ import PreludeExtra
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
-import Rumpus.Systems.Selection
+import Rumpus.Systems.CodeProtect
 
-import System.Timeout.Lifted
 import qualified Data.HashMap.Strict as Map
 
 
@@ -28,23 +27,11 @@ tickScriptSystem :: ECSMonad ()
 tickScriptSystem = whenScriptsEnabled $ do
     isWorldPlaying <- getWorldPlaying
     if isWorldPlaying
-        -- Timeout takes microseconds (1e6)
-        then do
-            --let maxTime = floor (1/90) * 1000000
-            let maxTime = floor 1 * 1000000
-            finishedInTime <- isJust <$> timeout maxTime runScripts
-            setScriptsEnabled finishedInTime
-
-            when (not finishedInTime) $ do
-                putStrLnIO "A script failed to finish in time, pausing script system."
-                traverseM_ getSelectedEntityID $ \selectedID -> do
-                    setEntityErrorText selectedID "Some script (maybe this one!) failed to finish in time!"
+        then runScripts
         else checkIfReadyToStart
 
-
-
 runScripts :: ECSMonad ()
-runScripts = do
+runScripts = runUserScriptsWithTimeout_ $ do
     forEntitiesWithComponent myStart $
         \(entityID, onStart) -> runEntity entityID $ do
             --putStrLnIO ("Running Start for " ++ show entityID)
@@ -55,24 +42,14 @@ runScripts = do
             removeChildren
 
             -- Only call Start once.
-            -- Handle any exceptions therein by writing them to the error pane.
-            runtimeErrors <- handleAll (\e -> return (show e)) $ do
-                onStart
-                return ""
-
-            when (not (null runtimeErrors)) $ putStrLnIO runtimeErrors
-            setEntityErrorText entityID runtimeErrors
+            runUserFunctionProtected myStart onStart
 
             removeComponent myStart
 
     forEntitiesWithComponent myUpdate $
         \(entityID, update) -> do
-            runEntity entityID update
-                `catchAll`
-                -- FIXME display this in world somewhere...
-                (\e -> do
-                    removeComponent myUpdate
-                    putStrLnIO $ "Error in Update for entity" ++ show entityID ++ ": " ++ show e)
+            runEntity entityID $
+                runUserFunctionProtected myUpdate update
 
 withState :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)
           => (a -> m ()) -> m ()

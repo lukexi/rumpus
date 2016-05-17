@@ -15,9 +15,10 @@ import Rumpus.Systems.Haptics
 import Rumpus.Systems.Teleport
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Scene
+import Rumpus.Systems.CodeProtect
 
 tickHandControlsSystem :: ECSMonad ()
-tickHandControlsSystem = do
+tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
     let editSceneWithHand whichHand handEntityID otherHandEntityID event = case event of
             HandStateEvent hand -> do
                 -- Shift the hands down a bit, since OpenVR gives us the position

@@ -14,7 +14,7 @@ import Halive.FileListener
 import qualified Data.HashMap.Strict as Map
 import Data.ECS.Vault
 
-import Rumpus.Systems.Collisions
+--import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 --import Rumpus.Systems.Hands
@@ -44,10 +44,13 @@ makeLenses ''CodeEditorSystem
 
 defineSystemKey ''CodeEditorSystem
 
+-- FIXME: these should move to their companion definitions (i.e. myStart, myUpdate etc.)
+-- and those files should depend on CodeEditor and call registerCodeExprComponent.
+-- Must thus be initialized after CodeEditor.
 defineComponentKeyWithType "StartExpr"          [t|CodeInFile|]
 defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
-defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
-defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
+--defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
+--defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
 
 -- When in release mode, use the embedded "packages" directory,
 -- otherwise use MSYS2's copy in /usr/local/ghc
@@ -81,8 +84,8 @@ initCodeEditorSystem ghcChan = do
 
     registerCodeExprComponent "StartExpr"          myStartExpr          myStart
     registerCodeExprComponent "UpdateExpr"         myUpdateExpr         myUpdate
-    registerCodeExprComponent "CollidingExpr"      myCollidingExpr      myColliding
-    registerCodeExprComponent "CollisionStartExpr" myCollisionStartExpr myCollisionStart
+    --registerCodeExprComponent "CollidingExpr"      myCollidingExpr      myColliding
+    --registerCodeExprComponent "CollisionStartExpr" myCollisionStartExpr myCollisionStart
 
 
 registerCodeExprComponent :: (MonadState ECS m, Typeable a)
@@ -197,6 +200,11 @@ setEntityErrorText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m (
 setEntityErrorText entityID errorText = do
     traverseM_ (getEntityComponent entityID myStartExpr) $ \codeInFile ->
         setErrorTextForCodeInFile codeInFile errorText
+
+setErrorText :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => String -> m ()
+setErrorText errorText = do
+    entityID <- ask
+    setEntityErrorText entityID errorText
 
 setErrorTextForCodeInFile :: (MonadIO m, MonadState ECS m) => CodeInFile -> String -> m ()
 setErrorTextForCodeInFile codeInFile errorText = modifySystemState sysCodeEditor $

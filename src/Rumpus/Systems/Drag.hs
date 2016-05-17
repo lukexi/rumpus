@@ -8,6 +8,7 @@ import PreludeExtra
 
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
+import Rumpus.Systems.CodeProtect
 
 data DragFrom = DragFrom HandEntityID (M44 GLfloat)
 
@@ -32,7 +33,8 @@ beginDrag handEntityID draggedID = do
     setEntityComponent myDragFrom (DragFrom handEntityID startM44) draggedID
 
     runEntity draggedID $
-        withComponent_ myDragBegan id
+        withComponent_ myDragBegan $ \dragBegan ->
+            runUserFunctionProtected myDragBegan dragBegan
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
@@ -42,7 +44,8 @@ continueDrag draggingHandEntityID = do
             let dragDistance = currentM44 `subtractMatrix` startM44
 
             runEntity entityID $
-                withComponent_ myDrag ($ dragDistance)
+                withComponent_ myDrag $ \drag ->
+                    runUserFunctionProtected myDrag (drag dragDistance)
 
 endDrag :: MonadState ECS m => HandEntityID -> m ()
 endDrag endingDragHandEntityID = do

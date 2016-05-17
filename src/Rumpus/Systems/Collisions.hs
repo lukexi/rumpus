@@ -4,6 +4,7 @@ module Rumpus.Systems.Collisions where
 import PreludeExtra
 import Rumpus.Systems.Physics
 import Rumpus.Systems.PlayPause
+import Rumpus.Systems.CodeProtect
 import qualified Data.Set as Set
 import qualified Data.HashMap.Strict as Map
 
@@ -30,7 +31,7 @@ tickCollisionsSystem :: ECSMonad ()
 tickCollisionsSystem = do
     isPlaying <- viewSystem sysPlayPause plyPlaying
     if isPlaying
-        then do
+        then runUserScriptsWithTimeout_ $ do
             -- NOTE: we get stale collisions with bullet-mini's getCollisions,
             -- so I've switched to the "contactTest" API which works.
 
@@ -44,17 +45,20 @@ tickCollisionsSystem = do
             forEntitiesWithComponent myColliding $ \(entityID, onColliding) -> do
                 (_, _, allCollisions) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ allCollisions $ \collidingID ->
-                    runEntity entityID $ onColliding collidingID 0.1
+                    runEntity entityID $
+                        runUserFunctionProtected myColliding (onColliding collidingID 0.1)
 
             forEntitiesWithComponent myCollisionStart $ \(entityID, onCollisionStart) -> do
                 (newCollisions, _, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ newCollisions $ \collidingID ->
-                    runEntity entityID $ onCollisionStart collidingID 0.1
+                    runEntity entityID $
+                        runUserFunctionProtected myCollisionStart (onCollisionStart collidingID 0.1)
 
             forEntitiesWithComponent myCollisionEnd $ \(entityID, onCollisionEnd) -> do
                 (_, oldCollisions, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ oldCollisions $ \collidingID ->
-                    runEntity entityID $ onCollisionEnd collidingID
+                    runEntity entityID $
+                        runUserFunctionProtected myCollisionEnd (onCollisionEnd collidingID)
         else do
             -- When not playing, do a collisions tick so we can still calculate intersections
             dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld

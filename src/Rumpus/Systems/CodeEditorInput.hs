@@ -21,6 +21,7 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 
 import qualified Data.Sequence as Seq
+import Data.Sequence (Seq)
 
 -- | Passes keyboard events to the active code editor
 tickCodeEditorInputSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -92,9 +93,12 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
 ------------------
 -- Module renaming
 
+modulePrefix :: Seq Char
 modulePrefix = Seq.fromList "module "
+modulePrefixLen :: Int
 modulePrefixLen = Seq.length modulePrefix
 
+getModuleName :: TextSeq -> Maybe String
 getModuleName textSeq = maybeModuleName
   where
     maybeModuleName = do
@@ -111,7 +115,7 @@ getModuleName textSeq = maybeModuleName
         isPotentialModuleLine = (== Just 'm') . seqHead
         isModuleLine          = (== modulePrefix) . Seq.take modulePrefixLen
 
-
+getChangedModuleName :: TextBuffer -> Maybe String
 getChangedModuleName textBuffer = do
     moduleName <- getModuleName (bufText textBuffer)
     guard (bufPath textBuffer /= Just moduleName)

@@ -30,5 +30,6 @@ import Rumpus.Systems.Shared as Exports
 import Rumpus.Systems.Sound as Exports
 import Rumpus.Systems.Text as Exports
 import Rumpus.Systems.Teleport as Exports
+import Rumpus.Systems.CodeProtect as Exports
 import RumpusLib as Exports
 

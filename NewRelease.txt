@@ -29,7 +29,11 @@ PERFORMANCE
         - Looks like GHC can't detect let x = x. Let's try System.Timeout for this,
         and if it fails, set a flag to stop executing scripts until new code is received.
 
-    [ ] investigate glitches when code reloading
+    [x] investigate glitches when code reloading
+        5/16: The profiler taught us that these are simply the actual execution of the start script
+        after it's been compiled! So this really can't be fixed fully without the new system.
+        Can look at/demo strategies for mitigating this, e.g. turning off removeChildren and re-using
+        them (e.g. setting a new myUpdate on them), though that requires extra care.
 
 KEYBOARD
     [ ] Fix selection with keypads
