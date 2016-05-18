@@ -68,8 +68,7 @@ showKey _ HandKeyRight                  = ">"
 showKey _ HandKeyBlank                  = ""
 
 keyToEvent :: Bool -> HandKey -> Maybe Event
-keyToEvent False (HandKeyChar unshifted _) = Just (Character unshifted)
-keyToEvent True  (HandKeyChar _ shifted)   = Just (Character shifted)
+--         shift                                                shift ctrl
 keyToEvent shift HandKeyEnter              = Just (toPressedKey shift False Key'Enter)
 keyToEvent shift HandKeyBackspace          = Just (toPressedKey shift False Key'Backspace)
 keyToEvent shift HandKeyTab                = Just (toPressedKey shift False Key'Tab)
@@ -84,6 +83,8 @@ keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True  True Key'D
 keyToEvent _     HandKeyCut                = Just (toPressedKey False True Key'X)
 keyToEvent _     HandKeyCopy               = Just (toPressedKey False True Key'C)
 keyToEvent _     HandKeyPaste              = Just (toPressedKey False True Key'V)
+keyToEvent False (HandKeyChar unshifted _) = Just (Character unshifted)
+keyToEvent True  (HandKeyChar _ shifted)   = Just (Character shifted)
 keyToEvent _ _ = Nothing
 
 toPressedKey :: Bool -> Bool -> GLFW.Key -> Event
