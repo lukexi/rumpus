@@ -4,7 +4,7 @@ import Rumpus
 -- Golden Section Spiral
 -- (via http://www.softimageblog.com/archives/115)
 pointsOnSphere (fromIntegral -> n) =
-    map (\k -> 
+    map (\k ->
         let y = k * off - 1 + (off / 2)
             r = sqrt (1 - y*y)
             phi = k * inc
@@ -12,7 +12,7 @@ pointsOnSphere (fromIntegral -> n) =
         ) [0..n]
     where inc = pi * (3 - sqrt 5)
           off = 2 / n
-     
+
 
 start :: Start
 start = do

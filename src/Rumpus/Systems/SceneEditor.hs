@@ -62,7 +62,8 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
         handPose <- getEntityPose handEntityID
         beginHapticDrag whichHand handPose
 
-        hasDragBeganFunction   <- entityHasComponent grabbedID myDragBegan
+        wantsToHandleDrag <- getEntityDragOverride grabbedID
+        beginDrag handEntityID grabbedID
         --isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
         if
             -- | isBeingHeldByOtherHand -> do
@@ -76,9 +77,7 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
             --        duplicateID <- duplicateEntity Persistent grabbedID
             --        --forkCode grabbedID duplicateID
             --        grabEntity handEntityID duplicateID
-            | hasDragBeganFunction ->
-                beginDrag handEntityID grabbedID
-            | otherwise ->
+            | not wantsToHandleDrag ->
                 grabEntity handEntityID grabbedID
 
 grabEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()

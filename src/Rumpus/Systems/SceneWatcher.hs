@@ -11,8 +11,12 @@ data LocalFileStatus
     = Writing
     | WrittenAt UTCTime
     | Deleted
+    deriving Show
 
-
+-- FIXME: We only write and check the filename for events to avoid
+-- dealing with converting between the absolute paths coming from FSNotify
+-- and the relative paths we use during development.
+-- Perhaps convert all paths to absolute?
 data SceneWatcherSystem = SceneWatcherSystem
     { _swaFileStatuses   :: !(Map FilePath LocalFileStatus)
     , _swaFileEventChan  :: !(TChan FS.Event)
@@ -76,7 +80,7 @@ tickSceneWatcherSystem = do
 checkIfShouldIgnore :: Map FilePath LocalFileStatus
                     -> FS.Event -> Bool
 checkIfShouldIgnore fileStatuses event =
-    case Map.lookup (eventPath event) fileStatuses of
+    case Map.lookup (takeFileName $ eventPath event) fileStatuses of
         Just status ->
             checkIfShouldIgnoreDueToStatus status (eventTime event)
         Nothing -> False
@@ -106,7 +110,7 @@ sceneWatcherRemoveEntity entityID = do
 setWatchedFileStatus :: MonadState ECS m => FilePath -> LocalFileStatus -> m ()
 setWatchedFileStatus path status =
     modifySystemState sysSceneWatcher $
-        swaFileStatuses . at path ?= status
+        swaFileStatuses . at (takeFileName path) ?= status
 
 sceneWatcherSaveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherSaveEntity entityID = do

@@ -124,7 +124,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
     handPose <- getEntityPose handID
     newEntityID <- spawnEntity $ do
         myShape      ==> Cube
-        mySize       ==> 0.01
+        mySize       ==> V3 0.01 0.01 0.001
         myProperties ==> [Floating]
         myText       ==> maybe "New Object" takeBaseName maybeCodePath
         myTextPose   ==> mkTransformation

@@ -7,6 +7,7 @@ module Rumpus.Systems.Sound
 
 import PreludeExtra
 import Sound.Pd
+import Sound.Pd.Core
 
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Scene
@@ -19,7 +20,11 @@ data SoundSystem = SoundSystem
 makeLenses ''SoundSystem
 defineSystemKey ''SoundSystem
 
-defineComponentKeyWithType "PdPatch"     [t|Patch|]
+-- Keep track of which file the patch was derived from so we
+-- can avoid unncessarily reloading it
+type PatchWithFile = (FilePath, Patch)
+
+defineComponentKeyWithType "PdPatch"     [t|PatchWithFile|]
 defineComponentKeyWithType "PdPatchFile" [t|FilePath|]
 defineComponentKey ''OpenALSource
 
@@ -80,18 +85,27 @@ setPdPatchFile patchFile = do
 derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
                        => PureData -> m ()
 derivePdPatchComponent pd = do
-    removePdPatchComponent
-    withComponent_ myPdPatchFile $ \patchFile -> do
-        sceneFolder <- getSceneFolder
-        addPdPatchSearchPath sceneFolder
-        patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
-        myPdPatch ==> patch
+    maybePatchFile <- getComponent myPdPatchFile
+    case maybePatchFile of
+        Nothing -> removePdPatchComponent
+        Just patchFile -> do
+            maybeExistingPatch <- getComponent myPdPatch
 
-        -- Assign the patch's output DAC index to route it to the the SourceID
-        traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
-            putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show sourceChannel
-            send pd patch "dac" $ Atom (fromIntegral sourceChannel)
-            myOpenALSource ==> sourceID
+            let needsPatchLoad = case maybeExistingPatch of
+                    Just (currentFile, _) -> currentFile == patchFile
+                    Nothing -> True
+            when needsPatchLoad $ do
+                removePdPatchComponent
+                sceneFolder <- getSceneFolder
+                addPdPatchSearchPath sceneFolder
+                patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
+                myPdPatch ==> (patchFile, patch)
+
+                -- Assign the patch's output DAC index to route it to the the SourceID
+                traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
+                    putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show sourceChannel
+                    send pd patch "dac" $ Atom (fromIntegral sourceChannel)
+                    myOpenALSource ==> sourceID
 
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()
 removePdPatchComponent = do
@@ -102,11 +116,11 @@ removePdPatchComponent = do
     removeComponent myOpenALSource
 
 withPdPatch :: (MonadReader EntityID m, MonadState ECS m) => (Patch -> m b) -> m (Maybe b)
-withPdPatch = withComponent myPdPatch
+withPdPatch action = withComponent myPdPatch (action . snd)
 
 
-withEntityPdPatch :: (HasComponents s, MonadState s m) => EntityID -> (Patch -> m b) -> m (Maybe b)
-withEntityPdPatch entityID = withEntityComponent entityID myPdPatch
+withEntityPdPatch :: (MonadState ECS m) => EntityID -> (Patch -> m b) -> m (Maybe b)
+withEntityPdPatch entityID action = withEntityComponent entityID myPdPatch (action . snd)
 
 sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
 sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem ->

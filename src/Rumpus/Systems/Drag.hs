@@ -14,18 +14,21 @@ data DragFrom = DragFrom HandEntityID (M44 GLfloat)
 
 type Drag = M44 GLfloat -> EntityMonad ()
 type DragBegan = EntityMonad ()
-
+type DragOverride = Bool
 defineComponentKey ''DragFrom
 defineComponentKey ''DragBegan
 defineComponentKey ''Drag
+defineComponentKey ''DragOverride --
 
+getEntityDragOverride :: (MonadState ECS m) => EntityID -> m Bool
+getEntityDragOverride entityID = fromMaybe False <$> getEntityComponent entityID myDragOverride
 
 initDragSystem :: MonadState ECS m => m ()
 initDragSystem = do
-
-    registerComponent "DragFrom"  myDragFrom  (newComponentInterface myDragFrom)
-    registerComponent "DragBegan" myDragBegan (newComponentInterface myDragBegan)
-    registerComponent "Drag"      myDrag      (newComponentInterface myDrag)
+    registerComponent "DragFrom"     myDragFrom     (newComponentInterface myDragFrom)
+    registerComponent "DragBegan"    myDragBegan    (newComponentInterface myDragBegan)
+    registerComponent "Drag"         myDrag         (newComponentInterface myDrag)
+    registerComponent "DragOverride" myDragOverride (newComponentInterface myDragOverride)
 
 beginDrag :: EntityID -> EntityID -> ECSMonad ()
 beginDrag handEntityID draggedID = do

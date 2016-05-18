@@ -1,4 +1,4 @@
-module Profiler where
+       module Profiler where
 import Rumpus
 import qualified Data.HashMap.Strict as Map
 
