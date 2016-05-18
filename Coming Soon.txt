@@ -9,3 +9,13 @@ Built-in transparency & shadows
 Customizable render pipeline
 Boiling language down to a kernel and fallback renderer (entire system live-editable)
 In-world web browser as a catchall for non-VR content
+
+
+
+
+Known problems:
+Two ways to set, ==> and setX functions. Historical bug, will be unified soon.
+Script performance can impact render performace; due to Rumpus being mostly single threaded. New archictecture underway!
+No undo, syntax highlighting or code completion. Coming soon!
+Transform hierarchy can't interact with physics. Redesign in progress.
+Only two shapes: Cube and Sphere. Mainly due to extra physics effort; more coming soon!

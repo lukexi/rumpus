@@ -42,7 +42,8 @@ data RenderShape = RenderShape
 
 data RenderSystem = RenderSystem
     { _rdsShapes         :: ![RenderShape]
-    , _rdsTextPlaneShape :: Shape Uniforms
+    , _rdsTextPlaneShape :: !(Shape Uniforms)
+    --, _rdsWorldMatrices  :: !(Map EntityID (M44 GLfloat)) -- would like to hold these so we can query them for physics and simulation
     }
 makeLenses ''RenderSystem
 defineSystemKey ''RenderSystem
