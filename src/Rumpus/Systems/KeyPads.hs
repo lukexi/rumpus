@@ -79,8 +79,11 @@ keyToEvent shift HandKeyLeft               = Just (toPressedKey shift False Key'
 keyToEvent shift HandKeyRight              = Just (toPressedKey shift False Key'Right)
 keyToEvent shift HandKeyIndent             = Just (toPressedKey shift True Key'RightBracket)
 keyToEvent shift HandKeyUnIndent           = Just (toPressedKey shift True Key'LeftBracket)
-keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True True Key'Up)
-keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True True Key'Down)
+keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True  True Key'Up)
+keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True  True Key'Down)
+keyToEvent _     HandKeyCut                = Just (toPressedKey False True Key'X)
+keyToEvent _     HandKeyCopy               = Just (toPressedKey False True Key'C)
+keyToEvent _     HandKeyPaste              = Just (toPressedKey False True Key'V)
 keyToEvent _ _ = Nothing
 
 toPressedKey :: Bool -> Bool -> GLFW.Key -> Event
