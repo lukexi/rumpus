@@ -3,8 +3,6 @@ import Rumpus
 
 start :: Start
 start = do
-    setPdPatchFile "verylogue.pd"
-
     let duration = 4
 
     playHead <- spawnChild $ do

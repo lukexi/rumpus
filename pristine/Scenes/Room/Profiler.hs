@@ -38,9 +38,10 @@ start = do
                 myPose             ==> translateMatrix (V3 0 y (-fromIntegral z*0.1))
         return (name, childIDs))
 
-    --setRepeatingAction (0.01) $ do
+    removeComponent myUpdate
+    setRepeatingAction (0.1) $ do
     --removeComponent myClockAction
-    myUpdate ==> do
+    --myUpdate ==> do
         sampleHistory <- getSampleHistory
         forM_ (Map.toList sampleHistory) $ \(name, toList -> values) -> do
             forM_ (Map.lookup name gauges) $ \childIDs -> do

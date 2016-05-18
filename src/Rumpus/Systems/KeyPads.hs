@@ -128,7 +128,7 @@ keyWidth, keyHeight, keyDepth, keyPadding :: GLfloat
 keyWidth        = 0.05
 keyHeight       = 0.05
 keyDepth        = 0.02
-keyPadding          = 0.01
+keyPadding      = 0.01
 
 keyHeightT, keyWidthT :: GLfloat
 keyWidthT       = keyWidth + keyPadding

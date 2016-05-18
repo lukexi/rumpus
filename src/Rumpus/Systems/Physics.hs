@@ -139,10 +139,10 @@ tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
     -- Sync rigid bodies with entity poses
     forEntitiesWithComponent myRigidBody $
         \(entityID, rigidBody) -> inEntity entityID $ do
-            pose <- uncurry Pose <$> getBodyState rigidBody
-            setEntityPoseCacheScale entityID (transformationFromPose pose)
-
-
+            poseM44 <- transformationFromPose . uncurry Pose <$> getBodyState rigidBody
+            size <- getEntitySize entityID
+            setEntityComponent myPose poseM44 entityID
+            cacheScaledPose entityID poseM44 size
 
 createShapeCollider :: (Fractional a, Real a, MonadIO m) => ShapeType -> V3 a -> m CollisionShape
 createShapeCollider shapeType size = case shapeType of
@@ -194,9 +194,12 @@ setEntitySize entityID newSize  = do
     setEntityComponent mySize newSize entityID
 
     -- Update the scaled pose cache
-    pose <- getEntityPose entityID
-    setEntityComponent myPoseScaled (pose !*! scaleMatrix newSize) entityID
+    poseM44 <- getEntityPose entityID
+    cacheScaledPose entityID poseM44 newSize
 
+    setEntityRigidBodySize entityID newSize
+
+setEntityRigidBodySize entityID newSize = do
     withEntityRigidBody entityID $ \rigidBody -> do
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
             mass       <- fromMaybe 1    <$> getEntityComponent entityID myMass
@@ -213,22 +216,38 @@ setEntitySize entityID newSize  = do
             shapeCollider <- createShapeCollider shapeType (max 0.01 newSize)
             setRigidBodyShape dynamicsWorld rigidBody shapeCollider bodyInfo
 
+setEntityRigidBodyPose entityID poseM44 = do
+    withEntityRigidBody entityID $ \rigidBody -> do
+        let pose = poseFromMatrix poseM44
+        setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
+
+setPositonRotationSize position rotationQ size = do
+    let poseM44 = mkTransformation rotationQ position
+
+    mySize ==> size
+    myPose ==> poseM44
+
+    entityID <- ask
+    cacheScaledPose entityID poseM44 size
+    setEntityRigidBodyPose entityID poseM44
+    setEntityRigidBodySize entityID size
+
+
 setPose :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => M44 GLfloat -> m ()
 setPose pose = ask >>= \eid -> setEntityPose eid pose
 
 setEntityPose :: (MonadState ECS m, MonadIO m) => EntityID -> M44 GLfloat -> m ()
 setEntityPose entityID poseM44  = do
 
-    setEntityPoseCacheScale entityID poseM44
-
-    withEntityRigidBody entityID $ \rigidBody -> do
-        let pose = poseFromMatrix poseM44
-        setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
-
-setEntityPoseCacheScale :: MonadState ECS m => EntityID -> M44 GLfloat -> m ()
-setEntityPoseCacheScale entityID poseM44 = do
     size <- getEntitySize entityID
     setEntityComponent myPose poseM44 entityID
+    cacheScaledPose entityID poseM44 size
+
+    setEntityRigidBodyPose entityID poseM44
+
+
+cacheScaledPose :: MonadState ECS m => EntityID -> M44 GLfloat -> V3 GLfloat -> m ()
+cacheScaledPose entityID poseM44 size = do
     setEntityComponent myPoseScaled (poseM44 !*! scaleMatrix size) entityID
 
 setPosition :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()

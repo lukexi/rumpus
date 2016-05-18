@@ -20,9 +20,12 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Text
+import Rumpus.Systems.Profiler
 import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Unboxed as V
+
+import Graphics.VR.OpenVR
 
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
@@ -106,7 +109,71 @@ initRenderSystem = do
 tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
 
-    finalMatricesByEntityID <- getFinalMatrices
+    finalMatricesByEntityID <- profile "Matrices" $ getFinalMatrices
+
+    shapeCounts <- profile "FillShapeBuffers" $ fillShapeBuffers finalMatricesByEntityID
+
+    -- Render the scene
+    vrPal  <- viewSystem sysControls ctsVRPal
+    renderWith' vrPal headM44 $ \projM44 viewM44 -> do
+        glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT)
+        let projViewM44 = projM44 !*! viewM44
+        renderEntities     projViewM44 shapeCounts
+        renderEntitiesText projViewM44 finalMatricesByEntityID
+    --putStrLnIO "Render Frame Errors:" >> glGetErrors
+
+renderWith' :: (MonadIO m, MonadState ECS m)
+            => VRPal
+            -> M44 GLfloat
+            -> (M44 GLfloat -> M44 GLfloat -> m b)
+            -> m ()
+renderWith' VRPal{..} headM44 eyeRenderFunc = do
+    let viewM44 = inv44 headM44
+    case gpHMD of
+        NoHMD  -> do
+            (x,y,w,h) <- getWindowViewport gpWindow
+            glViewport x y w h
+            renderFlat gpWindow viewM44 eyeRenderFunc
+            swapBuffers gpWindow
+        OpenVRHMD openVR -> do
+            renderOpenVR' openVR viewM44 eyeRenderFunc
+            when (not gpUseSDKMirror) $ do
+                (w,h) <- getWindowSize gpWindow
+                -- Mirror one eye to the window
+                let oneEye = listToMaybe (ovrEyes openVR)
+                forM_ oneEye (\eye -> mirrorOpenVREyeToWindow eye (fromIntegral w) (fromIntegral h))
+
+                -- This is a workaround to horrible regular stalls when calling swapBuffers on the main thread.
+                -- We use a one-slot MVar rather than a channel to avoid any memory leaks if the background
+                -- thread can't keep up - it's not important to update the mirror window on any particular
+                -- schedule as long as it happens semi-regularly.
+                void . liftIO $ tryPutMVar gpBackgroundSwap (swapBuffers gpWindow)
+
+renderOpenVR' :: (MonadIO m, MonadState ECS m)
+             => OpenVR
+             -> M44 GLfloat
+             -> (M44 GLfloat -> M44 GLfloat -> m a)
+             -> m ()
+renderOpenVR' OpenVR{..} viewM44 eyeRenderFunc = do
+
+    -- Render each eye, with multisampling
+    forM_ ovrEyes $ \EyeInfo{..} -> do
+
+        -- Will render into mfbResolveTextureID
+        withMultisamplingFramebuffer eiMultisampleFramebuffer $ do
+            let (x, y, w, h) = eiViewport
+                finalView    = eiEyeHeadTrans !*! viewM44
+            glViewport x y w h
+
+            _ <- eyeRenderFunc eiProjection finalView
+            return ()
+
+    -- Submit frames after rendering both
+    forM_ ovrEyes $ \EyeInfo{..} -> do
+        let MultisampleFramebuffer{..} = eiMultisampleFramebuffer
+        submitFrameForEye ovrCompositor eiEye (unTextureID mfbResolveTextureID)
+
+fillShapeBuffers finalMatricesByEntityID = do
     colorsMap               <- getComponentMap myColor
 
     -- Pulse the currently selected entity in blue
@@ -135,16 +202,7 @@ tickRenderSystem headM44 = do
                 return modelM44
 
         return (rshShape, rshStreamingArrayBuffer, count)
-
-    -- Render the scene
-    vrPal  <- viewSystem sysControls ctsVRPal
-    renderWith vrPal headM44 $ \projM44 viewM44 -> do
-        glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT)
-        let projViewM44 = projM44 !*! viewM44
-        renderEntities     projViewM44 shapeCounts
-        renderEntitiesText projViewM44 finalMatricesByEntityID
-    --putStrLnIO "Render Frame Errors:" >> glGetErrors
-
+    return shapeCounts
 
 renderEntities :: (MonadIO m, MonadState ECS m)
                => M44 GLfloat -> [(Shape Uniforms, StreamingArrayBuffer, Int)] -> m ()
@@ -228,7 +286,11 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
             renderTextPreCorrectedOfSameFont textRenderer (parentM44 !*! textM44)
 
-    -- Render the code editors
+    renderCodeEditors projViewM44 finalMatricesByEntityID
+
+    glDisable GL_BLEND
+
+renderCodeEditors projViewM44 finalMatricesByEntityID = do
     -- (fixme: this is not efficient code; many state switches, shader switches, geo switches, uncached matrices)
     -- We also probably don't need gl discard in the shader if text is rendered with a background.
     glEnable GL_STENCIL_TEST
@@ -260,8 +322,6 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
                     planeShape projViewM44 errorsModelM44 headPos
                     (V4 0.2 0.1 0.1 1)
     glDisable GL_STENCIL_TEST
-
-    glDisable GL_BLEND
 
 renderTextAsScreen :: MonadIO m => TextRenderer
                                 -> Shape Uniforms

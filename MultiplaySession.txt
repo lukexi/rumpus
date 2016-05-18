@@ -6,16 +6,16 @@ MultiplaySession.txt
     (easy to extend this to if, then, else, ->, let)
 [ ] Control-(shift)-tab to cycle between selected entities!
 
-[ ] Filewatch the .world-state dir.
-[ ] Have entityIDs match filenames again
+[x] Filewatch the .world-state dir.
+[x] Have entityIDs match filenames again
     (can tag with -StartCode if desired and clip it).
-[ ] Create object from entityID.yaml when new.
-[ ] Reset properties from .yaml when modified.
+[x] Create object from entityID.yaml when new.
+[x] Reset properties from .yaml when modified.
 [ ] Check Shape and Properties to see if they
     are the same to avoid recreating physics
     shapes unnecessarily
-[ ] Remove object when .yaml deleted.
-[ ] Delete .yaml when object deleted.
+[x] Remove object when .yaml deleted.
+[x] Delete .yaml when object deleted.
 
 [ ] Get rid of all the hidden filewatchers in CodeEditor and TextGL/Halive.
     Replace with a single filewatcher operated by Rumpus that triggers TextGL/Halive.

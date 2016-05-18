@@ -1,3 +1,14 @@
+BUGS
+    [ ] Crashes if a .yaml object has a StartExpr for a .hs file that no longer exists.
+    [ ] Pressing down and up reloads the file ?!?
+
+KEYBOARD
+    [x] Fix selection with keypads
+            (add tab, select all, copy, paste buttons)
+    [ ] Knob System/API
+    [ ] Vari-size keys for space, arrows, enter, backspace etc.
+        - Pass a width/height into the key construction function,
+          and accumulate x and y offsets
 
 INTERACTION
     [x] Implement folder versioning
@@ -35,16 +46,6 @@ PERFORMANCE
         Can look at/demo strategies for mitigating this, e.g. turning off removeChildren and re-using
         them (e.g. setting a new myUpdate on them), though that requires extra care.
 
-KEYBOARD
-    [x] Fix selection with keypads
-            (add tab, select all, copy, paste buttons)
-    [ ] Knob System/API
-    [ ] Vari-size keys for space, arrows, enter, backspace etc.
-        - Pass a width/height into the key construction function,
-          and accumulate x and y offsets
-
-BUGS
-    [ ] Crashes if a .yaml object has a StartExpr for a .hs file that no longer exists.
 
 VIDEO
     [x] Test cropped screen recording quality/legibility

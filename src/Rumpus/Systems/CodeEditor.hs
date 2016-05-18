@@ -56,7 +56,7 @@ defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
 sharedGHCSessionConfig :: GHCSessionConfig
 sharedGHCSessionConfig = defaultGHCSessionConfig
     { gscFixDebounce = DebounceFix
-    --, gscStartupFile = "resources"</>"Loader.hs"
+    , gscStartupFile = Just ("resources"</>"Loader.hs", "start")
     --, gscCompilationMode = Compiled
     }
 

@@ -28,3 +28,6 @@ goldenSectionSpiralPoints (fromIntegral -> n) =
 
 randomRange :: (Random a, MonadIO m) => (a, a) -> m a
 randomRange = liftIO . randomRIO
+
+rotationAndPosition :: Num a => Quaternion a -> V3 a -> M44 a
+rotationAndPosition = mkTransformation

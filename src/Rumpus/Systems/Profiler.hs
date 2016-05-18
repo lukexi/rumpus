@@ -37,7 +37,7 @@ addSample name value = do
 getSampleHistory :: MonadState ECS m => m (Map String (Seq Double))
 getSampleHistory = viewSystem sysProfiler prfSampleHistory
 
-profile :: String -> ECSMonad a -> ECSMonad a
+profile :: (MonadState ECS m, MonadIO m) => String -> m a -> m a
 profile name action = do
     before <- liftIO getCurrentTime
     a      <- action
