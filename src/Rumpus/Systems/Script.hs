@@ -33,7 +33,7 @@ tickScriptSystem = do
 runScripts :: ECSMonad ()
 runScripts = runUserScriptsWithTimeout_ $ do
     forEntitiesWithComponent myStart $
-        \(entityID, onStart) -> runEntity entityID $ do
+        \(entityID, onStart) -> inEntity entityID $ do
             --putStrLnIO ("Running Start for " ++ show entityID)
 
             -- Automatically remove children when start runs.
@@ -48,7 +48,7 @@ runScripts = runUserScriptsWithTimeout_ $ do
 
     forEntitiesWithComponent myUpdate $
         \(entityID, update) -> do
-            runEntity entityID $
+            inEntity entityID $
                 runUserFunctionProtected myUpdate update
 
 withState :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)

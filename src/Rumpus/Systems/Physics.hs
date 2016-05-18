@@ -138,7 +138,7 @@ tickSyncPhysicsPosesSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
     -- Sync rigid bodies with entity poses
     forEntitiesWithComponent myRigidBody $
-        \(entityID, rigidBody) -> runEntity entityID $ do
+        \(entityID, rigidBody) -> inEntity entityID $ do
             pose <- uncurry Pose <$> getBodyState rigidBody
             setEntityPoseCacheScale entityID (transformationFromPose pose)
 

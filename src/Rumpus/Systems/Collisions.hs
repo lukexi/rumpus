@@ -45,19 +45,19 @@ tickCollisionsSystem = do
             forEntitiesWithComponent myColliding $ \(entityID, onColliding) -> do
                 (_, _, allCollisions) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ allCollisions $ \collidingID ->
-                    runEntity entityID $
+                    inEntity entityID $
                         runUserFunctionProtected myColliding (onColliding collidingID 0.1)
 
             forEntitiesWithComponent myCollisionStart $ \(entityID, onCollisionStart) -> do
                 (newCollisions, _, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ newCollisions $ \collidingID ->
-                    runEntity entityID $
+                    inEntity entityID $
                         runUserFunctionProtected myCollisionStart (onCollisionStart collidingID 0.1)
 
             forEntitiesWithComponent myCollisionEnd $ \(entityID, onCollisionEnd) -> do
                 (_, oldCollisions, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ oldCollisions $ \collidingID ->
-                    runEntity entityID $
+                    inEntity entityID $
                         runUserFunctionProtected myCollisionEnd (onCollisionEnd collidingID)
         else do
             -- When not playing, do a collisions tick so we can still calculate intersections

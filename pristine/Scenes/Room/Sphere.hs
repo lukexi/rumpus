@@ -3,18 +3,20 @@ import Rumpus
 
 -- Golden Section Spiral
 -- (via http://www.softimageblog.com/archives/115)
+-- Returns an even distribution of the requested
+-- number of points on a sphere
 pointsOnSphere (fromIntegral -> n) =
     let inc = pi * (3 - sqrt 5)
         off = 2 / n
     in flip map [0..n] $ \k ->
-        let y = k * off - 1 + (off / 2)
-            r = sqrt (1 - y*y)
+        let y   = k * off - 1 + (off / 2)
+            r   = sqrt (1 - y*y)
             phi = k * inc
         in V3 (cos phi * r) y (sin phi * r)
 
 start :: Start
 start = do
-    
+
     rootEntityID <- ask
 
     let numPoints = 30 :: Int

@@ -42,7 +42,7 @@ updateBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)
         rayCenter = handLocation + (hitLocation - handLocation) / 2
 
     -- Update ray's position/size
-    runEntity beamID $ do
+    inEntity beamID $ do
         setPose (handPose & translation .~ rayCenter)
         setSize (V3 0.05 0.05 rayLength)
         setColor $ if teleportable then V4 0 1 0 1 else V4 0.8 0.1 0.2 1

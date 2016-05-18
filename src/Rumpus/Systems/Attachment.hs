@@ -67,7 +67,7 @@ attachEntityToEntity holderID toEntityID exclusive = do
     let offset = toEntityPose `subtractMatrix` entityPose
 
     appendAttachment holderID toEntityID offset
-    runEntity toEntityID (myHolder ==> holderID)
+    inEntity toEntityID (myHolder ==> holderID)
     overrideSetKinematicMode toEntityID
 
 detachAttachedEntity :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()

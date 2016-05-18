@@ -167,14 +167,14 @@ makeLenses ''KeyPadsSystem
 showKeyPads :: (MonadIO m, MonadState ECS m) => m ()
 showKeyPads = do
     keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
-    forM_ keyPadIDs $ \keyPadID -> runEntity keyPadID $ do
+    forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
         setSize 0.01
         animateSizeTo 0.3 0.2
 
 hideKeyPads :: (MonadIO m, MonadState ECS m) => m ()
 hideKeyPads = do
     keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
-    forM_ keyPadIDs $ \keyPadID -> runEntity keyPadID $ do
+    forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
         animateSizeTo 0.01 0.2
 
 getKeyPadContainerID :: MonadState ECS m => m EntityID
@@ -247,7 +247,7 @@ tickKeyPadsSystem = do
         keyPadContainerID <- getKeyPadContainerID
         selectedEntityPose <- getEntityPose selectedEntityID
         V3 _ _ sizeZ <- getEntitySize selectedEntityID
-        runEntity keyPadContainerID $ setPose (selectedEntityPose !*! translateMatrix (V3 0 0 (sizeZ/2)))
+        inEntity keyPadContainerID $ setPose (selectedEntityPose !*! translateMatrix (V3 0 0 (sizeZ/2)))
 
     forM_ [LeftHand, RightHand] $ \whichHand -> do
         keysForHand <- getKeysForHand whichHand
@@ -267,7 +267,7 @@ tickKeyPadsSystem = do
 
                 -- Update thumb nub
                 traverseM_ (getThumbNub whichHand) $ \thumbNubID -> do
-                    runEntity thumbNubID (setPosition thumbPos)
+                    inEntity thumbNubID (setPosition thumbPos)
 
                 -- Update active keys
                 -- Default to no key, in case of thumb moving off keys all together.
@@ -279,7 +279,7 @@ tickKeyPadsSystem = do
                     let isInKey  = _kpkPointIsInKey thumbXY
                         color    = if isInKey then keyColorOn else keyColorOff
 
-                    runEntity _kpkKeyID (myColor ==> color)
+                    inEntity _kpkKeyID (myColor ==> color)
                     when isInKey $ do
                         modifySystemState sysKeyPads $ kpsKeyPads . ix whichHand . kpdCurrentKey ?= _kpkKey
             HandButtonEvent HandButtonPad ButtonDown -> do
@@ -297,7 +297,7 @@ tickKeyPadsSystem = do
                             let shiftIsDown = True
                             allKeys <- getAllKeys
                             forM_ allKeys $ \KeyPadKey{..} -> do
-                                runEntity _kpkKeyID $ setText (showKey shiftIsDown _kpkKey)
+                                inEntity _kpkKeyID $ setText (showKey shiftIsDown _kpkKey)
 
 
                         -- We don't send any events for Shift, just using it to toggle internal state.
@@ -308,7 +308,7 @@ tickKeyPadsSystem = do
 
                                 -- Add a repeating key action
                                 repeaterID <- spawnEntity $ return ()
-                                runEntity repeaterID $
+                                inEntity repeaterID $
                                     setDelayedAction 0.25 $ do
                                         setRepeatingAction 0.025 $ do
                                             sendInternalEvent (GLFWEvent event)
@@ -331,7 +331,7 @@ tickKeyPadsSystem = do
                 when (wasShiftDown && not isShiftDown) $ do
                     allKeys <- getAllKeys
                     forM_ allKeys $ \KeyPadKey{..} -> do
-                        runEntity _kpkKeyID $ setText (showKey False _kpkKey)
+                        inEntity _kpkKeyID $ setText (showKey False _kpkKey)
 
                     -- Allow iOS-style shift-drag-release to type chars
                     mCurrentKey <- viewSystemP sysKeyPads (kpsKeyPads . ix whichHand . kpdCurrentKey . traverse)

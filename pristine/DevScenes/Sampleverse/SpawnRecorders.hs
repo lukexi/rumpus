@@ -34,7 +34,7 @@ start = do
                 return (Just (toDyn children))
             myUpdate          ==> withState (\children -> do
                 fftSample <- readPdArray "sample-fft" 0 256
-                forM_ (zip children fftSample) $ \(childID, sample) -> runEntity childID $ do
+                forM_ (zip children fftSample) $ \(childID, sample) -> inEntity childID $ do
                     let val = sample * 2
                     mySize  ==> (0.1 & _yz .~ realToFrac val)
                     myColor ==> colorHSL (realToFrac val) 0.8 0.4

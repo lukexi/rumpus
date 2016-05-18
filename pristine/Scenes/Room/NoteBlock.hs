@@ -3,14 +3,18 @@ import Rumpus
 
 start :: Start
 start = do
+    setPdPatchFile "saw-voice.pd"
+
     let colorOn = colorHSL 0.1 0.8 0.8
         colorOff = colorHSL 0.1 0.8 0.2
-    myCollisionStart ==> \hitEntityID _ -> do
-        setColor colorOn
-        y <- view translation <$> getEntityPose
-        let note = y * 12
-        sendEntityPd hitEntityID "piano-key" (List [note, 1])
-    myCollisionEnd ==> \hitEntityID -> do
-        setColor colorOff
-        sendEntityPd hitEntityID "piano-key" (List [note, 0])
-    return ()
+    myColliding ==> \hitEntityID _ -> do
+        sendPd "trigger" (Atom 1)
+
+        animation <- makeAnimation 0.2 (V4 1 0 1 1) (V4 1 1 1 1)
+        myColorAnimation ==> animation
+
+    myUpdate ==> do
+        position <- getPosition
+        let height = position ^. _y
+            note = floor (height * 24 + 48) :: Int
+        sendPd "note" (Atom (fromIntegral note))

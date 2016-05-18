@@ -40,7 +40,7 @@ tickComponentAnimation :: MonadState ECS m
                        -> m ()
 tickComponentAnimation now animComponentKey setter =
     forEntitiesWithComponent animComponentKey $
-        \(entityID, animation) -> runEntity entityID $ do
+        \(entityID, animation) -> inEntity entityID $ do
             let evaled = evalAnim now animation
 
             _ <- setter (evanResult evaled)

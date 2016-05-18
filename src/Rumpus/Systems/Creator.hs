@@ -99,7 +99,7 @@ addDestructionOrb whichHand = do
     setEntityPose newEntityID (handPose !*! translateMatrix creatorOffset)
     attachEntityToEntity handID newEntityID False
 
-    runEntity newEntityID $ animateSizeTo 0.05 0.3
+    inEntity newEntityID $ animateSizeTo 0.05 0.3
     return newEntityID
 
 creatorOffset :: V3 GLfloat
@@ -162,7 +162,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                   !*! mkTransformation (axisAngle (V3 1 0 0) (-pi/2)) (spherePosition * 0.2))
     attachEntityToEntity handID newEntityID False
 
-    runEntity newEntityID $ animateSizeTo 0.05 0.3
+    inEntity newEntityID $ animateSizeTo 0.05 0.3
     return newEntityID
 
 removeFromOpenLibrary :: MonadState ECS m => WhichHand -> EntityID -> m ()
@@ -174,7 +174,7 @@ closeEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 closeEntityLibrary whichHand = do
     libraryEntities <- fromMaybe [] <$> viewSystem sysCreator (crtOpenLibrary . at whichHand)
     forM_ libraryEntities $ \entityID ->
-        runEntity entityID (setLifetime 0.3)
+        inEntity entityID (setLifetime 0.3)
 
     modifySystemState sysCreator $ do
         crtPendingDestruction . at whichHand .= Nothing
@@ -267,7 +267,7 @@ forkCode fromEntityID toEntityID = do
         liftIO $ copyFile fullPath newFullPath
 
         let newCodeInFile = (newFullPath, expr)
-        runEntity toEntityID $ do
+        inEntity toEntityID $ do
             withComponent_ codeFileComponentKey unregisterWithCodeEditor
             codeFileComponentKey ==> newCodeInFile
             registerWithCodeEditor newCodeInFile codeFileComponentKey

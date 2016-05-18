@@ -73,7 +73,7 @@ setParent newParentID = do
     myParent ==> newParentID
 
     childID <- ask
-    runEntity newParentID $ do
+    inEntity newParentID $ do
         getComponent myChildren >>= \case
             Nothing -> myChildren ==> [childID]
             Just _ ->  myChildren ==% (childID:)
@@ -85,7 +85,7 @@ removeFromParent :: (MonadReader EntityID m, MonadState ECS m) => m ()
 removeFromParent = do
     childID <- ask
     withComponent_ myParent $ \oldParentID ->
-        runEntity oldParentID $ do
+        inEntity oldParentID $ do
             myChildren ==% L.delete childID
     removeComponent myParent
 
@@ -96,8 +96,12 @@ removeChildren =
 spawnChild :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID
 spawnChild actions = do
     thisEntityID <- ask
+    spawnChildOf thisEntityID actions
+
+spawnChildOf :: (MonadIO m, MonadState ECS m) => EntityID -> ReaderT EntityID m () -> m EntityID
+spawnChildOf entityID actions =
     spawnEntity $ do
-        myParent ==> thisEntityID
+        myParent ==> entityID
         actions
 
 setEntityColor :: (MonadState ECS m, MonadIO m) => EntityID -> V4 GLfloat -> m ()

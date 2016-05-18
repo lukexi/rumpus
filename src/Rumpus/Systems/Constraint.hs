@@ -22,7 +22,7 @@ initConstraintSystem = do
 tickConstraintSystem :: (MonadState ECS m, MonadIO m) => m ()
 tickConstraintSystem = do
     forEntitiesWithComponent myConstraint $ \(entityID, constraint) ->
-        runEntity entityID (satisfyConstraint constraint)
+        inEntity entityID (satisfyConstraint constraint)
 
 satisfyConstraint :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => Constraint -> m ()
 satisfyConstraint constraint =

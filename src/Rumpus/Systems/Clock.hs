@@ -16,18 +16,18 @@ initClockSystem = do
 tickClockSystem :: ECSMonad ()
 tickClockSystem = whenWorldPlaying $ do
     now <- liftIO getCurrentTime
-    
+
     forEntitiesWithComponent myClockAction $ \(entityID, clockAction) -> do
         let ClockAction startTime period shouldRepeat action = clockAction
             elapsed = realToFrac $ now `diffUTCTime` startTime
 
-        when (elapsed > period) $ 
-            runEntity entityID $ do
+        when (elapsed > period) $
+            inEntity entityID $ do
                 action
-                when shouldRepeat $ 
+                when shouldRepeat $
                     setRepeatingAction period action
 
-setClockAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) 
+setClockAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                => DiffTime -> ShouldRepeat -> EntityMonad () -> m ()
 setClockAction period shouldRepeat action = do
     startTime <- liftIO getCurrentTime

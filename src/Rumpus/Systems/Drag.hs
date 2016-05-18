@@ -32,7 +32,7 @@ beginDrag handEntityID draggedID = do
     startM44 <- getEntityPose handEntityID
     setEntityComponent myDragFrom (DragFrom handEntityID startM44) draggedID
 
-    runEntity draggedID $
+    inEntity draggedID $
         withComponent_ myDragBegan $ \dragBegan ->
             runUserFunctionProtected myDragBegan dragBegan
 
@@ -43,7 +43,7 @@ continueDrag draggingHandEntityID = do
             currentM44 <- getEntityPose handEntityID
             let dragDistance = currentM44 `subtractMatrix` startM44
 
-            runEntity entityID $
+            inEntity entityID $
                 withComponent_ myDrag $ \drag ->
                     runUserFunctionProtected myDrag (drag dragDistance)
 

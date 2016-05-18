@@ -26,7 +26,7 @@ addEditorFrame entityID = do
     editorFrame <- spawnEntity $ do
         myConstraint ==> RelativePositionTo entityID 0
 
-    _ <- runEntity editorFrame $ do
+    _ <- inEntity editorFrame $ do
         ------------------------
         -- Define a color editor
         color <- getEntityColor entityID
