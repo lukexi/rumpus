@@ -41,8 +41,8 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
             (headM44, events) <- tickVR vrPal playerM44
-            profile "tickControlEventsSystem" $ tickControlEventsSystem headM44 events
-            profile "tickRenderSystem" $ tickRenderSystem headM44
+            profile "Controls" $ tickControlEventsSystem headM44 events
+            profile "Rendering" $ tickRenderSystem headM44
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory
