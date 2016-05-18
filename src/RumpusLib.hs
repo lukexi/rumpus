@@ -11,7 +11,7 @@ checkTimer = liftIO . atomically . readTVar
 
 randomFrom :: MonadIO m => [a] -> m a
 randomFrom list = do
-    i <- liftIO (randomRIO (0, length list - 1))
+    i <- randomRange (0, length list - 1)
     return (list !! i)
 
 -- | Points distributed evenly in a sphere
@@ -25,3 +25,6 @@ goldenSectionSpiralPoints (fromIntegral -> n) =
             r = sqrt (1 - y*y)
             phi = k * inc
         in V3 (cos phi * r) y (sin phi * r)
+
+randomRange :: (Random a, MonadIO m) => (a, a) -> m a
+randomRange = liftIO . randomRIO
