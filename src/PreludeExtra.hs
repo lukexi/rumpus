@@ -16,7 +16,6 @@ import Control.Concurrent.STM as Exports
 
 import Data.Char as Exports
 import Text.Read as Exports (readMaybe)
-import Data.Set as Exports (Set)
 
 import System.Random as Exports
 import System.Directory as Exports

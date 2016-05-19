@@ -5,7 +5,7 @@ import PreludeExtra
 import Rumpus.Systems.Physics
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.CodeProtect
-import qualified Data.Set as Set
+import qualified Data.HashSet as Set
 import qualified Data.HashMap.Strict as Map
 
 type Colliding        = CollidedWithID -> CollisionImpulse -> EntityMonad ()

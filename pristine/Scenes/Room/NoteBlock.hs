@@ -23,4 +23,4 @@ start = do
         myColorAnimation ==> animation
 
     myDrag ==> \_ -> updateNote
-
+    myCodeHidden ==> True

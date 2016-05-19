@@ -16,7 +16,6 @@ import Data.ECS.Vault
 
 --import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
-import Rumpus.Systems.PlayPause
 --import Rumpus.Systems.Hands
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
@@ -48,8 +47,12 @@ defineSystemKey ''CodeEditorSystem
 -- Must thus be initialized after CodeEditor.
 defineComponentKeyWithType "StartExpr"          [t|CodeInFile|]
 defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
+defineComponentKeyWithType "CodeHidden"         [t|Bool|]
 --defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
 --defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
+
+getEntityCodeHidden :: (MonadState ECS m) => EntityID -> m Bool
+getEntityCodeHidden entityID = fromMaybe False <$> getEntityComponent entityID myCodeHidden
 
 -- When in release mode, use the embedded "packages" directory,
 -- otherwise use MSYS2's copy in /usr/local/ghc
@@ -81,6 +84,7 @@ initCodeEditorSystem ghcChan = do
         , _cesGHCChan     = ghcChan
         }
 
+    registerComponent         "CodeHidden"           myCodeHidden           (newComponentInterface myCodeHidden)
     registerCodeExprComponent "StartExpr"          myStartExpr          myStart
     registerCodeExprComponent "UpdateExpr"         myUpdateExpr         myUpdate
     --registerCodeExprComponent "CollidingExpr"      myCollidingExpr      myColliding

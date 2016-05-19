@@ -45,8 +45,10 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                 endDrag handEntityID
                 detachAttachedEntities handEntityID
 
-                forM_ maybeHeldEntity
-                    sceneWatcherSaveEntity
+                forM_ maybeHeldEntity $ \entityID -> do
+                    isPersistent <- isEntityPersistent entityID
+                    when isPersistent $
+                        sceneWatcherSaveEntity entityID
             HandButtonEvent HandButtonStart ButtonDown -> do
                 openEntityLibrary whichHand
             HandButtonEvent HandButtonStart ButtonUp -> do

@@ -296,31 +296,35 @@ renderCodeEditors projViewM44 finalMatricesByEntityID = do
     glEnable GL_STENCIL_TEST
     planeShape <- viewSystem sysRender rdsTextPlaneShape
     entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
-    forM_ entitiesWithStart $ \(entityID, codeExprKey) ->
-        traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
-            parentPose       <- getEntityPose entityID
-            V3 sizeX _ sizeZ <- getEntitySize entityID
+    selectedEntityID <- getSelectedEntityID
+    forM_ entitiesWithStart $ \(entityID, codeExprKey) -> do
+        wantsCodeHidden <- getEntityCodeHidden entityID
+        let shouldDrawCode = not wantsCodeHidden || Just entityID == selectedEntityID
+        when shouldDrawCode $ do
+            traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
+                parentPose       <- getEntityPose entityID
+                V3 sizeX _ sizeZ <- getEntitySize entityID
 
-            let codeModelM44 = parentPose
-                    -- Offset Z by half the Z-scale to place on front of box
-                    !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01))
-                    -- Scale by size to fit within edges
-                    !*! scaleMatrix (V3 sizeX sizeX 1)
+                let codeModelM44 = parentPose
+                        -- Offset Z by half the Z-scale to place on front of box
+                        !*! translateMatrix (V3 0 0 (sizeZ/2 + 0.01))
+                        -- Scale by size to fit within edges
+                        !*! scaleMatrix (V3 sizeX sizeX 1)
 
-            -- Render code in white
-            headM44 <- getHeadPose
-            let headPos = headM44 ^. translation
-            renderTextAsScreen (editor ^. cedCodeRenderer)
-                planeShape projViewM44 codeModelM44 headPos
-                (V4 0.1 0.2 0.2 1)
+                -- Render code in white
+                headM44 <- getHeadPose
+                let headPos = headM44 ^. translation
+                renderTextAsScreen (editor ^. cedCodeRenderer)
+                    planeShape projViewM44 codeModelM44 headPos
+                    (V4 0.1 0.2 0.2 1)
 
-            when (textRendererHasText $ editor ^. cedErrorRenderer) $ do
-                -- Render errors in light red in panel below main
-                let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 0 (-1) 0)
+                when (textRendererHasText $ editor ^. cedErrorRenderer) $ do
+                    -- Render errors in light red in panel below main
+                    let errorsModelM44 = codeModelM44 !*! translateMatrix (V3 0 (-1) 0)
 
-                renderTextAsScreen (editor ^. cedErrorRenderer)
-                    planeShape projViewM44 errorsModelM44 headPos
-                    (V4 0.2 0.1 0.1 1)
+                    renderTextAsScreen (editor ^. cedErrorRenderer)
+                        planeShape projViewM44 errorsModelM44 headPos
+                        (V4 0.2 0.1 0.1 1)
     glDisable GL_STENCIL_TEST
 
 renderTextAsScreen :: MonadIO m => TextRenderer
