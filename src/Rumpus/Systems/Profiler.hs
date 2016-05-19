@@ -1,18 +1,12 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-
 module Rumpus.Systems.Profiler where
 import PreludeExtra hiding ((<|))
-import System.Metrics
-import qualified System.Metrics.Counter as Counter
-import qualified System.Metrics.Distribution as Distribution
-import System.Metrics.Distribution (Distribution)
-import qualified Data.HashMap.Strict as Map
+--import System.Metrics
+--import qualified System.Metrics.Counter as Counter
+--import qualified System.Metrics.Distribution as Distribution
+--import System.Metrics.Distribution (Distribution)
 import qualified Data.Sequence as Seq
-import Data.Sequence (Seq, (<|), (|>))
-import Data.Time
-import GHC.Stats
+import Data.Sequence (Seq, (<|))
+--import GHC.Stats
 
 data ProfilerSystem = ProfilerSystem
     { _prfSampleHistory :: !(Map String (Seq Double))
@@ -24,9 +18,10 @@ initProfilerSystem :: (MonadIO m, MonadState ECS m) => m ()
 initProfilerSystem = do
     registerSystem sysProfiler (ProfilerSystem mempty)
 
-
+maxProfilerHistory :: Int
 maxProfilerHistory = 20
 
+addSample :: MonadState ECS m => String -> Double -> m ()
 addSample name value = do
     modifySystemState sysProfiler $ do
         hist <- use (prfSampleHistory . at name)

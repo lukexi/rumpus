@@ -118,6 +118,16 @@ library
                      , fsnotify
                      , openvr-hs
   default-language:    Haskell2010
+  default-extensions:
+    TemplateHaskell
+    FlexibleContexts
+    LambdaCase
+    MultiWayIf
+    RecordWildCards
+    ViewPatterns
+    BangPatterns
+    DeriveGeneric
+    DeriveDataTypeable
 
 executable rumpus
   hs-source-dirs:      app

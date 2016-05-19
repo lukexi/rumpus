@@ -35,7 +35,7 @@ TODAY:
 - [x] Handy note: we can use start function to define everything else by just setting properties on self.
     - Animations can be added in Start
 
-- [ ] Fix readArray in pd-hs - it should return an unboxed Vector rather than a list
+- [x] Fix readArray in pd-hs - it should return an unboxed Vector rather than a list
 
 - [x] Add Hands system that simply adds hands and head entities and makes them available as
         hndLeftHand hndRightHand hndHead

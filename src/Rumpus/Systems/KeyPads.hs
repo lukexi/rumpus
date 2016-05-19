@@ -1,10 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ViewPatterns #-}
-
 module Rumpus.Systems.KeyPads where
 import PreludeExtra
 
@@ -40,12 +33,25 @@ data HandKey = HandKeyChar Char Char
              | HandKeyBlank -- Just a spacer
              deriving (Eq, Show)
 
+keyCapWidth :: HandKey -> Int
+keyCapWidth  (HandKeyChar _ _)     = 1
+keyCapWidth  HandKeyEnter          = 2
+keyCapWidth  HandKeyShift          = 2
+keyCapWidth  HandKeyBackspace      = 2
+keyCapWidth  HandKeyTab            = 2
+keyCapWidth  HandKeyCut            = 2
+keyCapWidth  HandKeyCopy           = 2
+keyCapWidth  HandKeyPaste          = 2
+keyCapWidth  HandKeyMoveLineUp     = 2
+keyCapWidth  HandKeyMoveLineDown   = 2
+keyCapWidth  HandKeyIndent         = 2
+keyCapWidth  HandKeyUnIndent       = 2
+keyCapWidth  HandKeyUp             = 2
+keyCapWidth  HandKeyDown           = 2
+keyCapWidth  HandKeyLeft           = 2
+keyCapWidth  HandKeyRight          = 2
+keyCapWidth  HandKeyBlank          = 2
 
-data HandKeyLayout = RegularKey
-                   | FullWidthKey
-                   | FullHeightKey
-
-data KeyDef = KeyDef HandKeyLayout HandKey
 
 showKey :: Bool -> HandKey -> [Char]
 showKey False (HandKeyChar unshifted _) = [unshifted]

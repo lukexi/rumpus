@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.Hands where
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Physics

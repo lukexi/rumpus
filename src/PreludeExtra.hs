@@ -12,7 +12,7 @@ import Data.Monoid as Exports
 import Data.Foldable as Exports
 import Control.Arrow as Exports
 import Control.Concurrent as Exports
-import Control.Concurrent.STM as Exports
+import Control.Concurrent.STM as Exports hiding (atomically)
 
 import Data.Char as Exports
 import Text.Read as Exports (readMaybe)
@@ -44,7 +44,7 @@ import Graphics.VR.Pal as Exports hiding (getNow, Key)
 import Data.ECS as Exports
 
 -- import qualified Data.Map as Map
-
+import qualified Control.Concurrent.STM as STM
 
 -- useMapM_ :: (MonadState s m) => Lens' s (Map k v) -> ((k,v) -> m b) -> m ()
 -- useMapM_ aLens f = traverseM_ (Map.toList <$> use aLens) f
@@ -65,3 +65,7 @@ exhaustTChan :: TChan a -> STM [a]
 exhaustTChan chan = tryReadTChan chan >>= \case
     Just a -> (a:) <$> exhaustTChan chan
     Nothing -> return []
+
+atomically :: MonadIO m => STM a -> m a
+atomically = liftIO . STM.atomically
+

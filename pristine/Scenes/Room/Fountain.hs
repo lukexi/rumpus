@@ -13,7 +13,7 @@ start = do
     setRepeatingAction (1/rate) $ do
         -- Play a note
         note <- randomFrom majorScale
-        sendPd "note" (Atom $ realToFrac note)
+        sendPd "note" (realToFrac note)
 
         -- Spawn a ball
         pose <- getPose

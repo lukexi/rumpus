@@ -1,11 +1,9 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Haptics where
 
 import Rumpus.Systems.Controls
 import PreludeExtra
 
-data HapticsSystem = HapticsSystem 
+data HapticsSystem = HapticsSystem
     { _hptLastHandTick :: Map WhichHand (V3 GLfloat)
     } deriving Show
 makeLenses ''HapticsSystem
@@ -20,7 +18,7 @@ initHapticsSystem = do
         }
 
 beginHapticDrag :: (MonadIO m, MonadState ECS m) => WhichHand -> M44 GLfloat -> m ()
-beginHapticDrag whichHand pose = pulseWithPose whichHand (pose ^. translation) 
+beginHapticDrag whichHand pose = pulseWithPose whichHand (pose ^. translation)
 
 continueHapticDrag :: (MonadIO m, MonadState ECS m) => WhichHand -> M44 GLfloat -> m ()
 continueHapticDrag whichHand pose = do

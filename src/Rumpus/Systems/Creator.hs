@@ -1,8 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ViewPatterns #-}
-
 module Rumpus.Systems.Creator where
 import PreludeExtra hiding (delete)
 import Rumpus.Systems.Drag

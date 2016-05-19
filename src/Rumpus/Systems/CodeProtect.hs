@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.CodeProtect where
 import Rumpus.Systems.CodeEditor
 import PreludeExtra

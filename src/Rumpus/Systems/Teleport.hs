@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards #-}
 module Rumpus.Systems.Teleport where
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Controls

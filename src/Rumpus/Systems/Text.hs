@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-
 module Rumpus.Systems.Text where
 import PreludeExtra
 import Graphics.GL.Freetype

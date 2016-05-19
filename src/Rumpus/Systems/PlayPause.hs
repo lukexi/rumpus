@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.PlayPause where
 import PreludeExtra
 

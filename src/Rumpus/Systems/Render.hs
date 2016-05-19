@@ -1,11 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE BangPatterns #-}
-
 -- Restricting exports to help GHC optimizer
 module Rumpus.Systems.Render
     ( initRenderSystem
@@ -109,9 +101,8 @@ initRenderSystem = do
 tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
 
-    finalMatricesByEntityID <- profile "Matrices" $ getFinalMatrices
-
-    shapeCounts <- profile "FillShapeBuffers" $ fillShapeBuffers finalMatricesByEntityID
+    finalMatricesByEntityID <- getFinalMatrices
+    shapeCounts             <- fillShapeBuffers finalMatricesByEntityID
 
     -- Render the scene
     vrPal  <- viewSystem sysControls ctsVRPal

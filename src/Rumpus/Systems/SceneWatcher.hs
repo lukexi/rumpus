@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell #-}
 module Rumpus.Systems.SceneWatcher where
 import qualified System.FSNotify as FS
 import System.FSNotify hiding (Event)

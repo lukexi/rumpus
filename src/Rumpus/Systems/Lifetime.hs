@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Lifetime where
 import PreludeExtra
 

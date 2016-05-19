@@ -38,11 +38,18 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         startSceneWatcherSystem
         when isBeingProfiled loadTestScene
 
+        renderChan <- liftIO newChan
+        renderWorker <- liftIO . forkOS . void . forever $ do
+            join (readChan renderChan)
+        let onRenderThread action = do
+                ecs <- get
+                liftIO $ writeChan renderChan (runStateT action ecs)
+
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
             (headM44, events) <- tickVR vrPal playerM44
             profile "Controls" $ tickControlEventsSystem headM44 events
-            profile "Rendering" $ tickRenderSystem headM44
+            profile "Rendering" $ onRenderThread $ tickRenderSystem headM44
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory

@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
 module Rumpus.Systems.Sound
     ( module Rumpus.Systems.Sound
     , module Sound.Pd
@@ -12,21 +10,104 @@ import Sound.Pd.Core
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Scene
 import Rumpus.Systems.Controls
+import Data.Vector.Storable (Vector)
+import qualified Data.Vector.Storable as V
+import qualified Data.HashMap.Strict as Map
+
+type DACChannel = Int
+-- Keep track of which file the patch was derived from so we
+-- can avoid unncessarily reloading it
+data PatchWithFile = PatchWithFile
+    { pwfFilePath :: !FilePath
+    , pwfPatch    :: !Patch
+    }
+
+data AllocatedOpenALSource = AllocatedOpenALSource
+    { aosEntityID     :: !EntityID
+    , aosDACChannel   :: !DACChannel
+    , aosOpenALSource :: !OpenALSource
+    }
+
+data PolyPatchVoice = PolyPatchVoice
+    { ppvEntityID     :: !EntityID
+    , ppvPatch        :: !PatchWithFile
+    , ppvOpenALSource :: !OpenALSource
+    }
 
 data SoundSystem = SoundSystem
     { _sndPd               :: !PureData
-    , _sndOpenALSourcePool :: ![(Int, OpenALSource)]
+    , _sndOpenALSourcePool :: ![AllocatedOpenALSource]
+    , _sndPolyPatchVoices  :: !(Map FilePath [PolyPatchVoice])
     }
+
 makeLenses ''SoundSystem
 defineSystemKey ''SoundSystem
 
--- Keep track of which file the patch was derived from so we
--- can avoid unncessarily reloading it
-type PatchWithFile = (FilePath, Patch)
-
 defineComponentKeyWithType "PdPatch"     [t|PatchWithFile|]
 defineComponentKeyWithType "PdPatchFile" [t|FilePath|]
+
 defineComponentKey ''OpenALSource
+
+-- | The number of patches to acquire
+polyPatchPolyphony :: Int
+polyPatchPolyphony = 8
+
+{-
+
+PolyPatch:
+Should be stored in myPdPatch with a sum type.
+when sendPd is called, check if the entityID has a polypatch assigned to it.
+If not, acquire one and associate it with the entityID so that its audio follows the entity.
+
+
+-}
+
+getPolyPatchVoices :: (MonadState ECS m, MonadIO m) => FilePath -> m [PolyPatchVoice]
+getPolyPatchVoices patchName = do
+    viewSystem sysSound (sndPolyPatchVoices . at patchName) >>= \case
+        Just polyPatchVoices -> return polyPatchVoices
+        Nothing -> do
+            patches <- replicateM polyPatchPolyphony $ makePatchWithFile patchName
+            sources <- allocateOpenALSources polyPatchPolyphony
+
+            pd <- getPd
+            forM_ (zip patches (map aosDACChannel sources)) $ \(patch, sourceChannel) ->
+                send pd (pwfPatch patch) "dac" (fromIntegral sourceChannel)
+            let polyPatchVoices = zipWith3 PolyPatchVoice
+                    (repeat 0 :: [EntityID])
+                    patches
+                    (map aosOpenALSource sources)
+            modifySystemState sysSound $
+                sndPolyPatchVoices . at patchName ?= polyPatchVoices
+            return polyPatchVoices
+
+acquirePolyPatch patchName = do
+
+    thisEntityID <- ask
+
+    currentPatch <- getComponent myPdPatch
+    let alreadyHavePatch = fromMaybe False ((== patchName) . pwfFilePath <$> currentPatch)
+    when (not alreadyHavePatch) $ do
+        polyPatchVoices <- getPolyPatchVoices patchName
+        case polyPatchVoices of
+            [] -> return ()
+            (voice:xs) -> do
+                let PolyPatchVoice{..} = voice
+
+                inEntity ppvEntityID $ do
+                    removeComponent myOpenALSource
+                    removeComponent myPdPatch
+
+                inEntity thisEntityID $ do
+                    myOpenALSource ==> ppvOpenALSource
+                    myPdPatch      ==> ppvPatch
+
+                let newVoice = voice { ppvEntityID = thisEntityID }
+                modifySystemState sysSound $
+                    sndPolyPatchVoices . at patchName ?= xs ++ [newVoice]
+
+getPd :: MonadState ECS m => m PureData
+getPd = viewSystem sysSound sndPd
 
 addPdPatchSearchPath :: (MonadIO m, MonadState ECS m) => String -> m ()
 addPdPatchSearchPath path = do
@@ -40,7 +121,11 @@ initSoundSystem pd = do
 
     let soundSystem = SoundSystem
             { _sndPd = pd
-            , _sndOpenALSourcePool = zip [1..] (pdSources pd)
+            , _sndOpenALSourcePool = zipWith3 AllocatedOpenALSource
+                (repeat 0 :: [EntityID])
+                ([1..] :: [DACChannel])
+                (pdSources pd)
+            , _sndPolyPatchVoices = mempty
             }
 
     registerSystem sysSound soundSystem
@@ -48,7 +133,7 @@ initSoundSystem pd = do
     registerComponent "PdPatchFile" myPdPatchFile (savedComponentInterface myPdPatchFile)
     registerComponent "OpenALSource" myOpenALSource (newComponentInterface myOpenALSource)
     registerComponent "PdPatch" myPdPatch $ (newComponentInterface myPdPatch)
-        { ciDeriveComponent = Just (derivePdPatchComponent pd)
+        { ciDeriveComponent = Just derivePdPatchComponent
         , ciRemoveComponent = removePdPatchComponent
         }
 
@@ -63,14 +148,24 @@ tickSoundSystem = do
 
 -- | We currently implement this by voice stealing,
 -- so the oldest object will lose sound.
-dequeueOpenALSource :: MonadState ECS m => m (Maybe (Int, OpenALSource))
-dequeueOpenALSource = modifySystemState sysSound $ do
-    openALSourcePool <- use sndOpenALSourcePool
+dequeueOpenALSource :: MonadState ECS m => EntityID -> m (Maybe AllocatedOpenALSource)
+dequeueOpenALSource entityID = do
+    openALSourcePool <- viewSystem sysSound sndOpenALSourcePool
     case openALSourcePool of
         [] -> return Nothing
-        (x:xs) -> do
-            sndOpenALSourcePool .= xs ++ [x]
-            return (Just x)
+        (allocatedSource:xs) -> do
+            inEntity (aosEntityID allocatedSource) $
+                removeComponent myOpenALSource
+            let newAllocatedSource = allocatedSource { aosEntityID = entityID }
+            modifySystemState sysSound $ do
+                sndOpenALSourcePool .= xs ++ [newAllocatedSource]
+            return (Just newAllocatedSource)
+
+allocateOpenALSources :: MonadState ECS m => Int -> m [AllocatedOpenALSource]
+allocateOpenALSources numSources = modifySystemState sysSound $ do
+    openALSourcePool <- use sndOpenALSourcePool
+    sndOpenALSourcePool .= drop numSources openALSourcePool
+    return (take numSources openALSourcePool)
 
 setPdPatchFile :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
                => FilePath
@@ -79,12 +174,11 @@ setPdPatchFile patchFile = do
     oldPatchFile <- getComponent myPdPatchFile
     when (oldPatchFile /= Just patchFile) $ do
         myPdPatchFile ==> patchFile
-        pd <- viewSystem sysSound sndPd
-        derivePdPatchComponent pd
+        derivePdPatchComponent
 
 derivePdPatchComponent :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
-                       => PureData -> m ()
-derivePdPatchComponent pd = do
+                       => m ()
+derivePdPatchComponent = do
     maybePatchFile <- getComponent myPdPatchFile
     case maybePatchFile of
         Nothing -> removePdPatchComponent
@@ -92,20 +186,27 @@ derivePdPatchComponent pd = do
             maybeExistingPatch <- getComponent myPdPatch
 
             let needsPatchLoad = case maybeExistingPatch of
-                    Just (currentFile, _) -> currentFile == patchFile
+                    Just PatchWithFile{..} -> pwfFilePath == patchFile
                     Nothing -> True
             when needsPatchLoad $ do
                 removePdPatchComponent
-                sceneFolder <- getSceneFolder
-                addPdPatchSearchPath sceneFolder
-                patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
-                myPdPatch ==> (patchFile, patch)
+
+                patch <- makePatchWithFile patchFile
+                myPdPatch ==> patch
 
                 -- Assign the patch's output DAC index to route it to the the SourceID
-                traverseM_ dequeueOpenALSource $ \(sourceChannel, sourceID) -> do
-                    putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show sourceChannel
-                    send pd patch "dac" $ Atom (fromIntegral sourceChannel)
-                    myOpenALSource ==> sourceID
+                entityID <- ask
+                traverseM_ (dequeueOpenALSource entityID) $ \AllocatedOpenALSource{..} -> do
+                    myOpenALSource ==> aosOpenALSource
+                    putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show aosDACChannel
+                    sendPd "dac" (fromIntegral aosDACChannel)
+
+makePatchWithFile patchFile = do
+    pd <- getPd
+    sceneFolder <- getSceneFolder
+    addPdPatchSearchPath sceneFolder
+    patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
+    return PatchWithFile { pwfFilePath = patchFile, pwfPatch = patch }
 
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()
 removePdPatchComponent = do
@@ -116,15 +217,15 @@ removePdPatchComponent = do
     removeComponent myOpenALSource
 
 withPdPatch :: (MonadReader EntityID m, MonadState ECS m) => (Patch -> m b) -> m (Maybe b)
-withPdPatch action = withComponent myPdPatch (action . snd)
+withPdPatch action = ask >>= \eid -> withEntityPdPatch eid action
 
 
 withEntityPdPatch :: (MonadState ECS m) => EntityID -> (Patch -> m b) -> m (Maybe b)
-withEntityPdPatch entityID action = withEntityComponent entityID myPdPatch (action . snd)
+withEntityPdPatch entityID action =
+    withEntityComponent entityID myPdPatch $ \patch -> do
+        action (pwfPatch patch)
 
-sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
-sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem ->
-    send (soundSystem ^. sndPd) patch receiver message
+
 
 sendEntityPd :: (MonadIO m, MonadState ECS m) => EntityID -> Receiver -> Message -> m ()
 sendEntityPd entityID receiver message =
@@ -137,8 +238,14 @@ sendPd receiver message =
         sendToPdPatch patch receiver message
 
 
-readPdArray :: (MonadReader EntityID m, MonadIO m, MonadState ECS m, Integral a) => Receiver -> a -> a -> m [Double]
+
+sendToPdPatch :: (MonadIO m, MonadState ECS m) => Patch -> Receiver -> Message -> m ()
+sendToPdPatch patch receiver message = withSystem_ sysSound $ \soundSystem ->
+    send (soundSystem ^. sndPd) patch receiver message
+
+readPdArray :: (MonadReader EntityID m, MonadIO m, MonadState ECS m)
+            => Receiver -> Int -> Int -> m (Vector Float)
 readPdArray arrayName offset count = do
     pd <- viewSystem sysSound sndPd
-    fromMaybe [] . join <$> withPdPatch (\patch ->
+    fromMaybe V.empty . join <$> withPdPatch (\patch ->
         readArray pd (local patch arrayName) offset count)

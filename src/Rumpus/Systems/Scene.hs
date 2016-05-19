@@ -1,9 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiWayIf #-}
-
 module Rumpus.Systems.Scene where
 import Data.ECS
 import Rumpus.Types
@@ -28,15 +22,18 @@ initSceneSystem = do
     sceneFolderName <- fromMaybe defaultScene . listToMaybe <$> liftIO getArgs
 
 
-    userScenesRootDir <- getUserSceneFolder
-    let userSceneFolder      = userScenesRootDir </> sceneFolderName
+    userRumpusRoot <- getUserRumpusRoot
+    let userSceneFolder      = userRumpusRoot </> sceneFolderName
         pristineSceneFolder  = pristineSceneDirWithName sceneFolderName
 
     copyStartScene pristineSceneFolder userSceneFolder
+    liftIO $ copyFile (pristineDir </> "redirect.txt") (userRumpusRoot </> "redirect.txt")
+        `catchIOError`
+            (\e -> putStrLnIO ("copyFile redirect.txt: " ++ show e))
 
     let
-        useUserFolder = isInReleaseMode
-        --useUserFolder = True
+        --useUserFolder = isInReleaseMode
+        useUserFolder = True
         sceneFolder = if useUserFolder
             then userSceneFolder
             else pristineSceneFolder
@@ -64,16 +61,14 @@ loadScene sceneFolder = do
     putStrLnIO $ "Loading scene: " ++ sceneFolder
     setSceneFolder sceneFolder
 
-    let stateFolder = (sceneFolder </> ".world-state")
-
+    stateFolder <- getSceneStateFolder
     liftIO $ createDirectoryIfMissing True stateFolder
     loadEntities stateFolder
 
 -- FIXME: move the .world-state concept into extensible-ecs
 saveScene :: ECSMonad ()
 saveScene = do
-    sceneFolder <- getSceneFolder
-    let stateFolder = (sceneFolder </> ".world-state")
+    stateFolder <- getSceneStateFolder
     liftIO $ do
         removeDirectoryRecursive stateFolder
         createDirectoryIfMissing True stateFolder
@@ -93,10 +88,14 @@ copyStartScene pristineSceneDir userSceneDir = liftIO $ do
     exists <- doesDirectoryExist userSceneDir
     when (not exists) $ do
         copyDirectory pristineSceneDir userSceneDir
-            `catchIOError` (\e -> putStrLnIO ("copyStartScene: " ++ show e))
+            `catchIOError`
+                (\e -> putStrLnIO ("copyStartScene: " ++ show e))
 
 pristineSceneDirWithName :: String -> FilePath
-pristineSceneDirWithName name = "pristine" </> "Scenes" </> name
+pristineSceneDirWithName name = pristineDir </> name
+
+pristineDir :: FilePath
+pristineDir = "pristine" </> "Scenes"
 
 copyDirectory :: MonadIO m => FilePath -> FilePath -> m ()
 copyDirectory src dst = liftIO $ do
@@ -117,22 +116,22 @@ copyDirectory src dst = liftIO $ do
 
     where
         doesFileOrDirectoryExist x = orM [doesDirectoryExist x, doesFileExist x]
+        orM :: Monad m => [m Bool] -> m Bool
         orM xs = or <$> sequence xs
         whenM s r = s >>= flip when r
 
 versionString :: String
-versionString = "0.1.0"
+versionString = "0.1.1"
 
-getUserSceneFolder :: MonadIO m => m FilePath
-getUserSceneFolder = liftIO $ do
+getUserRumpusRoot :: MonadIO m => m FilePath
+getUserRumpusRoot = liftIO $ do
     userDocsDir <- getUserDocumentsDirectory
-    let userRumpusRoot   = userDocsDir </> "Rumpus"
-        userSceneRoot    = userRumpusRoot </> versionString
+    let userRumpusRoot   = userDocsDir </> "Rumpus" </> versionString
         userRedirectFile = userRumpusRoot </> "redirect.txt"
 
         protect f = f `catchIOError`
-                        (\e -> putStrLnIO ("getUserSceneFolder: " ++ show e)
-                                >> return userSceneRoot)
+                        (\e -> putStrLnIO ("getUserRumpusRoot: " ++ show e)
+                                >> return userRumpusRoot)
     hasRedirect <- doesFileExist userRedirectFile
     when hasRedirect $ putStrLnIO $ "Attempting redirect"
     protect $ if hasRedirect
@@ -147,6 +146,6 @@ getUserSceneFolder = liftIO $ do
                             exists <- doesDirectoryExist redirectPath
                             if exists
                                 then return redirectPath
-                                else return userSceneRoot
-                _ -> return userSceneRoot
-        else return userSceneRoot
+                                else return userRumpusRoot
+                _ -> return userRumpusRoot
+        else return userRumpusRoot

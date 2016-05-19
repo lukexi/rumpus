@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell #-}
 module Rumpus.Systems.Collisions where
 import PreludeExtra
 import Rumpus.Systems.Physics

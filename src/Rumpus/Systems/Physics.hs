@@ -1,7 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 module Rumpus.Systems.Physics
     ( module Rumpus.Systems.Physics
@@ -199,6 +195,7 @@ setEntitySize entityID newSize  = do
 
     setEntityRigidBodySize entityID newSize
 
+setEntityRigidBodySize :: (Fractional a, Real a, MonadIO m, MonadState ECS m) => EntityID -> V3 a -> m ()
 setEntityRigidBodySize entityID newSize = do
     withEntityRigidBody entityID $ \rigidBody -> do
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
@@ -216,12 +213,15 @@ setEntityRigidBodySize entityID newSize = do
             shapeCollider <- createShapeCollider shapeType (max 0.01 newSize)
             setRigidBodyShape dynamicsWorld rigidBody shapeCollider bodyInfo
 
+setEntityRigidBodyPose :: (MonadIO m, MonadState ECS m) => EntityID -> M44 GLfloat -> m ()
 setEntityRigidBodyPose entityID poseM44 = do
     withEntityRigidBody entityID $ \rigidBody -> do
         let pose = poseFromMatrix poseM44
         setRigidBodyWorldTransform rigidBody (pose ^. posPosition) (pose ^. posOrientation)
 
-setPositonRotationSize position rotationQ size = do
+setPositionRotationSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+                       => V3 GLfloat -> Quaternion GLfloat -> V3 GLfloat -> m ()
+setPositionRotationSize position rotationQ size = do
     let poseM44 = mkTransformation rotationQ position
 
     mySize ==> size
