@@ -77,35 +77,51 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
 
 
 
-
-        bgMVar <- liftIO newEmptyMVar
-        fgMVar <- liftIO . newMVar =<< get
+        startingECS <- get
+        backgroundBox <- liftIO $ newTVarIO Nothing
+        mainThreadBox <- liftIO $ newTVarIO startingECS
         liftIO . forkOS $ do
             makeContextCurrent (Just (gpThreadWindow vrPal))
-            forever $ do
-                ecs <- takeMVar bgMVar
-                putMVar fgMVar =<< flip execStateT ecs (do
-                    profile "KeyPads" $ tickKeyPadsSystem
-                    profile "Clock" $ tickClockSystem
-                    profile "CodeEditorInput" $ tickCodeEditorInputSystem
-                    profile "CodeEditorResults" $ tickCodeEditorResultsSystem
-                    profile "Attachment" $ tickAttachmentSystem
-                    profile "Constraint" $ tickConstraintSystem
-                    profile "Script" $ tickScriptSystem
-                    profile "Lifetime" $ tickLifetimeSystem
-                    profile "Animation" $ tickAnimationSystem
-                    profile "Physics" $ tickPhysicsSystem
-                    profile "SyncPhysicsPoses" $ tickSyncPhysicsPosesSystem
-                    profile "Collisions" $ tickCollisionsSystem
-                    profile "HandControls" $ tickHandControlsSystem
-                    profile "Sound" $ tickSoundSystem
-                    profile "SceneWatcher" $ tickSceneWatcherSystem)
+            void . flip runStateT startingECS . forever $ do
+                (headM44, events) <- atomically $ do
+                    readTVar backgroundBox >>= \case
+                        Just something -> do
+                            writeTVar backgroundBox Nothing
+                            return something
+                        Nothing -> retry
+
+                profile "Controls" $ tickControlEventsSystem headM44 events
+                profile "KeyPads" $ tickKeyPadsSystem
+                profile "Clock" $ tickClockSystem
+                profile "CodeEditorInput" $ tickCodeEditorInputSystem
+                profile "CodeEditorResults" $ tickCodeEditorResultsSystem
+                profile "Attachment" $ tickAttachmentSystem
+                profile "Constraint" $ tickConstraintSystem
+                profile "Script" $ tickScriptSystem
+                profile "Lifetime" $ tickLifetimeSystem
+                profile "Animation" $ tickAnimationSystem
+                profile "Physics" $ tickPhysicsSystem
+                profile "SyncPhysicsPoses" $ tickSyncPhysicsPosesSystem
+                profile "Collisions" $ tickCollisionsSystem
+                profile "HandControls" $ tickHandControlsSystem
+                profile "Sound" $ tickSoundSystem
+                profile "SceneWatcher" $ tickSceneWatcherSystem
+
+                newECS <- get
+                atomically $ do
+                    writeTVar mainThreadBox newECS
 
 
         whileWindow (gpWindow vrPal) $ do
-            ecs <- liftIO $ takeMVar fgMVar
-            liftIO . putMVar bgMVar =<< flip execStateT ecs (do
+            ecs <- liftIO . atomically $ readTVar mainThreadBox
+            (headM44, events) <- flip evalStateT ecs (do
                 playerM44 <- viewSystem sysControls ctsPlayer
                 (headM44, events) <- tickVR vrPal playerM44
-                profile "Controls" $ tickControlEventsSystem headM44 events
-                profile "Rendering" $ tickRenderSystem headM44)
+                profile "Rendering" $ tickRenderSystem headM44
+                return (headM44, events))
+            liftIO . atomically $ do
+                pendingEvents <- readTVar backgroundBox >>= \case
+                    Just (_, pendingEvents) -> return pendingEvents
+                    Nothing -> return []
+                writeTVar backgroundBox (Just (headM44, pendingEvents ++ events))
+
