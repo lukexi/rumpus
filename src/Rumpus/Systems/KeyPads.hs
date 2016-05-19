@@ -354,9 +354,10 @@ spawnKeysForHand containerID keyRows = do
     -- Spawn the keys and return their entityIDs
     fmap concat . forM (zip [0..] keyRows) $ \(y, keyRow) -> do
         let numKeys = fromIntegral (length keyRow)
+            rowXCentering = -keyWidthT * (numKeys - 1) / 2
         forM (zip [0..] keyRow) $ \(x, key) -> do
 
-            let (keyPose, pointIsInKey) = getKeyPose x y numKeys
+            let (keyPose, pointIsInKey) = getKeyPose x y rowXCentering
 
             keyID <- spawnEntity $ makeKeyboardKey containerID key keyPose
 
@@ -367,14 +368,14 @@ spawnKeysForHand containerID keyRows = do
                 }
 
 getKeyPose :: Int -> Int -> GLfloat -> (V3 GLfloat, V2 GLfloat -> Bool)
-getKeyPose (fromIntegral -> x) (fromIntegral -> y) numKeys = (keyPose, pointIsInKey)
+getKeyPose (fromIntegral -> x) (fromIntegral -> y) rowXCentering = (keyPose, pointIsInKey)
     where
         keyTopLeft            = keyXY - keyDimsT/2
         keyDimsT              = V2 keyWidthT keyHeightT
         pointIsInKey          = inRect keyTopLeft keyDimsT
 
-        keyXY@(V2 keyX keyY)  = V2 (keyOffsetX + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
-        keyOffsetX            = -keyWidthT * (numKeys - 1) / 2
+        keyXY@(V2 keyX keyY)  = V2 (rowXCentering + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
+
         keyPose               = V3 keyX keyboardOffsetZ keyY
 
 
