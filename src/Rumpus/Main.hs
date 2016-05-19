@@ -37,10 +37,12 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         startSceneSystem
         startSceneWatcherSystem
         when isBeingProfiled loadTestScene
-
+{-
         renderChan <- liftIO newChan
-        renderWorker <- liftIO . forkOS . void . forever $ do
-            join (readChan renderChan)
+        renderWorker <- liftIO . forkOS $ do
+            makeContextCurrent (Just (gpThreadWindow vrPal))
+            void . forever $ do
+                join (readChan renderChan)
         let onRenderThread action = do
                 ecs <- get
                 liftIO $ writeChan renderChan (runStateT action ecs)
@@ -50,6 +52,7 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
             (headM44, events) <- tickVR vrPal playerM44
             profile "Controls" $ tickControlEventsSystem headM44 events
             profile "Rendering" $ onRenderThread $ tickRenderSystem headM44
+            --profile "Rendering" $ tickRenderSystem headM44
 
             -- Perform a minor GC to just get the young objects created during the last frame
             -- without traversing all of memory
@@ -70,3 +73,39 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
             profile "HandControls" $ tickHandControlsSystem
             profile "Sound" $ tickSoundSystem
             profile "SceneWatcher" $ tickSceneWatcherSystem
+-}
+
+
+
+
+        bgMVar <- liftIO newEmptyMVar
+        fgMVar <- liftIO . newMVar =<< get
+        liftIO . forkOS $ do
+            makeContextCurrent (Just (gpThreadWindow vrPal))
+            forever $ do
+                ecs <- takeMVar bgMVar
+                putMVar fgMVar =<< flip execStateT ecs (do
+                    profile "KeyPads" $ tickKeyPadsSystem
+                    profile "Clock" $ tickClockSystem
+                    profile "CodeEditorInput" $ tickCodeEditorInputSystem
+                    profile "CodeEditorResults" $ tickCodeEditorResultsSystem
+                    profile "Attachment" $ tickAttachmentSystem
+                    profile "Constraint" $ tickConstraintSystem
+                    profile "Script" $ tickScriptSystem
+                    profile "Lifetime" $ tickLifetimeSystem
+                    profile "Animation" $ tickAnimationSystem
+                    profile "Physics" $ tickPhysicsSystem
+                    profile "SyncPhysicsPoses" $ tickSyncPhysicsPosesSystem
+                    profile "Collisions" $ tickCollisionsSystem
+                    profile "HandControls" $ tickHandControlsSystem
+                    profile "Sound" $ tickSoundSystem
+                    profile "SceneWatcher" $ tickSceneWatcherSystem)
+
+
+        whileWindow (gpWindow vrPal) $ do
+            ecs <- liftIO $ takeMVar fgMVar
+            liftIO . putMVar bgMVar =<< flip execStateT ecs (do
+                playerM44 <- viewSystem sysControls ctsPlayer
+                (headM44, events) <- tickVR vrPal playerM44
+                profile "Controls" $ tickControlEventsSystem headM44 events
+                profile "Rendering" $ tickRenderSystem headM44)

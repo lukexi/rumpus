@@ -100,7 +100,6 @@ initRenderSystem = do
 
 tickRenderSystem :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
 tickRenderSystem headM44 = do
-
     finalMatricesByEntityID <- getFinalMatrices
     shapeCounts             <- fillShapeBuffers finalMatricesByEntityID
 
@@ -181,7 +180,6 @@ fillShapeBuffers finalMatricesByEntityID = do
         --let shapeName = show rshShapeType ++ " "
         entityIDsForShape <- getEntityIDsForShapeType rshShapeType
         let count = V.length entityIDsForShape
-
         writeSAB rshStreamingArrayBuffer (fromIntegral count) rshResetShapeInstanceBuffers $ do
             fillSABBuffer rshInstanceColorsBuffer $ \i -> do
                 let entityID = entityIDsForShape V.! i
