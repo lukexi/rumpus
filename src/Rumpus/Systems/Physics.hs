@@ -21,7 +21,7 @@ makeLenses ''PhysicsSystem
 data Property = Floating        -- ^ Sets bullet "Kinematic" flag
               | Ghostly         -- ^ Sets bullet "NoContactResponse" flag
               | Holographic     -- ^ Removes physics shape entirely
-              | Static          -- ^ Marks objects we don't want to grab
+              | Ungrabbable     -- ^ Marks objects we don't want to grab
               | Teleportable    -- ^ Marks objects we want to allow teleportation to. Must have physics shape.
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 

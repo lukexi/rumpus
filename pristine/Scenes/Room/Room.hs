@@ -14,7 +14,7 @@ start = do
     let makeWall pos size hue extraProps = spawnChild $ do
             myPose       ==> translateMatrix (pos & _y +~ roomOffset)
             myShape      ==> Cube
-            myProperties ==> extraProps ++ [Floating, Static]
+            myProperties ==> extraProps ++ [Floating, Ungrabbable]
             mySize       ==> size
             myColor      ==> colorHSL hue 0.8 0.6
             myMass       ==> 0

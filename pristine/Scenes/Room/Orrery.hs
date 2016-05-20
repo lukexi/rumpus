@@ -1,7 +1,7 @@
 module Orrery where
 import Rumpus
 
-setCelestialBody parentID radius hue = do
+setCelestialBody radius hue = do
     myInheritTransform ==> InheritPose
     mySize             ==> radius
     myColor            ==> colorHSL hue 0.8 0.5
@@ -19,6 +19,8 @@ spawnPlanetOf parentID radius hue orbitRadius orbitRate = spawnChildOf parentID 
 
 start :: Start
 start = do
+    myProperties ==% (Teleportable:)
+    myTeleportScale ==> 0.1
     -- Create a container node that inherits
     -- pose, but not scale, from the root object
     container <- spawnChild $ do

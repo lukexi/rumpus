@@ -40,13 +40,13 @@ selectEntity entityID = do
 
     return ()
 
-filterStaticEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
-filterStaticEntityIDs = filterM (fmap (not . elem Static) . getEntityProperties)
+filterUngrabbableEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
+filterUngrabbableEntityIDs = filterM (fmap (not . elem Ungrabbable) . getEntityProperties)
 
 initiateGrab :: WhichHand -> EntityID -> EntityID -> ECSMonad ()
 initiateGrab whichHand handEntityID _otherHandEntityID = do
     -- Find the entities overlapping the hand, and attach them to it
-    overlappingEntityIDs <- filterStaticEntityIDs
+    overlappingEntityIDs <- filterUngrabbableEntityIDs
                                 =<< getEntityOverlappingEntityIDs handEntityID
 
     when (null overlappingEntityIDs) $ do

@@ -67,3 +67,5 @@ teleportPlayerTo entityID = do
     V3 _ height _ <- getEntitySize entityID
     let V3 x y z = pose ^. translation
     setPlayerPosition (V3 x (y + height / 2) z)
+    scale <- getEntityTeleportScale entityID
+    setPlayerScale (realToFrac scale)

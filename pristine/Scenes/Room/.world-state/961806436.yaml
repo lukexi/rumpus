@@ -1,6 +1,6 @@
 PdPatchFile: saw-voice.pd
 StartExpr:
-- NoteBlock.hs
+- Note.hs
 - start
 Size:
 - 0.3

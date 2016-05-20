@@ -62,6 +62,12 @@ withState f =
                         ++ "'s script data of type " ++ show dynState
                         ++ " with a function that accepts a different type."
 
+getState :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)
+         => a -> m a
+getState def = do
+    dynState <- getComponent myState
+    let maybeState = join (fromDynamic <$> dynState)
+    return (fromMaybe def maybeState)
 
 editState :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)
           => (a -> m a) -> m ()

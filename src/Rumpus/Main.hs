@@ -37,7 +37,41 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         startSceneSystem
         startSceneWatcherSystem
         when isBeingProfiled loadTestScene
-{-
+
+        singleThreadedLoop vrPal
+        --multithreadedLoop1 vrPal
+        --multithreadedLoop2 vrPal
+
+singleThreadedLoop vrPal = do
+    whileWindow (gpWindow vrPal) $ do
+        playerM44 <- viewSystem sysControls ctsPlayer
+        (headM44, events) <- tickVR vrPal playerM44
+        profile "Controls" $ tickControlEventsSystem headM44 events
+        profile "Rendering" $ tickRenderSystem headM44
+
+        -- Perform a minor GC to just get the young objects created during the last frame
+        -- without traversing all of memory
+        --liftIO performMinorGC
+
+        profile "KeyPads" $ tickKeyPadsSystem
+        profile "Clock" $ tickClockSystem
+        profile "CodeEditorInput" $ tickCodeEditorInputSystem
+        profile "CodeEditorResults" $ tickCodeEditorResultsSystem
+        profile "Attachment" $ tickAttachmentSystem
+        profile "Constraint" $ tickConstraintSystem
+        profile "Script" $ tickScriptSystem
+        profile "Lifetime" $ tickLifetimeSystem
+        profile "Animation" $ tickAnimationSystem
+        profile "Physics" $ tickPhysicsSystem
+        profile "SyncPhysicsPoses" $ tickSyncPhysicsPosesSystem
+        profile "Collisions" $ tickCollisionsSystem
+        profile "HandControls" $ tickHandControlsSystem
+        profile "Sound" $ tickSoundSystem
+        profile "SceneWatcher" $ tickSceneWatcherSystem
+
+
+-- Experiment with placing drawing on the background thread. Doesn't render to window.
+multithreadedLoop1 vrPal = do
         renderChan <- liftIO newChan
         renderWorker <- liftIO . forkOS $ do
             makeContextCurrent (Just (gpThreadWindow vrPal))
@@ -73,10 +107,13 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
             profile "HandControls" $ tickHandControlsSystem
             profile "Sound" $ tickSoundSystem
             profile "SceneWatcher" $ tickSceneWatcherSystem
--}
 
-
-
+-- Experiment with running logic on the background thread.
+-- Attempts to never stall the render thread,
+-- (i.e. it will reuse the last world state and render it from the latest head position)
+-- and has logic thread wait until a new device pose has arrived
+-- from OpenVR before ticking.
+multiThreadedLoop2 vrPal = do
         startingECS <- get
         backgroundBox <- liftIO $ newTVarIO Nothing
         mainThreadBox <- liftIO $ newTVarIO startingECS
@@ -113,13 +150,13 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
 
 
         whileWindow (gpWindow vrPal) $ do
-            ecs <- liftIO . atomically $ readTVar mainThreadBox
-            (headM44, events) <- flip evalStateT ecs (do
+            ecs <- profileMS "rd" 0 $ liftIO . atomically $ readTVar mainThreadBox
+            (headM44, events) <- profileMS "render" 0 $ flip evalStateT ecs (do
                 playerM44 <- viewSystem sysControls ctsPlayer
-                (headM44, events) <- tickVR vrPal playerM44
-                profile "Rendering" $ tickRenderSystem headM44
+                (headM44, events) <- profileMS "tick" 1 $ tickVR vrPal playerM44
+                profileMS "draw" 1 $ tickRenderSystem headM44
                 return (headM44, events))
-            liftIO . atomically $ do
+            profileMS "wr" 0 $ liftIO . atomically $ do
                 pendingEvents <- readTVar backgroundBox >>= \case
                     Just (_, pendingEvents) -> return pendingEvents
                     Nothing -> return []

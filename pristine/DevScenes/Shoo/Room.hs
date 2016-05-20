@@ -19,7 +19,7 @@ start = do
             myPose              ==> mkTransformation
                 (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
             myShape         ==> Cube
-            myProperties ==> [Floating, Static]
+            myProperties ==> [Floating, Ungrabbable]
             mySize              ==> size
             myColor             ==> colorHSL hue 0.8 0.6
             myMass              ==> 0
