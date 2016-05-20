@@ -1,4 +1,3 @@
-PdPatchFile: verylogue.pd
 StartExpr:
 - Playhead.hs
 - start
