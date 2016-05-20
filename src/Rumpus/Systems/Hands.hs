@@ -25,7 +25,7 @@ startHandsSystem = do
             myColor           ==> handColor
             mySize            ==> V3 0.1 0.1 0.25
             myShape           ==> Cube
-            myProperties      ==> [Floating, Ghostly, Static]
+            myProperties      ==> [Floating, Ghostly, Ungrabbable]
             myMass            ==> 0
             myCollisionStart  ==> \_ impulse -> do
                 hapticPulse whichHand (floor $ impulse * 10000)

@@ -12,7 +12,7 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Text
-import Rumpus.Systems.Profiler
+--import Rumpus.Systems.Profiler
 import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Unboxed as V
@@ -163,15 +163,11 @@ renderOpenVR' OpenVR{..} viewM44 eyeRenderFunc = do
         let MultisampleFramebuffer{..} = eiMultisampleFramebuffer
         submitFrameForEye ovrCompositor eiEye (unTextureID mfbResolveTextureID)
 
+fillShapeBuffers :: (MonadIO m, MonadState ECS m)
+                 => Map EntityID (M44 GLfloat)
+                 -> m [(Shape Uniforms, StreamingArrayBuffer, Int)]
 fillShapeBuffers finalMatricesByEntityID = do
-    colorsMap               <- getComponentMap myColor
-
-    -- Pulse the currently selected entity in blue
-    selectedEntityID <- getSelectedEntityID
-    now <- (+0.2) . (*0.1) . (+1) . sin . (*6) <$> getNow
-    let colorForEntity entityID
-            | Just entityID == selectedEntityID = colorHSL 0.6 0.9 now
-            | otherwise = fromMaybe 1 $ Map.lookup entityID colorsMap
+    colorsMap   <- getComponentMap myColor
 
     -- Batch by entities sharing the same shape type
 
@@ -183,11 +179,11 @@ fillShapeBuffers finalMatricesByEntityID = do
         writeSAB rshStreamingArrayBuffer (fromIntegral count) rshResetShapeInstanceBuffers $ do
             fillSABBuffer rshInstanceColorsBuffer $ \i -> do
                 let entityID = entityIDsForShape V.! i
-                    color = colorForEntity entityID
+                    color    = Map.lookupDefault 1 entityID colorsMap
                 return color
             fillSABBuffer rshInstanceModelM44sBuffer $ \i -> do
                 let entityID = entityIDsForShape V.! i
-                    modelM44 = fromMaybe identity $ Map.lookup entityID finalMatricesByEntityID
+                    modelM44 = Map.lookupDefault identity entityID finalMatricesByEntityID
                 return modelM44
 
         return (rshShape, rshStreamingArrayBuffer, count)
@@ -275,11 +271,12 @@ renderEntitiesText projViewM44 finalMatricesByEntityID = do
 
             renderTextPreCorrectedOfSameFont textRenderer (parentM44 !*! textM44)
 
-    renderCodeEditors projViewM44 finalMatricesByEntityID
+    renderCodeEditors projViewM44
 
     glDisable GL_BLEND
 
-renderCodeEditors projViewM44 finalMatricesByEntityID = do
+renderCodeEditors :: (MonadIO m, MonadState ECS m) => M44 GLfloat -> m ()
+renderCodeEditors projViewM44  = do
     -- (fixme: this is not efficient code; many state switches, shader switches, geo switches, uncached matrices)
     -- We also probably don't need gl discard in the shader if text is rendered with a background.
     glEnable GL_STENCIL_TEST
@@ -288,7 +285,8 @@ renderCodeEditors projViewM44 finalMatricesByEntityID = do
     selectedEntityID <- getSelectedEntityID
     forM_ entitiesWithStart $ \(entityID, codeExprKey) -> do
         wantsCodeHidden <- getEntityCodeHidden entityID
-        let shouldDrawCode = not wantsCodeHidden || Just entityID == selectedEntityID
+        let shouldDrawCode = not wantsCodeHidden || isSelectedEntityID
+            isSelectedEntityID = Just entityID == selectedEntityID
         when shouldDrawCode $ do
             traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
                 parentPose       <- getEntityPose entityID
@@ -305,7 +303,7 @@ renderCodeEditors projViewM44 finalMatricesByEntityID = do
                 let headPos = headM44 ^. translation
                 renderTextAsScreen (editor ^. cedCodeRenderer)
                     planeShape projViewM44 codeModelM44 headPos
-                    (V4 0.1 0.2 0.2 1)
+                    (if isSelectedEntityID then V4 0.1 0.2 0.2 1 else V4 0.0 0.0 0.1 1)
 
                 when (textRendererHasText $ editor ^. cedErrorRenderer) $ do
                     -- Render errors in light red in panel below main
@@ -313,7 +311,7 @@ renderCodeEditors projViewM44 finalMatricesByEntityID = do
 
                     renderTextAsScreen (editor ^. cedErrorRenderer)
                         planeShape projViewM44 errorsModelM44 headPos
-                        (V4 0.2 0.1 0.1 1)
+                        (if isSelectedEntityID then V4 0.2 0.1 0.1 1 else V4 0.1 0.0 0.0 1)
     glDisable GL_STENCIL_TEST
 
 renderTextAsScreen :: MonadIO m => TextRenderer

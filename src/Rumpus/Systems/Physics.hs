@@ -181,11 +181,26 @@ setShape newShape = do
     dynamicsWorld <- getDynamicsWorld
     deriveRigidBody dynamicsWorld
 
-setSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
-setSize newSize = ask >>= \eid -> setEntitySize eid newSize
-
 setEntitySize :: (MonadIO m, MonadState ECS m) => EntityID -> V3 GLfloat -> m ()
-setEntitySize entityID newSize  = do
+setEntitySize entityID = inEntity entityID . setSize
+
+-- Yet another hack for release - this is specifically to make it so
+-- that the creator, which animates new objects to full size, can have that animation
+-- "rerouted" to the new size if the object's start function sets one.
+setSize :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
+setSize newSize = do
+    maybeAnim <- getComponent mySizeAnimation
+    case maybeAnim of
+        Nothing -> setSizeNoAnim newSize
+        Just sizeAnim -> do
+            newAnim <- redirectAnimation sizeAnim newSize
+            mySizeAnimation ==> newAnim
+
+setSizeNoAnim :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
+setSizeNoAnim newSize = ask >>= \eid -> setEntitySizeNoAnim eid newSize
+
+setEntitySizeNoAnim :: (MonadIO m, MonadState ECS m) => EntityID -> V3 GLfloat -> m ()
+setEntitySizeNoAnim entityID newSize  = do
 
     setEntityComponent mySize newSize entityID
 

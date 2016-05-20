@@ -22,11 +22,13 @@ start = do
             let height = position ^. _y
                 note = floor (height * notesPerMeter + noteBase) :: Int
 
-            when (note /= currentNote)
-                setColor ==> colorHSL noteHue 0.8 0.5
+            when (note /= currentNote) $ do
+                setColor (colorHSL (noteHue note) 0.8 0.5)
                 acquirePolyPatch "saw-voice.pd"
                 sendPd "note" (fromIntegral note)
                 sendPd "trigger" 1
+            return note
+
 
     updateNote
 
@@ -37,8 +39,8 @@ start = do
         note <- getState (0::Int)
 
         let hue = noteHue note
-        fromColor <- colorHSL (hue + 0.5) 0.8 0.5
-        toColor   <- colorHSL hue         0.8 0.5
+            fromColor = colorHSL (hue + 0.5) 0.8 0.5
+            toColor   = colorHSL hue         0.8 0.5
         animateColor 0.2 fromColor toColor
 
     myDrag ==> \_ -> updateNote
