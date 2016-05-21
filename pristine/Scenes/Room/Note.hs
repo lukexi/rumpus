@@ -33,10 +33,11 @@ start = do
     updateNote
 
     myCollisionStart ==> \hitEntityID _ -> do
+        note <- getState (0::Int)
         acquirePolyPatch "saw-voice.pd"
+        sendPd "note" (fromIntegral note)
         sendPd "trigger" 1
 
-        note <- getState (0::Int)
 
         let hue = noteHue note
             fromColor = colorHSL (hue + 0.5) 0.8 0.5
