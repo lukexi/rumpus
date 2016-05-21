@@ -70,6 +70,7 @@ addDestructionOrb whichHand = do
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
     newEntityID <- spawnEntity $ do
+        myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
         mySize       ==> 0.01
         myProperties ==> [Floating]
@@ -169,7 +170,11 @@ closeEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 closeEntityLibrary whichHand = do
     libraryEntities <- fromMaybe [] <$> viewSystem sysCreator (crtOpenLibrary . at whichHand)
     forM_ libraryEntities $ \entityID ->
-        inEntity entityID (setLifetime 0.3)
+        inEntity entityID $ do
+            -- remove the size animation to avoid
+            -- animation system/lifetime end animation conflicts
+            removeComponent mySizeAnimation
+            setLifetime 0.3
 
     modifySystemState sysCreator $ do
         crtPendingDestruction . at whichHand .= Nothing

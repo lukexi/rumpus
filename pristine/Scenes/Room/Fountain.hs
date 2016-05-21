@@ -4,7 +4,7 @@ import Rumpus
 --rate :: Float
 rate = 5
 
-majorScale = map (+60) [0,2,4,7,9]
+majorScale = map (+56) [0,2,4,7,9]
 
 start :: Start
 start = do

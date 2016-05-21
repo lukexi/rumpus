@@ -8,8 +8,8 @@ import Rumpus.Systems.Controls
 
 initAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAnimationSystem = do
-    registerComponent "ColorAnimation" myColorAnimation (newComponentInterface myColorAnimation)
-    registerComponent "SizeAnimation"  mySizeAnimation  (newComponentInterface mySizeAnimation)
+    registerComponent "ColorAnimation"     myColorAnimation     (newComponentInterface myColorAnimation)
+    registerComponent "SizeAnimation"      mySizeAnimation      (newComponentInterface mySizeAnimation)
     registerComponent "PositionAnimation"  myPositionAnimation  (newComponentInterface myPositionAnimation)
     registerComponent "RotationAnimation"  myRotationAnimation  (newComponentInterface myRotationAnimation)
 

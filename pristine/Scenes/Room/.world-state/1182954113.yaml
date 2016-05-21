@@ -1,4 +1,3 @@
-PdPatchFile: saw-voice.pd
 StartExpr:
 - Note.hs
 - start

@@ -23,14 +23,14 @@ startHandsSystem = do
 
         makeHand whichHand = do
             myColor           ==> handColor
-            mySize            ==> V3 0.1 0.1 0.25
+            mySize            ==> V3 0.075 0.075 0.25
             myShape           ==> Cube
             myProperties      ==> [Floating, Ghostly, Ungrabbable]
             myMass            ==> 0
             myCollisionStart  ==> \_ impulse -> do
                 hapticPulse whichHand (floor $ impulse * 10000)
 
-    leftHandID <- spawnEntity $ makeHand LeftHand
+    leftHandID  <- spawnEntity $ makeHand LeftHand
     rightHandID <- spawnEntity $ makeHand RightHand
 
     registerSystem sysHands $ HandsSystem

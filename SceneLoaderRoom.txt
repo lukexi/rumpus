@@ -1,0 +1,23 @@
+
+When you hold the button, the bottom of the hand grows an exit button.
+Click that to close the current scene and return to the loader room
+
+In the loader room, you see all of the scenes that currently exist, and there is also always an empty new scene.
+Previous scenes are represented by the world positions of all their saved entities.
+We still monitor the dropbox so those positions will be autoupdated.
+When too many objects, stop previewing.
+Click the scene to have it envelop you.
+
+Will have to update scene observation logic to only
+create and delete the representations rather than the real objects.
+
+Users can easily be in multiple parallel worlds and pop over to visit.
+
+You should be able to customize the loader scene since it's just like any other rumpus scene.
+
+
+
+(another funny idea for getting to the scene room
+is to use the controllers like binoculars -
+hold one up to see the controller room (monocular) and both for a second
+to magically transport there.)
