@@ -3,20 +3,27 @@ module Rumpus.Systems.Shared where
 import PreludeExtra
 import qualified Data.HashMap.Strict as Map
 import qualified Data.List as L
+
 data ShapeType = Cube | Sphere
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
 data InheritTransform = InheritFull | InheritPose
 
 defineComponentKey ''InheritTransform
-defineComponentKeyWithType "Shape"      [t|ShapeType|]
-defineComponentKeyWithType "Name"       [t|String|]
-defineComponentKeyWithType "Pose"       [t|M44 GLfloat|]
-defineComponentKeyWithType "PoseScaled" [t|M44 GLfloat|]
-defineComponentKeyWithType "Size"       [t|V3 GLfloat|]
-defineComponentKeyWithType "Color"      [t|V4 GLfloat|]
-defineComponentKeyWithType "Parent"     [t|EntityID|]
-defineComponentKeyWithType "Children"   [t|[EntityID]|]
+defineComponentKeyWithType "Shape"              [t|ShapeType|]
+defineComponentKeyWithType "Name"               [t|String|]
+defineComponentKeyWithType "Pose"               [t|M44 GLfloat|]
+defineComponentKeyWithType "PoseScaled"         [t|M44 GLfloat|]
+defineComponentKeyWithType "Size"               [t|V3 GLfloat|]
+defineComponentKeyWithType "Color"              [t|V4 GLfloat|]
+defineComponentKeyWithType "Parent"             [t|EntityID|]
+defineComponentKeyWithType "Children"           [t|[EntityID]|]
+defineComponentKeyWithType "TeleportScale"      [t|GLfloat|]
+
+defineComponentKeyWithType "ColorAnimation"     [t|Animation (V4 GLfloat)|]
+defineComponentKeyWithType "SizeAnimation"      [t|Animation (V3 GLfloat)|]
+defineComponentKeyWithType "PositionAnimation"  [t|Animation (V3 GLfloat)|]
+defineComponentKeyWithType "RotationAnimation"  [t|Animation (Quaternion GLfloat)|]
 
 -- Script System components (shared by Script and CodeEditor systems)
 type Start  = EntityMonad ()
@@ -54,6 +61,7 @@ initSharedSystem = do
         { ciRemoveComponent = removeChildren >> removeComponent myChildren
         }
     registerComponent "InheritTransform" myInheritTransform (newComponentInterface myInheritTransform)
+    registerComponent "TeleportScale" myTeleportScale (newComponentInterface myTeleportScale)
 
     -- Allows Script and CodeEditor to access these
     registerComponent "Start"  myStart      (newComponentInterface myStart)
@@ -133,12 +141,17 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID myColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
-getEntityInheritTransform :: (HasComponents s, MonadState s m) => EntityID -> m (Maybe InheritTransform)
+getEntityInheritTransform :: (MonadState ECS m) => EntityID -> m (Maybe InheritTransform)
 getEntityInheritTransform entityID = getEntityComponent entityID myInheritTransform
 
-getInheritTransform :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m (Maybe InheritTransform)
+getInheritTransform :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe InheritTransform)
 getInheritTransform = getEntityInheritTransform =<< ask
 
-getEntityChildren :: (HasComponents s, MonadState s m) => EntityID -> m [EntityID]
+getEntityChildren :: (MonadState ECS m) => EntityID -> m [EntityID]
 getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID myChildren
 
+getEntityTeleportScale :: (MonadState ECS m) => EntityID -> m GLfloat
+getEntityTeleportScale entityID = fromMaybe 1 <$> getEntityComponent entityID myTeleportScale
+
+getTeleportScale :: (MonadReader EntityID m, MonadState ECS m) => m GLfloat
+getTeleportScale = getEntityTeleportScale =<< ask

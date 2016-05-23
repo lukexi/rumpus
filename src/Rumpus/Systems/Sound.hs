@@ -29,9 +29,8 @@ data AllocatedOpenALSource = AllocatedOpenALSource
     }
 
 data PolyPatchVoice = PolyPatchVoice
-    { ppvEntityID     :: !EntityID
-    , ppvPatch        :: !PatchWithFile
-    , ppvOpenALSource :: !OpenALSource
+    { ppvPatch        :: !PatchWithFile
+    , ppvOpenALSource :: !AllocatedOpenALSource
     }
 
 data SoundSystem = SoundSystem
@@ -52,31 +51,24 @@ defineComponentKey ''OpenALSource
 polyPatchPolyphony :: Int
 polyPatchPolyphony = 8
 
-{-
-
-PolyPatch:
-Should be stored in myPdPatch with a sum type.
-when sendPd is called, check if the entityID has a polypatch assigned to it.
-If not, acquire one and associate it with the entityID so that its audio follows the entity.
-
-
--}
-
+-- | Returns a list of instances of a Pd patch with the given name.
+-- To create this list, create N instances (where N=polyPatchPolyphony)
+-- and steal N voices from the global OpenAL allocator. These will be
+-- permanently assigned to the polyphonic voices.
 getPolyPatchVoices :: (MonadState ECS m, MonadIO m) => FilePath -> m [PolyPatchVoice]
 getPolyPatchVoices patchName = do
     viewSystem sysSound (sndPolyPatchVoices . at patchName) >>= \case
         Just polyPatchVoices -> return polyPatchVoices
         Nothing -> do
             patches <- replicateM polyPatchPolyphony $ makePatchWithFile patchName
-            sources <- allocateOpenALSources polyPatchPolyphony
+            sources <- stealOpenALSources polyPatchPolyphony
 
             pd <- getPd
             forM_ (zip patches (map aosDACChannel sources)) $ \(patch, sourceChannel) ->
                 send pd (pwfPatch patch) "dac" (fromIntegral sourceChannel)
-            let polyPatchVoices = zipWith3 PolyPatchVoice
-                    (repeat 0 :: [EntityID])
-                    patches
-                    (map aosOpenALSource sources)
+            let polyPatchVoices = zipWith PolyPatchVoice
+                                            patches
+                                            sources
             modifySystemState sysSound $
                 sndPolyPatchVoices . at patchName ?= polyPatchVoices
             return polyPatchVoices
@@ -94,15 +86,15 @@ acquirePolyPatch patchName = do
             (voice:xs) -> do
                 let PolyPatchVoice{..} = voice
 
-                inEntity ppvEntityID $ do
+                inEntity (aosEntityID ppvOpenALSource) $ do
                     removeComponent myOpenALSource
                     removeComponent myPdPatch
 
                 inEntity thisEntityID $ do
-                    myOpenALSource ==> ppvOpenALSource
+                    myOpenALSource ==> aosOpenALSource ppvOpenALSource
                     myPdPatch      ==> ppvPatch
 
-                let newVoice = voice { ppvEntityID = thisEntityID }
+                let newVoice = voice { ppvOpenALSource = ppvOpenALSource { aosEntityID = thisEntityID } }
                 modifySystemState sysSound $
                     sndPolyPatchVoices . at patchName ?= xs ++ [newVoice]
 
@@ -130,7 +122,9 @@ initSoundSystem pd = do
 
     registerSystem sysSound soundSystem
 
-    registerComponent "PdPatchFile" myPdPatchFile (savedComponentInterface myPdPatchFile)
+    -- No reason to save this right now while the only way to set a pd patch is via a start function
+    --registerComponent "PdPatchFile" myPdPatchFile (savedComponentInterface myPdPatchFile)
+    registerComponent "PdPatchFile" myPdPatchFile (newComponentInterface myPdPatchFile)
     registerComponent "OpenALSource" myOpenALSource (newComponentInterface myOpenALSource)
     registerComponent "PdPatch" myPdPatch $ (newComponentInterface myPdPatch)
         { ciDeriveComponent = Just derivePdPatchComponent
@@ -148,24 +142,31 @@ tickSoundSystem = do
 
 -- | We currently implement this by voice stealing,
 -- so the oldest object will lose sound.
-dequeueOpenALSource :: MonadState ECS m => EntityID -> m (Maybe AllocatedOpenALSource)
+dequeueOpenALSource :: (MonadState ECS m, MonadIO m) => EntityID -> m (Maybe AllocatedOpenALSource)
 dequeueOpenALSource entityID = do
     openALSourcePool <- viewSystem sysSound sndOpenALSourcePool
     case openALSourcePool of
         [] -> return Nothing
         (allocatedSource:xs) -> do
-            inEntity (aosEntityID allocatedSource) $
+            inEntity (aosEntityID allocatedSource) $ do
+                sendPd "dac" 0
                 removeComponent myOpenALSource
             let newAllocatedSource = allocatedSource { aosEntityID = entityID }
             modifySystemState sysSound $ do
                 sndOpenALSourcePool .= xs ++ [newAllocatedSource]
             return (Just newAllocatedSource)
 
-allocateOpenALSources :: MonadState ECS m => Int -> m [AllocatedOpenALSource]
-allocateOpenALSources numSources = modifySystemState sysSound $ do
-    openALSourcePool <- use sndOpenALSourcePool
-    sndOpenALSourcePool .= drop numSources openALSourcePool
-    return (take numSources openALSourcePool)
+stealOpenALSources :: (MonadState ECS m, MonadIO m) => Int -> m [AllocatedOpenALSource]
+stealOpenALSources numSources = do
+    stolenSources <- modifySystemState sysSound $ do
+        openALSourcePool <- use sndOpenALSourcePool
+        sndOpenALSourcePool .= drop numSources openALSourcePool
+        return (take numSources openALSourcePool)
+    forM stolenSources $ \allocatedSource -> do
+        inEntity (aosEntityID allocatedSource) $ do
+            sendPd "dac" 0
+            removeComponent myOpenALSource
+        return allocatedSource { aosEntityID = 0 }
 
 setPdPatchFile :: (MonadReader EntityID m, MonadState ECS m, MonadIO m)
                => FilePath

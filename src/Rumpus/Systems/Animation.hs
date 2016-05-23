@@ -1,24 +1,15 @@
-module Rumpus.Systems.Animation
-    ( module Rumpus.Systems.Animation
-    , module Exports
-    ) where
+module Rumpus.Systems.Animation where
 
 import PreludeExtra
-import Animation.Pal as Exports hiding (getNow, exhaustTChan)
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Controls
 
-defineComponentKeyWithType "ColorAnimation" [t|Animation (V4 GLfloat)|]
-defineComponentKeyWithType "SizeAnimation"  [t|Animation (V3 GLfloat)|]
-defineComponentKeyWithType "PositionAnimation"  [t|Animation (V3 GLfloat)|]
-defineComponentKeyWithType "RotationAnimation"  [t|Animation (Quaternion GLfloat)|]
-
 initAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
 initAnimationSystem = do
-    registerComponent "ColorAnimation" myColorAnimation (newComponentInterface myColorAnimation)
-    registerComponent "SizeAnimation"  mySizeAnimation  (newComponentInterface mySizeAnimation)
+    registerComponent "ColorAnimation"     myColorAnimation     (newComponentInterface myColorAnimation)
+    registerComponent "SizeAnimation"      mySizeAnimation      (newComponentInterface mySizeAnimation)
     registerComponent "PositionAnimation"  myPositionAnimation  (newComponentInterface myPositionAnimation)
     registerComponent "RotationAnimation"  myRotationAnimation  (newComponentInterface myRotationAnimation)
 
@@ -27,7 +18,7 @@ tickAnimationSystem = whenWorldPlaying $ do
     now <- realToFrac <$> getNow
 
     tickComponentAnimation now myColorAnimation setColor
-    tickComponentAnimation now mySizeAnimation  setSize
+    tickComponentAnimation now mySizeAnimation  setSizeNoAnim
     tickComponentAnimation now myPositionAnimation setPosition
     tickComponentAnimation now myRotationAnimation setRotationQ
 
@@ -51,3 +42,9 @@ animateSizeTo newSize time = do
     currentSize <- getSize
     animation <- makeAnimation time currentSize newSize
     mySizeAnimation ==> animation
+
+
+animateColor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> V4 GLfloat -> V4 GLfloat -> m ()
+animateColor time fromColor toColor = do
+    animation <- makeAnimation time fromColor toColor
+    myColorAnimation ==> animation

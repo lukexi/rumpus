@@ -27,13 +27,12 @@ initSceneSystem = do
         pristineSceneFolder  = pristineSceneDirWithName sceneFolderName
 
     copyStartScene pristineSceneFolder userSceneFolder
-    liftIO $ copyFile (pristineDir </> "redirect.txt") (userRumpusRoot </> "redirect.txt")
-        `catchIOError`
-            (\e -> putStrLnIO ("copyFile redirect.txt: " ++ show e))
+
+    copyRedirectExampleFile userRumpusRoot
 
     let
-        --useUserFolder = isInReleaseMode
-        useUserFolder = True
+        useUserFolder = isInReleaseMode
+        --useUserFolder = True
         sceneFolder = if useUserFolder
             then userSceneFolder
             else pristineSceneFolder
@@ -96,6 +95,14 @@ copyStartScene pristineSceneDir userSceneDir = liftIO $ do
         copyDirectory pristineSceneDir userSceneDir
             `catchIOError`
                 (\e -> putStrLnIO ("copyStartScene: " ++ show e))
+
+copyRedirectExampleFile :: MonadIO m => FilePath -> m ()
+copyRedirectExampleFile userRumpusRoot = liftIO $ do
+    exists <- doesFileExist "redirect.txt"
+    when (not exists) $ do
+        copyFile (pristineDir </> "redirect.txt") (userRumpusRoot </> "redirect.txt")
+            `catchIOError`
+                (\e -> putStrLnIO ("copyFile redirect.txt: " ++ show e))
 
 pristineSceneDirWithName :: String -> FilePath
 pristineSceneDirWithName name = pristineDir </> name
