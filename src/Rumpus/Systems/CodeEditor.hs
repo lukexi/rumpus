@@ -56,8 +56,20 @@ sharedGHCSessionConfig :: GHCSessionConfig
 sharedGHCSessionConfig = defaultGHCSessionConfig
     { gscFixDebounce = DebounceFix
     , gscStartupFile = Just ("resources"</>"Loader.hs", "start")
+    , gscLanguageExtensions = rumpusLanguageExtensions
     --, gscCompilationMode = Compiled
     }
+
+rumpusLanguageExtensions :: [ExtensionFlag]
+rumpusLanguageExtensions =
+    [ Opt_FlexibleContexts
+    , Opt_RecordWildCards
+    , Opt_ViewPatterns
+    , Opt_LambdaCase
+    , Opt_MultiWayIf
+    , Opt_BangPatterns
+    , Opt_NegativeLiterals
+    ]
 
 withRumpusGHC :: MonadIO m => (TChan CompilationRequest -> m a) -> m a
 withRumpusGHC action = do

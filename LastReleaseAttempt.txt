@@ -60,6 +60,7 @@
     [x] Clipping/scrolling
     [ ] Add line numbers?? Any way to do that easily??
         (could do this the lazy way with a display at the bottom of the screen)
+        (also far less important if we just parse out and highlight the errors ourselves)
 
 
 
@@ -119,7 +120,7 @@ OBJECTS
         Using same set of rules to generate multiple possibilities.
     [ ] Some sort of swarm of cubes, taking advantage of instancing
         (the most effective version of this would be using a vert-shader for rotation etc.
-        as we seem to be generally CPU bound and barely using the GPU)
+        as we are generally CPU bound and barely using the GPU)
 
 
 
@@ -143,7 +144,7 @@ Jacobs requests:
     and give us time to submit all the render calls. we are probably well within time for that... but I guess try it!)
 
 
-[ ] Time update/start runs. Remove them if they take too long and set an error.
+[x] Time update/start runs. Remove them if they take too long and set an error.
     This won't handle nontermination, which will require running a thread and
     manufacturing dummy data (esp, how to deal with dynamics world?) which will get complicated.
     It feels like smarter idea is the whole separate-render-thread-from-logic-thread thing,

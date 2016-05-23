@@ -1,6 +1,6 @@
 BUGS
     [ ] Crashes if a .yaml object has a StartExpr for a .hs file that no longer exists.
-    [ ] Pressing down and up reloads the file ?!?
+    [x] Pressing down and up reloads the file ?!?
 
 KEYBOARD
     [x] Fix selection with keypads

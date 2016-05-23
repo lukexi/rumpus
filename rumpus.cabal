@@ -128,6 +128,7 @@ library
     BangPatterns
     DeriveGeneric
     DeriveDataTypeable
+    NegativeLiterals
 
 executable rumpus
   hs-source-dirs:      app

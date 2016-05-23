@@ -1,0 +1,8 @@
+ShapeSpeech
+
+Create a series of transient objects that demonstrate some abstract feeling
+For example a serpienski pyramid that subdivides and then disappears
+Each one should be very short so that you can pull them out one after another
+in a performance
+
+Obviously a sound component would be lovely : )

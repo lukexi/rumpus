@@ -1,0 +1,15 @@
+Newsense.txt
+
+
+The tangible raycasting currently employed for teleportation
+would make a very good demo of augmented sensory perception.
+
+Create a scene with various objects (spheres, cubes, pyramids etc.)
+Demonstrate that you can walk through the scene blindfolded by
+sweeping with the raycaster. Implement varying strength/frequency by distance.
+
+Then show that you can see just as well behind you as you can in front of you
+by walking backwards through the scene.
+
+Finally, show that you can shoot a moving target behind your back using solely
+the beam-sense.

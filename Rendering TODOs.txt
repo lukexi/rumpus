@@ -1,3 +1,7 @@
 Implement Persistent mapped storage
 Render both eyes at once
 Render text to texture
+[ ] Performance notes:
+    The data buffering will be a lot faster once we've got everything in aligned vectors;
+    currently we're doing tons and tons of lookups on entityIDs when we'd rather just iterate a bunch of buffers in parallel:
+    case in point being rendering, we want [Color] [M44] that we can dump into StreamingArrayBuffers directly

@@ -19,3 +19,17 @@ Script performance can impact render performace; due to Rumpus being mostly sing
 No undo, syntax highlighting or code completion. Coming soon!
 Transform hierarchy can't interact with physics. Redesign in progress.
 Only two shapes: Cube and Sphere. Mainly due to extra physics effort; more coming soon!
+
+
+
+
+
+
+
+(scene idea: rather than representing via a cube,
+represent with a miniature view of what the scene loader
+looks like that then expands around you while the world
+in front of you disappears.
+
+could do a fade-out of the scene except for the mini-loader-cube,
+then have it zoom around you!)

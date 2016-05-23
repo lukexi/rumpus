@@ -56,8 +56,14 @@ getSceneStateFolder = (</> ".world-state") <$> getSceneFolder
 setSceneFolder :: MonadState ECS m => FilePath -> m ()
 setSceneFolder sceneFolder = modifySystemState sysScene (scnScene . scnFolder .= sceneFolder)
 
+closeScene = do
+    existingEntities <- wldPersistentEntities <.= mempty
+    forM_ existingEntities removeEntity
+
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneFolder = do
+    closeScene
+
     putStrLnIO $ "Loading scene: " ++ sceneFolder
     setSceneFolder sceneFolder
 
