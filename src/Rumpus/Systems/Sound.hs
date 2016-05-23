@@ -5,14 +5,14 @@ module Rumpus.Systems.Sound
 
 import PreludeExtra
 import Sound.Pd
-import Sound.Pd.Core
+--import Sound.Pd.Core
 
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Scene
 import Rumpus.Systems.Controls
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Storable as V
-import qualified Data.HashMap.Strict as Map
+--import qualified Data.HashMap.Strict as Map
 
 type DACChannel = Int
 -- Keep track of which file the patch was derived from so we
@@ -73,6 +73,8 @@ getPolyPatchVoices patchName = do
                 sndPolyPatchVoices . at patchName ?= polyPatchVoices
             return polyPatchVoices
 
+acquirePolyPatch :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+                 => FilePath -> m ()
 acquirePolyPatch patchName = do
 
     thisEntityID <- ask
@@ -202,6 +204,7 @@ derivePdPatchComponent = do
                     putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show aosDACChannel
                     sendPd "dac" (fromIntegral aosDACChannel)
 
+makePatchWithFile :: (MonadIO m, MonadState ECS m) => FilePath -> m PatchWithFile
 makePatchWithFile patchFile = do
     pd <- getPd
     sceneFolder <- getSceneFolder
