@@ -2,6 +2,7 @@
 
 module RumpusLib where
 import PreludeExtra
+import Data.List (isPrefixOf)
 
 createNewTimer :: (RealFrac a, MonadIO m) => a -> m (TVar Bool)
 createNewTimer ticksPerSec = liftIO $ registerDelay (floor $ (1/ticksPerSec) * 1000 * 1000)
@@ -31,3 +32,16 @@ randomRange = liftIO . randomRIO
 
 rotationAndPosition :: Num a => Quaternion a -> V3 a -> M44 a
 rotationAndPosition = mkTransformation
+
+
+
+-- | Given a list of names like [NewObject1, NewObject3, NewObject17],
+-- and their common prefix (in example, NewObject),
+-- finds the successor name of the highest name.
+-- Example list would return NewObject18.
+findNextNumberedName :: String -> [String] -> String
+findNextNumberedName name inList =
+    let newObjects = filter (isPrefixOf name) inList
+        existingNumbers = catMaybes $ map (readMaybe . drop (length name)) newObjects :: [Int]
+        highest = if null existingNumbers then 0 else maximum existingNumbers
+    in name ++ show (succ highest)

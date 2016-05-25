@@ -3,13 +3,10 @@ import Data.ECS
 import Rumpus.Types
 import PreludeExtra
 
-data Scene = Scene
-    { _scnFolder  :: !FilePath
-    }
-makeLenses ''Scene
 
 data SceneSystem = SceneSystem
-    { _scnScene   :: !Scene
+    { _scnScene   :: !(Maybe FilePath)
+    , _scnRumpusRoot :: !FilePath
     }
 makeLenses ''SceneSystem
 
@@ -17,47 +14,43 @@ defineSystemKey ''SceneSystem
 
 initSceneSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSceneSystem = do
-    let defaultScene = "Room"
-    --let defaultScene = "NewObjects"
-    sceneFolderName <- fromMaybe defaultScene . listToMaybe <$> liftIO getArgs
-
 
     userRumpusRoot <- getUserRumpusRoot
-    let userSceneFolder      = userRumpusRoot </> sceneFolderName
-        pristineSceneFolder  = pristineSceneDirWithName sceneFolderName
 
-    copyStartScene pristineSceneFolder userSceneFolder
-
-    copyRedirectExampleFile userRumpusRoot
+    copyPristineDirIfMissing pristineDir userRumpusRoot
 
     let
         useUserFolder = isInReleaseMode
         --useUserFolder = True
-        sceneFolder = if useUserFolder
-            then userSceneFolder
-            else pristineSceneFolder
+        rootToUse = if useUserFolder
+            then userRumpusRoot
+            else pristineDir
 
-    registerSystem sysScene (SceneSystem (Scene sceneFolder))
+    registerSystem sysScene $ SceneSystem
+        { _scnScene = Nothing
+        , _scnRumpusRoot = rootToUse
+        }
 
-startSceneSystem :: (MonadIO m, MonadState ECS m) => m ()
-startSceneSystem = do
-    -- Profiling doesn't support hot code load, so we can't load scenes
-    -- (we use TestScene instead in Main)
-    unless isBeingProfiled $ do
-        loadScene =<< getSceneFolder
+getRumpusRootFolder :: MonadState ECS m => m FilePath
+getRumpusRootFolder = viewSystem sysScene scnRumpusRoot
 
-getSceneFolder :: MonadState ECS m => m FilePath
-getSceneFolder = viewSystem sysScene (scnScene . scnFolder)
+getSceneFolder :: MonadState ECS m => m (Maybe FilePath)
+getSceneFolder = viewSystem sysScene scnScene
 
-getSceneStateFolder :: MonadState ECS m => m FilePath
-getSceneStateFolder = (</> ".world-state") <$> getSceneFolder
+getSceneStateFolder :: MonadState ECS m => m (Maybe FilePath)
+getSceneStateFolder = do
+    maybeFolder <- getSceneFolder
+    return $ stateFolderForSceneFolder <$> maybeFolder
+
+stateFolderForSceneFolder :: FilePath -> FilePath
+stateFolderForSceneFolder = (</> ".world-state")
 
 setSceneFolder :: MonadState ECS m => FilePath -> m ()
-setSceneFolder sceneFolder = modifySystemState sysScene (scnScene . scnFolder .= sceneFolder)
+setSceneFolder sceneFolder = modifySystemState sysScene (scnScene ?= sceneFolder)
 
 closeScene :: (MonadIO m, MonadState ECS m) => m ()
 closeScene = do
-    existingEntities <- wldPersistentEntities <.= mempty
+    existingEntities <- wldPersistentEntities <<.= mempty
     forM_ existingEntities removeEntity
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
@@ -67,49 +60,48 @@ loadScene sceneFolder = do
     putStrLnIO $ "Loading scene: " ++ sceneFolder
     setSceneFolder sceneFolder
 
-    stateFolder <- getSceneStateFolder
+    let stateFolder = stateFolderForSceneFolder sceneFolder
     liftIO $ createDirectoryIfMissing True stateFolder
     loadEntities stateFolder
 
 -- FIXME: move the .world-state concept into extensible-ecs
 saveScene :: ECSMonad ()
 saveScene = do
-    stateFolder <- getSceneStateFolder
-    liftIO $ do
-        removeDirectoryRecursive stateFolder
-        createDirectoryIfMissing True stateFolder
-    saveEntities stateFolder
+    maybeStateFolder <- getSceneStateFolder
+    forM_ maybeStateFolder $ \stateFolder -> do
+        liftIO $ do
+            removeDirectoryRecursive stateFolder
+            createDirectoryIfMissing True stateFolder
+        saveEntities stateFolder
 
-fileInScene :: MonadState ECS m => FilePath -> m FilePath
+fileInScene :: MonadState ECS m => FilePath -> m (Maybe FilePath)
 fileInScene fileName = do
     sceneFolder <- getSceneFolder
-    return (sceneFolder </> fileName)
+    return (sceneFolder <&> (</> fileName))
+
+fileInRumpusRoot :: MonadState ECS m => FilePath -> m FilePath
+fileInRumpusRoot fileName = do
+    rumpusRootFolder <- getRumpusRootFolder
+    return (rumpusRootFolder </> fileName)
+
 
 -- | Copy the 'pristine' Scenes folder into the user's Documents/Rumpus directory on startup
 -- if the Documents/Rumpus folder is missing.
 
-copyStartScene :: MonadIO m => FilePath -> FilePath -> m ()
-copyStartScene pristineSceneDir userSceneDir = liftIO $ do
+copyPristineDirIfMissing :: MonadIO m => FilePath -> FilePath -> m ()
+copyPristineDirIfMissing pristineSceneDir userSceneDir = liftIO $ do
 
     exists <- doesDirectoryExist userSceneDir
     when (not exists) $ do
         copyDirectory pristineSceneDir userSceneDir
             `catchIOError`
-                (\e -> putStrLnIO ("copyStartScene: " ++ show e))
-
-copyRedirectExampleFile :: MonadIO m => FilePath -> m ()
-copyRedirectExampleFile userRumpusRoot = liftIO $ do
-    exists <- doesFileExist "redirect.txt"
-    when (not exists) $ do
-        copyFile (pristineDir </> "redirect.txt") (userRumpusRoot </> "redirect.txt")
-            `catchIOError`
-                (\e -> putStrLnIO ("copyFile redirect.txt: " ++ show e))
+                (\e -> putStrLnIO ("copyPristineDirIfMissing: " ++ show e))
 
 pristineSceneDirWithName :: String -> FilePath
 pristineSceneDirWithName name = pristineDir </> name
 
 pristineDir :: FilePath
-pristineDir = "pristine" </> "Scenes"
+pristineDir = "pristine"
 
 copyDirectory :: MonadIO m => FilePath -> FilePath -> m ()
 copyDirectory src dst = liftIO $ do
@@ -135,7 +127,7 @@ copyDirectory src dst = liftIO $ do
         whenM s r = s >>= flip when r
 
 versionString :: String
-versionString = "0.1.1"
+versionString = "0.1.2"
 
 getUserRumpusRoot :: MonadIO m => m FilePath
 getUserRumpusRoot = liftIO $ do

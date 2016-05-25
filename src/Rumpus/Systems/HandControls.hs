@@ -9,7 +9,6 @@ import Rumpus.Systems.Creator
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Teleport
 import Rumpus.Systems.SceneEditor
-import Rumpus.Systems.Scene
 import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.CodeProtect
 

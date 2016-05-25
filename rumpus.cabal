@@ -71,6 +71,7 @@ library
                        Rumpus.Systems.Scene
                        Rumpus.Systems.SceneEditor
                        Rumpus.Systems.SceneWatcher
+                       Rumpus.Systems.SceneLoader
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Sound

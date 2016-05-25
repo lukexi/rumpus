@@ -14,7 +14,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Systems.SceneWatcher
-import Data.List (delete, isPrefixOf)
+import Data.List (delete)
 import RumpusLib
 -- NOTE: this illustrates how handy it will be to have arbitrary components;
 -- rather than creating yet more maps, we can just say
@@ -41,8 +41,8 @@ checkForDestruction whichHand = do
 
 openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
-    sceneFolder <- getSceneFolder
-    codePaths <- getDirectoryContentsWithExtension "hs" sceneFolder
+    rumpusRoot <- getRumpusRootFolder
+    codePaths  <- getDirectoryContentsWithExtension "hs" rumpusRoot
 
     let codePathsWithNewObject = (Nothing : map Just codePaths)
         positions = goldenSectionSpiralPoints (length codePathsWithNewObject)
@@ -53,8 +53,43 @@ openEntityLibrary whichHand = do
 
     destructionOrb <- addDestructionOrb whichHand
 
+    exitOrb <- addExitOrb whichHand
+
     modifySystemState sysCreator $
-        crtOpenLibrary . at whichHand ?= destructionOrb:libraryEntities
+        crtOpenLibrary . at whichHand ?= destructionOrb:exitOrb:libraryEntities
+
+addExitOrb :: (MonadIO m, MonadState ECS m)
+           => WhichHand -> m EntityID
+addExitOrb whichHand = do
+
+    let otherHand = getOtherHand whichHand
+    otherHandID <- getOtherHandID whichHand
+
+    let normalPulse = do
+            now <- getNow
+            let brightness = (* 0.5) . (+1) . (/2) . sin $ now
+            setColor (colorHSL 0.4 0.8 brightness)
+    exitOrbID <- spawnEntity $ do
+        myColor      ==> (colorHSL 0.7 0.8 0)
+        myShape      ==> Sphere
+        mySize       ==> 0.01
+        myProperties ==> [Floating]
+        myUpdate     ==> normalPulse
+        myDragBegan ==> do
+            closeEntityLibrary whichHand
+            closeScene
+        -- Pulse the other hand when it hovers over us
+        myColliding ==> \entityID _ -> do
+            when (entityID == otherHandID) $ do
+                hapticPulse otherHand 1000
+
+    handID   <- getHandID whichHand
+    handPose <- getEntityPose handID
+    setEntityPose exitOrbID (handPose !*! translateMatrix exitOrbOffset)
+    attachEntityToEntity handID exitOrbID False
+
+    inEntity exitOrbID $ animateSizeTo 0.05 0.3
+    return exitOrbID
 
 addDestructionOrb :: (MonadIO m, MonadState ECS m)
                    => WhichHand -> m EntityID
@@ -69,20 +104,16 @@ addDestructionOrb whichHand = do
             setColor (colorHSL 0.1 0.8 brightness)
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
-    newEntityID <- spawnEntity $ do
+    destructorID <- spawnEntity $ do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
         mySize       ==> 0.01
         myProperties ==> [Floating]
         myUpdate     ==> normalPulse
 
-        myCollisionEnd ==> \entityID -> do
-            pendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at whichHand)
-            when (pendingDestruction == Just entityID) $ do
-                myUpdate ==> normalPulse
-                animateSizeTo 0.05 0.3
-                modifySystemState sysCreator $
-                    crtPendingDestruction . at whichHand .= Nothing
+        -- When an entity collides with us that's held by the other hand,
+        -- grow and change color to indicate that the object will be deleted on release.
+        -- Set the object as "pending destruction".
         myCollisionStart ==> \entityID _ -> do
             otherHandID <- getOtherHandID whichHand
             isBeingHeldByOtherHand <- isEntityAttachedTo entityID otherHandID
@@ -91,15 +122,33 @@ addDestructionOrb whichHand = do
                 myUpdate ==> angryPulse
                 modifySystemState sysCreator $
                     crtPendingDestruction . at whichHand ?= entityID
+        -- Pulse the hand holding the item while hovering over the orb
+        myColliding ==> \_entityID _ -> do
+            let otherHand = getOtherHand whichHand
+            hapticPulse otherHand 1100
+        -- When the collision ends, either due to the object being dropped or
+        -- because the user changed their mind and pulled away, return to normal
+        -- size and clear the object from "pending destruction"
+        myCollisionEnd ==> \entityID -> do
+            pendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at whichHand)
+            when (pendingDestruction == Just entityID) $ do
+                myUpdate ==> normalPulse
+                animateSizeTo 0.05 0.3
+                modifySystemState sysCreator $
+                    crtPendingDestruction . at whichHand .= Nothing
 
-    setEntityPose newEntityID (handPose !*! translateMatrix creatorOffset)
-    attachEntityToEntity handID newEntityID False
 
-    inEntity newEntityID $ animateSizeTo 0.05 0.3
-    return newEntityID
+    setEntityPose destructorID (handPose !*! translateMatrix creatorOffset)
+    attachEntityToEntity handID destructorID False
+
+    inEntity destructorID $ animateSizeTo 0.05 0.3
+    return destructorID
 
 creatorOffset :: V3 GLfloat
-creatorOffset = V3 0 0 (-0.4)
+creatorOffset = V3 0 0 -0.4
+
+exitOrbOffset :: V3 GLfloat
+exitOrbOffset = V3 0 0 0.4
 
 getOtherHand :: WhichHand -> WhichHand
 getOtherHand whichHand = case whichHand of
@@ -193,27 +242,17 @@ defaultStartCodeWithModuleName moduleName = unlines
 addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                 => m ()
 addNewStartExpr = do
-    sceneFolder <- getSceneFolder
-    files <- getDirectoryContentsWithExtension "hs" sceneFolder
+    rumpusRoot <- getRumpusRootFolder
+    files <- getDirectoryContentsWithExtension "hs" rumpusRoot
 
     let newObjectCodeName = findNextNumberedName "MyObject" (map takeBaseName files)
-        entityFileName  = newObjectCodeName <.> "hs"
-        entityFilePath  = sceneFolder </> entityFileName
+        entityFileName    = newObjectCodeName <.> "hs"
+        entityFilePath    = rumpusRoot </> entityFileName
     liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName newObjectCodeName)
 
-    -- Scene folder is auto-appended in CodeEditor, so we just need the filename with no path.
+    -- Rumpus folder is auto-appended in CodeEditor, so we just need the filename with no path.
     setStartExpr entityFileName
 
--- | Given a list of names like [NewObject1, NewObject3, NewObject17],
--- and their common prefix (in example, NewObject),
--- finds the successor name of the highest name.
--- Example list would return NewObject18.
-findNextNumberedName :: String -> [String] -> String
-findNextNumberedName name inList =
-    let newObjects = filter (isPrefixOf name) inList
-        existingNumbers = catMaybes $ map (readMaybe . drop (length name)) newObjects :: [Int]
-        highest = if null existingNumbers then 0 else maximum existingNumbers
-    in name ++ show (succ highest)
 
 setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
              => FilePath -> m ()
@@ -232,11 +271,11 @@ addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
             -> Key (EntityMap a)
             -> m ()
 addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
-    sceneFolder <- getSceneFolder
+    rumpusRoot <- getRumpusRootFolder
     entityID <- ask
     let defaultFilePath = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
         entityFileName = (show entityID ++ "-" ++ fileName) <.> "hs"
-        entityFilePath = sceneFolder </> entityFileName
+        entityFilePath = rumpusRoot </> entityFileName
         codeFile = (entityFileName, exprName)
     liftIO $ copyFile defaultFilePath entityFilePath
     codeFileComponentKey ==> codeFile

@@ -205,9 +205,10 @@ derivePdPatchComponent = do
 makePatchWithFile :: (MonadIO m, MonadState ECS m) => FilePath -> m PatchWithFile
 makePatchWithFile patchFile = do
     pd <- getPd
-    sceneFolder <- getSceneFolder
-    addPdPatchSearchPath sceneFolder
-    patch <- makePatch pd (sceneFolder </> takeBaseName patchFile)
+    -- FIXME if we return to using scene folders to store patches, must use getSceneFolder here
+    rumpusRoot <- getRumpusRootFolder
+    addPdPatchSearchPath rumpusRoot
+    patch <- makePatch pd (rumpusRoot </> takeBaseName patchFile)
     return PatchWithFile { pwfFilePath = patchFile, pwfPatch = patch }
 
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()

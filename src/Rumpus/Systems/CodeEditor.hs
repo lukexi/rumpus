@@ -150,7 +150,7 @@ createCodeEditor :: (MonadIO m, MonadState ECS m)
 createCodeEditor (codeFile, codeExpr) = do
     ghcChan         <- viewSystem sysCodeEditor cesGHCChan
     font            <- getFont
-    codeFileInScene <- fileInScene codeFile
+    codeFileInScene <- fileInRumpusRoot codeFile
 
     recompiler <- recompilerForExpression ghcChan codeFileInScene codeExpr True
 
@@ -189,7 +189,7 @@ recompileCodeInFile :: (MonadIO m, MonadState ECS m)
 recompileCodeInFile codeInFile@(codeFile, codeExpr) = withCodeEditor codeInFile $ \codeEditor -> do
     ghcChan <- viewSystem sysCodeEditor cesGHCChan
 
-    codeFileInScene <- fileInScene codeFile
+    codeFileInScene <- fileInRumpusRoot codeFile
 
     let resultsChan = codeEditor ^. cedRecompiler . to recResultTChan
         textBuffer  = codeEditor ^. cedCodeRenderer . txrTextBuffer
@@ -250,8 +250,8 @@ moveCodeEditorFile :: (MonadIO m, MonadState ECS m) => FilePath -> FilePath -> S
 moveCodeEditorFile oldFileName newFileName codeExpr = do
     let oldCodeInFile = (oldFileName, codeExpr)
         newCodeInFile = (newFileName, codeExpr)
-    oldFileInScene <- fileInScene oldFileName
-    newFileInScene <- fileInScene newFileName
+    oldFileInScene <- fileInRumpusRoot oldFileName
+    newFileInScene <- fileInRumpusRoot newFileName
     successful <- liftIO $ tryIOError $ renameFile oldFileInScene newFileInScene
     case successful of
         Left moveError -> do

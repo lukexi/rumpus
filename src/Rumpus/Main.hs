@@ -28,13 +28,14 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         initSoundSystem pd
         initSelectionSystem
         initSceneSystem
+        initSceneLoaderSystem
         initSceneWatcherSystem
         initSharedSystem
         initTextSystem
 
         startHandsSystem
         startKeyPadsSystem
-        startSceneSystem
+        startSceneLoaderSystem
         startSceneWatcherSystem
         when isBeingProfiled loadTestScene
 

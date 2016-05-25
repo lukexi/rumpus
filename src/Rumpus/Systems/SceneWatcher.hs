@@ -40,8 +40,8 @@ getStopWatcher   = viewSystem sysSceneWatcher swaStopWatcher
 
 startSceneWatcherSystem :: (MonadState ECS m, MonadIO m) => m ()
 startSceneWatcherSystem = do
-    sceneStateFolder <- getSceneStateFolder
-    beginWatching sceneStateFolder
+    rumpusRootFolder <- getRumpusRootFolder
+    beginWatching rumpusRootFolder
 
 beginWatching :: (MonadState ECS m, MonadIO m) => FilePath -> m ()
 beginWatching folder = do
@@ -96,16 +96,17 @@ checkIfShouldIgnoreDueToStatus (WrittenAt writeTime) eventtTime
 sceneWatcherRemoveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherRemoveEntity entityID = do
 
-    sceneStateFolder <- getSceneStateFolder
+    mSceneStateFolder <- getSceneStateFolder
+    forM_ mSceneStateFolder $ \sceneStateFolder -> do
 
-    let entityPath = pathForEntity sceneStateFolder entityID
-    setWatchedFileStatus entityPath Deleted
+        let entityPath = pathForEntity sceneStateFolder entityID
+        setWatchedFileStatus entityPath Deleted
 
-    liftIO $ removeFile entityPath
-        `catchIOError` (\e ->
-            putStrLn ("sceneWatcherRemoveEntity: "
-                ++ show entityPath ++ " " ++ show e))
-    removeEntity entityID
+        liftIO $ removeFile entityPath
+            `catchIOError` (\e ->
+                putStrLn ("sceneWatcherRemoveEntity: "
+                    ++ show entityPath ++ " " ++ show e))
+        removeEntity entityID
 
 setWatchedFileStatus :: MonadState ECS m => FilePath -> LocalFileStatus -> m ()
 setWatchedFileStatus path status =
@@ -114,11 +115,13 @@ setWatchedFileStatus path status =
 
 sceneWatcherSaveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherSaveEntity entityID = do
-    sceneStateFolder <- getSceneStateFolder
-    let entityPath = pathForEntity sceneStateFolder entityID
+    mSceneStateFolder <- getSceneStateFolder
+    forM_ mSceneStateFolder $ \sceneStateFolder -> do
 
-    setWatchedFileStatus entityPath Writing
-    saveEntity entityID sceneStateFolder
-    writtenTime <- liftIO getCurrentTime
-    setWatchedFileStatus entityPath (WrittenAt writtenTime)
+        let entityPath = pathForEntity sceneStateFolder entityID
+
+        setWatchedFileStatus entityPath Writing
+        saveEntity entityID sceneStateFolder
+        writtenTime <- liftIO getCurrentTime
+        setWatchedFileStatus entityPath (WrittenAt writtenTime)
 
