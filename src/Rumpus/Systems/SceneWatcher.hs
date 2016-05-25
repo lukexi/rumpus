@@ -11,10 +11,7 @@ data LocalFileStatus
     | Deleted
     deriving Show
 
--- FIXME: We only write and check the filename for events to avoid
--- dealing with converting between the absolute paths coming from FSNotify
--- and the relative paths we use during development.
--- Perhaps convert all paths to absolute?
+-- NOTE: these are all absolute paths - we could use the `path` package to ensure that.
 data SceneWatcherSystem = SceneWatcherSystem
     { _swaFileStatuses   :: !(Map FilePath LocalFileStatus)
     , _swaFileEventChan  :: !(TChan FS.Event)
@@ -65,25 +62,42 @@ tickSceneWatcherSystem = do
     fileEventChan <- getFileEventChan
     events        <- liftIO . atomically . exhaustTChan $ fileEventChan
 
-    forM_ events $ \event -> do
-        let shouldIgnore = checkIfShouldIgnore fileStatuses event
-            maybeEntityID = entityPathToEntityID (eventPath event)
-        -- Ignore event if due to a local modification,
-        -- or if it's not an entity file
-        unless shouldIgnore $
-            forM_ maybeEntityID $ \entityID ->
-                case event of
-                    Added    path _ -> loadEntityFile path
-                    Modified path _ -> loadEntityFile path
-                    Removed  _    _ -> removeEntity entityID
+    rumpusRoot  <- getRumpusRootFolder
+    mSceneStateFolder <- getSceneStateFolderAbsolute
 
-checkIfShouldIgnore :: Map FilePath LocalFileStatus
-                    -> FS.Event -> Bool
-checkIfShouldIgnore fileStatuses event =
-    case Map.lookup (takeFileName $ eventPath event) fileStatuses of
-        Just status ->
-            checkIfShouldIgnoreDueToStatus status (eventTime event)
-        Nothing -> False
+    -- If no open scene, ignore events
+    -- FIXME: we don't live-watch for new scenes, so
+    -- users won't see them if they're created while
+    -- they're in the SceneLoader (until they re-enter it)
+    -- FIXME: if we remove the file-watchers in text-gl and subhalive,
+    -- we'll need to watch the library files outside the scene
+    -- (in RumpusRoot) to actuate code/text editor update
+    forM_ mSceneStateFolder $ \sceneStateFolder ->
+        forM_ events $ \event -> do
+            -- Ignore event if
+            -- - outside scene state folder,
+            -- - due to a local modification,
+            -- - or if it's not an entity file
+            let shouldIgnore = checkIfShouldIgnore sceneStateFolder fileStatuses event
+            unless shouldIgnore $ do
+                let maybeEntityID = entityPathToEntityID (eventPath event)
+                forM_ maybeEntityID $ \entityID ->
+                    case event of
+                        Added    path _ -> loadEntityFile path
+                        Modified path _ -> loadEntityFile path
+                        Removed  _    _ -> removeEntity entityID
+
+checkIfShouldIgnore :: FilePath
+                    -> Map FilePath LocalFileStatus
+                    -> FS.Event
+                    -> Bool
+checkIfShouldIgnore sceneStateFolder fileStatuses event
+    | takeDirectory (eventPath event) /= sceneStateFolder = True
+    | otherwise =
+        case Map.lookup (eventPath event) fileStatuses of
+            Just status ->
+                checkIfShouldIgnoreDueToStatus status (eventTime event)
+            Nothing -> False
 
 checkIfShouldIgnoreDueToStatus :: LocalFileStatus -> UTCTime -> Bool
 checkIfShouldIgnoreDueToStatus Writing _
@@ -99,7 +113,7 @@ sceneWatcherRemoveEntity entityID = do
     mSceneStateFolder <- getSceneStateFolder
     forM_ mSceneStateFolder $ \sceneStateFolder -> do
 
-        let entityPath = pathForEntity sceneStateFolder entityID
+        entityPath <- liftIO . makeAbsolute $ pathForEntity sceneStateFolder entityID
         setWatchedFileStatus entityPath Deleted
 
         liftIO $ removeFile entityPath
@@ -118,7 +132,7 @@ sceneWatcherSaveEntity entityID = do
     mSceneStateFolder <- getSceneStateFolder
     forM_ mSceneStateFolder $ \sceneStateFolder -> do
 
-        let entityPath = pathForEntity sceneStateFolder entityID
+        entityPath <- liftIO . makeAbsolute $ pathForEntity sceneStateFolder entityID
 
         setWatchedFileStatus entityPath Writing
         saveEntity entityID sceneStateFolder

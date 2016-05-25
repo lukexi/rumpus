@@ -42,6 +42,11 @@ getSceneStateFolder = do
     maybeFolder <- getSceneFolder
     return $ stateFolderForSceneFolder <$> maybeFolder
 
+getSceneStateFolderAbsolute :: (MonadIO m, MonadState ECS m) => m (Maybe FilePath)
+getSceneStateFolderAbsolute = do
+    mfolder <- getSceneStateFolder
+    mapM (liftIO . makeAbsolute) mfolder
+
 stateFolderForSceneFolder :: FilePath -> FilePath
 stateFolderForSceneFolder = (</> ".world-state")
 
