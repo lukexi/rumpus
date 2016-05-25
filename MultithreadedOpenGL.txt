@@ -1,0 +1,2 @@
+http://hacksoflife.blogspot.com/2008/02/creating-opengl-objects-in-second.html
+http://stackoverflow.com/questions/17779340/glfw-3-0-resource-loading-with-opengl

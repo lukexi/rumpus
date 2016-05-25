@@ -42,6 +42,7 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         --multithreadedLoop1 vrPal
         --multithreadedLoop2 vrPal
 
+singleThreadedLoop :: VRPal -> ECSMonad ()
 singleThreadedLoop vrPal = do
     whileWindow (gpWindow vrPal) $ do
         playerM44 <- viewSystem sysControls ctsPlayer

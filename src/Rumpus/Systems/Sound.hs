@@ -5,14 +5,12 @@ module Rumpus.Systems.Sound
 
 import PreludeExtra
 import Sound.Pd
---import Sound.Pd.Core
 
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Scene
 import Rumpus.Systems.Controls
 import Data.Vector.Storable (Vector)
 import qualified Data.Vector.Storable as V
---import qualified Data.HashMap.Strict as Map
 
 type DACChannel = Int
 -- Keep track of which file the patch was derived from so we

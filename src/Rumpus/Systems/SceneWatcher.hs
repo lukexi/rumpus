@@ -34,6 +34,7 @@ getFileStatuses = viewSystem sysSceneWatcher swaFileStatuses
 
 getFileEventChan :: MonadState ECS m => m (TChan FS.Event)
 getFileEventChan = viewSystem sysSceneWatcher swaFileEventChan
+
 getStopWatcher :: MonadState ECS m => m (MVar ())
 getStopWatcher   = viewSystem sysSceneWatcher swaStopWatcher
 
@@ -44,8 +45,8 @@ startSceneWatcherSystem = do
 
 beginWatching :: (MonadState ECS m, MonadIO m) => FilePath -> m ()
 beginWatching folder = do
-    fileEventChan <- getFileEventChan
     stopWatcher <- getStopWatcher
+    fileEventChan <- getFileEventChan
     _ <- liftIO . forkIO . FS.withManager $ \manager -> do
         stop <- FS.watchTree manager folder (const True) $ \e -> do
             atomically (writeTChan fileEventChan e)
@@ -63,6 +64,7 @@ tickSceneWatcherSystem = do
     fileStatuses  <- getFileStatuses
     fileEventChan <- getFileEventChan
     events        <- liftIO . atomically . exhaustTChan $ fileEventChan
+
     forM_ events $ \event -> do
         let shouldIgnore = checkIfShouldIgnore fileStatuses event
             maybeEntityID = entityPathToEntityID (eventPath event)

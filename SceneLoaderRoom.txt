@@ -21,3 +21,50 @@ You should be able to customize the loader scene since it's just like any other 
 is to use the controllers like binoculars -
 hold one up to see the controller room (monocular) and both for a second
 to magically transport there.)
+
+
+All of this is quite nice except for the Library.
+A few options:
+
+move the library to the top level.
+    + makes it easy to grow and develop the library alongside the scenes
+    - changes to the library while working on a new scene will invariably break older scenes
+        + maybe this isn't so bad in light of the drawbacks of the rest of these.
+        + can always just copy/paste an object to fork it when realizing you're making changes to its functionality
+        OK THEN!
+        This is what we're doing. That makes things super easy.
+        [ ] Change creator to list Haskell files in RumpusRoot
+        [ ] Loader lists folder names in RumpusRoot
+            [ ] Creating a scene just names it MyScene1 etc.
+
+don't carry the library
+    + super simple to implement
+    + doesn't make decisions of what's in each scene
+    + can still grab objects by copying and pasting
+    - pain in the ass for the style of dev I'm imagining
+copy the library from the last newest scene to the new scene
+    + keeps the worlds from breaking each other
+    - confusing timelines if you edit scenes at random and want to find the newest version of something
+hybrid - top level library, but copy files on write to the scene
+    + scenes can't break each other
+    - no simple design coming to mind for returning changes to the global pool,
+        and as soon as you do that you will also likely break something again
+implement some way of "plucking" objects from one scene to another
+    OK here's an idea:
+    just like you can drop an object onto the destroyer,
+    hover an object over the scene loader and it starts to grow slowly,
+    then teleports you to the scene loader while you are still holding the object.
+    if we allow multiattachment, you could bring multiple objects at once by just
+    creating them in world one, stacking them on top of each other, grabbing them all,
+    hovering, and then dropping them on the scene you want them to appear in.
+
+    this is good but not great.
+    what does it mean if you drop an object in the loader?
+    what if the object is expensive to run (and thus annoying to transport from scene 1 to scene 2 as a "living" object)?
+loader-room based file copying
+    have a way to expand one object at a time in the loader to see all the objects within it
+        (hold the object, then hit the flower button?)
+    so that you can drag and drop between objects to copy them.
+
+We also have no way to rename scenes from within the world
+    + this isn't *that* big a deal for pre-alpha (especially if we do the mini-view)
