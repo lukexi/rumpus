@@ -236,7 +236,7 @@ removePdPatchComponent = do
 
     -- If this is a poly patch, don't close it
     -- as that is handled by the poly patch system
-    withComponent myPdPatch $ \PatchWithFile{..} ->
+    withComponent_ myPdPatch $ \PatchWithFile{..} ->
         unless pwfIsPoly $ do
             closePatch pd pwfPatch
 

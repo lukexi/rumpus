@@ -2,6 +2,9 @@
 
 rm -rf .release/
 
+# Regenerate the icon resource file in case it changed (takes no time so can't hurt)
+windres.exe scripts/rumpus.rc -O coff -o scripts/rumpus.res
+
 stack clean rumpus
 stack install --flag rumpus:RumpusRelease rumpus:rumpus --local-bin-path=.release
 

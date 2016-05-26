@@ -73,6 +73,7 @@ singleThreadedLoop vrPal = do
 
 
 -- Experiment with placing drawing on the background thread. Doesn't render to window.
+multithreadedLoop1 :: VRPal -> ECSMonad ()
 multithreadedLoop1 vrPal = do
         renderChan <- liftIO newChan
         renderWorker <- liftIO . forkOS $ do
@@ -80,8 +81,8 @@ multithreadedLoop1 vrPal = do
             void . forever $ do
                 join (readChan renderChan)
         let onRenderThread action = do
-                ecs <- get
-                liftIO $ writeChan renderChan (runStateT action ecs)
+                currentECS <- get
+                liftIO $ writeChan renderChan (runStateT action currentECS)
 
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
@@ -115,11 +116,12 @@ multithreadedLoop1 vrPal = do
 -- (i.e. it will reuse the last world state and render it from the latest head position)
 -- and has logic thread wait until a new device pose has arrived
 -- from OpenVR before ticking.
+multithreadedLoop2 :: VRPal -> ECSMonad ()
 multiThreadedLoop2 vrPal = do
         startingECS <- get
         backgroundBox <- liftIO $ newTVarIO Nothing
         mainThreadBox <- liftIO $ newTVarIO startingECS
-        liftIO . forkOS $ do
+        _ <- liftIO . forkOS $ do
             makeContextCurrent (Just (gpThreadWindow vrPal))
             void . flip runStateT startingECS . forever $ do
                 (headM44, events) <- atomically $ do
@@ -146,14 +148,14 @@ multiThreadedLoop2 vrPal = do
                 profile "Sound" $ tickSoundSystem
                 profile "SceneWatcher" $ tickSceneWatcherSystem
 
-                newECS <- get
+                currentECS <- get
                 atomically $ do
-                    writeTVar mainThreadBox newECS
+                    writeTVar mainThreadBox currentECS
 
 
         whileWindow (gpWindow vrPal) $ do
-            ecs <- profileMS "rd" 0 $ liftIO . atomically $ readTVar mainThreadBox
-            (headM44, events) <- profileMS "render" 0 $ flip evalStateT ecs (do
+            lastECS <- profileMS "rd" 0 $ liftIO . atomically $ readTVar mainThreadBox
+            (headM44, events) <- profileMS "render" 0 $ flip evalStateT lastECS (do
                 playerM44 <- viewSystem sysControls ctsPlayer
                 (headM44, events) <- profileMS "tick" 1 $ tickVR vrPal playerM44
                 profileMS "draw" 1 $ tickRenderSystem headM44
