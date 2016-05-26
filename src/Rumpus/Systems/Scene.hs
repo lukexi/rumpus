@@ -18,13 +18,13 @@ initSceneSystem = do
     userRumpusRoot <- getUserRumpusRoot
 
     copyPristineDirIfMissing pristineDir userRumpusRoot
+    copyRedirectFileIfMissing
 
-    let
-        useUserFolder = isInReleaseMode
-        --useUserFolder = True
-        rootToUse = if useUserFolder
+    let rootToUse = if useUserFolder
             then userRumpusRoot
             else pristineDir
+        --useUserFolder = isInReleaseMode
+        useUserFolder = True
 
     registerSystem sysScene $ SceneSystem
         { _scnScene = Nothing
@@ -70,14 +70,6 @@ loadScene sceneFolder = do
     loadEntities stateFolder
 
 -- FIXME: move the .world-state concept into extensible-ecs
-saveScene :: ECSMonad ()
-saveScene = do
-    maybeStateFolder <- getSceneStateFolder
-    forM_ maybeStateFolder $ \stateFolder -> do
-        liftIO $ do
-            removeDirectoryRecursive stateFolder
-            createDirectoryIfMissing True stateFolder
-        saveEntities stateFolder
 
 fileInScene :: MonadState ECS m => FilePath -> m (Maybe FilePath)
 fileInScene fileName = do
@@ -101,6 +93,20 @@ copyPristineDirIfMissing pristineSceneDir userSceneDir = liftIO $ do
         copyDirectory pristineSceneDir userSceneDir
             `catchIOError`
                 (\e -> putStrLnIO ("copyPristineDirIfMissing: " ++ show e))
+
+copyRedirectFileIfMissing :: MonadIO m => m ()
+copyRedirectFileIfMissing = liftIO $ do
+
+    userDocsDir <- getUserDocumentsDirectory
+    -- We look for the redirect file in the root of the rumpus directory
+    let userRumpusRoot   = userDocsDir </> "Rumpus"
+
+    exists <- doesFileExist (userRumpusRoot </> "redirect.txt")
+    when (not exists) $ do
+        copyFile ("resources" </> "redirect.txt") userRumpusRoot
+            `catchIOError`
+                (\e -> putStrLnIO ("copyRedirectFileIfMissing: " ++ show e))
+
 
 pristineSceneDirWithName :: String -> FilePath
 pristineSceneDirWithName name = pristineDir </> name
@@ -137,15 +143,18 @@ versionString = "0.1.2"
 getUserRumpusRoot :: MonadIO m => m FilePath
 getUserRumpusRoot = liftIO $ do
     userDocsDir <- getUserDocumentsDirectory
-    let userRumpusRoot   = userDocsDir </> "Rumpus" </> versionString
-        userRedirectFile = userRumpusRoot </> "redirect.txt"
+    -- We look for the redirect file in the root of the rumpus directory
+    let userRumpusRoot   = userDocsDir </> "Rumpus"
+        userRedirectFile = userDocsDir </> "Rumpus" </> "redirect.txt"
 
         protect f = f `catchIOError`
                         (\e -> putStrLnIO ("getUserRumpusRoot: " ++ show e)
                                 >> return userRumpusRoot)
     hasRedirect <- doesFileExist userRedirectFile
-    when hasRedirect $ putStrLnIO $ "Attempting redirect"
-    protect $ if hasRedirect
+    if hasRedirect
+        then putStrLnIO $ "Attempting redirect"
+        else putStrLnIO $ "No redirect found in " ++ userRedirectFile
+    rumpusRoot <- protect $ if hasRedirect
         then do
             redirectContents <- readFile userRedirectFile
             let maybeLine = fmap (dropWhile isSpace) . listToMaybe . lines
@@ -155,8 +164,12 @@ getUserRumpusRoot = liftIO $ do
                     | isAbsolute pathLine -> do
                             redirectPath <- canonicalizePath pathLine
                             exists <- doesDirectoryExist redirectPath
+                            putStrLnIO ("Redirecting to " ++ redirectPath ++ " " ++ show exists)
                             if exists
                                 then return redirectPath
                                 else return userRumpusRoot
                 _ -> return userRumpusRoot
         else return userRumpusRoot
+
+    -- Append the version string
+    return (rumpusRoot </> versionString)

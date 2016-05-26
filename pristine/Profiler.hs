@@ -16,26 +16,27 @@ start = do
     gauges <- inEntity containerID $ do
       Map.fromList <$> forM indexedSamples (\(i, (name, values)) -> do
         let y = i*0.1 + 1
+        -- Label
         spawnChild $ do
-                myPose             ==> translateMatrix (V3 0 y 0.1)
-                myTextPose         ==> scaleMatrix 0.05
-                myText             ==> name
-                myInheritTransform ==> InheritFull
-        childIDs <- forM [0..maxProfilerHistory-1] $ \z -> do
+            myPose             ==> translateMatrix (V3 0 y 0.1)
+            myTextPose         ==> scaleMatrix 0.05
+            myText             ==> name
+            myInheritTransform ==> InheritFull
+        -- Graph
+        childIDs <- forM [0..maxProfilerHistory - 1] $ \z -> spawnChild $ do
             let brightness = 1 -
                     (fromIntegral z /
                     fromIntegral maxProfilerHistory
                     * 0.5 + 0.3)
-            spawnChild $ do
-                myShape            ==> Cube
-                myProperties       ==> [Holographic]
-                myInheritTransform ==> InheritFull
-                mySize             ==> 0.1
-                myColor            ==> colorHSL
-                    (i / fromIntegral numSamples)
-                    1
-                    brightness
-                myPose             ==> translateMatrix (V3 0 y (-fromIntegral z*0.1))
+            myShape            ==> Cube
+            myProperties       ==> [Holographic]
+            myInheritTransform ==> InheritFull
+            mySize             ==> 0.1
+            myColor            ==> colorHSL
+                (i / fromIntegral numSamples)
+                1
+                brightness
+            myPose             ==> translateMatrix (V3 0 y (-fromIntegral z*0.1))
         return (name, childIDs))
 
     removeComponent myUpdate

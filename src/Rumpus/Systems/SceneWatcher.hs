@@ -62,7 +62,6 @@ tickSceneWatcherSystem = do
     fileEventChan <- getFileEventChan
     events        <- liftIO . atomically . exhaustTChan $ fileEventChan
 
-    rumpusRoot  <- getRumpusRootFolder
     mSceneStateFolder <- getSceneStateFolderAbsolute
 
     -- If no open scene, ignore events
@@ -131,7 +130,7 @@ sceneWatcherSaveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherSaveEntity entityID = do
     mSceneStateFolder <- getSceneStateFolder
     forM_ mSceneStateFolder $ \sceneStateFolder -> do
-
+        putStrLnIO $ "Saving to " ++ sceneStateFolder
         entityPath <- liftIO . makeAbsolute $ pathForEntity sceneStateFolder entityID
 
         setWatchedFileStatus entityPath Writing

@@ -11,6 +11,7 @@ import Rumpus.Systems.Attachment
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Scene
 import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
@@ -59,15 +60,14 @@ listScenes = do
     rumpusRoot <- getRumpusRootFolder
 
     scenePaths <- listDirectories rumpusRoot
-    printIO =<< getDirectoryContentsSafe rumpusRoot
-    printIO (rumpusRoot, scenePaths)
     return scenePaths
 
 showSceneLoader :: (MonadState ECS m, MonadIO m) => m ()
 showSceneLoader = do
+    setPlayerPosition 0
 
     scenePaths <- listScenes
-    let scenePathsWithNewScene = (Nothing : map Just scenePaths)
+    let scenePathsWithNewScene = Nothing : map Just scenePaths
         positions = goldenSectionSpiralPoints (length scenePathsWithNewScene)
         positionsAndCodePaths = zip positions scenePathsWithNewScene
 
@@ -92,6 +92,7 @@ addSceneLibraryItem :: (MonadIO m, MonadState ECS m)
                     => V3 GLfloat -> Maybe FilePath -> m EntityID
 addSceneLibraryItem spherePosition maybeScenePath = do
     newEntityID <- spawnEntity $ do
+        myPose       ==> translateMatrix (spherePosition * 1 + V3 0 1 0)
         myShape      ==> Cube
         mySize       ==> sceneLoaderAnimationInitialSize
         myProperties ==> [Floating]
@@ -108,10 +109,8 @@ addSceneLibraryItem spherePosition maybeScenePath = do
                 setColor (colorHSL now 0.3 0.8)
         myDragBegan ==> do
             rumpusRoot <- getRumpusRootFolder
-            case maybeScenePath of
-                Just scenePath -> do
-                    hideSceneLoader
-                    loadScene (rumpusRoot </> scenePath)
+            mScenePathToLoad <- case maybeScenePath of
+                Just scenePath -> return (Just (rumpusRoot </> scenePath))
                 Nothing -> do
                     -- FIXME two users could create a new scene at once and we don't handle this
                     scenePaths <- listScenes
@@ -120,17 +119,16 @@ addSceneLibraryItem spherePosition maybeScenePath = do
 
                     -- Do nothing if we can't create the folder
                     createdSuccessfully <- createDirectorySafe newScenePath
-                    when createdSuccessfully $ do
-                        hideSceneLoader
-                        loadScene newScenePath
+                    if createdSuccessfully
+                        then return (Just newScenePath)
+                        else return Nothing
+            forM_ mScenePathToLoad $ \scenePathToLoad -> do
+                setWorldPlaying False
+                hideSceneLoader
+                loadScene scenePathToLoad
 
-
-
-    -- FIXME rotate each object towards the user
-    setEntityPose newEntityID
-        (mkTransformation (axisAngle (V3 1 0 0) (-pi/2)) (spherePosition * 1))
-
-    inEntity newEntityID $ animateSizeTo sceneLoaderAnimationFinalSize 0.3
+    inEntity newEntityID $
+        animateSizeTo sceneLoaderAnimationFinalSize 0.3
     return newEntityID
 
 createDirectorySafe dirName = liftIO (do

@@ -14,6 +14,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Systems.SceneWatcher
+import Rumpus.Systems.SceneLoader
 import Data.List (delete)
 import RumpusLib
 -- NOTE: this illustrates how handy it will be to have arbitrary components;
@@ -41,22 +42,24 @@ checkForDestruction whichHand = do
 
 openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
-    rumpusRoot <- getRumpusRootFolder
-    codePaths  <- getDirectoryContentsWithExtension "hs" rumpusRoot
+    aSceneIsOpen <- isJust <$> getSceneFolder
+    when aSceneIsOpen $ do
+        rumpusRoot <- getRumpusRootFolder
+        codePaths  <- getDirectoryContentsWithExtension "hs" rumpusRoot
 
-    let codePathsWithNewObject = (Nothing : map Just codePaths)
-        positions = goldenSectionSpiralPoints (length codePathsWithNewObject)
-        positionsAndCodePaths = zip positions codePathsWithNewObject
+        let codePathsWithNewObject = (Nothing : map Just codePaths)
+            positions = goldenSectionSpiralPoints (length codePathsWithNewObject)
+            positionsAndCodePaths = zip positions codePathsWithNewObject
 
-    libraryEntities <- forM positionsAndCodePaths $ \(position, maybeCodePath) -> do
-        addHandLibraryItem whichHand position maybeCodePath
+        libraryEntities <- forM positionsAndCodePaths $ \(position, maybeCodePath) -> do
+            addHandLibraryItem whichHand position maybeCodePath
 
-    destructionOrb <- addDestructionOrb whichHand
+        destructionOrb <- addDestructionOrb whichHand
 
-    exitOrb <- addExitOrb whichHand
+        exitOrb <- addExitOrb whichHand
 
-    modifySystemState sysCreator $
-        crtOpenLibrary . at whichHand ?= destructionOrb:exitOrb:libraryEntities
+        modifySystemState sysCreator $
+            crtOpenLibrary . at whichHand ?= destructionOrb:exitOrb:libraryEntities
 
 addExitOrb :: (MonadIO m, MonadState ECS m)
            => WhichHand -> m EntityID
@@ -75,13 +78,14 @@ addExitOrb whichHand = do
         mySize       ==> 0.01
         myProperties ==> [Floating]
         myUpdate     ==> normalPulse
-        myDragBegan ==> do
-            closeEntityLibrary whichHand
-            closeScene
         -- Pulse the other hand when it hovers over us
         myColliding ==> \entityID _ -> do
             when (entityID == otherHandID) $ do
                 hapticPulse otherHand 1000
+        myDragBegan ==> do
+            closeEntityLibrary whichHand
+            closeScene
+            showSceneLoader
 
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
@@ -148,7 +152,7 @@ creatorOffset :: V3 GLfloat
 creatorOffset = V3 0 0 -0.4
 
 exitOrbOffset :: V3 GLfloat
-exitOrbOffset = V3 0 0 0.4
+exitOrbOffset = V3 0 0 0.2
 
 getOtherHand :: WhichHand -> WhichHand
 getOtherHand whichHand = case whichHand of

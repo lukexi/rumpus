@@ -155,6 +155,9 @@ executable rumpus
   if flag(RumpusProfile)
     cpp-options: -DRUMPUS_PROFILE
 
+  if os(windows)
+    ghc-options: -optlscripts/rumpus.res
+
   if flag(RumpusRelease) && !flag(RumpusReleaseWithLogs)
     cpp-options: -DRUMPUS_RELEASE
     if os(windows)

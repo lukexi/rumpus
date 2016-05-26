@@ -1,2 +1,2 @@
 #!/bin/sh
-stack build && gdb --eval-command=run --args .stack-work/install/d2307617/bin/rumpus.exe $1
+stack build && gdb --eval-command=run --args `stack exec which rumpus` $1

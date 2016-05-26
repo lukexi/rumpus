@@ -33,9 +33,9 @@ move the library to the top level.
         + can always just copy/paste an object to fork it when realizing you're making changes to its functionality
         OK THEN!
         This is what we're doing. That makes things super easy.
-        [ ] Change creator to list Haskell files in RumpusRoot
-        [ ] Loader lists folder names in RumpusRoot
-            [ ] Creating a scene just names it MyScene1 etc.
+        [x] Change creator to list Haskell files in RumpusRoot
+        [x] Loader lists folder names in RumpusRoot
+            [x] Creating a scene just names it MyScene1 etc.
 
 don't carry the library
     + super simple to implement
@@ -79,3 +79,5 @@ Idea is: Scenes also function as "folders" for objects. So, have "Music" scene, 
 Music scene holds Sequencer, Note, etc.
 Hold down button to bring up library, see Music Math etc.
 Click on Music and you can pull out as many objects as you like
+Aha, not as simple as hoped...
+Scenes do not have a representation of classes, only instances.

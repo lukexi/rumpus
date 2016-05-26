@@ -18,6 +18,7 @@ type DACChannel = Int
 data PatchWithFile = PatchWithFile
     { pwfFilePath :: !FilePath
     , pwfPatch    :: !Patch
+    , pwfIsPoly   :: !Bool
     }
 
 data AllocatedOpenALSource = AllocatedOpenALSource
@@ -58,7 +59,7 @@ getPolyPatchVoices patchName = do
     viewSystem sysSound (sndPolyPatchVoices . at patchName) >>= \case
         Just polyPatchVoices -> return polyPatchVoices
         Nothing -> do
-            patches <- replicateM polyPatchPolyphony $ makePatchWithFile patchName
+            patches <- replicateM polyPatchPolyphony $ makePatchWithFile patchName True
             sources <- stealOpenALSources polyPatchPolyphony
 
             pd <- getPd
@@ -70,6 +71,19 @@ getPolyPatchVoices patchName = do
             modifySystemState sysSound $
                 sndPolyPatchVoices . at patchName ?= polyPatchVoices
             return polyPatchVoices
+
+releasePolyPatches :: (MonadIO m, MonadState ECS m) => m ()
+releasePolyPatches = do
+    pd <- getPd
+    voicesMap <- viewSystem sysSound sndPolyPatchVoices
+    forM_ voicesMap $ \voices -> do
+        forM_ voices $ \PolyPatchVoice{..} -> do
+            _ <- closePatch pd (pwfPatch ppvPatch)
+
+            -- Return the OpenAL source to the pool
+            modifySystemState sysSound $ do
+                sndOpenALSourcePool %= (ppvOpenALSource { aosEntityID = 0 } : )
+
 
 acquirePolyPatch :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                  => FilePath -> m ()
@@ -186,13 +200,15 @@ derivePdPatchComponent = do
         Just patchFile -> do
             maybeExistingPatch <- getComponent myPdPatch
 
+            -- Check if this entities patch is already loaded
+            -- (i.e., we are being called to update an existing entity via the SceneWatcher)
             let needsPatchLoad = case maybeExistingPatch of
                     Just PatchWithFile{..} -> pwfFilePath == patchFile
                     Nothing -> True
             when needsPatchLoad $ do
                 removePdPatchComponent
 
-                patch <- makePatchWithFile patchFile
+                patch <- makePatchWithFile patchFile False
                 myPdPatch ==> patch
 
                 -- Assign the patch's output DAC index to route it to the the SourceID
@@ -202,19 +218,27 @@ derivePdPatchComponent = do
                     putStrLnIO $ "loaded pd patch " ++ patchFile ++ ", assigning channel " ++ show aosDACChannel
                     sendPd "dac" (fromIntegral aosDACChannel)
 
-makePatchWithFile :: (MonadIO m, MonadState ECS m) => FilePath -> m PatchWithFile
-makePatchWithFile patchFile = do
+makePatchWithFile :: (MonadIO m, MonadState ECS m)
+                  => FilePath
+                  -> Bool
+                  -> m PatchWithFile
+makePatchWithFile patchFile isPoly = do
     pd <- getPd
     -- FIXME if we return to using scene folders to store patches, must use getSceneFolder here
     rumpusRoot <- getRumpusRootFolder
     addPdPatchSearchPath rumpusRoot
     patch <- makePatch pd (rumpusRoot </> takeBaseName patchFile)
-    return PatchWithFile { pwfFilePath = patchFile, pwfPatch = patch }
+    return PatchWithFile { pwfFilePath = patchFile, pwfPatch = patch, pwfIsPoly = isPoly }
 
 removePdPatchComponent :: (MonadReader EntityID m, MonadIO m, MonadState ECS m) => m ()
 removePdPatchComponent = do
-    pd <- viewSystem sysSound sndPd
-    _ <- withPdPatch (closePatch pd)
+    pd <- getPd
+
+    -- If this is a poly patch, don't close it
+    -- as that is handled by the poly patch system
+    withComponent myPdPatch $ \PatchWithFile{..} ->
+        unless pwfIsPoly $ do
+            closePatch pd pwfPatch
 
     removeComponent myPdPatch
     removeComponent myOpenALSource
