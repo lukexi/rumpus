@@ -107,12 +107,12 @@ addSceneLibraryItem spherePosition maybeScenePath = do
                 now <- getNow
                 setColor (colorHSL now 0.3 0.8)
         myDragBegan ==> do
+            rumpusRoot <- getRumpusRootFolder
             case maybeScenePath of
                 Just scenePath -> do
                     hideSceneLoader
-                    loadScene scenePath
+                    loadScene (rumpusRoot </> scenePath)
                 Nothing -> do
-                    rumpusRoot <- getRumpusRootFolder
                     -- FIXME two users could create a new scene at once and we don't handle this
                     scenePaths <- listScenes
                     let newSceneName = findNextNumberedName "MyScene" scenePaths
