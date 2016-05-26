@@ -130,6 +130,7 @@ library
     DeriveGeneric
     DeriveDataTypeable
     NegativeLiterals
+    ScopedTypeVariables
 
 executable rumpus
   hs-source-dirs:      app
