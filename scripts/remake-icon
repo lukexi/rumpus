@@ -1,0 +1,2 @@
+#!/bin/sh
+windres.exe rumpus.rc -O coff -o rumpus.res

@@ -70,7 +70,6 @@ cp `which libiconv-2.dll` .release
 
 echo "Applying icon..."
 rcedit .release/rumpus.exe --set-icon scripts/RumpusIcon.ico
-cp scripts/RumpusIcon.ico .release
 
 
 # DEV ONLY
