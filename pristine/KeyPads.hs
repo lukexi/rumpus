@@ -172,8 +172,11 @@ data KeyPadKey = KeyPadKey
 makeLenses ''KeyPadKey
 makeLenses ''KeyPad
 
---start :: Start
---start = void . spawnKeyPads
+start :: Start
+start = void spawnKeyPads
+
+spawnKeyPads :: (MonadIO m,MonadState ECS m,MonadReader EntityID m) 
+             => m (EntityID, [(WhichHand, KeyPad)])
 spawnKeyPads = do
 
     -- Have hands write their key events to this entityID
@@ -181,8 +184,8 @@ spawnKeyPads = do
     let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.3) 0 0.1)
                         , (RightHand, rightHandKeys, V3   0.3  0 0.1)
                         ]
-    --keyPadContainerID <- spawnChild $ do
-    keyPadContainerID <- spawnEntity $ do
+    keyPadContainerID <- spawnChild $ do
+    --keyPadContainerID <- spawnEntity $ do
         myInheritTransform ==> InheritPose
         return ()
     keyPads <- forM handsWithKeys $ \(whichHand, keyRows, offset) -> do

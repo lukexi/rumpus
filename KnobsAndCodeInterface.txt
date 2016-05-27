@@ -66,3 +66,6 @@
 
 [ ] Indent after do and ->
 [ ] Grab-with-both-hands scaling
+[ ] Add feature to teleporters for arbitrary teleport:
+    if you point a second teleporter beam at the first teleporter beam, they merge to create a teleport point.
+[ ] Add pose animation when remote change!

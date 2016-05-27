@@ -8,7 +8,6 @@ start = do
 
 
 {-
-
  rescale orrery objects
  can do orrery demo by just setting scale on the object rather than "teleporting in"
 

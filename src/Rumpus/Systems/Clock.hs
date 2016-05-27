@@ -22,10 +22,10 @@ tickClockSystem = do
 
         when (elapsed > period) $
             inEntity entityID $ do
-                action
                 if shouldRepeat
                     then setRepeatingAction period action
                     else removeComponent myClockAction
+                action
 
 
 setClockAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)

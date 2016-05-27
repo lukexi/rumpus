@@ -5,15 +5,12 @@
     should still be able to have physics on things that are parented/scaled
 [ ] Subtle ding when finished compiling (buzz when failed)
 
-[ ] Finish keyboard
-    [ ] Vari-size keys for space, arrows, enter, backspace etc.
+[x] Finish keyboard
+    [x] Vari-size keys for space, arrows, enter, backspace etc.
         - Pass a width/height into the key construction function,
           and accumulate x and y offsets
 
-    [ ] Variable-width keys like Valve's, for oft-used keys?
-
-    [ ] Different vibrations to let you know that you're still on the right key??
-            (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
+    [x] Variable-width keys like Valve's, for oft-used keys?
 
     [x] Add Tab, Shift-Tab, Control-Enter support to text-gl
         (tab operates on beginning of line, insert or remove 4 spaces, easy : ))
@@ -25,6 +22,8 @@
     [x] Click-and-hold repeats for arrows/all keys
     [x] Get touchpad down event from steamVR
 
+    [ ] Different vibrations to let you know that you're still on the right key??
+            (e.g. a is 100hz, s is 200hz, d is 300hz, etc.)
 
 
 [x] See if there's a way to use System.Timeout.timeout
@@ -107,10 +106,12 @@ LAUNCH
 
 OBJECTS
     [ ] Add microphone-reactive object
-    [ ] Add sequencer platform
+    [x] Add sequencer platform
         - Note: only have limited voices so ditch the per-note positioning
           and just have them all report to a verylogue instance, which will
           set things up nicely for doing a full synth+sequencer
+          UPDATE: implemented voice/openAL allocation instead because per-note is awesome
+                  but can port this to verylogue
 
     [ ] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
     [ ] Pull-along music box

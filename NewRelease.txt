@@ -1,14 +1,14 @@
 BUGS
-    [ ] Crashes if a .yaml object has a StartExpr for a .hs file that no longer exists.
+    [x] Crashes if a .yaml object has a StartExpr for a .hs file that no longer exists.
     [x] Pressing down and up reloads the file ?!?
 
 KEYBOARD
     [x] Fix selection with keypads
-            (add tab, select all, copy, paste buttons)
-    [ ] Knob System/API
-    [ ] Vari-size keys for space, arrows, enter, backspace etc.
+    [x] Vari-size keys for space, arrows, enter, backspace etc.
         - Pass a width/height into the key construction function,
           and accumulate x and y offsets
+            (add tab, select all, copy, paste buttons)
+    [ ] Knob System/API
 
 INTERACTION
     [x] Implement folder versioning

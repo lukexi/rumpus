@@ -35,12 +35,13 @@ initCreatorSystem :: MonadState ECS m => m ()
 initCreatorSystem = do
     registerSystem sysCreator (CreatorSystem mempty mempty)
 
-checkForDestruction :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
+checkForDestruction :: (MonadIO m, MonadState ECS m) => WhichHand -> m Bool
 checkForDestruction whichHand = do
     let otherHand = getOtherHand whichHand
     maybePendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at otherHand)
     forM_ maybePendingDestruction $ \destroyID -> do
         sceneWatcherRemoveEntity destroyID
+    return (isJust maybePendingDestruction)
 
 openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
@@ -206,7 +207,10 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                 removeTextRendererComponent
 
                 makeEntityPersistent entityID
-                handEntityID `grabEntity` entityID
+
+                -- We use attachEntityToEntity rather than grabEntity
+                -- because we don't want to select new objects
+                attachEntityToEntity handEntityID entityID True
                 animateSizeTo 0.3 0.3
                 case maybeCodePath of
                     Just codePath -> setStartExpr codePath

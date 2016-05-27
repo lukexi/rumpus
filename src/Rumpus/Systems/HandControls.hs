@@ -11,6 +11,8 @@ import Rumpus.Systems.Teleport
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.CodeProtect
+import Rumpus.Systems.Selection
+import Rumpus.Systems.KeyPads
 
 tickHandControlsSystem :: ECSMonad ()
 tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
@@ -34,15 +36,22 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                 initiateGrab whichHand handEntityID otherHandEntityID
             HandButtonEvent HandButtonTrigger ButtonUp -> do
                 maybeHeldEntity <- getOneEntityAttachment handEntityID
-                checkForDestruction whichHand
+                wasDestroyed <- checkForDestruction whichHand
+
                 endHapticDrag whichHand
                 endDrag handEntityID
                 detachAttachedEntities handEntityID
 
                 forM_ maybeHeldEntity $ \entityID -> do
-                    isPersistent <- isEntityPersistent entityID
-                    when isPersistent $
-                        sceneWatcherSaveEntity entityID
+                    selectedEntityID <- getSelectedEntityID
+                    if Just entityID == selectedEntityID && wasDestroyed
+                        then do
+                            clearSelectedEntityID
+                            hideKeyPads
+                        else do
+                            isPersistent <- isEntityPersistent entityID
+                            when isPersistent $
+                                sceneWatcherSaveEntity entityID
             HandButtonEvent HandButtonStart ButtonDown -> do
                 openEntityLibrary whichHand
             HandButtonEvent HandButtonStart ButtonUp -> do

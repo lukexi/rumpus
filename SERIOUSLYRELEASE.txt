@@ -1,14 +1,15 @@
-[ ] Finish keyboard
 [ ] Spruce up the scene loader scene
+
+
 [x] Add crossfade transition to loader (use addDelayedAction + OpenVR util)
 [x] Fix pd patches still reloading on save
     [x] This probably means local-reload prevention isn't working
 
-[ ] Add feature to teleporters for arbitrary teleport:
-    if you point a second teleporter beam at the first teleporter beam, they merge to create a teleport point.
-[ ] keyrepeat broken
-[ ] Keyboard not dismissed on delete
-[ ] Keyboard doesn't show on spawn
+[x] Finish keyboard
+[x] Keyrepeat broken
+[x] Keyboard not dismissed on delete
+[x] Keyboard doesn't show on spawn
     (until reclick, because there is no startExpr intially)
+    (fixed this by not selecting spawned entities, since you don't want to every time
+    (e.g. spawning notes))
 
-[ ] Add pose animation when remote change!
