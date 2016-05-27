@@ -149,6 +149,10 @@ keyColorOn, keyColorOff :: V4 GLfloat
 keyColorOn               = colorHSL 0.2 0.8 0.8
 keyColorOff              = colorHSL 0.3 0.8 0.4
 
+minimizedKeyPadSize = 0.001
+maximizedKeyPadSize = 0.3
+keyPadAnimDur = 0.2
+
 data KeyPad = KeyPad
     { _kpdKeyPadID    :: EntityID
     , _kpdKeys        :: [KeyPadKey]
@@ -170,7 +174,6 @@ makeLenses ''KeyPad
 
 start :: Start
 start = do
-    setSize (V3 0.4 0.4 0.1)
 
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
@@ -185,7 +188,8 @@ start = do
         keyPadID         <- spawnEntity $ do
             myParent             ==> keyPadContainerID
             myInheritTransform   ==> InheritPose
-            mySize               ==> 0.3
+            --mySize               ==> maximizedKeyPadSize
+            mySize               ==> minimizedKeyPadSize
             myPose               ==> mkTransformation
                                         (axisAngle (V3 1 0 0) (pi/2))
                                         offset
@@ -196,14 +200,9 @@ start = do
         -- Add the indicator of thumb position
         thumbNubID <- spawnEntity $ makeThumbNub scaleContainerID
 
-        keyPadKeys <- spawnKeysForHand scaleContainerID keyRows
+        (keyPadKeys, keyPadDims) <- spawnKeysForHand scaleContainerID keyRows
 
-        let numRows    = fromIntegral (length keyRows)
-            maxNumKeys = fromIntegral $ maximum (map length keyRows)
-            keyPadDims = V2
-                (maxNumKeys * keyWidthT)
-                (numRows    * keyHeightT)
-            keyPad = KeyPad
+        let keyPad = KeyPad
                 { _kpdKeyPadID    = keyPadID
                 , _kpdKeys        = keyPadKeys
                 , _kpdKeyRepeater = Nothing
@@ -219,11 +218,12 @@ start = do
 spawnKeysForHand :: (MonadIO m, MonadState ECS m)
                  => EntityID
                  -> [[HandKey]]
-                 -> m [KeyPadKey]
+                 -> m ([KeyPadKey], V2 GLfloat)
 spawnKeysForHand containerID keyRows = do
 
-
-    let arrowY = (fromIntegral (length keyRows) + 2) * keyHeightT - keyPadding
+    -- + 2 for up and down buttons at top and bottom
+    let totalKeyRows = length keyRows + 2
+        arrowY = (fromIntegral totalKeyRows) * keyHeightT - keyPadding
 
     -- Spawn left arrow
     (leftKey, _) <- makeKeyPadKey containerID HandKeyLeft 0 arrowY
@@ -239,9 +239,11 @@ spawnKeysForHand containerID keyRows = do
 
     -- Spawn right arrow
     let widestXOffset = maximum $ map fst keyPadKeysByRow
-    (rightKey, _) <- makeKeyPadKey containerID HandKeyRight widestXOffset arrowY
+    (rightKey, rightKeySize) <- makeKeyPadKey containerID HandKeyRight widestXOffset arrowY
 
-    return (leftKey : rightKey : concatMap snd keyPadKeysByRow)
+    let finalDimens = V2 (widestXOffset + rightKeySize ^. _x)
+                         (fromIntegral totalKeyRows * keyHeightT)
+    return (leftKey : rightKey : concatMap snd keyPadKeysByRow, finalDimens)
 
 makeKeyPadKey :: (MonadIO m, MonadState ECS m)
               => EntityID -> HandKey -> GLfloat -> GLfloat -> m (KeyPadKey, V3 GLfloat)

@@ -169,34 +169,12 @@ data KeyPadKey = KeyPadKey
     , _kpkKey          :: HandKey
     , _kpkPointIsInKey :: V2 GLfloat -> Bool
     }
-data KeyPadsSystem = KeyPadsSystem
-    { _kpsKeyPads           :: Map WhichHand KeyPad
-    , _kpsKeyPadContainer   :: EntityID
-    }
-defineSystemKey ''KeyPadsSystem
+
 makeLenses ''KeyPadKey
 makeLenses ''KeyPad
-makeLenses ''KeyPadsSystem
 
-showKeyPads :: (MonadIO m, MonadState ECS m) => m ()
-showKeyPads = do
-    keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
-    forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
-        setSize minimizedKeyPadSize
-        animateSizeTo maximizedKeyPadSize keyPadAnimDur
-
-hideKeyPads :: (MonadIO m, MonadState ECS m) => m ()
-hideKeyPads = do
-    keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
-    forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
-        animateSizeTo minimizedKeyPadSize keyPadAnimDur
-
-getKeyPadContainerID :: MonadState ECS m => m EntityID
-getKeyPadContainerID = viewSystem sysKeyPads kpsKeyPadContainer
-
-startKeyPadsSystem :: ECSMonad ()
-startKeyPadsSystem = do
-
+spawnKeyPads :: ECSMonad (EntityID, [(WhichHand, KeyPad)])
+spawnKeyPads = do
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
     let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.2) (-0.25) 0.1)
@@ -237,10 +215,8 @@ startKeyPadsSystem = do
                 }
         return (whichHand, keyPad)
 
-    registerSystem sysKeyPads $ KeyPadsSystem
-        { _kpsKeyPads         = Map.fromList keyPads
-        , _kpsKeyPadContainer = keyPadContainerID
-        }
+    return (keyPadContainerID, keyPads)
+
 
 spawnKeysForHand :: (MonadIO m, MonadState ECS m)
                  => EntityID
@@ -323,7 +299,40 @@ inRect (V2 x y) (V2 w h) (V2 ptX ptY) =
 
 
 
+-- System specific code
 
+data KeyPadsSystem = KeyPadsSystem
+    { _kpsKeyPads           :: Map WhichHand KeyPad
+    , _kpsKeyPadContainer   :: EntityID
+    }
+defineSystemKey ''KeyPadsSystem
+makeLenses ''KeyPadsSystem
+
+
+startKeyPadsSystem :: ECSMonad ()
+startKeyPadsSystem = do
+    (keyPadContainerID, keyPads) <- spawnKeyPads
+    registerSystem sysKeyPads $ KeyPadsSystem
+        { _kpsKeyPads         = Map.fromList keyPads
+        , _kpsKeyPadContainer = keyPadContainerID
+        }
+
+
+showKeyPads :: (MonadIO m, MonadState ECS m) => m ()
+showKeyPads = do
+    keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
+    forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
+        setSize minimizedKeyPadSize
+        animateSizeTo maximizedKeyPadSize keyPadAnimDur
+
+hideKeyPads :: (MonadIO m, MonadState ECS m) => m ()
+hideKeyPads = do
+    keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
+    forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
+        animateSizeTo minimizedKeyPadSize keyPadAnimDur
+
+getKeyPadContainerID :: MonadState ECS m => m EntityID
+getKeyPadContainerID = viewSystem sysKeyPads kpsKeyPadContainer
 
 
 
