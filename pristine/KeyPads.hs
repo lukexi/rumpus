@@ -44,8 +44,8 @@ keyCapWidth HandKeyCopy           = 1.5
 keyCapWidth HandKeyPaste          = 1.6
 keyCapWidth HandKeyMoveLineUp     = 1.4
 keyCapWidth HandKeyMoveLineDown   = 1.4
-keyCapWidth HandKeyIndent         = 2
-keyCapWidth HandKeyUnIndent       = 2
+keyCapWidth HandKeyIndent         = 1.6
+keyCapWidth HandKeyUnIndent       = 1.6
 keyCapWidth HandKeyUp             = 8
 keyCapWidth HandKeyDown           = 8
 keyCapWidth HandKeyLeft           = 1
@@ -172,15 +172,17 @@ data KeyPadKey = KeyPadKey
 makeLenses ''KeyPadKey
 makeLenses ''KeyPad
 
-start :: Start
-start = do
+--start :: Start
+--start = void . spawnKeyPads
+spawnKeyPads = do
 
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
-    let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.2) (0.25) 0.1)
-                        , (RightHand, rightHandKeys, V3   0.2  (0.25) 0.1)
+    let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.3) 0 0.1)
+                        , (RightHand, rightHandKeys, V3   0.3  0 0.1)
                         ]
-    keyPadContainerID <- spawnChild $ do
+    --keyPadContainerID <- spawnChild $ do
+    keyPadContainerID <- spawnEntity $ do
         myInheritTransform ==> InheritPose
         return ()
     keyPads <- forM handsWithKeys $ \(whichHand, keyRows, offset) -> do
@@ -197,10 +199,24 @@ start = do
             myParent             ==> keyPadID
             myInheritTransform   ==> InheritFull
 
-        -- Add the indicator of thumb position
-        thumbNubID <- spawnEntity $ makeThumbNub scaleContainerID
 
         (keyPadKeys, keyPadDims) <- spawnKeysForHand scaleContainerID keyRows
+
+        -- Add the indicator of thumb position
+        thumbNubID <- spawnEntity $ makeThumbNub scaleContainerID keyPadDims
+
+        let V2 dimX dimY = keyPadDims
+        inEntity scaleContainerID $ do
+            setPosition (V3 (-dimX/2) 0 (-dimY/2))
+            -- Visualize dimensions of keypad
+            --spawnChild $ do
+            --    myShape ==> Cube
+            --    myProperties ==> [Holographic]
+            --    myInheritTransform ==> InheritPose
+            --    myPose ==> translateMatrix (V3 (keyPadDims^._x/2) 0 (keyPadDims^._y/2))
+            --    mySize ==> V3 (keyPadDims^._x) 0.01 (keyPadDims^._y)
+
+
 
         let keyPad = KeyPad
                 { _kpdKeyPadID    = keyPadID
@@ -213,7 +229,20 @@ start = do
                 , _kpdLastKey     = Nothing
                 }
         return (whichHand, keyPad)
-    return ()
+    --return ()
+    return (keyPadContainerID, keyPads)
+
+makeKeyPadKey :: (MonadIO m, MonadState ECS m)
+              => EntityID -> HandKey -> GLfloat -> GLfloat -> m (KeyPadKey, V3 GLfloat)
+makeKeyPadKey containerID key xOffset y = do
+    let (keyPose, keySize) = getKeyPose key xOffset y
+    (keyBackID, keyNameID) <- makeKeyboardKey containerID key keyPose keySize
+    return $ (KeyPadKey
+        { _kpkKeyBackID    = keyBackID
+        , _kpkKeyNameID    = keyNameID
+        , _kpkKey          = key
+        , _kpkPointIsInKey = inRectWithCenter (keyPose^._xz) (keySize^._xz)
+        }, keySize)
 
 spawnKeysForHand :: (MonadIO m, MonadState ECS m)
                  => EntityID
@@ -221,9 +250,8 @@ spawnKeysForHand :: (MonadIO m, MonadState ECS m)
                  -> m ([KeyPadKey], V2 GLfloat)
 spawnKeysForHand containerID keyRows = do
 
-    -- + 2 for up and down buttons at top and bottom
-    let totalKeyRows = length keyRows + 2
-        arrowY = (fromIntegral totalKeyRows) * keyHeightT - keyPadding
+    let totalKeyRows = length keyRows
+        arrowY = (fromIntegral totalKeyRows+1.7) * keyHeightT
 
     -- Spawn left arrow
     (leftKey, _) <- makeKeyPadKey containerID HandKeyLeft 0 arrowY
@@ -242,27 +270,16 @@ spawnKeysForHand containerID keyRows = do
     (rightKey, rightKeySize) <- makeKeyPadKey containerID HandKeyRight widestXOffset arrowY
 
     let finalDimens = V2 (widestXOffset + rightKeySize ^. _x)
-                         (fromIntegral totalKeyRows * keyHeightT)
+                         (fromIntegral totalKeyRows * keyHeight
+                          + (fromIntegral totalKeyRows - 1) * keyPadding)
     return (leftKey : rightKey : concatMap snd keyPadKeysByRow, finalDimens)
-
-makeKeyPadKey :: (MonadIO m, MonadState ECS m)
-              => EntityID -> HandKey -> GLfloat -> GLfloat -> m (KeyPadKey, V3 GLfloat)
-makeKeyPadKey containerID key xOffset y = do
-    let (keyPose, keySize) = getKeyPose key xOffset y
-    (keyBackID, keyNameID) <- makeKeyboardKey containerID key keyPose keySize
-    return $ (KeyPadKey
-        { _kpkKeyBackID    = keyBackID
-        , _kpkKeyNameID    = keyNameID
-        , _kpkKey          = key
-        , _kpkPointIsInKey = inRectWithCenter (keyPose^._xz) (keySize^._xz)
-        }, keySize)
 
 getKeyPose :: HandKey -> GLfloat -> GLfloat
            -> (V3 GLfloat, V3 GLfloat)
 getKeyPose key x r = (keyPose, keySize)
     where
         keyXY         = V2 (x + keySize^._x/2)
-                           (r * (keySize^._z+keyPadding))
+                           (r * (keySize^._z+keyPadding)+keyHeight/2)
 
         keyPose       = V3 (keyXY ^. _x) 0 (keyXY ^. _y)
         keySize       = V3 keyWidthFinal keyDepth keyHeightFinal
@@ -307,14 +324,14 @@ getThumbPos hand = hand ^. hndXY
     & _xy *~ 0.5  -- scale to -0.5 - 0.5
 
 thumbPosInKeyboard :: Hand -> V2 GLfloat -> V3 GLfloat
-thumbPosInKeyboard hand keyboardDims = V3 x 0 offsetY
+thumbPosInKeyboard hand keyboardDims = V3 offsetX 0 offsetY
     where V2 x y  = getThumbPos hand * keyboardDims
-          offsetY = y +
-                    keyboardDims ^. _y / 2 - (keyHeightT / 2)
+          offsetY = y + keyboardDims ^. _y / 2
+          offsetX = x + keyboardDims ^. _x / 2
 
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
-makeThumbNub :: (MonadState ECS m, MonadReader EntityID m) => EntityID -> m ()
-makeThumbNub containerID = do
+makeThumbNub :: (MonadState ECS m, MonadReader EntityID m) => EntityID -> V2 GLfloat -> m ()
+makeThumbNub containerID (V2 x y) = do
 
     myParent           ==> containerID
     myColor            ==> keyColorOn
@@ -322,6 +339,7 @@ makeThumbNub containerID = do
     myProperties       ==> [Holographic]
     mySize             ==> realToFrac keyDepth * 2
     myInheritTransform ==> InheritPose
+    myPose             ==> translateMatrix (V3 (x / 2) 0 (y / 2))
 
 -- | Check if a point is in the given rectangle
 inRect :: (Num a, Ord a) => V2 a -> V2 a -> V2 a -> Bool
