@@ -10,7 +10,6 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Clock
 
-
 import qualified Graphics.UI.GLFW.Pal as GLFW
 import qualified Data.HashMap.Strict as Map
 
@@ -33,40 +32,46 @@ data HandKey = HandKeyChar Char Char
              | HandKeyBlank -- Just a spacer
              deriving (Eq, Show)
 
-keyCapWidth :: HandKey -> Int
-keyCapWidth  (HandKeyChar _ _)     = 1
-keyCapWidth  HandKeyEnter          = 2
-keyCapWidth  HandKeyShift          = 2
-keyCapWidth  HandKeyBackspace      = 2
-keyCapWidth  HandKeyTab            = 2
-keyCapWidth  HandKeyCut            = 2
-keyCapWidth  HandKeyCopy           = 2
-keyCapWidth  HandKeyPaste          = 2
-keyCapWidth  HandKeyMoveLineUp     = 2
-keyCapWidth  HandKeyMoveLineDown   = 2
-keyCapWidth  HandKeyIndent         = 2
-keyCapWidth  HandKeyUnIndent       = 2
-keyCapWidth  HandKeyUp             = 2
-keyCapWidth  HandKeyDown           = 2
-keyCapWidth  HandKeyLeft           = 2
-keyCapWidth  HandKeyRight          = 2
-keyCapWidth  HandKeyBlank          = 2
+keyCapWidth :: HandKey -> GLfloat
+keyCapWidth (HandKeyChar ' ' ' ') = 8
+keyCapWidth (HandKeyChar _ _)     = 1
+keyCapWidth HandKeyEnter          = 2
+keyCapWidth HandKeyShift          = 2
+keyCapWidth HandKeyBackspace      = 2
+keyCapWidth HandKeyTab            = 2
+keyCapWidth HandKeyCut            = 1.5
+keyCapWidth HandKeyCopy           = 1.5
+keyCapWidth HandKeyPaste          = 1.6
+keyCapWidth HandKeyMoveLineUp     = 1.4
+keyCapWidth HandKeyMoveLineDown   = 1.4
+keyCapWidth HandKeyIndent         = 2
+keyCapWidth HandKeyUnIndent       = 2
+keyCapWidth HandKeyUp             = 8
+keyCapWidth HandKeyDown           = 8
+keyCapWidth HandKeyLeft           = 1
+keyCapWidth HandKeyRight          = 1
+keyCapWidth HandKeyBlank          = 2
 
+
+keyCapHeight :: HandKey -> GLfloat
+keyCapHeight HandKeyLeft          = 7
+keyCapHeight HandKeyRight         = 7
+keyCapHeight _                    = 1
 
 showKey :: Bool -> HandKey -> [Char]
 showKey False (HandKeyChar unshifted _) = [unshifted]
 showKey True  (HandKeyChar _ shifted)   = [shifted]
 showKey _ HandKeyEnter                  = "Enter"
 showKey _ HandKeyShift                  = "Shift"
-showKey _ HandKeyBackspace              = "Backspace"
+showKey _ HandKeyBackspace              = "<-"
 showKey _ HandKeyTab                    = "Tab"
 showKey _ HandKeyCut                    = "Cut"
 showKey _ HandKeyCopy                   = "Copy"
 showKey _ HandKeyPaste                  = "Paste"
-showKey _ HandKeyMoveLineUp             = "Line ^"
-showKey _ HandKeyMoveLineDown           = "Line v"
-showKey _ HandKeyIndent                 = "Indent"
-showKey _ HandKeyUnIndent               = "Unindent"
+showKey _ HandKeyMoveLineUp             = "L^^"
+showKey _ HandKeyMoveLineDown           = "Lvv"
+showKey _ HandKeyIndent                 = "L>>"
+showKey _ HandKeyUnIndent               = "L<<"
 showKey _ HandKeyUp                     = "^"
 showKey _ HandKeyDown                   = "v"
 showKey _ HandKeyLeft                   = "<"
@@ -104,28 +109,28 @@ toPressedKey shift control key = KeyboardKey key noKeyCode KeyState'Pressed modi
 
 leftHandKeys :: [[HandKey]]
 leftHandKeys =
-    [ replicate 4 HandKeyUp
-    , [HandKeyCut, HandKeyCopy, HandKeyPaste, HandKeyIndent, HandKeyUnIndent, HandKeyMoveLineUp, HandKeyMoveLineDown]
-    , HandKeyLeft :                cs "`12345" "~!@#$%" ++ [HandKeyRight]
-    , HandKeyLeft : HandKeyTab   : cs "qwert"  "QWERT"  ++ [HandKeyRight]
-    , HandKeyLeft : HandKeyBlank : cs "asdfg"  "ASDFG"  ++ [HandKeyRight]
-    , HandKeyLeft : HandKeyShift : cs "zxcvb"  "ZXCVB"  ++ [HandKeyRight]
-    , replicate 4 (HandKeyChar ' ' ' ')
-    , replicate 4 HandKeyDown
+    [ [HandKeyUp]
+    , [HandKeyMoveLineUp, HandKeyMoveLineDown, HandKeyCut, HandKeyCopy, HandKeyPaste]
+    ,                   cs "`123456" "~!@#$%^"
+    , HandKeyIndent   : cs "qwert"  "QWERT"
+    , HandKeyUnIndent : cs "asdfg"  "ASDFG"
+    , HandKeyShift : cs "zxcvb"  "ZXCVB"
+    , [HandKeyChar ' ' ' ']
+    , [HandKeyDown]
     ]
     where
         cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
 
 rightHandKeys :: [[HandKey]]
 rightHandKeys =
-    [ replicate 4 HandKeyUp
-    , [HandKeyCut, HandKeyCopy, HandKeyPaste, HandKeyIndent, HandKeyUnIndent, HandKeyMoveLineUp, HandKeyMoveLineDown]
-    , HandKeyLeft : cs "67890-="   "^&*()_+"  ++ [HandKeyBackspace,           HandKeyRight]
-    , HandKeyLeft : cs "yuiop[]\\" "YUIOP{}|" ++ [                            HandKeyRight]
-    , HandKeyLeft : cs "hjkl;'"    "HJKL:\""  ++ [HandKeyEnter, HandKeyEnter, HandKeyRight]
-    , HandKeyLeft : cs "nm,./"     "NM<>?"    ++ [HandKeyShift,               HandKeyRight]
-    , replicate 4 (HandKeyChar ' ' ' ')
-    , replicate 4 HandKeyDown
+    [ [HandKeyUp]
+    , [HandKeyMoveLineUp, HandKeyMoveLineDown, HandKeyCut, HandKeyCopy, HandKeyPaste]
+    , cs "7890-="   "&*()_+"  ++ [HandKeyBackspace]
+    , cs "yuiop[]\\" "YUIOP{}|"
+    , cs "hjkl;'"    "HJKL:\""  ++ [HandKeyEnter]
+    , cs "nm,./"     "NM<>?"    ++ [HandKeyShift]
+    , [HandKeyChar ' ' ' ']
+    , [HandKeyDown]
     ]
     where
         cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
@@ -144,12 +149,6 @@ keyColorOn, keyColorOff :: V4 GLfloat
 keyColorOn               = colorHSL 0.2 0.8 0.8
 keyColorOff              = colorHSL 0.3 0.8 0.4
 
--- How far up the keyboard appears
-keyboardOffsetY, keyboardOffsetZ :: GLfloat
-keyboardOffsetY = -0.2
--- How close the keyboard floats
-keyboardOffsetZ = 0.1
-
 minimizedKeyPadSize = 0.001
 maximizedKeyPadSize = 0.3
 keyPadAnimDur = 0.2
@@ -165,21 +164,27 @@ data KeyPad = KeyPad
     , _kpdLastKey     :: Maybe HandKey
     }
 data KeyPadKey = KeyPadKey
-    { _kpkKeyID        :: EntityID
+    { _kpkKeyBackID    :: EntityID
+    , _kpkKeyNameID    :: EntityID
     , _kpkKey          :: HandKey
     , _kpkPointIsInKey :: V2 GLfloat -> Bool
     }
-
 makeLenses ''KeyPadKey
 makeLenses ''KeyPad
 
-spawnKeyPads :: ECSMonad (EntityID, [(WhichHand, KeyPad)])
+--start :: Start
+--start = void . spawnKeyPads
+
+spawnKeyPads :: (MonadIO m, MonadState ECS m) => m (EntityID, [(WhichHand, KeyPad)])
 spawnKeyPads = do
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
-    let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.2) (-0.25) 0.1)
-                        , (RightHand, rightHandKeys, V3   0.2  (-0.25) 0.1)
+    let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.2) (0.25) 0.1)
+                        , (RightHand, rightHandKeys, V3   0.2  (0.25) 0.1)
                         ]
+    -- Use this when live editing to ensure cleanup
+    --keyPadContainerID <- spawnChild $ do
+
     keyPadContainerID <- spawnEntity $ do
         myInheritTransform ==> InheritPose
         return ()
@@ -188,22 +193,21 @@ spawnKeyPads = do
         keyPadID         <- spawnEntity $ do
             myParent             ==> keyPadContainerID
             myInheritTransform   ==> InheritPose
+            --mySize               ==> maximizedKeyPadSize
             mySize               ==> minimizedKeyPadSize
-            myPose               ==> mkTransformation (axisAngle (V3 1 0 0) (pi/2)) offset
+            myPose               ==> mkTransformation
+                                        (axisAngle (V3 1 0 0) (pi/2))
+                                        offset
         scaleContainerID <- spawnEntity $ do
             myParent             ==> keyPadID
             myInheritTransform   ==> InheritFull
 
-
         -- Add the indicator of thumb position
         thumbNubID <- spawnEntity $ makeThumbNub scaleContainerID
 
-        keyPadKeys <- spawnKeysForHand scaleContainerID keyRows
+        (keyPadKeys, keyPadDims) <- spawnKeysForHand scaleContainerID keyRows
 
-        let numRows    = fromIntegral (length keyRows)
-            maxNumKeys = fromIntegral $ maximum (map length keyRows)
-            keyPadDims = V2 (maxNumKeys * keyWidthT) (numRows * keyHeightT)
-            keyPad = KeyPad
+        let keyPad = KeyPad
                 { _kpdKeyPadID    = keyPadID
                 , _kpdKeys        = keyPadKeys
                 , _kpdKeyRepeater = Nothing
@@ -214,60 +218,92 @@ spawnKeyPads = do
                 , _kpdLastKey     = Nothing
                 }
         return (whichHand, keyPad)
-
     return (keyPadContainerID, keyPads)
-
 
 spawnKeysForHand :: (MonadIO m, MonadState ECS m)
                  => EntityID
                  -> [[HandKey]]
-                 -> m [KeyPadKey]
+                 -> m ([KeyPadKey], V2 GLfloat)
 spawnKeysForHand containerID keyRows = do
 
-    -- Spawn the keys and return their entityIDs
-    fmap concat . forM (zip [0..] keyRows) $ \(y, keyRow) -> do
-        let numKeys = fromIntegral (length keyRow)
-            rowXCentering = -keyWidthT * (numKeys - 1) / 2
-        forM (zip [0..] keyRow) $ \(x, key) -> do
+    -- + 2 for up and down buttons at top and bottom
+    let totalKeyRows = length keyRows + 2
+        arrowY = (fromIntegral totalKeyRows) * keyHeightT - keyPadding
 
-            let (keyPose, pointIsInKey) = getKeyPose x y rowXCentering
+    -- Spawn left arrow
+    (leftKey, _) <- makeKeyPadKey containerID HandKeyLeft 0 arrowY
 
-            keyID <- spawnEntity $ makeKeyboardKey containerID key keyPose
 
-            return KeyPadKey
-                { _kpkKeyID        = keyID
-                , _kpkKey          = key
-                , _kpkPointIsInKey = pointIsInKey
-                }
+    -- Spawn keys
+    keyPadKeysByRow <- forM (zip [0..] keyRows) $ \(rowNum, keyRow) -> do
+        foldM (\(xOffset, rowKeyPadKeysSoFar) key -> do
+            (keyPadKey, keySize) <- makeKeyPadKey containerID key xOffset (fromIntegral rowNum)
+            let newAccum = keyPadKey:rowKeyPadKeysSoFar
 
-getKeyPose :: Int -> Int -> GLfloat -> (V3 GLfloat, V2 GLfloat -> Bool)
-getKeyPose (fromIntegral -> x) (fromIntegral -> y) rowXCentering = (keyPose, pointIsInKey)
+            return (xOffset+keySize^._x+keyPadding, newAccum)) (keyWidth+keyPadding,[]) keyRow
+
+    -- Spawn right arrow
+    let widestXOffset = maximum $ map fst keyPadKeysByRow
+    (rightKey, rightKeySize) <- makeKeyPadKey containerID HandKeyRight widestXOffset arrowY
+
+    let finalDimens = V2 (widestXOffset + rightKeySize ^. _x)
+                         (fromIntegral totalKeyRows * keyHeightT)
+    return (leftKey : rightKey : concatMap snd keyPadKeysByRow, finalDimens)
+
+makeKeyPadKey :: (MonadIO m, MonadState ECS m)
+              => EntityID -> HandKey -> GLfloat -> GLfloat -> m (KeyPadKey, V3 GLfloat)
+makeKeyPadKey containerID key xOffset y = do
+    let (keyPose, keySize) = getKeyPose key xOffset y
+    (keyBackID, keyNameID) <- makeKeyboardKey containerID key keyPose keySize
+    return $ (KeyPadKey
+        { _kpkKeyBackID    = keyBackID
+        , _kpkKeyNameID    = keyNameID
+        , _kpkKey          = key
+        , _kpkPointIsInKey = inRectWithCenter (keyPose^._xz) (keySize^._xz)
+        }, keySize)
+
+getKeyPose :: HandKey -> GLfloat -> GLfloat
+           -> (V3 GLfloat, V3 GLfloat)
+getKeyPose key x r = (keyPose, keySize)
     where
-        keyTopLeft            = keyXY - keyDimsT/2
-        keyDimsT              = V2 keyWidthT keyHeightT
-        pointIsInKey          = inRect keyTopLeft keyDimsT
+        keyXY         = V2 (x + keySize^._x/2)
+                           (r * (keySize^._z+keyPadding))
 
-        keyXY@(V2 keyX keyY)  = V2 (rowXCentering + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
+        keyPose       = V3 (keyXY ^. _x) 0 (keyXY ^. _y)
+        keySize       = V3 keyWidthFinal keyDepth keyHeightFinal
 
-        keyPose               = V3 keyX keyboardOffsetZ keyY
+        keyWidthFinal  = keyWidth * widthMult
+        keyHeightFinal = keyHeight * heightMult
+        widthMult      = keyCapWidth key
+        heightMult     = keyCapHeight key
 
 
+makeKeyboardKey :: (MonadState ECS m, MonadIO m)
+                => EntityID -> HandKey -> V3 GLfloat -> V3 GLfloat -> m (EntityID, EntityID)
+makeKeyboardKey containerID key keyPosition keySize = do
+    keyBackID <- spawnEntity $ do
+        myParent                 ==> containerID
+        myColor                  ==> keyColorOff
+        myShape                  ==> Cube
+        myProperties             ==> [Holographic]
+        myPose                   ==> translateMatrix keyPosition
+        mySize                   ==> keySize
+        myInheritTransform       ==> InheritPose
+    -- Spawn key name separately so it doesn't inherit the stretched size of its parent
+    keyNameID <- spawnEntity $ do
+        let keyTitleScale = if length keyTitle > 1
+                then 1 / 2
+                else 1
+            keyTitle      = showKey False key
+        myParent   ==> keyBackID
+        myText     ==> keyTitle
+        myTextPose ==> mkTransformation
+                          (axisAngle (V3 1 0 0) (-pi/2))
+                          (V3 0 (keyDepth/2 + 0.001) 0)
+                        !*! scaleMatrix (keyTitleScale * realToFrac keyWidth)
+        myInheritTransform ==> InheritPose
 
-makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => EntityID -> HandKey -> V3 GLfloat -> m ()
-makeKeyboardKey containerID key keyPosition = do
-    let keyTitleScale         = 1 / (fromIntegral (length keyTitle))
-        keyTitle              = showKey False key
-    myParent                 ==> containerID
-    myText                   ==> keyTitle
-    myTextPose               ==> mkTransformation
-                                      (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0)
-                                    !*! scaleMatrix keyTitleScale
-    myColor                  ==> keyColorOff
-    myShape                  ==> Cube
-    myProperties             ==> [Holographic]
-    myPose                   ==> translateMatrix keyPosition
-    mySize                   ==> V3 keyWidth keyDepth keyHeight
-    myInheritTransform       ==> InheritPose
+    return (keyBackID, keyNameID)
 
 
 getThumbPos :: Hand -> V2 GLfloat
@@ -276,9 +312,10 @@ getThumbPos hand = hand ^. hndXY
     & _xy *~ 0.5  -- scale to -0.5 - 0.5
 
 thumbPosInKeyboard :: Hand -> V2 GLfloat -> V3 GLfloat
-thumbPosInKeyboard hand keyboardDims = V3 x keyboardOffsetZ offsetY
+thumbPosInKeyboard hand keyboardDims = V3 x 0 offsetY
     where V2 x y  = getThumbPos hand * keyboardDims
-          offsetY = y + keyboardOffsetY + keyboardDims ^. _y / 2 - (keyHeightT / 2)
+          offsetY = y +
+                    keyboardDims ^. _y / 2 - (keyHeightT / 2)
 
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
 makeThumbNub :: (MonadState ECS m, MonadReader EntityID m) => EntityID -> m ()
@@ -296,6 +333,9 @@ inRect :: (Num a, Ord a) => V2 a -> V2 a -> V2 a -> Bool
 inRect (V2 x y) (V2 w h) (V2 ptX ptY) =
     ptX > x && ptX < (x + w) && ptY > y && ptY < (y + h)
 
+
+inRectWithCenter pose size = inRect topLeft size
+    where topLeft = pose - size/2
 
 
 
@@ -389,7 +429,7 @@ tickKeyPadsSystem = do
                     let isInKey  = _kpkPointIsInKey thumbXY
                         color    = if isInKey then keyColorOn else keyColorOff
 
-                    inEntity _kpkKeyID (myColor ==> color)
+                    inEntity _kpkKeyBackID (myColor ==> color)
                     when isInKey $ do
                         modifySystemState sysKeyPads $ kpsKeyPads . ix whichHand . kpdCurrentKey ?= _kpkKey
             HandButtonEvent HandButtonPad ButtonDown -> do
@@ -407,7 +447,7 @@ tickKeyPadsSystem = do
                             let shiftIsDown = True
                             allKeys <- getAllKeys
                             forM_ allKeys $ \KeyPadKey{..} -> do
-                                inEntity _kpkKeyID $ setText (showKey shiftIsDown _kpkKey)
+                                inEntity _kpkKeyNameID $ setText (showKey shiftIsDown _kpkKey)
 
 
                         -- We don't send any events for Shift, just using it to toggle internal state.
@@ -442,7 +482,7 @@ tickKeyPadsSystem = do
                 when (wasShiftDown && not isShiftDown) $ do
                     allKeys <- getAllKeys
                     forM_ allKeys $ \KeyPadKey{..} -> do
-                        inEntity _kpkKeyID $ setText (showKey False _kpkKey)
+                        inEntity _kpkKeyNameID $ setText (showKey False _kpkKey)
 
                     -- Allow iOS-style shift-drag-release to type chars
                     mCurrentKey <- viewSystemP sysKeyPads (kpsKeyPads . ix whichHand . kpdCurrentKey . traverse)

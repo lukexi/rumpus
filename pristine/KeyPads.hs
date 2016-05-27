@@ -111,7 +111,7 @@ leftHandKeys :: [[HandKey]]
 leftHandKeys =
     [ [HandKeyUp]
     , [HandKeyMoveLineUp, HandKeyMoveLineDown, HandKeyCut, HandKeyCopy, HandKeyPaste]
-    ,                cs "`123456" "~!@#$%^"
+    ,                   cs "`123456" "~!@#$%^"
     , HandKeyIndent   : cs "qwert"  "QWERT"
     , HandKeyUnIndent : cs "asdfg"  "ASDFG"
     , HandKeyShift : cs "zxcvb"  "ZXCVB"
