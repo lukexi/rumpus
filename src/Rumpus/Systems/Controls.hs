@@ -20,10 +20,18 @@ getNow = do
     vrPal <- viewSystem sysControls ctsVRPal
     realToFrac . utctDayTime <$> VRPal.getNow vrPal
 
+getVRPal :: MonadState ECS m => m VRPal
+getVRPal = viewSystem sysControls ctsVRPal
+
+fadeToColor :: (MonadIO m, MonadState ECS m) => V4 GLfloat -> GLfloat -> m ()
+fadeToColor color time = do
+    vrPal <- getVRPal
+    fadeVRToColor vrPal color time
+
 hapticPulse :: (MonadIO m, MonadState ECS m) => WhichHand -> CUShort -> m ()
 hapticPulse whichHand duration = do
     let axis = 0 -- none of the others seem to work??
-    vrPal <- viewSystem sysControls ctsVRPal
+    vrPal <- getVRPal
     triggerHandHapticPulse vrPal whichHand axis duration
 
 -- FIXME should update and get hndHead instead

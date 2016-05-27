@@ -225,7 +225,9 @@ setEntityRigidBodySize entityID newSize = do
                                   }
 
             -- FIXME this max 0.01 should be moved into bullet-mini; infinitesimal objects break the whole simulation
-            shapeCollider <- createShapeCollider shapeType (max 0.01 newSize)
+            -- NOTE: we fmap the max to make sure we apply the max element-wise;
+            -- a V3 0.0001 1 1 should not pass through unaltered
+            shapeCollider <- createShapeCollider shapeType (fmap (max 0.01) newSize)
             setRigidBodyShape dynamicsWorld rigidBody shapeCollider bodyInfo
 
 setEntityRigidBodyPose :: (MonadIO m, MonadState ECS m) => EntityID -> M44 GLfloat -> m ()

@@ -12,7 +12,8 @@ initClockSystem = do
     registerComponent "ClockAction" myClockAction (newComponentInterface myClockAction)
 
 tickClockSystem :: ECSMonad ()
-tickClockSystem = whenWorldPlaying $ do
+--tickClockSystem = whenWorldPlaying $ do
+tickClockSystem = do
     now <- liftIO getCurrentTime
 
     forEntitiesWithComponent myClockAction $ \(entityID, clockAction) -> do
@@ -22,8 +23,10 @@ tickClockSystem = whenWorldPlaying $ do
         when (elapsed > period) $
             inEntity entityID $ do
                 action
-                when shouldRepeat $
-                    setRepeatingAction period action
+                if shouldRepeat
+                    then setRepeatingAction period action
+                    else removeComponent myClockAction
+
 
 setClockAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                => DiffTime -> ShouldRepeat -> EntityMonad () -> m ()

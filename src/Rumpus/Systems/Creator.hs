@@ -5,12 +5,14 @@ import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
+import Rumpus.Systems.Clock
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Physics
+import Rumpus.Systems.Sound
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Systems.SceneWatcher
@@ -83,9 +85,15 @@ addExitOrb whichHand = do
             when (entityID == otherHandID) $ do
                 hapticPulse otherHand 1000
         myDragBegan ==> do
-            closeEntityLibrary whichHand
-            closeScene
-            showSceneLoader
+            fadeToColor 1 1
+            -- Add the delayed actiont to the hand, since the exit orb will disappear
+            -- when the user releases the library button
+            inEntity otherHandID $ setDelayedAction 1 $ do
+                fadeToColor 0 1
+                closeEntityLibrary whichHand
+                releasePolyPatches
+                closeScene
+                showSceneLoader
 
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID

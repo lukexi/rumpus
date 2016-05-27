@@ -155,6 +155,8 @@ executable rumpus
   if flag(RumpusProfile)
     cpp-options: -DRUMPUS_PROFILE
 
+  -- Links the Windows icon resource file in so Rumpus displays an icon in the taskbar
+  -- See http://www.monkey-x.com/Community/posts.php?topic=9172
   if os(windows)
     ghc-options: -optlscripts/rumpus.res
 

@@ -14,7 +14,8 @@ initAnimationSystem = do
     registerComponent "RotationAnimation"  myRotationAnimation  (newComponentInterface myRotationAnimation)
 
 tickAnimationSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickAnimationSystem = whenWorldPlaying $ do
+--tickAnimationSystem = whenWorldPlaying $ do
+tickAnimationSystem = do
     now <- realToFrac <$> getNow
 
     tickComponentAnimation now myColorAnimation setColor

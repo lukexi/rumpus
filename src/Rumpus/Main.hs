@@ -40,8 +40,8 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         when isBeingProfiled loadTestScene
 
         singleThreadedLoop vrPal
-        --multithreadedLoop1 vrPal
-        --multithreadedLoop2 vrPal
+        --multiThreadedLoop1 vrPal
+        --multiThreadedLoop2 vrPal
 
 singleThreadedLoop :: VRPal -> ECSMonad ()
 singleThreadedLoop vrPal = do
@@ -73,8 +73,8 @@ singleThreadedLoop vrPal = do
 
 
 -- Experiment with placing drawing on the background thread. Doesn't render to window.
-multithreadedLoop1 :: VRPal -> ECSMonad ()
-multithreadedLoop1 vrPal = do
+multiThreadedLoop1 :: VRPal -> ECSMonad ()
+multiThreadedLoop1 vrPal = do
         renderChan <- liftIO newChan
         renderWorker <- liftIO . forkOS $ do
             makeContextCurrent (Just (gpThreadWindow vrPal))
@@ -116,7 +116,7 @@ multithreadedLoop1 vrPal = do
 -- (i.e. it will reuse the last world state and render it from the latest head position)
 -- and has logic thread wait until a new device pose has arrived
 -- from OpenVR before ticking.
-multithreadedLoop2 :: VRPal -> ECSMonad ()
+multiThreadedLoop2 :: VRPal -> ECSMonad ()
 multiThreadedLoop2 vrPal = do
         startingECS <- get
         backgroundBox <- liftIO $ newTVarIO Nothing

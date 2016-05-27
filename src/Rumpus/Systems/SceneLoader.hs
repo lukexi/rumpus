@@ -1,40 +1,20 @@
 module Rumpus.Systems.SceneLoader where
 import PreludeExtra hiding (delete, catch)
 import Rumpus.Systems.Drag
-import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Animation
-import Rumpus.Systems.Hands
+import Rumpus.Systems.Clock
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Controls
-import Rumpus.Systems.Collisions
-import Rumpus.Systems.Attachment
-import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.Scene
-import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
-import Rumpus.Systems.Scene
-import Rumpus.Systems.SceneWatcher
+--import Rumpus.Systems.Scene
+--import Rumpus.Systems.SceneWatcher
 import Rumpus.Types
-import Data.List (delete, isPrefixOf)
 import Control.Exception
 
 import RumpusLib
-
-
-{-
-
-FIXME:
-need
-[x] call initSceneLoaderSystem
-[x] need startSceneLoaderSystem that calls showSceneLoader on startup
-    (and later, save last loaded scene and restore it)
-[ ] disable creator when in sceneloader
-[ ] Fix Scene.hs trying to load old scenes/userscenes no matter what
-[ ] Fix SceneWatcher to only add and delete objects in the current scene folder
-    (use takeDirectory . makeRelative $ rumpusRoot)
--}
 
 data SceneLoaderSystem = SceneLoaderSystem
     { _sclSceneIcons        :: ![EntityID]
@@ -77,14 +57,19 @@ showSceneLoader = do
     modifySystemState sysSceneLoader $
         sclSceneIcons .= libraryEntities
 
+hideSceneLoader :: (MonadState ECS m, MonadIO m) => m ()
 hideSceneLoader = do
     iconIDs <- viewSystem sysSceneLoader sclSceneIcons
     forM_ iconIDs removeEntity
 
+sceneLoaderAnimationInitialSize :: V3 GLfloat
 sceneLoaderAnimationInitialSize = V3 0.01 0.01 0.01
+sceneLoaderAnimationFinalSize :: V3 GLfloat
 sceneLoaderAnimationFinalSize   = V3 0.3  0.3  0.3
+sceneLoaderAnimationDuration :: Double
 sceneLoaderAnimationDuration    = 0.3
 
+listDirectories :: MonadIO m => FilePath -> m [FilePath]
 listDirectories inPath = liftIO $
     filterM (doesDirectoryExist . (inPath </>)) =<< getDirectoryContentsSafe inPath
 
@@ -92,12 +77,13 @@ addSceneLibraryItem :: (MonadIO m, MonadState ECS m)
                     => V3 GLfloat -> Maybe FilePath -> m EntityID
 addSceneLibraryItem spherePosition maybeScenePath = do
     newEntityID <- spawnEntity $ do
-        myPose       ==> translateMatrix (spherePosition * 1 + V3 0 1 0)
-        myShape      ==> Cube
-        mySize       ==> sceneLoaderAnimationInitialSize
-        myProperties ==> [Floating]
-        myText       ==> maybe "New Scene" takeBaseName maybeScenePath
-        myTextPose   ==> mkTransformation
+        myPose         ==> translateMatrix (spherePosition * 1 + V3 0 1 0)
+        myShape        ==> Sphere
+        mySize         ==> sceneLoaderAnimationInitialSize
+        myProperties   ==> [Floating]
+        myDragOverride ==> True
+        myText         ==> maybe "New Scene" takeBaseName maybeScenePath
+        myTextPose     ==> mkTransformation
                             (axisAngle (V3 1 0 0) (0))
                             (V3 0 (-1) 0)
                             !*! scaleMatrix 0.3
@@ -123,14 +109,18 @@ addSceneLibraryItem spherePosition maybeScenePath = do
                         then return (Just newScenePath)
                         else return Nothing
             forM_ mScenePathToLoad $ \scenePathToLoad -> do
-                setWorldPlaying False
-                hideSceneLoader
-                loadScene scenePathToLoad
+                fadeToColor (V4 1 1 1 1) 1
+                setDelayedAction 1 $ do
+                    fadeToColor (V4 0 0 0 0) 1
+                    setWorldPlaying False
+                    hideSceneLoader
+                    loadScene scenePathToLoad
 
     inEntity newEntityID $
         animateSizeTo sceneLoaderAnimationFinalSize 0.3
     return newEntityID
 
+createDirectorySafe :: MonadIO m => FilePath -> m Bool
 createDirectorySafe dirName = liftIO (do
     createDirectoryIfMissing True dirName
     return True

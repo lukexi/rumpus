@@ -18,9 +18,7 @@ import Rumpus.Systems.Scene
 import System.IO.Error
 --import Data.Time.Clock.POSIX
 
--- | Pairs a filename along with an expression
--- to evaluate in that filename's environment once compiled
-type CodeInFile = (FilePath, String)
+
 
 data CodeEditor = CodeEditor
     { _cedRecompiler    :: !Recompiler
@@ -38,14 +36,7 @@ data CodeEditorSystem = CodeEditorSystem
 makeLenses ''CodeEditorSystem
 defineSystemKey ''CodeEditorSystem
 
--- FIXME: these should move to their companion definitions (i.e. myStart, myUpdate etc.)
--- and those files should depend on CodeEditor and call registerCodeExprComponent.
--- Must thus be initialized after CodeEditor.
-defineComponentKeyWithType "StartExpr"          [t|CodeInFile|]
-defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
-defineComponentKeyWithType "CodeHidden"         [t|Bool|]
---defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
---defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
+
 
 getEntityCodeHidden :: (MonadState ECS m) => EntityID -> m Bool
 getEntityCodeHidden entityID = fromMaybe False <$> getEntityComponent entityID myCodeHidden

@@ -35,7 +35,8 @@ selectEntity entityID = do
 
             setSelectedEntityID entityID
 
-            showKeyPads
+            isEditable <- entityHasComponent entityID myStartExpr
+            when isEditable showKeyPads
             --addEditorFrame entityID
 
     return ()
@@ -74,6 +75,7 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
             --        grabEntity handEntityID duplicateID
             | not wantsToHandleDrag ->
                 grabEntity handEntityID grabbedID
+            | otherwise -> return ()
 
 grabEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 grabEntity handEntityID grabbedID = do

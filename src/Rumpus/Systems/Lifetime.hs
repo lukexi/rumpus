@@ -13,7 +13,8 @@ initLifetimeSystem = do
     registerComponent "Lifetime" myLifetime (newComponentInterface myLifetime)
 
 tickLifetimeSystem :: (MonadIO m, MonadState ECS m) => m ()
-tickLifetimeSystem = whenWorldPlaying $ do
+--tickLifetimeSystem = whenWorldPlaying $ do
+tickLifetimeSystem = do
     now <- liftIO getCurrentTime
 
 

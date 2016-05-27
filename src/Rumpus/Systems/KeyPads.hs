@@ -150,6 +150,10 @@ keyboardOffsetY = -0.2
 -- How close the keyboard floats
 keyboardOffsetZ = 0.1
 
+minimizedKeyPadSize = 0.001
+maximizedKeyPadSize = 0.3
+keyPadAnimDur = 0.2
+
 data KeyPad = KeyPad
     { _kpdKeyPadID    :: EntityID
     , _kpdKeys        :: [KeyPadKey]
@@ -178,14 +182,14 @@ showKeyPads :: (MonadIO m, MonadState ECS m) => m ()
 showKeyPads = do
     keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
     forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
-        setSize 0.01
-        animateSizeTo 0.3 0.2
+        setSize minimizedKeyPadSize
+        animateSizeTo maximizedKeyPadSize keyPadAnimDur
 
 hideKeyPads :: (MonadIO m, MonadState ECS m) => m ()
 hideKeyPads = do
     keyPadIDs <- viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeyPadID)
     forM_ keyPadIDs $ \keyPadID -> inEntity keyPadID $ do
-        animateSizeTo 0.01 0.2
+        animateSizeTo minimizedKeyPadSize keyPadAnimDur
 
 getKeyPadContainerID :: MonadState ECS m => m EntityID
 getKeyPadContainerID = viewSystem sysKeyPads kpsKeyPadContainer
@@ -206,7 +210,7 @@ startKeyPadsSystem = do
         keyPadID         <- spawnEntity $ do
             myParent             ==> keyPadContainerID
             myInheritTransform   ==> InheritPose
-            mySize               ==> 0.01
+            mySize               ==> minimizedKeyPadSize
             myPose               ==> mkTransformation (axisAngle (V3 1 0 0) (pi/2)) offset
         scaleContainerID <- spawnEntity $ do
             myParent             ==> keyPadID
@@ -339,10 +343,12 @@ tickKeyPadsSystem = do
     -- with the Child system (which the selected object might be using)
     -- This may become unnecessary with the proposed Deck system.
     traverseM_ getSelectedEntityID $ \selectedEntityID -> do
-        keyPadContainerID <- getKeyPadContainerID
-        selectedEntityPose <- getEntityPose selectedEntityID
-        V3 _ _ sizeZ <- getEntitySize selectedEntityID
-        inEntity keyPadContainerID $ setPose (selectedEntityPose !*! translateMatrix (V3 0 0 (sizeZ/2)))
+        isEditable <- entityHasComponent selectedEntityID myStartExpr
+        when isEditable $ do
+            keyPadContainerID <- getKeyPadContainerID
+            selectedEntityPose <- getEntityPose selectedEntityID
+            V3 _ _ sizeZ <- getEntitySize selectedEntityID
+            inEntity keyPadContainerID $ setPose (selectedEntityPose !*! translateMatrix (V3 0 0 (sizeZ/2)))
 
     forM_ [LeftHand, RightHand] $ \whichHand -> do
         keysForHand <- getKeysForHand whichHand

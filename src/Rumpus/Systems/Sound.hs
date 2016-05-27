@@ -83,6 +83,7 @@ releasePolyPatches = do
             -- Return the OpenAL source to the pool
             modifySystemState sysSound $ do
                 sndOpenALSourcePool %= (ppvOpenALSource { aosEntityID = 0 } : )
+    modifySystemState sysSound $ sndPolyPatchVoices .= mempty
 
 
 acquirePolyPatch :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)

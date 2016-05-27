@@ -4,16 +4,28 @@ import Rumpus
 start :: Start
 start = do
     let duration = 4
+        size = V3 0.01 1 1
 
+    thisID <- ask
     playHead <- spawnChild $ do
         myShape      ==> Cube
         myProperties ==> [Floating, Ghostly, Ungrabbable]
-        mySize       ==> V3 0.01 1 1
-        myUpdate ==> do
+        mySize       ==> size
+        myUpdate     ==> do
             now <- getNow
-            let x = mod' now duration
+            let time = mod' now duration
+                x = time
             setAttachmentOffset (translateMatrix (V3 x 0 0))
-        myCollisionStart ==> \hitEntityID _ -> do
+
+            -- Scale in/out
+            let timeR    = duration - time
+                scaleIn  = min time  0.2 * recip 0.2
+                scaleOut = min timeR 0.2 * recip 0.2
+                scale    = scaleIn * scaleOut
+            when (scale < 1) $ do
+                setSize (realToFrac scale * size)
+            return ()
+        myCollisionStart ==> \hitEntityID _ -> when (hitEntityID /= thisID) $ do
             flashColor <- getEntityColor hitEntityID
             animateColor 0.2 flashColor (V4 1 1 1 1)
     attachEntity playHead
