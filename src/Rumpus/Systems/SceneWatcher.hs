@@ -71,12 +71,14 @@ tickSceneWatcherSystem = do
     -- FIXME: if we remove the file-watchers in text-gl and subhalive,
     -- we'll need to watch the library files outside the scene
     -- (in RumpusRoot) to actuate code/text editor update
+
     forM_ mSceneStateFolder $ \sceneStateFolder ->
         forM_ events $ \event -> do
             -- Ignore event if
             -- - outside scene state folder,
             -- - due to a local modification,
             -- - or if it's not an entity file
+
             let shouldIgnore = checkIfShouldIgnore sceneStateFolder fileStatuses event
             unless shouldIgnore $ do
                 let maybeEntityID = entityPathToEntityID (eventPath event)
@@ -124,7 +126,7 @@ sceneWatcherRemoveEntity entityID = do
 setWatchedFileStatus :: MonadState ECS m => FilePath -> LocalFileStatus -> m ()
 setWatchedFileStatus path status =
     modifySystemState sysSceneWatcher $
-        swaFileStatuses . at (takeFileName path) ?= status
+        swaFileStatuses . at path ?= status
 
 sceneWatcherSaveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherSaveEntity entityID = do
