@@ -6,3 +6,9 @@
 
 [ ] Add feature to teleporters for arbitrary teleport:
     if you point a second teleporter beam at the first teleporter beam, they merge to create a teleport point.
+[ ] keyrepeat broken
+[ ] Keyboard not dismissed on delete
+[ ] Keyboard doesn't show on spawn
+    (until reclick, because there is no startExpr intially)
+
+[ ] Add pose animation when remote change!

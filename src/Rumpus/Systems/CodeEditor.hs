@@ -60,6 +60,7 @@ rumpusLanguageExtensions =
     , Opt_MultiWayIf
     , Opt_BangPatterns
     , Opt_NegativeLiterals
+    , Opt_TemplateHaskell
     ]
 
 withRumpusGHC :: MonadIO m => (TChan CompilationRequest -> m a) -> m a

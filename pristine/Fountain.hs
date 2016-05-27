@@ -27,6 +27,6 @@ start = do
             myMass  ==> 0.1
             myColor ==> colorHSL (note / 12) 0.9 0.8
             myStart ==> do
-                setLifetime 10
+                setLifetime 2
                 applyForce (parentRotation !* V3 0 0.3 0)
         return ()

@@ -77,7 +77,7 @@ addSceneLibraryItem :: (MonadIO m, MonadState ECS m)
                     => V3 GLfloat -> Maybe FilePath -> m EntityID
 addSceneLibraryItem spherePosition maybeScenePath = do
     newEntityID <- spawnEntity $ do
-        myPose         ==> translateMatrix (spherePosition * 1 + V3 0 1 0)
+        myPose         ==> translateMatrix (spherePosition * 1 + V3 -2 1 0)
         myShape        ==> Sphere
         mySize         ==> sceneLoaderAnimationInitialSize
         myProperties   ==> [Floating]

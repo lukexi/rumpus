@@ -411,6 +411,7 @@ tickKeyPadsSystem = do
                                 repeaterID <- spawnEntity $ return ()
                                 inEntity repeaterID $
                                     setDelayedAction 0.25 $ do
+                                        printIO "REPEAT"
                                         setRepeatingAction 0.025 $ do
                                             sendInternalEvent (GLFWEvent event)
                                 modifySystemState sysKeyPads $

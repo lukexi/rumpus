@@ -167,15 +167,16 @@ data KeyPadKey = KeyPadKey
 makeLenses ''KeyPadKey
 makeLenses ''KeyPad
 
-start :: ECSMonad ()
+start :: Start
 start = do
+    setSize (V3 0.4 0.4 0.1)
 
     -- Have hands write their key events to this entityID
     -- so we can pass them along on click to the InternalEvents channel
-    let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.2) (-0.25) 0.1)
-                        , (RightHand, rightHandKeys, V3   0.2  (-0.25) 0.1)
+    let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.2) (0.25) 0.1)
+                        , (RightHand, rightHandKeys, V3   0.2  (0.25) 0.1)
                         ]
-    keyPadContainerID <- spawnEntity $ do
+    keyPadContainerID <- spawnChild $ do
         myInheritTransform ==> InheritPose
         return ()
     keyPads <- forM handsWithKeys $ \(whichHand, keyRows, offset) -> do
@@ -184,7 +185,9 @@ start = do
             myParent             ==> keyPadContainerID
             myInheritTransform   ==> InheritPose
             mySize               ==> 0.3
-            myPose               ==> mkTransformation (axisAngle (V3 1 0 0) (pi/2)) offset
+            myPose               ==> mkTransformation
+                                        (axisAngle (V3 1 0 0) (pi/2))
+                                        offset
         scaleContainerID <- spawnEntity $ do
             myParent             ==> keyPadID
             myInheritTransform   ==> InheritFull
@@ -209,6 +212,7 @@ start = do
                 , _kpdLastKey     = Nothing
                 }
         return (whichHand, keyPad)
+    return ()
 
 spawnKeysForHand :: (MonadIO m, MonadState ECS m)
                  => EntityID
@@ -239,20 +243,23 @@ getKeyPose (fromIntegral -> x) (fromIntegral -> y) rowXCentering = (keyPose, poi
         keyDimsT              = V2 keyWidthT keyHeightT
         pointIsInKey          = inRect keyTopLeft keyDimsT
 
-        keyXY@(V2 keyX keyY)  = V2 (rowXCentering + x * keyWidthT) (keyboardOffsetY + y * keyHeightT)
+        keyXY@(V2 keyX keyY)  = V2 (rowXCentering + x * keyWidthT)
+                                   (keyboardOffsetY + y * keyHeightT)
 
         keyPose               = V3 keyX keyboardOffsetZ keyY
 
 
 
-makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m) => EntityID -> HandKey -> V3 GLfloat -> m ()
+makeKeyboardKey :: (MonadState ECS m, MonadReader EntityID m)
+                => EntityID -> HandKey -> V3 GLfloat -> m ()
 makeKeyboardKey containerID key keyPosition = do
     let keyTitleScale         = 1 / (fromIntegral (length keyTitle))
         keyTitle              = showKey False key
     myParent                 ==> containerID
     myText                   ==> keyTitle
     myTextPose               ==> mkTransformation
-                                      (axisAngle (V3 1 0 0) (-pi/2)) (V3 0 1 0)
+                                      (axisAngle (V3 1 0 0) (-pi/2))
+                                      (V3 0 1 0)
                                     !*! scaleMatrix keyTitleScale
     myColor                  ==> keyColorOff
     myShape                  ==> Cube
@@ -270,7 +277,8 @@ getThumbPos hand = hand ^. hndXY
 thumbPosInKeyboard :: Hand -> V2 GLfloat -> V3 GLfloat
 thumbPosInKeyboard hand keyboardDims = V3 x keyboardOffsetZ offsetY
     where V2 x y  = getThumbPos hand * keyboardDims
-          offsetY = y + keyboardOffsetY + keyboardDims ^. _y / 2 - (keyHeightT / 2)
+          offsetY = y + keyboardOffsetY +
+                    keyboardDims ^. _y / 2 - (keyHeightT / 2)
 
 -- | Create a ball that tracks the position of the thumb mapped to the position of the keys
 makeThumbNub :: (MonadState ECS m, MonadReader EntityID m) => EntityID -> m ()
@@ -287,4 +295,3 @@ makeThumbNub containerID = do
 inRect :: (Num a, Ord a) => V2 a -> V2 a -> V2 a -> Bool
 inRect (V2 x y) (V2 w h) (V2 ptX ptY) =
     ptX > x && ptX < (x + w) && ptY > y && ptY < (y + h)
-

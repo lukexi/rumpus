@@ -23,8 +23,8 @@ initSceneSystem = do
     let rootToUse = if useUserFolder
             then userRumpusRoot
             else pristineDir
-        --useUserFolder = isInReleaseMode
-        useUserFolder = True
+        useUserFolder = isInReleaseMode
+        --useUserFolder = True
 
     registerSystem sysScene $ SceneSystem
         { _scnScene = Nothing
