@@ -83,7 +83,7 @@ addSceneLibraryItem spherePosition maybeScenePath = do
         myProperties   ==> [Floating]
         myDragOverride ==> True
         myText         ==> maybe "New Scene" takeBaseName maybeScenePath
-        myTextPose     ==> mkTransformation
+        myTextPose     ==> rotationAndPosition
                             (axisAngle (V3 1 0 0) (0))
                             (V3 0 (-1) 0)
                             !*! scaleMatrix 0.3

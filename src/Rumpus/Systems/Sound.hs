@@ -203,10 +203,10 @@ derivePdPatchComponent = do
 
             -- Check if this entities patch is already loaded
             -- (i.e., we are being called to update an existing entity via the SceneWatcher)
-            let needsPatchLoad = case maybeExistingPatch of
+            let alreadyLoaded = case maybeExistingPatch of
                     Just PatchWithFile{..} -> pwfFilePath == patchFile
-                    Nothing -> True
-            when needsPatchLoad $ do
+                    Nothing                -> False
+            unless alreadyLoaded $ do
                 removePdPatchComponent
 
                 patch <- makePatchWithFile patchFile False
@@ -225,7 +225,7 @@ makePatchWithFile :: (MonadIO m, MonadState ECS m)
                   -> m PatchWithFile
 makePatchWithFile patchFile isPoly = do
     pd <- getPd
-    -- FIXME if we return to using scene folders to store patches, must use getSceneFolder here
+    -- NOTE if we return to using scene folders to store patches, must use getSceneFolder here
     rumpusRoot <- getRumpusRootFolder
     addPdPatchSearchPath rumpusRoot
     patch <- makePatch pd (rumpusRoot </> takeBaseName patchFile)
