@@ -75,9 +75,9 @@ tickSceneWatcherSystem = do
     forM_ mSceneStateFolder $ \sceneStateFolder ->
         forM_ events $ \event -> do
             -- Ignore event if
-            -- - outside scene state folder,
-            -- - due to a local modification,
-            -- - or if it's not an entity file
+            --     | outside scene state folder,
+            --     | due to a local modification,
+            --     | or if it's not an entity file
 
             let shouldIgnore = checkIfShouldIgnore sceneStateFolder fileStatuses event
             unless shouldIgnore $ do

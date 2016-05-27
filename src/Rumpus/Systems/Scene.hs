@@ -103,7 +103,7 @@ copyRedirectFileIfMissing = liftIO $ do
 
     exists <- doesFileExist (userRumpusRoot </> "redirect.txt")
     when (not exists) $ do
-        copyFile ("resources" </> "redirect.txt") userRumpusRoot
+        copyFile ("resources" </> "redirect.txt") (userRumpusRoot </> "redirect.txt")
             `catchIOError`
                 (\e -> putStrLnIO ("copyRedirectFileIfMissing: " ++ show e))
 
