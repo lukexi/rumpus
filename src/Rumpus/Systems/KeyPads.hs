@@ -264,7 +264,7 @@ spawnKeysForHand containerID keyRows = do
 
 
     -- Spawn keys
-    keyPadKeysByRow <- forM (zip [0::Int..] keyRows) $ \(rowNum, keyRow) -> do
+    keyPadKeysByRow <- forM (zip ([0..]::[Int]) keyRows) $ \(rowNum, keyRow) -> do
         foldM (\(xOffset, rowKeyPadKeysSoFar) key -> do
             (keyPadKey, keySize) <- makeKeyPadKey containerID key xOffset (fromIntegral rowNum)
             let newAccum = keyPadKey:rowKeyPadKeysSoFar
