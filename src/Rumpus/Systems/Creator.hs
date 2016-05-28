@@ -9,7 +9,6 @@ import Rumpus.Systems.Clock
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Attachment
-import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Sound
@@ -19,6 +18,29 @@ import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.SceneLoader
 import Data.List (delete)
 import RumpusLib
+
+activeDestructorOrbSize :: V3 GLfloat
+activeDestructorOrbSize = 0.6
+
+destructorOrbSize :: V3 GLfloat
+destructorOrbSize = 0.05
+exitOrbSize :: V3 GLfloat
+exitOrbSize = 0.05
+initialLibraryItemSize :: V3 GLfloat
+initialLibraryItemSize = 0.001
+libraryItemSize :: V3 GLfloat
+libraryItemSize = V3 0.05 0.05 0.01
+newEntitySize :: V3 GLfloat
+newEntitySize = V3 0.4 0.4 0.1
+animDur :: DiffTime
+animDur = 0.3
+
+creatorOffset :: V3 GLfloat
+creatorOffset = V3 0 0 -0.4
+
+exitOrbOffset :: V3 GLfloat
+exitOrbOffset = V3 0 0 0.2
+
 -- NOTE: this illustrates how handy it will be to have arbitrary components;
 -- rather than creating yet more maps, we can just say
 -- defineComponent OpenLibrary EntityID
@@ -78,7 +100,7 @@ addExitOrb whichHand = do
     exitOrbID <- spawnEntity $ do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
-        mySize       ==> 0.01
+        mySize       ==> initialLibraryItemSize
         myProperties ==> [Floating]
         myUpdate     ==> normalPulse
         -- Pulse the other hand when it hovers over us
@@ -101,7 +123,7 @@ addExitOrb whichHand = do
     setEntityPose exitOrbID (handPose !*! translateMatrix exitOrbOffset)
     attachEntityToEntity handID exitOrbID False
 
-    inEntity exitOrbID $ animateSizeTo 0.05 0.3
+    inEntity exitOrbID $ animateSizeTo exitOrbSize animDur
     return exitOrbID
 
 addDestructionOrb :: (MonadIO m, MonadState ECS m)
@@ -120,7 +142,7 @@ addDestructionOrb whichHand = do
     destructorID <- spawnEntity $ do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
-        mySize       ==> 0.01
+        mySize       ==> initialLibraryItemSize
         myProperties ==> [Floating]
         myUpdate     ==> normalPulse
 
@@ -131,7 +153,7 @@ addDestructionOrb whichHand = do
             otherHandID <- getOtherHandID whichHand
             isBeingHeldByOtherHand <- isEntityAttachedTo entityID otherHandID
             when isBeingHeldByOtherHand $ do
-                animateSizeTo 0.6 0.3
+                animateSizeTo activeDestructorOrbSize animDur
                 myUpdate ==> angryPulse
                 modifySystemState sysCreator $
                     crtPendingDestruction . at whichHand ?= entityID
@@ -146,7 +168,7 @@ addDestructionOrb whichHand = do
             pendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at whichHand)
             when (pendingDestruction == Just entityID) $ do
                 myUpdate ==> normalPulse
-                animateSizeTo 0.05 0.3
+                animateSizeTo destructorOrbSize animDur
                 modifySystemState sysCreator $
                     crtPendingDestruction . at whichHand .= Nothing
 
@@ -154,21 +176,11 @@ addDestructionOrb whichHand = do
     setEntityPose destructorID (handPose !*! translateMatrix creatorOffset)
     attachEntityToEntity handID destructorID False
 
-    inEntity destructorID $ animateSizeTo 0.05 0.3
+    inEntity destructorID $ animateSizeTo destructorOrbSize animDur
     return destructorID
 
-creatorOffset :: V3 GLfloat
-creatorOffset = V3 0 0 -0.4
 
-exitOrbOffset :: V3 GLfloat
-exitOrbOffset = V3 0 0 0.2
 
-getOtherHand :: WhichHand -> WhichHand
-getOtherHand whichHand = case whichHand of
-    LeftHand  -> RightHand
-    RightHand -> LeftHand
-getOtherHandID :: MonadState ECS m => WhichHand -> m EntityID
-getOtherHandID whichHand = getHandID (getOtherHand whichHand)
 
 -- FIXME: it would be extra cool to add the startExpr immediately rather than on grab,
 -- so that we can see tiny versions of the code on each object.
@@ -182,7 +194,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
     handPose <- getEntityPose handID
     newEntityID <- spawnEntity $ do
         myShape      ==> Cube
-        mySize       ==> V3 0.01 0.01 0.001
+        mySize       ==> initialLibraryItemSize
         myProperties ==> [Floating]
         myText       ==> maybe "New Object" takeBaseName maybeCodePath
         myTextPose   ==> mkTransformation
@@ -211,7 +223,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                 -- We use attachEntityToEntity rather than grabEntity
                 -- because we don't want to select new objects
                 attachEntityToEntity handEntityID entityID True
-                animateSizeTo 0.3 0.3
+                animateSizeTo newEntitySize animDur
                 case maybeCodePath of
                     Just codePath -> setStartExpr codePath
                     Nothing       -> addNewStartExpr
@@ -223,7 +235,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                   !*! mkTransformation (axisAngle (V3 1 0 0) (-pi/2)) (spherePosition * 0.2))
     attachEntityToEntity handID newEntityID False
 
-    inEntity newEntityID $ animateSizeTo 0.05 0.3
+    inEntity newEntityID $ animateSizeTo libraryItemSize animDur
     return newEntityID
 
 removeFromOpenLibrary :: MonadState ECS m => WhichHand -> EntityID -> m ()

@@ -2,7 +2,7 @@
 
 module Rumpus.Main where
 import Rumpus
-import Rumpus.TestScene
+--import Rumpus.TestScene
 
 rumpusMain :: IO ()
 rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
@@ -76,7 +76,7 @@ singleThreadedLoop vrPal = do
 multiThreadedLoop1 :: VRPal -> ECSMonad ()
 multiThreadedLoop1 vrPal = do
         renderChan <- liftIO newChan
-        renderWorker <- liftIO . forkOS $ do
+        _renderWorker <- liftIO . forkOS $ do
             makeContextCurrent (Just (gpThreadWindow vrPal))
             void . forever $ do
                 join (readChan renderChan)

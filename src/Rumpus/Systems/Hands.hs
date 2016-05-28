@@ -62,6 +62,16 @@ getHandIDs = do
            , (RightHand, rightHandID)
            ]
 
+
+getOtherHand :: WhichHand -> WhichHand
+getOtherHand whichHand = case whichHand of
+    LeftHand  -> RightHand
+    RightHand -> LeftHand
+getOtherHandID :: MonadState ECS m => WhichHand -> m EntityID
+getOtherHandID whichHand = getHandID (getOtherHand whichHand)
+
+
+
 withLeftHandEvents :: MonadState ECS m => (HandEvent -> m ()) -> m ()
 withLeftHandEvents f = withSystem_ sysControls $ \controlSystem -> do
     let events = controlSystem ^. ctsEvents

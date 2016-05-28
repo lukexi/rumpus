@@ -149,8 +149,13 @@ keyColorOn, keyColorOff :: V4 GLfloat
 keyColorOn               = colorHSL 0.2 0.8 0.8
 keyColorOff              = colorHSL 0.3 0.8 0.4
 
+minimizedKeyPadSize :: V3 GLfloat
 minimizedKeyPadSize = 0.001
+
+maximizedKeyPadSize :: V3 GLfloat
 maximizedKeyPadSize = 0.3
+
+keyPadAnimDur :: DiffTime
 keyPadAnimDur = 0.2
 
 data KeyPad = KeyPad
@@ -174,6 +179,7 @@ makeLenses ''KeyPad
 
 --start :: Start
 --start = void spawnKeyPads
+spawnKeyPads :: ECSMonad (EntityID, [(WhichHand, KeyPad)])
 spawnKeyPads = do
 
     -- Have hands write their key events to this entityID
@@ -258,7 +264,7 @@ spawnKeysForHand containerID keyRows = do
 
 
     -- Spawn keys
-    keyPadKeysByRow <- forM (zip [0..] keyRows) $ \(rowNum, keyRow) -> do
+    keyPadKeysByRow <- forM (zip [0::Int..] keyRows) $ \(rowNum, keyRow) -> do
         foldM (\(xOffset, rowKeyPadKeysSoFar) key -> do
             (keyPadKey, keySize) <- makeKeyPadKey containerID key xOffset (fromIntegral rowNum)
             let newAccum = keyPadKey:rowKeyPadKeysSoFar
@@ -346,7 +352,7 @@ inRect :: (Num a, Ord a) => V2 a -> V2 a -> V2 a -> Bool
 inRect (V2 x y) (V2 w h) (V2 ptX ptY) =
     ptX > x && ptX < (x + w) && ptY > y && ptY < (y + h)
 
-
+inRectWithCenter :: (Fractional a, Ord a) => V2 a -> V2 a -> V2 a -> Bool
 inRectWithCenter pose size = inRect topLeft size
     where topLeft = pose - size/2
 

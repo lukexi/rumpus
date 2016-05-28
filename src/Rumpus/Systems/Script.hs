@@ -2,7 +2,6 @@ module Rumpus.Systems.Script where
 import PreludeExtra
 
 import Rumpus.Systems.PlayPause
-import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Shared
 import Rumpus.Systems.CodeProtect
 

@@ -2,7 +2,7 @@ module Rumpus.Systems.Animation where
 
 import PreludeExtra
 import Rumpus.Systems.Shared
-import Rumpus.Systems.PlayPause
+--import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Controls
 

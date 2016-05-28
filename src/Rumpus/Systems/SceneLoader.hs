@@ -11,7 +11,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
 --import Rumpus.Systems.Scene
 --import Rumpus.Systems.SceneWatcher
-import Rumpus.Types
+--import Rumpus.Types
 import Control.Exception
 
 import RumpusLib
@@ -63,21 +63,19 @@ makeLoaderDecorations :: Start
 makeLoaderDecorations = do
 
     -- Platform
-    let roomCube = 4
-        (roomW, _roomH, roomD) = (roomCube,roomCube,roomCube)
-        wallD = 0.2
-
-        roomOffset = -wallD/2
-    spawnChild $ do
-        myPose       ==> translateMatrix (V3 0 roomOffset 0)
+    let platX = 4
+        platZ = platX
+        platY = 0.2
+    _ <- spawnChild $ do
+        myPose       ==> translateMatrix (V3 0 (-platY/2) 0)
         myShape      ==> Cube
         myProperties ==> [Floating, Ungrabbable, Teleportable]
-        mySize       ==> V3 roomW wallD roomD
-        myColor      ==> colorHSL 0.5 0.8 0.6
+        mySize       ==> V3 platX platY platZ
+        myColor      ==> colorHSL 0.5 0.8 0.3
         myMass       ==> 0
 
-    let n = 10
-    forM (take 100 $ cycle "RUMPUSrumpus") $ \letter -> do
+    let n = 30
+    forM_ (take 100 $ cycle "RUMPUSrumpus") $ \letter -> do
         pos <- V3 <$> randomRange (-n,n)
                   <*> randomRange (-n,n)
                   <*> randomRange (-n,n)
