@@ -57,6 +57,7 @@ closeScene :: (MonadIO m, MonadState ECS m) => m ()
 closeScene = do
     existingEntities <- wldPersistentEntities <<.= mempty
     forM_ existingEntities removeEntity
+    scnScene .= Nothing
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneFolder = do

@@ -22,12 +22,12 @@ maxProfilerHistory :: Int
 maxProfilerHistory = 20
 
 addSample :: MonadState ECS m => String -> Double -> m ()
-addSample name value = do
+addSample name !value = do
     modifySystemState sysProfiler $ do
         hist <- use (prfSampleHistory . at name)
-        prfSampleHistory . at name ?= case hist of
-            Just existing -> Seq.take maxProfilerHistory (value <| existing)
-            Nothing       -> Seq.singleton value
+        prfSampleHistory . at name .= case hist of
+            Just existing -> Just $! Seq.take maxProfilerHistory $! value <| existing
+            Nothing       -> Just $! Seq.singleton value
 
 getSampleHistory :: MonadState ECS m => m (Map String (Seq Double))
 getSampleHistory = viewSystem sysProfiler prfSampleHistory
@@ -38,6 +38,6 @@ profile name action = do
     a      <- action
     after  <- liftIO getCurrentTime
 
-    addSample name (realToFrac $ after `diffUTCTime` before)
+    addSample name (realToFrac $! after `diffUTCTime` before)
 
     return a

@@ -1,4 +1,4 @@
-module Room where
+module Platform where
 import Rumpus
 
 roomCube = 4
@@ -15,6 +15,6 @@ start = do
         myShape      ==> Cube
         myProperties ==> [Floating, Ungrabbable, Teleportable]
         mySize       ==> V3 roomW wallD roomD
-        myColor      ==> colorHSL 0.1 0.8 0.6
+        myColor      ==> colorHSL 0.5 0.8 0.2
         myMass       ==> 0
     return ()

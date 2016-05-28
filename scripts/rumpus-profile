@@ -7,17 +7,17 @@
 # -hr retainer
 # -hb biographical
 
-./rumpus-profile-cleaner # see profile-clean-
+scripts/rumpus-profile-cleaner # see profile-clean-
 
 PROFTYPE=$1
 if [ -z "$1" ]
   then
-    PROFTYPE=-hc    
+    PROFTYPE=-hc
 fi
 
 stack build --executable-profiling --library-profiling --flag rumpus:RumpusProfile || exit 1
 
-# We need to use this odd method of running rather than: 
+# We need to use this odd method of running rather than:
 # stack exec rumpus -- +RTS -hy
 # as the -- doesn't seem to be triggering RTS options correctly on Windows
 `stack exec which rumpus` +RTS $PROFTYPE

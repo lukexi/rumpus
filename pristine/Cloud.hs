@@ -27,9 +27,10 @@ start = do
                                <*> randomRange (-0.1, 0.1)
                                <*> randomRange (-0.1, 0.1)
                 hue <- randomRange (0.5,0.7)
-                spawnChild $ do
+                drop <- spawnChild $ do
                     myShape ==> Sphere
                     myPose ==> cloudPose !*! translateMatrix startPos
-                    mySize ==> 0.05
+                    mySize ==> 0.03
                     myColor ==> colorHSL hue 0.5 0.8
+                inEntity drop $ setLifetime 2
                 return ()

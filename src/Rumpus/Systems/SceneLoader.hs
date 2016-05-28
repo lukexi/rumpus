@@ -32,8 +32,8 @@ startSceneLoaderSystem :: (MonadIO m, MonadState ECS m) => m ()
 startSceneLoaderSystem = do
     -- Profiling doesn't support hot code load, so we can't load scenes
     -- (we use TestScene instead in Main)
-    unless isBeingProfiled $ do
-        showSceneLoader
+    --unless isBeingProfiled $ do
+    showSceneLoader
 
 listScenes :: (MonadState ECS m, MonadIO m) => m [FilePath]
 listScenes = do
@@ -54,8 +54,54 @@ showSceneLoader = do
     libraryEntities <- forM positionsAndCodePaths $ \(position, maybeCodePath) -> do
         addSceneLibraryItem position maybeCodePath
 
+    decorations <- spawnEntity (myStart ==> makeLoaderDecorations)
+
     modifySystemState sysSceneLoader $
-        sclSceneIcons .= libraryEntities
+        sclSceneIcons .= decorations:libraryEntities
+
+makeLoaderDecorations :: Start
+makeLoaderDecorations = do
+
+    -- Platform
+    let roomCube = 4
+        (roomW, _roomH, roomD) = (roomCube,roomCube,roomCube)
+        wallD = 0.2
+
+        roomOffset = -wallD/2
+    spawnChild $ do
+        myPose       ==> translateMatrix (V3 0 roomOffset 0)
+        myShape      ==> Cube
+        myProperties ==> [Floating, Ungrabbable, Teleportable]
+        mySize       ==> V3 roomW wallD roomD
+        myColor      ==> colorHSL 0.5 0.8 0.6
+        myMass       ==> 0
+
+    let n = 10
+    forM (take 100 $ cycle "RUMPUSrumpus") $ \letter -> do
+        pos <- V3 <$> randomRange (-n,n)
+                  <*> randomRange (-n,n)
+                  <*> randomRange (-n,n)
+
+        let (V3 x y z) = pos
+        unless (abs x < 4 && abs y < 4 && abs z < 4) $ do
+            void . spawnChild $ do
+                myPose ==> translateMatrix pos
+                mySize ==> 0.2
+                myText ==> [letter]
+                myTextPose ==> translateMatrix (V3 0 1 0)
+                myProperties ==> [Holographic]
+                myShape ==> Cube
+                myUpdate ==> do
+                    now <- getNow
+                    let n = (now + pos ^. _x + pos ^. _y) * 0.5
+                    setSize (realToFrac (sin n))
+                    setPose $ rotationAndPosition
+                       (axisAngle pos n)
+                       (pos & _x +~ sin n & _y +~ cos n)
+                    setColor (colorHSL (x+(sin n * 0.3)) 0.5 0.5)
+
+    return ()
+
 
 hideSceneLoader :: (MonadState ECS m, MonadIO m) => m ()
 hideSceneLoader = do
@@ -64,8 +110,10 @@ hideSceneLoader = do
 
 sceneLoaderAnimationInitialSize :: V3 GLfloat
 sceneLoaderAnimationInitialSize = V3 0.01 0.01 0.01
+
 sceneLoaderAnimationFinalSize :: V3 GLfloat
 sceneLoaderAnimationFinalSize   = V3 0.3  0.3  0.3
+
 sceneLoaderAnimationDuration :: Double
 sceneLoaderAnimationDuration    = 0.3
 
@@ -77,7 +125,7 @@ addSceneLibraryItem :: (MonadIO m, MonadState ECS m)
                     => V3 GLfloat -> Maybe FilePath -> m EntityID
 addSceneLibraryItem spherePosition maybeScenePath = do
     newEntityID <- spawnEntity $ do
-        myPose         ==> translateMatrix (spherePosition * 1 + V3 -2 1 0)
+        myPose         ==> translateMatrix (spherePosition * 1 + V3 0 1.5 0)
         myShape        ==> Sphere
         mySize         ==> sceneLoaderAnimationInitialSize
         myProperties   ==> [Floating]

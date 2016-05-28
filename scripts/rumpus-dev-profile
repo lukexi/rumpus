@@ -1,1 +1,1 @@
-stack build --executable-profiling --library-profiling --file-watch --exec "./rumpus-profile"
+stack build --executable-profiling --library-profiling --file-watch --exec "scripts/rumpus-profile"

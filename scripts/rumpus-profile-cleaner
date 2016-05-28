@@ -7,9 +7,9 @@ if [[ -e .profile-clean-hack ]]; then
 	exit 0;
 fi
 
-stack clean pd 
-stack clean bindings-GLFW 
-stack clean bullet-mini 
+stack clean pd-hs
+stack clean bindings-GLFW
+stack clean bullet-mini
 stack clean openvr-hs
 stack clean freetype-gl-mini
 

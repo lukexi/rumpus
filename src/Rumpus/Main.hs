@@ -37,7 +37,7 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
         startKeyPadsSystem
         startSceneLoaderSystem
         startSceneWatcherSystem
-        when isBeingProfiled loadTestScene
+        --when isBeingProfiled loadTestScene
 
         singleThreadedLoop vrPal
         --multiThreadedLoop1 vrPal

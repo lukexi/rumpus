@@ -23,7 +23,7 @@ getFont = viewSystem sysText txtFont
 initTextSystem :: (MonadIO m, MonadState ECS m) => m ()
 initTextSystem = do
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
-    font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
+    font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 100 glyphProg
 
     registerSystem sysText $ TextSystem
         { _txtFont       = font
