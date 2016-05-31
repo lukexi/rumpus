@@ -1,7 +1,7 @@
 module Rumpus.Systems.Clock where
 import PreludeExtra
 
-import Rumpus.Systems.PlayPause
+--import Rumpus.Systems.PlayPause
 
 type ShouldRepeat = Bool
 data ClockAction = ClockAction UTCTime DiffTime ShouldRepeat (EntityMonad ())

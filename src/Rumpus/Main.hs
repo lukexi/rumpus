@@ -54,7 +54,7 @@ singleThreadedLoop vrPal = do
 
         tickLogic
 
-
+tickLogic :: ECSMonad ()
 tickLogic = do
     -- Perform a minor GC to just get the young objects created during the last frame
     -- without traversing all of memory

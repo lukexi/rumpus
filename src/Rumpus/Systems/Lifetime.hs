@@ -2,8 +2,8 @@ module Rumpus.Systems.Lifetime where
 import PreludeExtra
 
 import Rumpus.Systems.Shared
-import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
+--import Rumpus.Systems.PlayPause
 
 data Lifetime = Lifetime UTCTime NominalDiffTime
 defineComponentKey ''Lifetime

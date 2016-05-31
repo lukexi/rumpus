@@ -17,6 +17,7 @@ import Control.Exception
 import RumpusLib
 import Rumpus.Types
 
+libraryCenter :: V3 GLfloat
 --libraryCenter = V3 0 1.5 0
 libraryCenter = if isInReleaseMode
     then V3 0 1.5 0
@@ -81,11 +82,11 @@ makeLoaderDecorations = do
         myColor      ==> colorHSL 0.5 0.8 0.3
         myMass       ==> 0
 
-    let n = 30
+    let d = 30
     forM_ (take 100 $ cycle "RUMPUSrumpus") $ \letter -> do
-        pos <- V3 <$> randomRange (-n,n)
-                  <*> randomRange (-n,n)
-                  <*> randomRange (-n,n)
+        pos <- V3 <$> randomRange (-d,d)
+                  <*> randomRange (-d,d)
+                  <*> randomRange (-d,d)
 
         let (V3 x y z) = pos
         unless (abs x < 4 && abs y < 4 && abs z < 4) $ do
