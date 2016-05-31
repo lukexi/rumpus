@@ -40,7 +40,7 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
 
     --void . flip runStateT newECS $ do
     --    initializeECS ghc pd vrPal
-        --singleThreadedLoop vrPal
+    --    singleThreadedLoop vrPal
         --multiThreadedRenderInBGLoop vrPal
     multiThreadedLogicInBGLoop ghc pd vrPal
 
@@ -133,21 +133,21 @@ multiThreadedLogicInBGLoop ghc pd vrPal = do
 -- main thread should use bg window)
 multiThreadedRenderInBGLoop :: VRPal -> ECSMonad ()
 multiThreadedRenderInBGLoop vrPal = do
-        renderChan <- liftIO newChan
-        _renderWorker <- liftIO . forkOS $ do
-            makeContextCurrent (Just (gpThreadWindow vrPal))
-            void . forever $ do
-                join (readChan renderChan)
-        let onRenderThread action = do
-                currentECS <- get
-                liftIO $ writeChan renderChan (runStateT action currentECS)
+    renderChan <- liftIO newChan
+    _renderWorker <- liftIO . forkOS $ do
+        makeContextCurrent (Just (gpThreadWindow vrPal))
+        void . forever $ do
+            join (readChan renderChan)
+    let onRenderThread action = do
+            currentECS <- get
+            liftIO $ writeChan renderChan (runStateT action currentECS)
 
-        whileWindow (gpWindow vrPal) $ do
-            playerM44 <- viewSystem sysControls ctsPlayer
-            (headM44, events) <- tickVR vrPal playerM44
-            profile "Controls" $ tickControlEventsSystem headM44 events
-            profile "Rendering" $ onRenderThread $ tickRenderSystem headM44
-            --profile "Rendering" $ tickRenderSystem headM44
+    whileWindow (gpWindow vrPal) $ do
+        playerM44 <- viewSystem sysControls ctsPlayer
+        (headM44, events) <- tickVR vrPal playerM44
+        profile "Controls" $ tickControlEventsSystem headM44 events
+        profile "Rendering" $ onRenderThread $ tickRenderSystem headM44
+        --profile "Rendering" $ tickRenderSystem headM44
 
-            tickLogic
+        tickLogic
 

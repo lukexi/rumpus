@@ -15,6 +15,13 @@ import Rumpus.Systems.Text
 import Control.Exception
 
 import RumpusLib
+import Rumpus.Types
+
+--libraryCenter = V3 0 1.5 0
+libraryCenter = if isInReleaseMode
+    then V3 0 1.5 0
+    -- offset for couch access
+    else V3 -1.5 1.5 0
 
 data SceneLoaderSystem = SceneLoaderSystem
     { _sclSceneIcons        :: ![EntityID]
@@ -123,7 +130,7 @@ addSceneLibraryItem :: (MonadIO m, MonadState ECS m)
                     => V3 GLfloat -> Maybe FilePath -> m EntityID
 addSceneLibraryItem spherePosition maybeScenePath = do
     newEntityID <- spawnEntity $ do
-        myPose         ==> translateMatrix (spherePosition * 1 + V3 0 1.5 0)
+        myPose         ==> translateMatrix (spherePosition * 1 + libraryCenter)
         myShape        ==> Sphere
         mySize         ==> sceneLoaderAnimationInitialSize
         myProperties   ==> [Floating]

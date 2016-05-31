@@ -101,7 +101,7 @@ addExitOrb whichHand = do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
         mySize       ==> initialLibraryItemSize
-        myProperties ==> [Floating]
+        myProperties ==> [Floating, Ungrabbable]
         myUpdate     ==> normalPulse
         -- Pulse the other hand when it hovers over us
         myColliding ==> \entityID _ -> do
@@ -143,7 +143,7 @@ addDestructionOrb whichHand = do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
         mySize       ==> initialLibraryItemSize
-        myProperties ==> [Floating]
+        myProperties ==> [Floating, Ungrabbable]
         myUpdate     ==> normalPulse
 
         -- When an entity collides with us that's held by the other hand,

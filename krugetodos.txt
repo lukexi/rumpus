@@ -1,0 +1,4 @@
+disallow library when holding an object
+deleting doesn't work if holding object before opening destructor
+disallow grabbing destructor ball
+allow deleting by moving destructor over object rather than vice versa

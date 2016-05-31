@@ -25,6 +25,7 @@ initTextSystem = do
     glyphProg <- createShaderProgram "resources/shaders/glyph.vert" "resources/shaders/glyph.frag"
     font      <- createFont "resources/fonts/SourceCodePro-Regular.ttf" 100 glyphProg
 
+
     registerSystem sysText $ TextSystem
         { _txtFont       = font
         , _txtRecycleBin = []
