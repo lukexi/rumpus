@@ -41,7 +41,12 @@ startSceneLoaderSystem = do
     -- Profiling doesn't support hot code load, so we can't load scenes
     -- (we use TestScene instead in Main)
     --unless isBeingProfiled $ do
-    showSceneLoader
+
+    listToMaybe <$> liftIO getArgs >>= \case
+        Nothing -> showSceneLoader
+        Just sceneName -> do
+            rumpusRoot <- getRumpusRootFolder
+            loadScene (rumpusRoot </> sceneName)
 
 listScenes :: (MonadState ECS m, MonadIO m) => m [FilePath]
 listScenes = do
