@@ -1,0 +1,15 @@
+StartExpr:
+- MyObject6.hs
+- start
+Size:
+- 0.4
+- 0.4
+- 0.1
+Color:
+- 0.1
+- 0.1
+- 0.1
+- 1
+Shape: Cube
+Properties:
+- Floating
