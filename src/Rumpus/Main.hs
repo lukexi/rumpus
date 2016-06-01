@@ -30,8 +30,30 @@ initializeECS ghc pd vrPal = do
 
     startHandsSystem
     startKeyPadsSystem
-    startSceneLoaderSystem
     startSceneWatcherSystem
+
+    listToMaybe <$> liftIO getArgs >>= \case
+        Nothing -> showSceneLoader
+        -- Create a fresh scene and object for quick new object dev work
+        Just "new" -> do
+            codeInFile <- createNewStartExpr
+            rumpusRoot <- getRumpusRootFolder
+            let codeFileName = takeBaseName $ fst codeInFile
+                newScenePath = rumpusRoot </> codeFileName
+            createdSuccessfully <- createDirectorySafe newScenePath
+            when createdSuccessfully $ do
+                loadScene newScenePath
+                newEID <- spawnPersistentEntity $ do
+                    myShape      ==> Cube
+                    mySize       ==> newEntitySize
+                    myProperties ==> [Floating]
+                    myColor      ==> V4 0.1 0.1 0.1 1
+                    myStartExpr ==> codeInFile
+                sceneWatcherSaveEntity newEID
+        Just sceneName -> do
+            rumpusRoot <- getRumpusRootFolder
+            loadScene (rumpusRoot </> sceneName)
+
     --when isBeingProfiled loadTestScene
 
 rumpusMain :: IO ()

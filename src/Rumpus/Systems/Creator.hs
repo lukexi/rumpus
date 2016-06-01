@@ -24,14 +24,19 @@ activeDestructorOrbSize = 0.6
 
 destructorOrbSize :: V3 GLfloat
 destructorOrbSize = 0.05
+
 exitOrbSize :: V3 GLfloat
 exitOrbSize = 0.05
+
 initialLibraryItemSize :: V3 GLfloat
 initialLibraryItemSize = 0.001
+
 libraryItemSize :: V3 GLfloat
 libraryItemSize = V3 0.05 0.05 0.01
+
 newEntitySize :: V3 GLfloat
 newEntitySize = V3 0.4 0.4 0.1
+
 animDur :: DiffTime
 animDur = 0.3
 
@@ -225,7 +230,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                 attachEntityToEntity handEntityID entityID True
                 animateSizeTo newEntitySize animDur
                 case maybeCodePath of
-                    Just codePath -> setStartExpr codePath
+                    Just codePath -> setStartExpr (codePath, "start")
                     Nothing       -> addNewStartExpr
 
     -- Hand is usually held vertically, so we rotate objects such that they'll
@@ -270,6 +275,13 @@ defaultStartCodeWithModuleName moduleName = unlines
 addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                 => m ()
 addNewStartExpr = do
+    codeInFile <- createNewStartExpr
+
+    -- Rumpus folder is auto-appended in CodeEditor, so we just need the filename with no path.
+    setStartExpr codeInFile
+
+createNewStartExpr :: (MonadIO m, MonadState ECS m) => m CodeInFile
+createNewStartExpr = do
     rumpusRoot <- getRumpusRootFolder
     files <- getDirectoryContentsWithExtension "hs" rumpusRoot
 
@@ -277,19 +289,25 @@ addNewStartExpr = do
         entityFileName    = newObjectCodeName <.> "hs"
         entityFilePath    = rumpusRoot </> entityFileName
     liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName newObjectCodeName)
-
-    -- Rumpus folder is auto-appended in CodeEditor, so we just need the filename with no path.
-    setStartExpr entityFileName
-
+    return (entityFileName, "start")
 
 setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
-             => FilePath -> m ()
-setStartExpr fileName = do
-    let codeInFile = (fileName, "start")
+             => CodeInFile -> m ()
+setStartExpr codeInFile = do
     myStartExpr ==> codeInFile
     registerWithCodeEditor codeInFile myStart
 
 
+-- Used for dev purposes only, creates a new object at 0,0,0
+devCreateNewObject :: (MonadState ECS m, MonadIO m) => m EntityID
+devCreateNewObject = do
+    codeInFile <- createNewStartExpr
+    spawnPersistentEntity $ do
+        myShape      ==> Cube
+        mySize       ==> newEntitySize
+        myProperties ==> [Floating]
+        myColor      ==> V4 0.1 0.1 0.1 1
+        myStartExpr ==> codeInFile
 
 {-
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
