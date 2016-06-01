@@ -41,7 +41,12 @@ startSceneLoaderSystem = do
     -- Profiling doesn't support hot code load, so we can't load scenes
     -- (we use TestScene instead in Main)
     --unless isBeingProfiled $ do
-    showSceneLoader
+
+    listToMaybe <$> liftIO getArgs >>= \case
+        Nothing -> showSceneLoader
+        Just sceneName -> do
+            rumpusRoot <- getRumpusRootFolder
+            loadScene (rumpusRoot </> sceneName)
 
 listScenes :: (MonadState ECS m, MonadIO m) => m [FilePath]
 listScenes = do
@@ -130,7 +135,7 @@ listDirectories inPath = liftIO $
 addSceneLibraryItem :: (MonadIO m, MonadState ECS m)
                     => V3 GLfloat -> Maybe FilePath -> m EntityID
 addSceneLibraryItem spherePosition maybeScenePath = do
-    newEntityID <- spawnEntity $ do
+    itemID <- spawnEntity $ do
         myPose         ==> translateMatrix (spherePosition * 1 + libraryCenter)
         myShape        ==> Sphere
         mySize         ==> sceneLoaderAnimationInitialSize
@@ -151,17 +156,7 @@ addSceneLibraryItem spherePosition maybeScenePath = do
             rumpusRoot <- getRumpusRootFolder
             mScenePathToLoad <- case maybeScenePath of
                 Just scenePath -> return (Just (rumpusRoot </> scenePath))
-                Nothing -> do
-                    -- FIXME two users could create a new scene at once and we don't handle this
-                    scenePaths <- listScenes
-                    let newSceneName = findNextNumberedName "MyScene" scenePaths
-                        newScenePath = rumpusRoot </> newSceneName
-
-                    -- Do nothing if we can't create the folder
-                    createdSuccessfully <- createDirectorySafe newScenePath
-                    if createdSuccessfully
-                        then return (Just newScenePath)
-                        else return Nothing
+                Nothing        -> createNewScene
             forM_ mScenePathToLoad $ \scenePathToLoad -> do
                 fadeToColor (V4 1 1 1 1) 1
                 setDelayedAction 1 $ do
@@ -170,9 +165,23 @@ addSceneLibraryItem spherePosition maybeScenePath = do
                     hideSceneLoader
                     loadScene scenePathToLoad
 
-    inEntity newEntityID $
+    inEntity itemID $
         animateSizeTo sceneLoaderAnimationFinalSize 0.3
-    return newEntityID
+    return itemID
+
+createNewScene :: (MonadIO m, MonadState ECS m) => m (Maybe FilePath)
+createNewScene = do
+    rumpusRoot <- getRumpusRootFolder
+    -- FIXME two users could create a new scene at once and we don't handle this
+    scenePaths <- listScenes
+    let newSceneName = findNextNumberedName "MyScene" scenePaths
+        newScenePath = rumpusRoot </> newSceneName
+
+    -- Do nothing if we can't create the folder
+    createdSuccessfully <- createDirectorySafe newScenePath
+    if createdSuccessfully
+        then return (Just newScenePath)
+        else return Nothing
 
 createDirectorySafe :: MonadIO m => FilePath -> m Bool
 createDirectorySafe dirName = liftIO (do

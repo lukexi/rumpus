@@ -123,7 +123,8 @@ OBJECTS
         (the most effective version of this would be using a vert-shader for rotation etc.
         as we are generally CPU bound and barely using the GPU)
 
-
+    [ ] Boids http://www.kfish.org/boids/pseudocode.html
+    [ ] Lorenz attractor http://paulbourke.net/fractals/lorenz/
 
 Jacobs requests:
 - Gaze based cursor placement

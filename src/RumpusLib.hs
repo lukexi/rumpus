@@ -33,7 +33,13 @@ randomRange = liftIO . randomRIO
 rotationAndPosition :: Num a => Quaternion a -> V3 a -> M44 a
 rotationAndPosition = mkTransformation
 
-
+position :: Num a => V3 a -> M44 a
+position  = translateMatrix
+rotation :: (Epsilon a, Floating a) => V3 a -> a -> M44 a
+rotation axis angle =
+    rotationQ (axisAngle axis angle)
+rotationQ :: Num a => Quaternion a -> M44 a
+rotationQ q = mkTransformation q 0
 
 -- | Given a list of names like [NewObject1, NewObject3, NewObject17],
 -- and their common prefix (in example, NewObject),

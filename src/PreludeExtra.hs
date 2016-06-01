@@ -44,6 +44,8 @@ import Animation.Pal   as Exports hiding (getNow, exhaustTChan)
 
 import Data.ECS as Exports
 
+import Data.Sequence as Exports (Seq)
+
 -- import qualified Data.Map as Map
 import qualified Control.Concurrent.STM as STM
 

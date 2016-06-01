@@ -49,7 +49,7 @@ maxInstances = 2048
 initRenderSystem :: (MonadIO m, MonadState ECS m) => m ()
 initRenderSystem = do
     glEnable GL_DEPTH_TEST
-    glClearColor 0 0 0.1 1
+    glClearColor 0 0 0 1
 
     basicProg   <- createShaderProgram "resources/shaders/default.vert" "resources/shaders/default.frag"
     singleProg  <- createShaderProgram "resources/shaders/defaultSingle.vert" "resources/shaders/default.frag"
