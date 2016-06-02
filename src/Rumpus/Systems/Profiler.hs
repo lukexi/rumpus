@@ -5,7 +5,7 @@ import PreludeExtra hiding ((<|))
 --import qualified System.Metrics.Distribution as Distribution
 --import System.Metrics.Distribution (Distribution)
 import qualified Data.Sequence as Seq
-import Data.Sequence (Seq, (<|))
+import Data.Sequence ((<|))
 --import GHC.Stats
 
 data ProfilerSystem = ProfilerSystem

@@ -32,7 +32,7 @@ import System.Mem as Exports
 import Control.Monad.Catch as Exports
 import Control.DeepSeq as Exports
 
-import Data.Yaml as Exports hiding ((.=), String)
+import Data.Yaml as Exports (FromJSON, ToJSON)
 import GHC.Generics as Exports (Generic)
 
 import Control.Lens.Extra as Exports hiding (List, (<.>), children)
