@@ -13,5 +13,5 @@
     (fixed this by not selecting spawned entities, since you don't want to every time
     (e.g. spawning notes))
 
-[ ] Rename Sound to Synth
+[x] Rename Sound to Synth
     rename sendPd etc. to sendSynth

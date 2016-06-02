@@ -63,12 +63,13 @@ getHandIDs = do
            ]
 
 
-getOtherHand :: WhichHand -> WhichHand
-getOtherHand whichHand = case whichHand of
+otherHandFrom :: WhichHand -> WhichHand
+otherHandFrom whichHand = case whichHand of
     LeftHand  -> RightHand
     RightHand -> LeftHand
+
 getOtherHandID :: MonadState ECS m => WhichHand -> m EntityID
-getOtherHandID whichHand = getHandID (getOtherHand whichHand)
+getOtherHandID whichHand = getHandID (otherHandFrom whichHand)
 
 
 

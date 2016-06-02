@@ -64,7 +64,7 @@ initCreatorSystem = do
 
 checkForDestruction :: (MonadIO m, MonadState ECS m) => WhichHand -> m Bool
 checkForDestruction whichHand = do
-    let otherHand = getOtherHand whichHand
+    let otherHand = otherHandFrom whichHand
     maybePendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at otherHand)
     forM_ maybePendingDestruction $ \destroyID -> do
         sceneWatcherRemoveEntity destroyID
@@ -95,8 +95,8 @@ addExitOrb :: (MonadIO m, MonadState ECS m)
            => WhichHand -> m EntityID
 addExitOrb whichHand = do
 
-    let otherHand = getOtherHand whichHand
-    otherHandID <- getOtherHandID whichHand
+    let otherHand = otherHandFrom whichHand
+    otherHandID <- getHandID otherHand
 
     let normalPulse = do
             now <- getNow
@@ -155,8 +155,7 @@ addDestructionOrb whichHand = do
         -- grow and change color to indicate that the object will be deleted on release.
         -- Set the object as "pending destruction".
         myCollisionStart ==> \entityID _ -> do
-            otherHandID <- getOtherHandID whichHand
-            isBeingHeldByOtherHand <- isEntityAttachedTo entityID otherHandID
+            isBeingHeldByOtherHand <- isEntityBeingHeldByHand entityID (otherHandFrom whichHand)
             when isBeingHeldByOtherHand $ do
                 animateSizeTo activeDestructorOrbSize animDur
                 myUpdate ==> angryPulse
@@ -164,7 +163,7 @@ addDestructionOrb whichHand = do
                     crtPendingDestruction . at whichHand ?= entityID
         -- Pulse the hand holding the item while hovering over the orb
         myColliding ==> \_entityID _ -> do
-            let otherHand = getOtherHand whichHand
+            let otherHand = otherHandFrom whichHand
             hapticPulse otherHand 1100
         -- When the collision ends, either due to the object being dropped or
         -- because the user changed their mind and pulled away, return to normal
@@ -183,8 +182,6 @@ addDestructionOrb whichHand = do
 
     inEntity destructorID $ animateSizeTo destructorOrbSize animDur
     return destructorID
-
-
 
 
 -- FIXME: it would be extra cool to add the startExpr immediately rather than on grab,

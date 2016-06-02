@@ -113,7 +113,7 @@ OBJECTS
           UPDATE: implemented voice/openAL allocation instead because per-note is awesome
                   but can port this to verylogue
 
-    [ ] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
+    [x] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
     [ ] Pull-along music box
     [ ] L-system trees
     [ ] Ball that when thrown, causes a tree to grow
