@@ -17,3 +17,6 @@ https://github.com/mvdan/hint/blob/a8e9d227785574e445b8006407366f9ea8ad73d6/src/
 
 Garbage collector breakdown:
 http://www.scs.stanford.edu/14sp-cs240h/slides/ghc-rts.pdf
+
+Implementing intellisense via GHC API
+https://mistuke.wordpress.com/category/vsx/
