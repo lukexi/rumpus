@@ -74,7 +74,7 @@ library
                        Rumpus.Systems.SceneLoader
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared
-                       Rumpus.Systems.Sound
+                       Rumpus.Systems.Synth
                        Rumpus.Systems.Selection
                        Rumpus.Systems.Teleport
                        Rumpus.Systems.Text

@@ -20,7 +20,7 @@ initializeECS ghc pd vrPal = do
     initPlayPauseSystem
     initProfilerSystem
     initRenderSystem
-    initSoundSystem pd
+    initSynthSystem pd
     initSelectionSystem
     initSceneSystem
     initSceneLoaderSystem
@@ -94,7 +94,7 @@ tickLogic = do
     profile "SyncPhysicsPoses" $ tickSyncPhysicsPosesSystem
     profile "Collisions" $ tickCollisionsSystem
     profile "HandControls" $ tickHandControlsSystem
-    profile "Sound" $ tickSoundSystem
+    profile "Sound" $ tickSynthSystem
     profile "SceneWatcher" $ tickSceneWatcherSystem
 
 -- Experiment with running logic on the background thread.

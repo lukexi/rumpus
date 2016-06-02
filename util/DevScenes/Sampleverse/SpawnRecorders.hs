@@ -16,9 +16,9 @@ start = do
             myCollisionStart  ==> \_ _ -> do
                 hue <- liftIO randomIO
                 myColor ==> colorHSL hue 0.8 0.4 1
-                sendPd "record-toggle" (Atom 1)
+                sendSynth "record-toggle" (Atom 1)
             myCollisionEnd    ==> \_ -> do
-                sendPd "record-toggle" (Atom 0)
+                sendSynth "record-toggle" (Atom 0)
             myStart           ==> do
                 samplerEntityID <- ask
                 children <- forM [0..255] $ \i -> do

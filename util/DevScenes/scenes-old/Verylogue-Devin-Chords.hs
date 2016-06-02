@@ -16,7 +16,7 @@ start = do
 
     forM_ chromaticScale $ \n -> do
         let note = fromIntegral $ n + 60
-        sendPd "piano-key" (List [note, 0])
+        sendSynth "piano-key" (List [note, 0])
     rootEntityID <- ask
     rootPose <- getPose
     forM_ (zip [0..] chords) $ \(i, chord) -> do
@@ -41,7 +41,7 @@ pianokey parentID parentPose i j noteDegree = do
     mySize       ==> V3 0.01 0.2 0.3
     myCollisionStart ==> \_ _ -> do
         myColor ==> colorOn
-        sendEntityPd parentID "piano-key" (List [note, 1])
+        sendEntitySynth parentID "piano-key" (List [note, 1])
     myCollisionEnd   ==> \_ -> do
         myColor ==> colorOff
-        sendEntityPd parentID "piano-key" (List [note, 0])
+        sendEntitySynth parentID "piano-key" (List [note, 0])

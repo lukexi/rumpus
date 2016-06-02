@@ -11,7 +11,7 @@ import Rumpus.Systems.Collisions
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Sound
+import Rumpus.Systems.Synth
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Systems.SceneWatcher

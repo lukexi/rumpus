@@ -148,7 +148,7 @@ fountain = do
             when shouldSpawn $ do
                 -- Play a note
                 note <- randomFrom majorScale
-                sendPd "note" (Atom $ realToFrac note)
+                sendSynth "note" (Atom $ realToFrac note)
 
                 -- Spawn a ball
                 pose <- getPose

@@ -14,7 +14,7 @@ start = do
 
     setRepeatingAction (1/5) $ do
         note <- randomNote
-        sendPd "note" (Atom $ realToFrac note)
+        sendSynth "note" (Atom $ realToFrac note)
         pose <- getPose
         childID <- spawnEntity $ do
             myPose ==> pose & translation +~

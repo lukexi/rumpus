@@ -20,6 +20,6 @@ pianokey parentID n = do
     myCollisionStart  ==> \_ _ -> do
         hue <- randomRange (0,1)
         myColor ==> colorHSL hue 0.8 0.4
-        sendEntityPd parentID "piano-key" (List [fromIntegral note, 1])
+        sendEntitySynth parentID "piano-key" (List [fromIntegral note, 1])
     myCollisionEnd    ==> \_ -> do
-        sendEntityPd parentID "piano-key" (List [fromIntegral note, 0])
+        sendEntitySynth parentID "piano-key" (List [fromIntegral note, 0])
