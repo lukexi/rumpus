@@ -6,6 +6,9 @@ import Graphics.GL.Pal
 import Data.IORef
 import Data.Time
 
+versionString :: String
+versionString = "0.1.4"
+
 isInReleaseMode :: Bool
 #if defined(RUMPUS_RELEASE)
 isInReleaseMode = True

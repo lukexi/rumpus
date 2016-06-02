@@ -138,8 +138,7 @@ copyDirectory src dst = liftIO $ do
         orM xs = or <$> sequence xs
         whenM s r = s >>= flip when r
 
-versionString :: String
-versionString = "0.1.2"
+
 
 getUserRumpusRoot :: MonadIO m => m FilePath
 getUserRumpusRoot = liftIO $ do

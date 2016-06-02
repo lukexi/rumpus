@@ -1,5 +1,5 @@
 StartExpr:
-- GOL.hs
+- GameOfLifeBrush.hs
 - start
 Size:
 - 0.4

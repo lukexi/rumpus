@@ -106,7 +106,7 @@ addExitOrb whichHand = do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
         mySize       ==> initialLibraryItemSize
-        myProperties ==> [Floating, Ungrabbable]
+        myProperties ==> [Floating] -- FIXME: We can't make this Ungrabbable as that inhibits clicks
         myUpdate     ==> normalPulse
         -- Pulse the other hand when it hovers over us
         myColliding ==> \entityID _ -> do
@@ -114,7 +114,7 @@ addExitOrb whichHand = do
                 hapticPulse otherHand 1000
         myDragBegan ==> do
             fadeToColor 1 1
-            -- Add the delayed actiont to the hand, since the exit orb will disappear
+            -- Add the delayed action to the hand, since the exit orb will disappear
             -- when the user releases the library button
             inEntity otherHandID $ setDelayedAction 1 $ do
                 fadeToColor 0 1

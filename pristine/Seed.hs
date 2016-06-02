@@ -7,9 +7,10 @@ start :: Start
 start = do
 
     birthTime <- getNow
-    myCollisionBegan ==> \_ -> do
+    myCollisionStart ==> \_ _ -> do
         isHeld <- isBeingHeld
         now    <- getNow
         when (not isHeld && (now - birthTime) > gestationPeriod) $ do
+            removeComponent myCollisionStart
             printIO "BEGIN GROWING"
     return ()
