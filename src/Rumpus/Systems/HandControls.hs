@@ -8,11 +8,12 @@ import Rumpus.Systems.Attachment
 import Rumpus.Systems.Creator
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Teleport
-import Rumpus.Systems.SceneEditor
 import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.CodeProtect
 import Rumpus.Systems.Selection
 import Rumpus.Systems.KeyPads
+import Rumpus.Systems.Shared
+
 
 tickHandControlsSystem :: ECSMonad ()
 tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
@@ -63,3 +64,65 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
     withLeftHandEvents  (editSceneWithHand LeftHand leftHandID  rightHandID)
     withRightHandEvents (editSceneWithHand RightHand rightHandID leftHandID)
 
+
+clearSelection :: (MonadIO m, MonadState ECS m) => m ()
+clearSelection = do
+
+    hideKeyPads
+    clearSelectedEntityID
+
+
+selectEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+selectEntity entityID = do
+    getSelectedEntityID >>= \case
+        Just prevSelectedID
+            | prevSelectedID == entityID -> return ()
+        _ -> do
+            clearSelection
+
+            setSelectedEntityID entityID
+
+            isEditable <- entityHasComponent entityID myStartExpr
+            when isEditable showKeyPads
+
+filterUngrabbableEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
+filterUngrabbableEntityIDs = filterM (fmap (not . elem Ungrabbable) . getEntityProperties)
+
+getGrabbableEntityIDs = filterUngrabbableEntityIDs <=< getEntityOverlappingEntityIDs
+
+initiateGrab :: WhichHand -> EntityID -> EntityID -> ECSMonad ()
+initiateGrab whichHand handEntityID _otherHandEntityID = do
+    -- Find the entities overlapping the hand, and attach them to it
+    overlappingEntityIDs <- getGrabbableEntityIDs handEntityID
+
+    when (null overlappingEntityIDs) $ do
+        clearSelection
+        --didPlaceCursor <- raycastCursor handEntityID
+
+    forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
+        handPose <- getEntityPose handEntityID
+        beginHapticDrag whichHand handPose
+
+        wantsToHandleDrag <- getEntityDragOverride grabbedID
+        beginDrag handEntityID grabbedID
+        unless wantsToHandleDrag $
+            grabEntity handEntityID grabbedID
+
+grabEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
+grabEntity handEntityID grabbedID = do
+    selectEntity grabbedID
+    attachEntityToEntity handEntityID grabbedID True
+
+--grabDuplicateEntity grabbedID otherHandEntityID = do
+    --isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID
+    --when isBeingHeldByOtherHand $ do
+    --    -- Trying things out with this disabled, as it's too
+    --    -- easy to cause performance problems by effortlessly
+    --    -- duplicating expensive objects. Effort to dupe should
+    --    -- roughly scale with how often we want users to do it.
+    --    let allowDuplication = False
+    --    when allowDuplication $ do
+    --        duplicateID <- duplicateEntity Persistent grabbedID
+    --        --forkCode grabbedID duplicateID
+    --        grabEntity handEntityID duplicateID
+    --return isBeingHeldByOtherHand
