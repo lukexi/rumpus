@@ -2,8 +2,7 @@ module Paint where
 import Rumpus
 import qualified Data.Sequence as Seq
 
-maxBlots = 100
-
+maxBlots = 1000
 start :: Start
 start = do
 

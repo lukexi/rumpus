@@ -63,16 +63,3 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
     withLeftHandEvents  (editSceneWithHand LeftHand leftHandID  rightHandID)
     withRightHandEvents (editSceneWithHand RightHand rightHandID leftHandID)
 
-isEntityBeingHeldByHand entityID whichHand = do
-    handID <- getHandID whichHand
-    isEntityAttachedTo entityID handID
-
-isBeingHeldByHand whichHand = do
-    entityID <- ask
-    isEntityBeingHeldByHand entityID whichHand
-
-
-isBeingHeld = isEntityBeingHeld =<< ask
-
-isEntityBeingHeld entityID = do
-    or <$> forM [LeftHand, RightHand] $ isEntityBeingHeldByHand entityID
