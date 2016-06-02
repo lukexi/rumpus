@@ -7,7 +7,7 @@ pianoKeySize = V3 0.01 0.2 0.3
 
 start :: Start
 start = do
-    setSynthPatch "verylogue.pd"
+    setSynthPatch "Verylogue.pd"
 
     forM_ majorScale $ \n -> do
         let note = fromIntegral $ n + 60

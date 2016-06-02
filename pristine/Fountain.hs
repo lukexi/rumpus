@@ -9,7 +9,7 @@ majorScale = map (+56) [0,2,4,7,9]
 start :: Start
 start = do
     setColor $ V4 1 1 1 1
-    setSynthPatch "fountain-voice.pd"
+    setSynthPatch "Fountain.pd"
 
     setRepeatingAction (1/rate) $ do
         -- Play a note
