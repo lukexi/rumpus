@@ -11,6 +11,7 @@ import Rumpus.Systems.Controls
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.CodeEditor
+import Rumpus.Systems.KeyPads
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Synth
 import Rumpus.Systems.Text
@@ -75,6 +76,8 @@ openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
     aSceneIsOpen <- isJust <$> getSceneFolder
     when aSceneIsOpen $ do
+        modifySystemState sysCreator $ crtOpenLibrary . at whichHand ?= []
+
         rumpusRoot <- getRumpusRootFolder
         codePaths  <- getDirectoryContentsWithExtension "hs" rumpusRoot
 
@@ -82,18 +85,18 @@ openEntityLibrary whichHand = do
             positions = goldenSectionSpiralPoints (length codePathsWithNewObject)
             positionsAndCodePaths = zip positions codePathsWithNewObject
 
-        libraryEntities <- forM positionsAndCodePaths $ \(position, maybeCodePath) -> do
+        forM_ positionsAndCodePaths $ \(position, maybeCodePath) -> do
             addHandLibraryItem whichHand position maybeCodePath
 
-        destructionOrb <- addDestructionOrb whichHand
+        addDestructionOrb whichHand
 
-        exitOrb <- addExitOrb whichHand
+        addExitOrb whichHand
 
-        modifySystemState sysCreator $
-            crtOpenLibrary . at whichHand ?= destructionOrb:exitOrb:libraryEntities
+addEntityToOpenLibrary :: (MonadState ECS m) => WhichHand -> EntityID -> m ()
+addEntityToOpenLibrary whichHand entityID = modifySystemState sysCreator $ crtOpenLibrary . ix whichHand %= (entityID:)
 
 addExitOrb :: (MonadIO m, MonadState ECS m)
-           => WhichHand -> m EntityID
+           => WhichHand -> m ()
 addExitOrb whichHand = do
 
     let otherHand = otherHandFrom whichHand
@@ -130,10 +133,11 @@ addExitOrb whichHand = do
     attachEntityToEntity handID exitOrbID False
 
     inEntity exitOrbID $ animateSizeTo exitOrbSize animDur
-    return exitOrbID
+
+    addEntityToOpenLibrary whichHand exitOrbID
 
 addDestructionOrb :: (MonadIO m, MonadState ECS m)
-                   => WhichHand -> m EntityID
+                   => WhichHand -> m ()
 addDestructionOrb whichHand = do
     let normalPulse = do
             now <- getNow
@@ -182,7 +186,7 @@ addDestructionOrb whichHand = do
     attachEntityToEntity handID destructorID False
 
     inEntity destructorID $ animateSizeTo destructorOrbSize animDur
-    return destructorID
+    addEntityToOpenLibrary whichHand destructorID
 
 
 -- FIXME: it would be extra cool to add the startExpr immediately rather than on grab,
@@ -191,7 +195,7 @@ addDestructionOrb whichHand = do
 -- and we would not want code on the NewObject (or, just make sure it isn't copied right away.)
 -- See if this is a performance problem.
 addHandLibraryItem :: (MonadIO m, MonadState ECS m)
-                   => WhichHand -> V3 GLfloat -> Maybe FilePath -> m EntityID
+                   => WhichHand -> V3 GLfloat -> Maybe FilePath -> m ()
 addHandLibraryItem whichHand spherePosition maybeCodePath = do
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
@@ -211,25 +215,30 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
                 now <- getNow
                 setColor (colorHSL now 0.3 0.8)
         myDragBegan ==> do
-            traverseM_ (getComponent myDragFrom) $ \(DragFrom handEntityID _) -> do
-                entityID <- ask
-                removeFromOpenLibrary whichHand entityID
 
-                removeComponent myUpdate
-                removeComponent myDragBegan
-                removeComponent myText
-                removeComponent myTextPose
-                removeTextRendererComponent
+            -- Re-add ourselves to the library so the user can spawn us again
+            addHandLibraryItem whichHand spherePosition maybeCodePath
 
-                makeEntityPersistent entityID
+            -- Don't select right away; wait for a second click.
+            -- This is cleaner when "using" objects (e.g. note, seed)
+            -- where you don't always care about the code
+            clearSelection
 
-                -- We use attachEntityToEntity rather than grabEntity
-                -- because we don't want to select new objects
-                attachEntityToEntity handEntityID entityID True
-                animateSizeTo newEntitySize animDur
-                case maybeCodePath of
-                    Just codePath -> setStartExpr (codePath, "start")
-                    Nothing       -> addNewStartExpr
+            entityID <- ask
+            removeFromOpenLibrary whichHand entityID
+
+            removeComponent myUpdate
+            removeComponent myDragBegan
+            removeComponent myText
+            removeComponent myTextPose
+            removeTextRendererComponent
+
+            makeEntityPersistent entityID
+
+            animateSizeTo newEntitySize animDur
+            case maybeCodePath of
+                Just codePath -> setStartExpr (codePath, "start")
+                Nothing       -> addNewStartExpr
 
     -- Hand is usually held vertically, so we rotate objects such that they'll
     -- have their code facing towards the user in that case
@@ -239,7 +248,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
     attachEntityToEntity handID newEntityID False
 
     inEntity newEntityID $ animateSizeTo libraryItemSize animDur
-    return newEntityID
+    addEntityToOpenLibrary whichHand newEntityID
 
 removeFromOpenLibrary :: MonadState ECS m => WhichHand -> EntityID -> m ()
 removeFromOpenLibrary whichHand entityID =
@@ -251,10 +260,9 @@ closeEntityLibrary whichHand = do
     libraryEntities <- fromMaybe [] <$> viewSystem sysCreator (crtOpenLibrary . at whichHand)
     forM_ libraryEntities $ \entityID ->
         inEntity entityID $ do
-            -- remove the size animation to avoid
-            -- animation system/lifetime end animation conflicts
-            removeComponent mySizeAnimation
-            setLifetime 0.3
+            removeComponent myDragBegan -- Don't allow drag during close animation
+            animateSizeTo initialLibraryItemSize animDur
+            setDelayedAction animDur (removeEntity =<< ask)
 
     modifySystemState sysCreator $ do
         crtPendingDestruction . at whichHand .= Nothing
@@ -303,11 +311,10 @@ devCreateNewObject = do
         myStartExpr  ==> codeInFile
 
 spawnChildInstance codeFileName = do
-    rumpusRoot <- getRumpusRootFolder
-    let codePath = rumpusRoot </> codeFileName <.> "hs"
+    let codePath = codeFileName <.> "hs"
     spawnChild $ do
-        myStartExpr        ==> (codePath, "start")
-        myCodeHidden       ==> True
+        myStartExpr   ==> (codePath, "start")
+        myCodeHidden  ==> True
         myInheritPose ==> InheritPose
 
 {-

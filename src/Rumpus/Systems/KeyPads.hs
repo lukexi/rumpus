@@ -508,3 +508,23 @@ tickKeyPadsSystem = do
                             sendInternalEvent (GLFWEvent event)
 
             _ -> return ()
+
+
+clearSelection :: (MonadIO m, MonadState ECS m) => m ()
+clearSelection = do
+    hideKeyPads
+    clearSelectedEntityID
+
+
+selectEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+selectEntity entityID = do
+    getSelectedEntityID >>= \case
+        Just prevSelectedID
+            | prevSelectedID == entityID -> return ()
+        _ -> do
+            clearSelection
+
+            setSelectedEntityID entityID
+
+            isEditable <- entityHasComponent entityID myStartExpr
+            when isEditable showKeyPads

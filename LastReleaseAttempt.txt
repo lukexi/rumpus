@@ -114,9 +114,9 @@ OBJECTS
                   but can port this to verylogue
 
     [x] Cube-spawning Tiltbrush-esque thing (limit number of objects if it causes perf problems)
+    [x] Ball that when thrown, causes a tree to grow
     [ ] Pull-along music box
     [ ] L-system trees
-    [ ] Ball that when thrown, causes a tree to grow
     [ ] Focus on basic code capabilities: defining and spawning instances of things.
         Using same set of rules to generate multiple possibilities.
     [ ] Some sort of swarm of cubes, taking advantage of instancing

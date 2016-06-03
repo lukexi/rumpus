@@ -4,6 +4,8 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import qualified Data.HashMap.Strict as Map
+import qualified Data.List as List
+
 
 type Attachments = Map EntityID (M44 GLfloat)
 
@@ -112,3 +114,21 @@ isEntityAttachedTo childID parentID = Map.member childID <$> getEntityAttachment
 
 getOneEntityAttachment :: MonadState ECS m => EntityID -> m (Maybe EntityID)
 getOneEntityAttachment entityID = listToMaybe . Map.keys <$> getEntityAttachments entityID
+
+
+hasHolder :: (MonadState ECS m, MonadReader EntityID m) => m Bool
+hasHolder = hasComponent myHolder
+
+setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
+setFloating isFloating = do
+    if isFloating
+        then do
+            prependComponent myProperties [Floating]
+            myProperties ==% List.nub
+        else do
+            myProperties ==% List.delete Floating
+
+    isHeld <- hasHolder
+    unless isHeld $
+        withRigidBody $ \rigidBody ->
+            setRigidBodyKinematic rigidBody isFloating

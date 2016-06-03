@@ -7,7 +7,7 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Controls
-import Data.List (nub)
+import qualified Data.List as List
 import Foreign.C
 
 import Physics.Bullet
@@ -106,18 +106,14 @@ deriveRigidBody dynamicsWorld = do
                 setRigidBodyNoContactResponse rigidBody True
 
 
-setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
-setFloating isFloating = do
-    prependComponent myProperties [Floating]
-    myProperties ==% nub
-
-    withRigidBody $ \rigidBody ->
-        setRigidBodyKinematic rigidBody isFloating
-
 setGhostly :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
 setGhostly isGhostly = do
-    prependComponent myProperties [Ghostly]
-    myProperties ==% nub
+    if isGhostly
+        then do
+            prependComponent myProperties [Ghostly]
+            myProperties ==% List.nub
+        else
+            myProperties ==% List.delete Ghostly
 
     withRigidBody $ \rigidBody ->
         setRigidBodyNoContactResponse rigidBody isGhostly

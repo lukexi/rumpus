@@ -65,24 +65,6 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
     withRightHandEvents (editSceneWithHand RightHand rightHandID leftHandID)
 
 
-clearSelection :: (MonadIO m, MonadState ECS m) => m ()
-clearSelection = do
-    hideKeyPads
-    clearSelectedEntityID
-
-
-selectEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
-selectEntity entityID = do
-    getSelectedEntityID >>= \case
-        Just prevSelectedID
-            | prevSelectedID == entityID -> return ()
-        _ -> do
-            clearSelection
-
-            setSelectedEntityID entityID
-
-            isEditable <- entityHasComponent entityID myStartExpr
-            when isEditable showKeyPads
 
 filterUngrabbableEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterUngrabbableEntityIDs = filterM (fmap (not . elem Ungrabbable) . getEntityProperties)
@@ -103,9 +85,11 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
         beginHapticDrag whichHand handPose
 
         wantsToHandleDrag <- getEntityDragOverride grabbedID
-        beginDrag handEntityID grabbedID
         unless wantsToHandleDrag $
             grabEntity handEntityID grabbedID
+
+        -- Call beginDrag after grabEntity so we can override selection if we want (i.e., call clearSelection)
+        beginDrag handEntityID grabbedID
 
 grabEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 grabEntity handEntityID grabbedID = do

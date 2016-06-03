@@ -52,7 +52,7 @@
         That way I don't have to tell people "put it down then grab it again with the grip button",
         but rather the grip button is like a lock. Or maybe just make sure grip works when already holding with trigger?
 
-[ ] Simplify language
+[x] Simplify language
 
         Use tutorial as an opportunity to simplify lang examples as much as possible
         e.g. pull out 'align-vector-to-entity' code from fountain; we'll need it for guns!

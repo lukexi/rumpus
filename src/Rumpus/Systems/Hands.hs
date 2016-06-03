@@ -5,6 +5,7 @@ import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Attachment
 import PreludeExtra
+import qualified Data.List as List
 
 type HandEntityID = EntityID
 
@@ -104,3 +105,5 @@ isBeingHeld = isEntityBeingHeld =<< ask
 
 isEntityBeingHeld entityID = do
     or <$> forM [LeftHand, RightHand] (isEntityBeingHeldByHand entityID)
+
+
