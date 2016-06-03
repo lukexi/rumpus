@@ -12,6 +12,7 @@ import Data.ECS.Vault
 
 --import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
+import Rumpus.Systems.SceneWatcher
 --import Rumpus.Systems.Hands
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
@@ -36,7 +37,8 @@ data CodeEditorSystem = CodeEditorSystem
 makeLenses ''CodeEditorSystem
 defineSystemKey ''CodeEditorSystem
 
-
+getGHCChan :: MonadState ECS m => m (TChan CompilationRequest)
+getGHCChan = viewSystem sysCodeEditor cesGHCChan
 
 getEntityCodeHidden :: (MonadState ECS m) => EntityID -> m Bool
 getEntityCodeHidden entityID = fromMaybe False <$> getEntityComponent entityID myCodeHidden
@@ -141,7 +143,7 @@ addCodeEditorDependency codeInFile realCodeKey = do
 createCodeEditor :: (MonadIO m, MonadState ECS m)
                  => CodeInFile -> m CodeEditor
 createCodeEditor (codeFile, codeExpr) = do
-    ghcChan         <- viewSystem sysCodeEditor cesGHCChan
+    ghcChan         <- getGHCChan
     font            <- getFont
     codeFileInScene <- fileInRumpusRoot codeFile
 
@@ -243,28 +245,39 @@ moveCodeEditorFile :: (MonadIO m, MonadState ECS m) => FilePath -> FilePath -> S
 moveCodeEditorFile oldFileName newFileName codeExpr = do
     let oldCodeInFile = (oldFileName, codeExpr)
         newCodeInFile = (newFileName, codeExpr)
-    oldFileInScene <- fileInRumpusRoot oldFileName
-    newFileInScene <- fileInRumpusRoot newFileName
-    successful <- liftIO $ tryIOError $ renameFile oldFileInScene newFileInScene
+    oldFilePath <- fileInRumpusRoot oldFileName
+    newFilePath <- fileInRumpusRoot newFileName
+    successful <- liftIO $ tryIOError $ renameFile oldFilePath newFilePath
     case successful of
         Left moveError -> do
             setErrorTextForCodeInFile oldCodeInFile (show moveError)
             putStrLnIO $ "In moveCodeEditorFile: " ++ show moveError
-        Right _ -> modifySystemState sysCodeEditor $ do
-            renameTextRendererFile newFileInScene (cesCodeEditors . ix oldCodeInFile . cedCodeRenderer)
-
-            ghcChan <- use cesGHCChan
-            mOldCodeEditor <- use (cesCodeEditors . at oldCodeInFile)
-            -- Should never be missing, but we handle it anyway
+        Right _ -> do
+            mOldCodeEditor <- viewSystem sysCodeEditor (cesCodeEditors . at oldCodeInFile)
             case mOldCodeEditor of
                 Just oldCodeEditor -> do
+                    let oldCodeRenderer = oldCodeEditor ^. cedCodeRenderer
+                    newCodeRenderer <- renameTextRendererFile newFilePath oldCodeRenderer
+
                     let oldRecompiler = oldCodeEditor ^. cedRecompiler
-                    newRecompiler <- renameRecompilerForExpression oldRecompiler ghcChan newFileInScene codeExpr
+                    ghcChan       <- getGHCChan
+                    newRecompiler <- renameRecompilerForExpression oldRecompiler ghcChan newFilePath codeExpr
                     let newCodeEditor = oldCodeEditor & cedRecompiler .~ newRecompiler
-                    cesCodeEditors . at oldCodeInFile .= Nothing
-                    cesCodeEditors . at newCodeInFile ?= newCodeEditor
+                                                      & cedCodeRenderer .~ newCodeRenderer
+                    modifySystemState sysCodeEditor $ do
+                        cesCodeEditors . at oldCodeInFile .= Nothing
+                        cesCodeEditors . at newCodeInFile ?= newCodeEditor
+
+                    forM_ (Map.keys (oldCodeEditor ^. cedDependents)) $ \entityID -> do
+                        inEntity entityID (setStartExpr newCodeInFile)
+                        sceneWatcherSaveEntity entityID
                 Nothing            -> do
-                    codeEditor <- lift $ createCodeEditor newCodeInFile
-                    cesCodeEditors . at newCodeInFile ?= codeEditor
+                    putStrLnIO $
+                        "moveCodeEditorFile couldn't find codeEditor for " ++ show oldCodeInFile
 
 
+setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+             => CodeInFile -> m ()
+setStartExpr codeInFile = do
+    myStartExpr ==> codeInFile
+    registerWithCodeEditor codeInFile myStart

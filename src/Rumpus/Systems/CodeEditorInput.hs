@@ -44,11 +44,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
             when didSave $ do
 
                 -- Disabling til I have energy to debug this
-                --mBuffer <- viewSystemP sysCodeEditor
-                --    (cesCodeEditors . ix codeInFile . cedCodeRenderer . txrTextBuffer)
-                --wasModuleNameChange <- case mBuffer of
-                --    Just buffer -> checkForModuleNameChange buffer
-                --    Nothing -> return False
+                wasModuleNameChange <- checkForModuleNameChange codeInFile
 
                 let wasModuleNameChange = False
                 unless wasModuleNameChange $
@@ -118,15 +114,18 @@ getChangedModuleName textBuffer = do
 -- to avoid introducing any extra interface for naming things.
 -- Tricky as we must handle all the file watchers associated with the file.
 checkForModuleNameChange :: (MonadState ECS m, MonadIO m)
-                         => TextBuffer -> m Bool
-checkForModuleNameChange textBuffer = do
-    let maybeNewModuleName = getChangedModuleName textBuffer
-    case (maybeNewModuleName, bufPath textBuffer) of
-        (Just newModuleName, Just oldFilePath) -> do
-            let oldFileName = takeFileName oldFilePath
-            moveCodeEditorFile oldFileName (newModuleName <.> "hs") "start"
-            return True
-        (Just newModuleName, Nothing) -> do
-            putStrLnIO $ "Tried to rename a textBuffer with no existing path to: " ++ newModuleName
-            return False
-        _ -> return False
+                         => CodeInFile -> m Bool
+checkForModuleNameChange codeInFile = do
+    mBuffer <- viewSystemP sysCodeEditor
+        (cesCodeEditors . ix codeInFile . cedCodeRenderer . txrTextBuffer)
+    case mBuffer of
+        Nothing -> return False
+        Just textBuffer -> do
+            let maybeNewModuleName = getChangedModuleName textBuffer
+            printIO maybeNewModuleName
+            case (maybeNewModuleName, bufPath textBuffer) of
+                (Just newModuleName, Just oldFilePath) -> do
+                    let oldFileName = takeFileName oldFilePath
+                    moveCodeEditorFile oldFileName (newModuleName <.> "hs") "start"
+                    return True
+                _ -> return False

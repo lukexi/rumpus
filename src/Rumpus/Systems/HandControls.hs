@@ -37,7 +37,7 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                 initiateGrab whichHand handEntityID otherHandEntityID
             HandButtonEvent HandButtonTrigger ButtonUp -> do
                 maybeHeldEntity <- getOneEntityAttachment handEntityID
-                wasDestroyed <- checkForDestruction whichHand
+                wasDestroyed    <- checkForDestruction whichHand
 
                 endHapticDrag whichHand
                 endDrag handEntityID
@@ -67,7 +67,6 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do
-
     hideKeyPads
     clearSelectedEntityID
 

@@ -6,6 +6,7 @@ import Rumpus.Systems.Animation
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Clock
+import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Attachment
@@ -288,11 +289,6 @@ createNewStartExpr = do
     liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName newObjectCodeName)
     return (entityFileName, "start")
 
-setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
-             => CodeInFile -> m ()
-setStartExpr codeInFile = do
-    myStartExpr ==> codeInFile
-    registerWithCodeEditor codeInFile myStart
 
 
 -- Used for dev purposes only, creates a new object at 0,0,0
