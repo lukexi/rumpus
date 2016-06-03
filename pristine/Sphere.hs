@@ -27,7 +27,7 @@ start = do
         myPose             ==> translateMatrix pos
         myShape            ==> Sphere
         myProperties       ==> [Holographic]
-        myInheritTransform ==> InheritFull
+        myInheritPose ==> InheritFull
         mySize             ==> V3 0.5 0.5 0.5
         myColor            ==> colorHSL hue 0.8 0.5
         myUpdate ==> do

@@ -2,7 +2,7 @@ module Orrery where
 import Rumpus
 
 setCelestialBody radius hue = do
-    myInheritTransform ==> InheritPose
+    myInheritPose ==> InheritPose
     mySize             ==> radius
     myColor            ==> colorHSL hue 0.8 0.5
     myShape            ==> Sphere
@@ -24,13 +24,13 @@ start = do
     -- Create a container node that inherits
     -- pose, but not scale, from the root object
     container <- spawnChild $ do
-        myInheritTransform ==> InheritPose
+        myInheritPose ==> InheritPose
         mySize             ==> 0.800
 
     -- Create a node that inherits scale from the container node,
     -- but whose own scale is 1
     scaler <- spawnChildOf container $ do
-        myInheritTransform ==> InheritFull
+        myInheritPose ==> InheritFull
         mySize             ==> 1
 
     sun <- spawnChildOf scaler $ do

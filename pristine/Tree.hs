@@ -19,7 +19,7 @@ start = do
                                         (axisAngle (V3 0 0 1) 0.3) pos
                 myShape            ==> Cube
                 myProperties       ==> [Holographic]
-                myInheritTransform ==> InheritPose
+                myInheritPose ==> InheritPose
                 mySize             ==> 0.001
                 myColor            ==> colorHSL hue 0.8 0.5
                 myUpdate           ==> do
@@ -36,5 +36,5 @@ start = do
                     branch childID (n + 1) (V3 -0.15 0.3 0 * scale) (axisAngle (V3 0 0 1)  1)
 
     rootEntityID <- spawnChild $ do
-        myInheritTransform ==> InheritPose
+        myInheritPose ==> InheritPose
     branch rootEntityID (0::Int) (V3 0 0.5 0) (axisAngle (V3 0 0 1) 0)

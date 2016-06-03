@@ -7,9 +7,9 @@ import qualified Data.List as L
 data ShapeType = Cube | Sphere
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
-data InheritTransform = InheritFull | InheritPose
+data InheritPose = InheritFull | InheritPose
 
-defineComponentKey ''InheritTransform
+defineComponentKey ''InheritPose
 defineComponentKeyWithType "Shape"              [t|ShapeType|]
 defineComponentKeyWithType "Name"               [t|String|]
 defineComponentKeyWithType "Pose"               [t|M44 GLfloat|]
@@ -72,7 +72,7 @@ initSharedSystem = do
     registerComponent "Children" myChildren $ (newComponentInterface myChildren)
         { ciRemoveComponent = removeChildren >> removeComponent myChildren
         }
-    registerComponent "InheritTransform" myInheritTransform (newComponentInterface myInheritTransform)
+    registerComponent "InheritPose" myInheritPose (newComponentInterface myInheritPose)
     registerComponent "TeleportScale" myTeleportScale (newComponentInterface myTeleportScale)
 
     -- Allows Script and CodeEditor to access these
@@ -153,11 +153,11 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID myColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
-getEntityInheritTransform :: (MonadState ECS m) => EntityID -> m (Maybe InheritTransform)
-getEntityInheritTransform entityID = getEntityComponent entityID myInheritTransform
+getEntityInheritPose :: (MonadState ECS m) => EntityID -> m (Maybe InheritPose)
+getEntityInheritPose entityID = getEntityComponent entityID myInheritPose
 
-getInheritTransform :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe InheritTransform)
-getInheritTransform = getEntityInheritTransform =<< ask
+getInheritPose :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe InheritPose)
+getInheritPose = getEntityInheritPose =<< ask
 
 getEntityChildren :: (MonadState ECS m) => EntityID -> m [EntityID]
 getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID myChildren
