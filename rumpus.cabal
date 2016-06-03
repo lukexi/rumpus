@@ -69,7 +69,6 @@ library
                        Rumpus.Systems.PlayPause
                        Rumpus.Systems.Profiler
                        Rumpus.Systems.Scene
-                       Rumpus.Systems.SceneEditor
                        Rumpus.Systems.SceneWatcher
                        Rumpus.Systems.SceneLoader
                        Rumpus.Systems.Script

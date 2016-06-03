@@ -23,7 +23,6 @@ import Rumpus.Systems.PlayPause as Exports
 import Rumpus.Systems.Profiler as Exports
 import Rumpus.Systems.Render as Exports
 import Rumpus.Systems.Scene as Exports
-import Rumpus.Systems.SceneEditor as Exports
 import Rumpus.Systems.SceneWatcher as Exports
 import Rumpus.Systems.SceneLoader as Exports
 import Rumpus.Systems.Script as Exports
