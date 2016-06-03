@@ -34,7 +34,7 @@ start = do
     spawnChild $ do
         myShape ==> Cube
         myProperties ==> [Holographic]
-        myInheritTransform ==> InheritPose
+        myInheritPose ==> InheritPose
         mySize ==> V3 duration 0.01 0.01
         myPose ==> translateMatrix (V3 (duration / 2) 0 0)
 

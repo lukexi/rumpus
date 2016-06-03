@@ -8,7 +8,7 @@ start = do
         myPose             ==> translateMatrix (V3 0 1 0)
         myShape            ==> Cube
         myProperties       ==> [Holographic]
-        myInheritTransform ==> True
+        myInheritPose ==> True
         mySize             ==> V3 0.1 0.1 0.1
         myColor            ==> colorHSL 0.1 0.8 0.5
         myUpdate ==> do

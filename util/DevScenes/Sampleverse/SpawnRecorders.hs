@@ -30,7 +30,7 @@ start = do
                         myColor            ==> V4 0.8 0.9 0.4 1
                         myPose             ==> identity & translation . _x .~ x
                         myProperties       ==> [Holographic]
-                        myInheritTransform ==> True
+                        myInheritPose      ==> True
                 return (Just (toDyn children))
             myUpdate          ==> withState (\children -> do
                 fftSample <- readPdArray "sample-fft" 0 256

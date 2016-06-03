@@ -214,7 +214,7 @@ getFinalMatrices = do
     childrenMap               <- getComponentMap myChildren
     parentMap                 <- getComponentMap myParent
     --sizeMap                   <- getComponentMap mySize
-    inheritParentTransformMap <- getComponentMap myInheritTransform
+    inheritParentTransformMap <- getComponentMap myInheritPose
 
     let entityIDs           = Set.fromList . Map.keys $ poseMap
         entityIDsWithChild  = Set.fromList . Map.keys $ childrenMap

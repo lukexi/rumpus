@@ -300,7 +300,15 @@ devCreateNewObject = do
         mySize       ==> newEntitySize
         myProperties ==> [Floating]
         myColor      ==> V4 0.1 0.1 0.1 1
-        myStartExpr ==> codeInFile
+        myStartExpr  ==> codeInFile
+
+spawnChildInstance codeFileName = do
+    rumpusRoot <- getRumpusRootFolder
+    let codePath = rumpusRoot </> codeFileName <.> "hs"
+    spawnChild $ do
+        myStartExpr        ==> (codePath, "start")
+        myCodeHidden       ==> True
+        myInheritPose ==> InheritPose
 
 {-
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)

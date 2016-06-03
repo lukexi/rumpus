@@ -189,13 +189,13 @@ spawnKeyPads = do
                         ]
     --keyPadContainerID <- spawnChild $ do
     keyPadContainerID <- spawnEntity $ do
-        myInheritTransform ==> InheritPose
+        myInheritPose ==> InheritPose
         return ()
     keyPads <- forM handsWithKeys $ \(whichHand, keyRows, offset) -> do
 
         keyPadID         <- spawnEntity $ do
             myParent             ==> keyPadContainerID
-            myInheritTransform   ==> InheritPose
+            myInheritPose   ==> InheritPose
             --mySize               ==> maximizedKeyPadSize
             mySize               ==> minimizedKeyPadSize
             myPose               ==> mkTransformation
@@ -203,7 +203,7 @@ spawnKeyPads = do
                                         offset
         scaleContainerID <- spawnEntity $ do
             myParent             ==> keyPadID
-            myInheritTransform   ==> InheritFull
+            myInheritPose   ==> InheritFull
 
 
         (keyPadKeys, keyPadDims) <- spawnKeysForHand scaleContainerID keyRows
@@ -218,7 +218,7 @@ spawnKeyPads = do
             --spawnChild $ do
             --    myShape ==> Cube
             --    myProperties ==> [Holographic]
-            --    myInheritTransform ==> InheritPose
+            --    myInheritPose ==> InheritPose
             --    myPose ==> translateMatrix (V3 (keyPadDims^._x/2) 0 (keyPadDims^._y/2))
             --    mySize ==> V3 (keyPadDims^._x) 0.01 (keyPadDims^._y)
 
@@ -306,7 +306,7 @@ makeKeyboardKey containerID key keyPosition keySize = do
         myProperties             ==> [Holographic]
         myPose                   ==> translateMatrix keyPosition
         mySize                   ==> keySize
-        myInheritTransform       ==> InheritPose
+        myInheritPose       ==> InheritPose
     -- Spawn key name separately so it doesn't inherit the stretched size of its parent
     keyNameID <- spawnEntity $ do
         let keyTitleScale = if length keyTitle > 1
@@ -319,7 +319,7 @@ makeKeyboardKey containerID key keyPosition keySize = do
                           (axisAngle (V3 1 0 0) (-pi/2))
                           (V3 0 (keyDepth/2 + 0.001) 0)
                         !*! scaleMatrix (keyTitleScale * realToFrac keyWidth)
-        myInheritTransform ==> InheritPose
+        myInheritPose ==> InheritPose
 
     return (keyBackID, keyNameID)
 
@@ -344,7 +344,7 @@ makeThumbNub containerID (V2 x y) = do
     myShape            ==> Sphere
     myProperties       ==> [Holographic]
     mySize             ==> realToFrac keyDepth * 2
-    myInheritTransform ==> InheritPose
+    myInheritPose ==> InheritPose
     myPose             ==> translateMatrix (V3 (x / 2) 0 (y / 2))
 
 -- | Check if a point is in the given rectangle

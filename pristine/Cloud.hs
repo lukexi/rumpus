@@ -6,14 +6,14 @@ start = do
     let numPuffs = 5
     forM_ [0..numPuffs] $ \i -> do
         hue <- randomRange (0.5, 0.6)
-        
+
         x <- (0.5 + i / numPuffs +) <$> randomRange (0,0.2)
         y <- randomRange (-0.1,0.1)
         z <- randomRange (-0.1,0.1)
         puffID <- spawnChild $ do
             myShape ==> Sphere
             myProperties ==> [Holographic]
-            myInheritTransform ==> InheritPose
+            myInheritPose ==> InheritPose
             myColor ==> colorHSL hue 0.5 0.5
             myPose ==> translateMatrix (V3 x y z)
             myUpdate ==> do
