@@ -138,13 +138,10 @@ multiThreadedLogicInBGLoop ghc pd vrPal = do
             glFlush -- as per recommendation in openvr.h
             return (headM44, events))
         liftIO . atomically $ do
-            -- Attempt at not losing events; this can cause
-            -- a memory leak though so think it through more carefully
-            --pendingEvents <- readTVar backgroundBox >>= \case
-            --    Just (_, pendingEvents) -> return pendingEvents
-            --    Nothing -> return []
-            --writeTVar backgroundBox (Just (headM44, pendingEvents ++ events))
-            writeTVar backgroundBox (Just (headM44, events))
+            pendingEvents <- readTVar backgroundBox >>= \case
+                Just (_, pendingEvents) -> return pendingEvents
+                Nothing                 -> return []
+            writeTVar backgroundBox (Just (headM44, pendingEvents ++ events))
         return ()
 
 
