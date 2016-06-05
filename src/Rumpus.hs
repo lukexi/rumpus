@@ -17,6 +17,7 @@ import Rumpus.Systems.HandControls as Exports
 import Rumpus.Systems.Hands as Exports
 import Rumpus.Systems.Haptics as Exports
 import Rumpus.Systems.KeyPads as Exports
+import Rumpus.Systems.Knobs as Exports
 import Rumpus.Systems.Lifetime as Exports
 import Rumpus.Systems.Physics as Exports
 import Rumpus.Systems.PlayPause as Exports
