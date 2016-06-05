@@ -66,28 +66,26 @@ initializeECS ghc pd vrPal = do
                     myStartExpr ==> (name <.> "hs", "start")
 
     --when isBeingProfiled loadTestScene
-    
+
 
 rumpusMain :: IO ()
 rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
     vrPal <- initVRPal "Rumpus" [UseOpenVR]
 
-    --void . flip runStateT newECS $ do
-    --    initializeECS ghc pd vrPal
-    --    singleThreadedLoop vrPal
-        --multiThreadedRenderInBGLoop vrPal
-    multiThreadedLogicInBGLoop ghc pd vrPal
+    --singleThreadedLoop ghc pd vrPal
+    multiThreadedLoop ghc pd vrPal
 
-singleThreadedLoop :: VRPal -> ECSMonad ()
-singleThreadedLoop vrPal = do
-    
-    whileWindow (gpWindow vrPal) $ do
-        playerM44 <- viewSystem sysControls ctsPlayer
-        (headM44, events) <- tickVR vrPal playerM44
-        profile "Controls" $ tickControlEventsSystem headM44 events
-        profile "Rendering" $ tickRenderSystem headM44
+singleThreadedLoop :: TChan CompilationRequest -> PureData -> VRPal -> IO ()
+singleThreadedLoop ghc pd vrPal = do
+    void . flip runStateT newECS $ do
+        initializeECS ghc pd vrPal
+        whileWindow (gpWindow vrPal) $ do
+            playerM44 <- viewSystem sysControls ctsPlayer
+            (headM44, events) <- tickVR vrPal playerM44
+            profile "Controls" $ tickControlEventsSystem headM44 events
+            profile "Rendering" $ tickRenderSystem headM44
 
-        tickLogic
+            tickLogic
 
 tickLogic :: ECSMonad ()
 tickLogic = do
@@ -115,9 +113,8 @@ tickLogic = do
 -- (i.e. it will reuse the last world state and render it from the latest head position)
 -- and has logic thread wait until a new device pose has arrived
 -- from OpenVR before ticking.
---multiThreadedLogicInBGLoop :: VRPal -> ECSMonad ()
-multiThreadedLogicInBGLoop :: TChan CompilationRequest -> PureData -> VRPal -> IO ()
-multiThreadedLogicInBGLoop ghc pd vrPal = do
+multiThreadedLoop :: TChan CompilationRequest -> PureData -> VRPal -> IO ()
+multiThreadedLoop ghc pd vrPal = do
     startingECS <- execStateT (initializeECS ghc pd vrPal) newECS
     backgroundBox <- liftIO $ newTVarIO Nothing
     mainThreadBox <- liftIO $ newTVarIO startingECS
@@ -125,9 +122,7 @@ multiThreadedLogicInBGLoop ghc pd vrPal = do
     -- LOGIC LOOP (BG THREAD)
     _ <- liftIO . forkOS $ do
         makeContextCurrent (Just (gpThreadWindow vrPal))
-    --liftIO $ do
         void . flip runStateT startingECS . forever $ do
-        --void . flip runStateT startingECS . replicateM_ 2 $ do
             (headM44, events) <- atomically $ do
                 readTVar backgroundBox >>= \case
                     Just something -> do
@@ -141,6 +136,7 @@ multiThreadedLogicInBGLoop ghc pd vrPal = do
             latestECS <- get
             atomically $ do
                 writeTVar mainThreadBox $! latestECS
+
     -- RENDER LOOP (MAIN THREAD)
     whileWindow (gpWindow vrPal) $ do
         latestECS <- liftIO . atomically $ readTVar mainThreadBox
@@ -152,38 +148,8 @@ multiThreadedLogicInBGLoop ghc pd vrPal = do
             glFlush -- as per recommendation in openvr.h
             return (headM44, events))
         liftIO . atomically $ do
-            -- Attempt at not losing events; this can cause
-            -- a memory leak though so think it through more carefully
-            --pendingEvents <- readTVar backgroundBox >>= \case
-            --    Just (_, pendingEvents) -> return pendingEvents
-            --    Nothing -> return []
-            --writeTVar backgroundBox (Just (headM44, pendingEvents ++ events))
-            writeTVar backgroundBox (Just (headM44, events))
+            pendingEvents <- readTVar backgroundBox >>= \case
+                Just (_, pendingEvents) -> return pendingEvents
+                Nothing                 -> return []
+            writeTVar backgroundBox (Just (headM44, pendingEvents ++ events))
         return ()
-
-
-
--- Experiment with placing drawing on the background thread.
--- Doesn't render to window, probably because they are bound backwards
--- in glfw-pal (background thread should render to main window,
--- main thread should use bg window)
-multiThreadedRenderInBGLoop :: VRPal -> ECSMonad ()
-multiThreadedRenderInBGLoop vrPal = do
-    renderChan <- liftIO newChan
-    _renderWorker <- liftIO . forkOS $ do
-        makeContextCurrent (Just (gpThreadWindow vrPal))
-        void . forever $ do
-            join (readChan renderChan)
-    let onRenderThread action = do
-            currentECS <- get
-            liftIO $ writeChan renderChan (runStateT action currentECS)
-
-    whileWindow (gpWindow vrPal) $ do
-        playerM44 <- viewSystem sysControls ctsPlayer
-        (headM44, events) <- tickVR vrPal playerM44
-        profile "Controls" $ tickControlEventsSystem headM44 events
-        profile "Rendering" $ onRenderThread $ tickRenderSystem headM44
-        --profile "Rendering" $ tickRenderSystem headM44
-
-        tickLogic
-

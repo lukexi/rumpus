@@ -24,7 +24,7 @@ start = do
 
             when (note /= currentNote) $ do
                 setColor (colorHSL (noteHue note) 0.8 0.5)
-                acquirePolyPatch "saw-voice.pd"
+                acquirePolyPatch "Note.pd"
                 sendSynth "note" (fromIntegral note)
                 sendSynth "trigger" 1
             return note
@@ -34,7 +34,7 @@ start = do
 
     myCollisionStart ==> \hitEntityID _ -> do
         note <- getState (0::Int)
-        acquirePolyPatch "saw-voice.pd"
+        acquirePolyPatch "Note.pd"
         sendSynth "note" (fromIntegral note)
         sendSynth "trigger" 1
 

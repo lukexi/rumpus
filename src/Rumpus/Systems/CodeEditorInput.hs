@@ -107,7 +107,7 @@ getModuleName textSeq = maybeModuleName
 getChangedModuleName :: TextBuffer -> Maybe String
 getChangedModuleName textBuffer = do
     moduleName <- getModuleName (bufText textBuffer)
-    guard (bufPath textBuffer /= Just moduleName)
+    guard ((takeBaseName <$> bufPath textBuffer) /= Just moduleName)
     return moduleName
 
 -- | A facility to rename files and objects based on their module name,
@@ -122,9 +122,9 @@ checkForModuleNameChange codeInFile = do
         Nothing -> return False
         Just textBuffer -> do
             let maybeNewModuleName = getChangedModuleName textBuffer
-            printIO maybeNewModuleName
             case (maybeNewModuleName, bufPath textBuffer) of
                 (Just newModuleName, Just oldFilePath) -> do
+                    putStrLnIO $ "Module name changed: " ++ show (oldFilePath, newModuleName)
                     let oldFileName = takeFileName oldFilePath
                     moveCodeEditorFile oldFileName (newModuleName <.> "hs") "start"
                     return True
