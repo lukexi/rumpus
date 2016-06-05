@@ -6,8 +6,8 @@ import qualified Data.Vector as V
 start :: Start
 start = do
     
-
-    children <- V.generateM 255 $ \i -> do
+    let numSamples = 32 -- actual generated is 256
+    children <- V.generateM numSamples $ \i -> do
         let x = fromIntegral i / 8 + 1
         spawnChild $ do
             myShape            ==> Cube
@@ -17,21 +17,22 @@ start = do
             myProperties       ==> [Holographic]
             myInheritPose      ==> InheritPose
     button <- spawnChild $ do
-        myPdPatchFile ==> "Sampler.pd"
+        myPdPatchFile     ==> "Sampler.pd"
         myShape           ==> Cube
         myProperties      ==> [Floating]
         mySize            ==> 0.1
+        myDragOverride    ==> True
         myCollisionStart  ==> \_ _ -> do
             hue <- randomRange (0,1)
-            myColor ==> colorHSL hue 0.8 0.4
-            sendSynth "record-toggle" (Atom 1)
+            setColor $ colorHSL hue 0.8 0.4
+            sendSynth "record-toggle" 1
         myCollisionEnd    ==> \_ -> do
-            sendSynth "record-toggle" (Atom 0)
+            sendSynth "record-toggle" 0
         
         myUpdate          ==> do
-            fftSample <- V.convert <$> readPdArray "sample-fft" 0 256
+            fftSample <- V.convert <$> readPdArray "sample-fft" 0 numSamples
             V.forM_ (V.zip children fftSample) $ \(childID, sample) -> do
-                let val = sample * 2
+                let val = sample
                 inEntity childID $ do
                     setSize (0.1 & _yz .~ realToFrac val)
                     myColor ==> colorHSL (realToFrac val) 0.8 0.4

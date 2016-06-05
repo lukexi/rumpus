@@ -58,12 +58,14 @@ initializeECS ghc pd vrPal = do
             -- Otherwise assume it is the name of a code file.
             if sceneExists
                 then loadScene scene
-                else void . spawnEntity $ do
-                    myShape      ==> Cube
-                    mySize       ==> newEntitySize
-                    myProperties ==> [Floating]
-                    myColor      ==> V4 0.1 0.1 0.1 1
-                    myStartExpr ==> (name <.> "hs", "start")
+                else do
+                    codeInFile <- createStartExpr name
+                    void . spawnEntity $ do
+                        myShape      ==> Cube
+                        mySize       ==> newEntitySize
+                        myProperties ==> [Floating]
+                        myColor      ==> V4 0.1 0.1 0.1 1
+                        myStartExpr  ==> codeInFile
 
     --when isBeingProfiled loadTestScene
 
@@ -82,7 +84,7 @@ singleThreadedLoop ghc pd vrPal = do
         whileWindow (gpWindow vrPal) $ do
             playerM44 <- viewSystem sysControls ctsPlayer
             (headM44, events) <- tickVR vrPal playerM44
-            profile "Controls" $ tickControlEventsSystem headM44 events
+            profile "Controls"  $ tickControlEventsSystem headM44 events
             profile "Rendering" $ tickRenderSystem headM44
 
             tickLogic
@@ -92,21 +94,21 @@ tickLogic = do
     -- Perform a minor GC to just get the young objects created during the last frame
     -- without traversing all of memory
     --liftIO performMinorGC
-    profile "KeyPads" $ tickKeyPadsSystem
-    profile "Clock" $ tickClockSystem
-    profile "CodeEditorInput" $ tickCodeEditorInputSystem
+    profile "KeyPads"           $ tickKeyPadsSystem
+    profile "Clock"             $ tickClockSystem
+    profile "CodeEditorInput"   $ tickCodeEditorInputSystem
     profile "CodeEditorResults" $ tickCodeEditorResultsSystem
-    profile "Attachment" $ tickAttachmentSystem
-    profile "Constraint" $ tickConstraintSystem
-    profile "Script" $ tickScriptSystem
-    profile "Lifetime" $ tickLifetimeSystem
-    profile "Animation" $ tickAnimationSystem
-    profile "Physics" $ tickPhysicsSystem
-    profile "SyncPhysicsPoses" $ tickSyncPhysicsPosesSystem
-    profile "Collisions" $ tickCollisionsSystem
-    profile "HandControls" $ tickHandControlsSystem
-    profile "Sound" $ tickSynthSystem
-    profile "SceneWatcher" $ tickSceneWatcherSystem
+    profile "Attachment"        $ tickAttachmentSystem
+    profile "Constraint"        $ tickConstraintSystem
+    profile "Script"            $ tickScriptSystem
+    profile "Lifetime"          $ tickLifetimeSystem
+    profile "Animation"         $ tickAnimationSystem
+    profile "Physics"           $ tickPhysicsSystem
+    profile "SyncPhysicsPoses"  $ tickSyncPhysicsPosesSystem
+    profile "Collisions"        $ tickCollisionsSystem
+    profile "HandControls"      $ tickHandControlsSystem
+    profile "Sound"             $ tickSynthSystem
+    profile "SceneWatcher"      $ tickSceneWatcherSystem
 
 -- Experiment with running logic on the background thread.
 -- Attempts to never stall the render thread,
@@ -115,7 +117,7 @@ tickLogic = do
 -- from OpenVR before ticking.
 multiThreadedLoop :: TChan CompilationRequest -> PureData -> VRPal -> IO ()
 multiThreadedLoop ghc pd vrPal = do
-    startingECS <- execStateT (initializeECS ghc pd vrPal) newECS
+    startingECS   <- execStateT (initializeECS ghc pd vrPal) newECS
     backgroundBox <- liftIO $ newTVarIO Nothing
     mainThreadBox <- liftIO $ newTVarIO startingECS
 
@@ -139,9 +141,9 @@ multiThreadedLoop ghc pd vrPal = do
 
     -- RENDER LOOP (MAIN THREAD)
     whileWindow (gpWindow vrPal) $ do
-        latestECS <- liftIO . atomically $ readTVar mainThreadBox
+        latestECS         <- liftIO . atomically $ readTVar mainThreadBox
         (headM44, events) <- flip evalStateT latestECS (do
-            playerM44 <- viewSystem sysControls ctsPlayer
+            playerM44         <- viewSystem sysControls ctsPlayer
             (headM44, events) <- tickVR vrPal playerM44
             -- FIXME: transforms should be calculated on background thread!
             tickRenderSystem headM44

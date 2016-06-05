@@ -9,3 +9,5 @@
 *.hi
 .release
 .profile-clean-hack
+*.hs#
+*.hs~

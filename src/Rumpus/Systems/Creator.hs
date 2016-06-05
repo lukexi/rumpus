@@ -291,10 +291,15 @@ createNewStartExpr = do
     rumpusRoot <- getRumpusRootFolder
     files <- getDirectoryContentsWithExtension "hs" rumpusRoot
 
-    let newObjectCodeName = findNextNumberedName "MyObject" (map takeBaseName files)
-        entityFileName    = newObjectCodeName <.> "hs"
+    let newObjectName = findNextNumberedName "MyObject" (map takeBaseName files)
+    createStartExpr newObjectName
+
+createStartExpr :: (MonadIO m, MonadState ECS m) => String -> m CodeInFile
+createStartExpr name = do
+    rumpusRoot <- getRumpusRootFolder 
+    let entityFileName    = name <.> "hs"
         entityFilePath    = rumpusRoot </> entityFileName
-    liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName newObjectCodeName)
+    liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName name)
     return (entityFileName, "start")
 
 
