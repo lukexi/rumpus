@@ -5,7 +5,6 @@ import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Attachment
 import PreludeExtra
-import qualified Data.List as List
 
 type HandEntityID = EntityID
 
@@ -90,11 +89,14 @@ withHandEvents hand f = withSystem_ sysControls $ \controlSystem -> do
     let events = controlSystem ^. ctsEvents
     forM_ events (\e -> onHandEvent hand e f)
 
-
+isEntityBeingHeldByHand :: MonadState ECS m
+                           => EntityID -> WhichHand -> m Bool
 isEntityBeingHeldByHand entityID whichHand = do
     handID <- getHandID whichHand
     isEntityAttachedTo entityID handID
-
+    
+isBeingHeldByHand :: (MonadState ECS m, MonadReader EntityID m)
+                     => WhichHand -> m Bool
 isBeingHeldByHand whichHand = do
     entityID <- ask
     isEntityBeingHeldByHand entityID whichHand
@@ -103,6 +105,7 @@ isBeingHeldByHand whichHand = do
 isBeingHeld :: (MonadReader EntityID m, MonadState ECS m) => m Bool
 isBeingHeld = isEntityBeingHeld =<< ask
 
+isEntityBeingHeld :: MonadState ECS f => EntityID -> f Bool
 isEntityBeingHeld entityID = do
     or <$> forM [LeftHand, RightHand] (isEntityBeingHeldByHand entityID)
 

@@ -163,6 +163,18 @@ executable rumpus
     cpp-options: -DRUMPUS_RELEASE
     if os(windows)
       ghc-options:       -optl-mwindows
+  default-extensions:
+    TemplateHaskell
+    FlexibleContexts
+    LambdaCase
+    MultiWayIf
+    RecordWildCards
+    ViewPatterns
+    BangPatterns
+    DeriveGeneric
+    DeriveDataTypeable
+    NegativeLiterals
+    ScopedTypeVariables
 
 source-repository head
   type:     git
