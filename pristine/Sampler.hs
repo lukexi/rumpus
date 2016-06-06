@@ -18,10 +18,14 @@ start = do
             myProperties       ==> [Holographic]
             myInheritPose      ==> InheritPose
     mainID <- ask
+    
+    pose <- getPose
     button <- spawnChild $ do
         myShape           ==> Cube
         myProperties      ==> [Floating]
         mySize            ==> 0.1
+        -- Set initial pose so there's not a spurious collision
+        myPose            ==> pose !*! position (V3 0 0.5 0)
         myDragOverride    ==> True
         myCollisionStart  ==> \_ _ -> do
             hue <- randomRange (0,1)
