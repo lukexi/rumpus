@@ -41,15 +41,6 @@ initializeECS ghc pd vrPal = do
 
     listToMaybe <$> liftIO getArgs >>= \case
         Nothing -> showSceneLoader
-        -- Spawn a new object for quick new object dev work
-        Just "new" -> do
-            codeInFile <- createNewStartExpr
-            void . spawnEntity $ do
-                myShape      ==> Cube
-                mySize       ==> newEntitySize
-                myProperties ==> [Floating]
-                myColor      ==> V4 0.1 0.1 0.1 1
-                myStartExpr  ==> codeInFile
         Just name -> do
             rumpusRoot <- getRumpusRootFolder
             let scene = rumpusRoot </> name
@@ -59,7 +50,12 @@ initializeECS ghc pd vrPal = do
             if sceneExists
                 then loadScene scene
                 else do
-                    codeInFile <- createStartExpr name
+                    let fileName = name <.> "hs"
+                    fileExists <- liftIO $ doesFileExist (rumpusRoot </> fileName)
+                    codeInFile <- if
+                        | fileExists    = return (fileName, "start")
+                        | name == "new" = createNewStartExpr -- create a new object for quick dev work
+                        | otherwise     = createStartExpr name
                     void . spawnEntity $ do
                         myShape      ==> Cube
                         mySize       ==> newEntitySize

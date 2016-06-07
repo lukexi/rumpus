@@ -1,12 +1,11 @@
 module Rumpus.Systems.Creator where
 import PreludeExtra hiding (delete)
 import Rumpus.Systems.Drag
-import Rumpus.Systems.Lifetime
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Clock
-import Rumpus.Systems.CodeEditor
+--import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Collisions
 import Rumpus.Systems.Attachment
@@ -85,8 +84,8 @@ openEntityLibrary whichHand = do
             positions = goldenSectionSpiralPoints (length codePathsWithNewObject)
             positionsAndCodePaths = zip positions codePathsWithNewObject
 
-        forM_ positionsAndCodePaths $ \(position, maybeCodePath) -> do
-            addHandLibraryItem whichHand position maybeCodePath
+        forM_ positionsAndCodePaths $ \(pos, maybeCodePath) -> do
+            addHandLibraryItem whichHand pos maybeCodePath
 
         addDestructionOrb whichHand
 
@@ -296,7 +295,7 @@ createNewStartExpr = do
 
 createStartExpr :: (MonadIO m, MonadState ECS m) => String -> m CodeInFile
 createStartExpr name = do
-    rumpusRoot <- getRumpusRootFolder 
+    rumpusRoot <- getRumpusRootFolder
     let entityFileName    = name <.> "hs"
         entityFilePath    = rumpusRoot </> entityFileName
     liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName name)
@@ -315,6 +314,7 @@ devCreateNewObject = do
         myColor      ==> V4 0.1 0.1 0.1 1
         myStartExpr  ==> codeInFile
 
+spawnChildInstance :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => FilePath -> m EntityID
 spawnChildInstance codeFileName = do
     let codePath = codeFileName <.> "hs"
     spawnChild $ do

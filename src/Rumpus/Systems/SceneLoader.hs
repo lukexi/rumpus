@@ -64,8 +64,8 @@ showSceneLoader = do
         positions = goldenSectionSpiralPoints (length scenePathsWithNewScene)
         positionsAndCodePaths = zip positions scenePathsWithNewScene
 
-    libraryEntities <- forM positionsAndCodePaths $ \(position, maybeCodePath) -> do
-        addSceneLibraryItem position maybeCodePath
+    libraryEntities <- forM positionsAndCodePaths $ \(pos, maybeCodePath) -> do
+        addSceneLibraryItem pos maybeCodePath
 
     decorations <- spawnEntity (myStart ==> makeLoaderDecorations)
 
