@@ -25,6 +25,7 @@ initSceneSystem = do
             else pristineDir
         useUserFolder = isInReleaseMode
         --useUserFolder = True
+    putStrLnIO ("Using rumpus root: " ++ rootToUse)
 
     registerSystem sysScene $ SceneSystem
         { _scnScene = Nothing
@@ -152,7 +153,7 @@ getUserRumpusRoot = liftIO $ do
                                 >> return userRumpusRoot)
     hasRedirect <- doesFileExist userRedirectFile
     if hasRedirect
-        then putStrLnIO $ "Attempting redirect"
+        then putStrLnIO $ "Found redirect"
         else putStrLnIO $ "No redirect found in " ++ userRedirectFile
     rumpusRoot <- protect $ if hasRedirect
         then do
@@ -164,7 +165,6 @@ getUserRumpusRoot = liftIO $ do
                     | isAbsolute pathLine -> do
                             redirectPath <- canonicalizePath pathLine
                             exists <- doesDirectoryExist redirectPath
-                            putStrLnIO ("Redirecting to " ++ redirectPath ++ " " ++ show exists)
                             if exists
                                 then return redirectPath
                                 else return userRumpusRoot
