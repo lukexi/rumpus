@@ -30,8 +30,9 @@ type Properties = [Property]
 
 defineSystemKey ''PhysicsSystem
 
-defineComponentKeyWithType "Mass"    [t|GLfloat|]
-defineComponentKeyWithType "Gravity" [t|V3 GLfloat|]
+defineComponentKeyWithType "Mass"           [t|GLfloat|]
+defineComponentKeyWithType "Restitution"    [t|GLfloat|]
+defineComponentKeyWithType "Gravity"        [t|V3 GLfloat|]
 defineComponentKeyWithType "CollisionGroup" [t|CShort|]
 defineComponentKeyWithType "CollisionMask"  [t|CShort|]
 defineComponentKey ''RigidBody
@@ -48,9 +49,9 @@ initPhysicsSystem = do
         { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
         , ciRemoveComponent = removeRigidBodyComponent dynamicsWorld
         }
-    registerComponent "Mass"              myMass               (savedComponentInterface myMass)
-    registerComponent "Gravity"           myGravity            (savedComponentInterface myGravity)
     registerComponent "Properties"        myProperties         (savedComponentInterface myProperties)
+    registerComponent "Mass"              myMass               (newComponentInterface myMass)
+    registerComponent "Gravity"           myGravity            (newComponentInterface myGravity)
     registerComponent "SpringConstraint"  mySpringConstraint   (newComponentInterface mySpringConstraint)
     registerComponent "CollisionGroup"    myCollisionGroup     (newComponentInterface myCollisionGroup)
     registerComponent "CollisionMask"     myCollisionMask      (newComponentInterface myCollisionMask)
