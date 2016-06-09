@@ -1,5 +1,6 @@
 module Knob where
 import Rumpus
+import Text.Printf
 
 majorScale = [0,2,4,5,7,9,11,12]
 
@@ -8,10 +9,33 @@ start = do
     setSynthPatch "Verylogue.pd"
 
     rootID <- ask
-    cutoffKnob <- spawnKnob "Cutoff" (0, 1500) (V3 -0.25 0.5 0) $ \n -> do
+    setState (0::Int)
+    cutoffKnob <- spawnActiveKnob "Cutoff" (0, 1500) $ \n -> do
         sendEntitySynth rootID "cutoff" (realToFrac n)
-    spawnKnob "Resonance" (0,1) (V3  0.25 0.5 0) $ \n -> do
+    spawnActiveKnob "Resonance" (0,1)  $ \n -> do
         sendEntitySynth rootID "res" (realToFrac n)
+    spawnActiveKnob "Noise" (0,1)  $ \n -> do
+        sendEntitySynth rootID "noise-amp" (realToFrac n)
+    spawnActiveKnob "EG Int" (0,2000)  $ \n -> do
+        sendEntitySynth rootID "eg-int" (realToFrac n)
+
+    spawnActiveKnob "Amp Atk" (0,1000)  $ \n -> do
+        sendEntitySynth rootID "amp-attack" (realToFrac n)
+    spawnActiveKnob "Amp Dec" (0,1000)  $ \n -> do
+        sendEntitySynth rootID "amp-decay" (realToFrac n)
+    spawnActiveKnob "Amp Sus" (0,1)  $ \n -> do
+        sendEntitySynth rootID "amp-sustain" (realToFrac n)
+    spawnActiveKnob "Amp Rel" (0,1000)  $ \n -> do
+        sendEntitySynth rootID "amp-release" (realToFrac n)
+
+    spawnActiveKnob "Env Atk" (0,1000)  $ \n -> do
+        sendEntitySynth rootID "env-attack" (realToFrac n)
+    spawnActiveKnob "Env Dec" (0,1000)  $ \n -> do
+        sendEntitySynth rootID "env-decay" (realToFrac n)
+    spawnActiveKnob "Env Sus" (0,1)  $ \n -> do
+        sendEntitySynth rootID "env-sustain" (realToFrac n)
+    spawnActiveKnob "Env Rel" (0,1000)  $ \n -> do
+        sendEntitySynth rootID "env-release" (realToFrac n)
 
     setRepeatingAction 0.1 $ do
         degree <- randomFrom majorScale
@@ -24,13 +48,30 @@ start = do
         noteCube   <- spawnChild $ do
             myShape       ==> Cube
             myProperties  ==> [Holographic]
-            myPose        ==> position (V3 0 (1+degree01) 0)
+            myPose        ==> position (V3 0 (0.5+degree01) 0)
             myInheritPose ==> InheritPose
             mySize        ==> 0.2
             myColor       ==> colorHSL degree01 0.8 brightness
         inEntity noteCube $ setLifetime 1
 
     return ()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 data KnobState = KnobState
@@ -40,8 +81,15 @@ data KnobState = KnobState
 newKnobState :: KnobState
 newKnobState = KnobState identity 0
 
+spawnActiveKnob name (low, hi) action = do
+    i <- getState (0::Int)
+    setState (i+1)
+    let x = fromIntegral (i `div` 4) * 0.3
+        y = fromIntegral (i `mod` 4) * 0.3 - 0.45
+        knobPos = V3 (0.5 + x) y 0
+    spawnActiveKnobAt knobPos name (low, hi) action
 
-spawnKnob name (low,hi) knobPos action = do
+spawnActiveKnobAt knobPos name (low,hi) action = do
     let range = hi - low
     nameLabel <- spawnChild $ do
         myText        ==> name
@@ -83,7 +131,7 @@ spawnKnob name (low,hi) knobPos action = do
                 -- with the scaled value
                 let newValue01 = knobRotToValue newRotation
                     newValueScaled = low + range * newValue01
-                inEntity valueLabel $ setText (show newValueScaled)
+                inEntity valueLabel $ setText (printf "%.2f" (newValueScaled::Float))
                 action newValueScaled
 
     attachEntity knob

@@ -1,25 +1,3 @@
-TODO:
-* Change Holographic to be the default
-* Change InheritPose to be the default? Add AbsolutePose. Force Physical objects to not inherit pose.
-* Add a "MakePropertiesConsistent" function that e.g. adds Physical to Ghostly/Floating/Teleportable,
-removes InheritPose/InheritPoseAndScale from Physical
-* Change Properties to a HashSet (use OverloadedLists??)
-* Have Knobs auto-grid themselves along the right of the code slab.
-myLifetime ==> 10
-(make Lifetime instance of Num, with Nothing for startTime that is filled in later?)
-myDelayed ==> do
-myRepeating ==> do
-myAttachOffset?
-These can just be there for consistency, processed and then henceforth ignored or removed.
-* try
-infixr 0 ==>
-again:
-let (##) = (<>); infixr 0 ##
-Just "hi" ## Just $ "!!"
-works and we'd like to be able to do things like myFoo ==> blah $ V3 1 1 1
-(Possibly what won't work is spawnEntity $ myFoo ==> Bar in that case?? which is fine! But actually that seems to work too in GHCi
-Just $ Just "hi" ## Just "!!")
-
 # RUMPUS MANUAL
 
 Ok, so you're ready to rump. Rumping is not for the faint-hearted; nothing is finished, everything is subject to change. I don't think typing letters into virtual screens in VR is a "good idea"*. But it's still a heck of a good time and you'll probably have some fun.
@@ -268,3 +246,65 @@ For cases where no side effects are needed (or wanted), ==> can still be used.
 
 This is a historical accident and will be fixed in a future version.
 (The reason they both exist: ==> is "side-effect free" and simply sets a component value directly, which is desirable when an object is being constructed, whereas the `set` functions trigger necessary side effects on existing objects, such as recreating physics bodies when their shape or size is changed)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TODO:
+* Change Holographic to be the default
+* Change InheritPose to be the default? Add AbsolutePose. Force Physical objects to not inherit pose.
+* Add a "MakePropertiesConsistent" function that e.g. adds Physical to Ghostly/Floating/Teleportable,
+removes InheritPose/InheritPoseAndScale from Physical
+* Change Properties to a HashSet (use OverloadedLists??)
+* Have Knobs auto-grid themselves along the right of the code slab.
+myLifetime ==> 10
+(make Lifetime instance of Num, with Nothing for startTime that is filled in later?)
+myDelayed ==> do
+myRepeating ==> do
+myAttachOffset?
+These can just be there for consistency, processed and then henceforth ignored or removed.
+* try
+infixr 0 ==>
+again:
+let (##) = (<>); infixr 0 ##
+Just "hi" ## Just $ "!!"
+works and we'd like to be able to do things like myFoo ==> blah $ V3 1 1 1
+(Possibly what won't work is spawnEntity $ myFoo ==> Bar in that case?? which is fine! But actually that seems to work too in GHCi
+Just $ Just "hi" ## Just "!!")
