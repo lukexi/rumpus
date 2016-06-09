@@ -1,0 +1,80 @@
+RUMPUS MANUAL
+
+Ok, so you're ready to rump. Rumping is not for the faint-hearted, everything is subject to change. I don't think typing letters into virtual screens in VR is a "good idea". I am working on higher-level languages that are "VR Native", but I wanted a development environment and "assembly language" first, and Rumpus is a snapshot of that process. But, terrible idea or not, it's still a heck of a good time and you'll probably have some fun.
+
+RUMPUS MULTIPLAYER
+This is currently a total hack with many caveats. You shouldn't do this with anyone you don't know, as you're going to be running arbitrary code that can do absolutely anything. Better things are in the pipeline. But again, it's extremely fun anyway and you should totally try it if you have friends you can trust.
+
+How it's done:
+The first time you run Rumpus, it creates a folder in My Documents/Rumpus. Inside that folder, you'll find a file called redirect.txt, and inside that file, you'll see an example path like
+`c:/Users/MY_USERNAME/Dropbox/MY_SHARED_FOLDER`.
+
+Create a shared Dropbox folder with your friend (Rumpus doesn't know anything about Dropbox, so you can also use any service that has similar capabilities), and put the path to that folder into `redirect.txt`. Have your friend do the same.
+
+Launch Rumpus, and everything you do will now be synchronized to your friend's computer. The sync is only for persistent state, which means: code, objects you've hand placed in the scene, and changes to said objects you make with your hands (e.g. moving an object, changing a knob). This should theoretically work with any number of players (provided you try not to step on each others toes by e.g. editing the same file simultaneously), and since it's just a Dropbox folder, it doesn't matter if everyone is "online" when you're working; changes will be synced regardless and your friends will see them next time they boot up Rumpus.
+
+You don't have to do any coding to do the multiplayer; you can, for example, use the Note and Playhead objects to collaboratively compose music.
+
+Or, if you know a code wizard, you can just hang out with them and play with what they make.
+
+Rumpus has no built-in voice chat yet, so I use Steam's voice chat.
+
+To return to single-player mode or change who you're working with, just edit or delete `redirect.txt`.
+
+RUMPUS PROGRAMMING GUIDE
+
+Rumpus
+
+Again with the caveats: the Rumpus programming API is highly in flux, and is in no way a good piece of design in the snapshot you're using. And again with the counter-caveats: you can do a lot with it regardless - just be ready to rewrite some or all of it as Rumpus evolves : ).
+
+Creating your first object:
+Hold the "App Button" on your Vive controller (just above the touchpad) to bring out the Object Bouquet. Look for the light-colored slab that says "New Object", grab it, and drag it out. You're done!
+
+Click on the object you just created to begin editing the code. You'll see some boilerplate:
+```
+module MyObject1 where
+import Rumpus
+
+start :: Start
+start = do
+    return ()
+
+```
+
+The `start` function is called once whenever a new instance of your object is created, and again each time you make a valid change to the code.
+
+Each time you type a character, Rumpus rapidly recompiles and re-runs the start function, allowing for highly interactive development.
+
+Try changing the start function to:
+```
+start = do
+    myColor ==> colorHSL 0.5 0.7 0.7
+```
+You'll see a panel appear as you type showing the current errors in the file (which are inevitable when you're still typing the code). When it disappears, it means the object compiled successfully.
+Flip your object over and you should see that it's changed to a lovely shade of blue.
+
+Rumpus is structured as an "Entity Component System".
+Entities are all of the distinct physical objects in the world, like the one you just created.
+Components are the properties that define how an entity looks and behaves, like `myColor` in the example above, or myShape, or mySize, etc.
+Systems take entities and their components and make them go, performing tasks like Rendering, Physics, and Sound. In the current version, Systems are "behind the scenes", but you'll eventually be able to modify and build them too.
+
+***
+Systems are all the supporting code that process entities each frame and make Rumpus go. Each system defines a set of Components it needs to do its work, and then uses those Components to imbue Entities with new capabilities. For example, the Render system defines Pose, Shape, Size and Color, and renders any entity with those components to the screen. The Physics system adds Mass and Restitution, and physically simulates any entity that wants physics. The Synth system lets you attach synthesized sound to your objects, and handles matching the positional audio output of any synthesizers to their associated Entity's position in space. In the current version of Rumpus, Systems are "behind the scenes", and you'll program objects by editing their components, but in future versions you'll be able to modify and build Systems too.
+***
+
+You can create entities in two ways: by grabbing them out of the Object Bouquet, or by creating them programatically.
+To create a new entity via code, change the start function to:
+```
+start = do
+    spawnChild $ do
+        myColor      ==> colorHSL 0.5 0.7 0.7
+        myShape      ==> Sphere
+        myPose       ==> position (V3 0 1 0)
+        mySize       ==> 0.1
+        myProperties ==> [InheritPose, Holographic]
+```
+
+A sphere should appear above your code slab. Try editing the size, pose, shape, and color to see how it updates as you type.
+
+
+Calling `spawnChild` establishes a 'parent-child' relationship between two entities; in this case, between the code slab you're editing and the sphere you just brought into being. `myProperties` is a grab-bag of flags to configure an entity: the InheritPose property means that the child entity will be positioned relative to its parent (here, the code slab), and the Holographic property means that the entity will have no Physics interactions with other entities.

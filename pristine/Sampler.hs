@@ -1,6 +1,5 @@
 module Sampler where
 import Rumpus
-
 import qualified Data.Vector as V
 
 start :: Start
@@ -33,7 +32,7 @@ start = do
             sendEntitySynth mainID "record-toggle" 1
         myCollisionEnd    ==> \_ -> do
             sendEntitySynth mainID "record-toggle" 0
-     
+    
     attachEntity button
     inEntity button $ 
         setAttachmentOffset (position $ V3 0 0.5 0)
