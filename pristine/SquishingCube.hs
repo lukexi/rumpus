@@ -1,4 +1,4 @@
-module MyObject5000 where
+module SquishingCube where
 import Rumpus
 
 start :: Start

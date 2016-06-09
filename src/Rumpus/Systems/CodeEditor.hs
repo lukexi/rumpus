@@ -281,3 +281,11 @@ setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
 setStartExpr codeInFile = do
     myStartExpr ==> codeInFile
     registerWithCodeEditor codeInFile myStart
+
+spawnChildInstance :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => FilePath -> m EntityID
+spawnChildInstance codeFileName = do
+    let codePath = codeFileName <.> "hs"
+    spawnChild $ do
+        myStartExpr   ==> (codePath, "start")
+        myCodeHidden  ==> True
+        myInheritPose ==> InheritPose

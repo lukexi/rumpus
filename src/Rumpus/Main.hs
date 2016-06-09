@@ -53,9 +53,9 @@ initializeECS ghc pd vrPal = do
                     let fileName = name <.> "hs"
                     fileExists <- liftIO $ doesFileExist (rumpusRoot </> fileName)
                     codeInFile <- if
-                        | fileExists    = return (fileName, "start")
-                        | name == "new" = createNewStartExpr -- create a new object for quick dev work
-                        | otherwise     = createStartExpr name
+                        | fileExists    -> return (fileName, "start")
+                        | name == "new" -> createNewStartExpr -- create a new object for quick dev work
+                        | otherwise     -> createStartExpr name
                     void . spawnEntity $ do
                         myShape      ==> Cube
                         mySize       ==> newEntitySize

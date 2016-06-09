@@ -1,0 +1,4 @@
+#N canvas 658 144 526 417 10;
+#X obj 137 266 adc~;
+#X obj 136 294 fft-array~ \$0sample-fft;
+#X connect 0 0 1 0;

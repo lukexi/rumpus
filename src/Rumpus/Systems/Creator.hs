@@ -303,25 +303,6 @@ createStartExpr name = do
 
 
 
--- Used for dev purposes only, creates a new object at 0,0,0
-devCreateNewObject :: (MonadState ECS m, MonadIO m) => m EntityID
-devCreateNewObject = do
-    codeInFile <- createNewStartExpr
-    spawnPersistentEntity $ do
-        myShape      ==> Cube
-        mySize       ==> newEntitySize
-        myProperties ==> [Floating]
-        myColor      ==> V4 0.1 0.1 0.1 1
-        myStartExpr  ==> codeInFile
-
-spawnChildInstance :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => FilePath -> m EntityID
-spawnChildInstance codeFileName = do
-    let codePath = codeFileName <.> "hs"
-    spawnChild $ do
-        myStartExpr   ==> (codePath, "start")
-        myCodeHidden  ==> True
-        myInheritPose ==> InheritPose
-
 {-
 addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
             => FilePath

@@ -9,6 +9,7 @@ import Rumpus.Systems.Scene
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Text
+import Rumpus.Systems.CodeEditor
 --import Rumpus.Systems.Scene
 --import Rumpus.Systems.SceneWatcher
 --import Rumpus.Types
@@ -25,7 +26,7 @@ libraryCenter = if isInReleaseMode
     else V3 -1.5 1.5 0
 
 data SceneLoaderSystem = SceneLoaderSystem
-    { _sclSceneIcons        :: ![EntityID]
+    { _sclSceneLoaderRootID :: !(Maybe EntityID)
     }
 makeLenses ''SceneLoaderSystem
 defineSystemKey ''SceneLoaderSystem
@@ -33,7 +34,7 @@ defineSystemKey ''SceneLoaderSystem
 
 initSceneLoaderSystem :: MonadState ECS m => m ()
 initSceneLoaderSystem = do
-    registerSystem sysSceneLoader (SceneLoaderSystem mempty)
+    registerSystem sysSceneLoader (SceneLoaderSystem Nothing)
 
 
 startSceneLoaderSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -59,65 +60,29 @@ showSceneLoader :: (MonadState ECS m, MonadIO m) => m ()
 showSceneLoader = do
     setPlayerPosition 0
 
+    sceneLoaderRootID <- spawnEntity (return ())
+    modifySystemState sysSceneLoader $
+        sclSceneLoaderRootID ?= sceneLoaderRootID
+
+
     scenePaths <- listScenes
     let scenePathsWithNewScene = Nothing : map Just scenePaths
         positions = goldenSectionSpiralPoints (length scenePathsWithNewScene)
         positionsAndCodePaths = zip positions scenePathsWithNewScene
 
-    libraryEntities <- forM positionsAndCodePaths $ \(pos, maybeCodePath) -> do
-        addSceneLibraryItem pos maybeCodePath
-
-    decorations <- spawnEntity (myStart ==> makeLoaderDecorations)
-
-    modifySystemState sysSceneLoader $
-        sclSceneIcons .= decorations:libraryEntities
-
-makeLoaderDecorations :: Start
-makeLoaderDecorations = do
-
-    -- Platform
-    let platX = 4
-        platZ = platX
-        platY = 0.2
-    _ <- spawnChild $ do
-        myPose       ==> translateMatrix (V3 0 (-platY/2) 0)
-        myShape      ==> Cube
-        myProperties ==> [Floating, Ungrabbable, Teleportable]
-        mySize       ==> V3 platX platY platZ
-        myColor      ==> colorHSL 0.5 0.8 0.3
-        myMass       ==> 0
-
-    let d = 30
-    forM_ (take 100 $ cycle "RUMPUSrumpus") $ \letter -> do
-        pos <- V3 <$> randomRange (-d,d)
-                  <*> randomRange (-d,d)
-                  <*> randomRange (-d,d)
-
-        let (V3 x y z) = pos
-        unless (abs x < 4 && abs y < 4 && abs z < 4) $ do
-            void . spawnChild $ do
-                myPose ==> translateMatrix pos
-                mySize ==> 0.2
-                myText ==> [letter]
-                myTextPose ==> translateMatrix (V3 0 1 0)
-                myProperties ==> [Holographic]
-                myShape ==> Cube
-                myUpdate ==> do
-                    now <- getNow
-                    let n = (now + pos ^. _x + pos ^. _y) * 0.5
-                    setSize (realToFrac (sin n))
-                    setPose $ rotationAndPosition
-                       (axisAngle pos n)
-                       (pos & _x +~ sin n & _y +~ cos n)
-                    setColor (colorHSL (x+(sin n * 0.3)) 0.5 0.5)
-
+    inEntity sceneLoaderRootID $ do
+        forM_ positionsAndCodePaths $ \(pos, maybeCodePath) -> do
+            addSceneLibraryItem pos maybeCodePath
+        spawnChildInstance "Stars"
+        spawnChildInstance "Platform"
     return ()
-
 
 hideSceneLoader :: (MonadState ECS m, MonadIO m) => m ()
 hideSceneLoader = do
-    iconIDs <- viewSystem sysSceneLoader sclSceneIcons
-    forM_ iconIDs removeEntity
+    modifySystemState sysSceneLoader $ do
+        mRootID <- use sclSceneLoaderRootID
+        lift $ forM_ mRootID removeEntity
+        sclSceneLoaderRootID .= Nothing
 
 sceneLoaderAnimationInitialSize :: V3 GLfloat
 sceneLoaderAnimationInitialSize = V3 0.01 0.01 0.01
@@ -132,10 +97,10 @@ listDirectories :: MonadIO m => FilePath -> m [FilePath]
 listDirectories inPath = liftIO $
     filterM (doesDirectoryExist . (inPath </>)) =<< getDirectoryContentsSafe inPath
 
-addSceneLibraryItem :: (MonadIO m, MonadState ECS m)
-                    => V3 GLfloat -> Maybe FilePath -> m EntityID
+addSceneLibraryItem :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+                    => V3 GLfloat -> Maybe FilePath -> m ()
 addSceneLibraryItem spherePosition maybeScenePath = do
-    itemID <- spawnEntity $ do
+    itemID <- spawnChild $ do
         myPose         ==> translateMatrix (spherePosition * 1 + libraryCenter)
         myShape        ==> Sphere
         mySize         ==> sceneLoaderAnimationInitialSize
@@ -167,7 +132,6 @@ addSceneLibraryItem spherePosition maybeScenePath = do
 
     inEntity itemID $
         animateSizeTo sceneLoaderAnimationFinalSize 0.3
-    return itemID
 
 createNewScene :: (MonadIO m, MonadState ECS m) => m (Maybe FilePath)
 createNewScene = do

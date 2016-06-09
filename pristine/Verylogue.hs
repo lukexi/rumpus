@@ -1,8 +1,8 @@
 module Verylogue where
 import Rumpus
 
-majorScale = [0,2,4,5,7,9,11,12]
-
+--majorScale = [0,2,4,5,7,9,11,12]
+majorScale = [0..12]
 pianoKeySize = V3 0.01 0.2 0.3
 
 start :: Start
