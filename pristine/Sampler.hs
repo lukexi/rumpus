@@ -24,11 +24,11 @@ start = do
         -- Set initial pose so there's not a spurious collision
         myPose            ==> pose !*! position (V3 0 0.5 0)
         myDragOverride    ==> True
-        myCollisionStart  ==> \_ _ -> do
+        myCollisionBegan  ==> \_ _ -> do
             hue <- randomRange (0,1)
             setColor $ colorHSL hue 0.8 0.4
             sendEntitySynth mainID "record-toggle" 1
-        myCollisionEnd    ==> \_ -> do
+        myCollisionEnded    ==> \_ -> do
             sendEntitySynth mainID "record-toggle" 0
 
     attachEntity button

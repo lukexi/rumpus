@@ -14,7 +14,7 @@ import Rumpus
 loadTestScene :: ECSMonad ()
 loadTestScene = do
     -- testEntity <- spawnEntity $ return ()
-    -- addCodeExpr testEntity "CollisionStart" "collisionStart" myCollisionStartExpr myCollisionStart
+    -- addCodeExpr testEntity "CollisionBegan" "collisionStart" myCollisionBeganExpr myCollisionBegan
     -- selectEntity testEntity
 
 

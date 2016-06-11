@@ -112,7 +112,7 @@ addExitOrb whichHand = do
         myBody       ==> Detector -- FIXME: We can't make this Ungrabbable as that inhibits clicks
         myUpdate     ==> normalPulse
         -- Pulse the other hand when it hovers over us
-        myColliding ==> \entityID _ -> do
+        myCollisionContinues ==> \entityID _ -> do
             when (entityID == otherHandID) $ do
                 hapticPulse otherHand 1000
         myDragBegan ==> do
@@ -159,7 +159,7 @@ addDestructionOrb whichHand = do
         -- When an entity collides with us that's held by the other hand,
         -- grow and change color to indicate that the object will be deleted on release.
         -- Set the object as "pending destruction".
-        myCollisionStart ==> \entityID _ -> do
+        myCollisionBegan ==> \entityID _ -> do
             isBeingHeldByOtherHand <- isEntityBeingHeldByHand entityID (otherHandFrom whichHand)
             when isBeingHeldByOtherHand $ do
                 animateSizeTo activeDestructorOrbSize animDur
@@ -167,13 +167,13 @@ addDestructionOrb whichHand = do
                 modifySystemState sysCreator $
                     crtPendingDestruction . at whichHand ?= entityID
         -- Pulse the hand holding the item while hovering over the orb
-        myColliding ==> \_entityID _ -> do
+        myCollisionContinues ==> \_entityID _ -> do
             let otherHand = otherHandFrom whichHand
             hapticPulse otherHand 1100
         -- When the collision ends, either due to the object being dropped or
         -- because the user changed their mind and pulled away, return to normal
         -- size and clear the object from "pending destruction"
-        myCollisionEnd ==> \entityID -> do
+        myCollisionEnded ==> \entityID -> do
             pendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at whichHand)
             when (pendingDestruction == Just entityID) $ do
                 myUpdate ==> normalPulse

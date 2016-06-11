@@ -29,7 +29,7 @@ startHandsSystem = do
             myBody            ==> Detector
             myBodyFlags       ==> [Ungrabbable]
             myMass            ==> 0
-            myCollisionStart  ==> \_ impulse -> do
+            myCollisionBegan  ==> \_ impulse -> do
                 hapticPulse whichHand (floor $ impulse * 10000)
 
     leftHandID  <- spawnEntity $ makeHand LeftHand

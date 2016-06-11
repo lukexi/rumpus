@@ -90,8 +90,8 @@ initCodeEditorSystem ghcChan = do
     registerComponent         "CodeHidden"           myCodeHidden           (newComponentInterface myCodeHidden)
     registerCodeExprComponent "StartExpr"          myStartExpr          myStart
     registerCodeExprComponent "UpdateExpr"         myUpdateExpr         myUpdate
-    --registerCodeExprComponent "CollidingExpr"      myCollidingExpr      myColliding
-    --registerCodeExprComponent "CollisionStartExpr" myCollisionStartExpr myCollisionStart
+    --registerCodeExprComponent "CollidingExpr"      myCollisionContinuesExpr      myCollisionContinues
+    --registerCodeExprComponent "CollisionBeganExpr" myCollisionBeganExpr myCollisionBegan
 
 
 registerCodeExprComponent :: (MonadState ECS m, Typeable a)

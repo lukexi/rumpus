@@ -18,6 +18,6 @@ start = do
                 now <- (+ x) <$> getNow
                 let pos = V3 (sin now*1 + x) (cos now*1 + y) (z - 1.5)
                 setPosition pos
-            myCollisionStart ==> \otherEntityID impulse -> do
+            myCollisionBegan ==> \otherEntityID impulse -> do
                 now <- getNow
                 setColor (colorHSL now 0.8 0.8)

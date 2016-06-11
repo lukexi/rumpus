@@ -10,10 +10,10 @@ start = do
     setColor (V4 0.2 0.3 0.1 1)
     setBody Physical
 
-    myCollisionStart ==> \_ _ -> do
+    myCollisionBegan ==> \_ _ -> do
         isHeld <- isBeingHeld
         when (not isHeld) $ do
-            removeComponent myCollisionStart
+            removeComponent myCollisionBegan
 
             _treeID <- spawnChildInstance "Tree"
 

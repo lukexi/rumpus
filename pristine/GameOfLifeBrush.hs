@@ -6,6 +6,7 @@ import Data.Word
 maxBlots = 1000
 
 type GOL = UArray (V2 Int) Word8
+
 gridMax :: V2 Int
 gridMax = 6
 gridBounds :: (V2 Int, V2 Int)
@@ -35,6 +36,7 @@ tickGOL grid = array (bounds grid) (go <$> assocs grid)
 start :: Start
 start = do
 
+    -- Glider
     let initialGrid :: GOL
         initialGrid = listArray gridBounds (repeat 0)
                         //  [ (V2 0 0, 1)
@@ -47,7 +49,8 @@ start = do
     removeComponent myUpdate
     initialPosition <- getPosition
     setState (initialPosition, initialGrid, Seq.empty :: Seq EntityID, 0::GLfloat)
-    myDrag ==> \_ -> withState $ \(lastPosition, grid, blots, hue) -> do
+
+    myDragContinues ==> \_ -> withState $ \(lastPosition, grid, blots, hue) -> do
         newPose <- getPose
         let newPosition = newPose ^. translation
         when (distance lastPosition newPosition > 0.01) $ do

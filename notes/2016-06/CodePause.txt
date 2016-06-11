@@ -24,9 +24,9 @@ Then, extend that checking to all user-settable code:
 to still run code for internal objects like the hands, picker, etc)
 myStart
 myUpdate
-myCollisionStart
-myColliding
-myCollisionEnd
+myCollisionBegan
+myCollisionContinues
+myCollisionEnded
 myDragBegan
 myDragging
 myDragEnded

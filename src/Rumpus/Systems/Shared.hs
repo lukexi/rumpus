@@ -47,7 +47,7 @@ defineComponentKeyWithType "StartExpr"          [t|CodeInFile|]
 defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
 defineComponentKeyWithType "CodeHidden"         [t|Bool|]
 --defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
---defineComponentKeyWithType "CollisionStartExpr" [t|CodeInFile|]
+--defineComponentKeyWithType "CollisionBeganExpr" [t|CodeInFile|]
 
 
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()

@@ -5,33 +5,34 @@ import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
 import Rumpus.Systems.CodeProtect
 
-data DragFrom = DragFrom HandEntityID (M44 GLfloat)
+data ActiveDrag = ActiveDrag HandEntityID (M44 GLfloat)
 
-type Drag = M44 GLfloat -> EntityMonad ()
-type DragBegan = EntityMonad ()
-type DragEnded = EntityMonad ()
+type DragBegan     = EntityMonad ()
+type DragEnded     = EntityMonad ()
+type DragContinues = M44 GLfloat -> EntityMonad ()
+
 type DragOverride = Bool
-defineComponentKey ''DragFrom
+defineComponentKey ''ActiveDrag
 defineComponentKey ''DragBegan
 defineComponentKey ''DragEnded
-defineComponentKey ''Drag
-defineComponentKey ''DragOverride --
+defineComponentKey ''DragContinues
+defineComponentKey ''DragOverride
 
 getEntityDragOverride :: (MonadState ECS m) => EntityID -> m Bool
 getEntityDragOverride entityID = fromMaybe False <$> getEntityComponent entityID myDragOverride
 
 initDragSystem :: MonadState ECS m => m ()
 initDragSystem = do
-    registerComponent "DragFrom"     myDragFrom     (newComponentInterface myDragFrom)
-    registerComponent "DragBegan"    myDragBegan    (newComponentInterface myDragBegan)
-    registerComponent "DragEnded"    myDragEnded    (newComponentInterface myDragEnded)
-    registerComponent "Drag"         myDrag         (newComponentInterface myDrag)
-    registerComponent "DragOverride" myDragOverride (newComponentInterface myDragOverride)
+    registerComponent "ActiveDrag"    myActiveDrag    (newComponentInterface myActiveDrag)
+    registerComponent "DragBegan"     myDragBegan     (newComponentInterface myDragBegan)
+    registerComponent "DragEnded"     myDragEnded     (newComponentInterface myDragEnded)
+    registerComponent "DragContinues" myDragContinues (newComponentInterface myDragContinues)
+    registerComponent "DragOverride"  myDragOverride  (newComponentInterface myDragOverride)
 
 beginDrag :: EntityID -> EntityID -> ECSMonad ()
 beginDrag handEntityID draggedID = do
     startM44 <- getEntityPose handEntityID
-    setEntityComponent myDragFrom (DragFrom handEntityID startM44) draggedID
+    setEntityComponent myActiveDrag (ActiveDrag handEntityID startM44) draggedID
 
     inEntity draggedID $
         withComponent_ myDragBegan $ \dragBegan ->
@@ -39,20 +40,20 @@ beginDrag handEntityID draggedID = do
 
 continueDrag :: HandEntityID -> ECSMonad ()
 continueDrag draggingHandEntityID = do
-    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID startM44) ->
+    forEntitiesWithComponent myActiveDrag $ \(entityID, ActiveDrag handEntityID startM44) ->
         when (handEntityID == draggingHandEntityID) $ do
             currentM44 <- getEntityPose handEntityID
             let dragDistance = currentM44 `subtractMatrix` startM44
 
             inEntity entityID $
-                withComponent_ myDrag $ \drag ->
-                    runUserFunctionProtected myDrag (drag dragDistance)
+                withComponent_ myDragContinues $ \drag ->
+                    runUserFunctionProtected myDragContinues (drag dragDistance)
 
 endDrag :: HandEntityID -> ECSMonad ()
 endDrag endingDragHandEntityID = do
-    forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID _) -> do
+    forEntitiesWithComponent myActiveDrag $ \(entityID, ActiveDrag handEntityID _) -> do
         when (handEntityID == endingDragHandEntityID) $ do
-            removeEntityComponent myDragFrom entityID
+            removeEntityComponent myActiveDrag entityID
 
             inEntity entityID $
                 withComponent_ myDragEnded $ \dragEnded ->

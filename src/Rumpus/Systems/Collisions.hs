@@ -6,22 +6,22 @@ import Rumpus.Systems.CodeProtect
 import qualified Data.HashSet as Set
 import qualified Data.HashMap.Strict as Map
 
-type Colliding        = CollidedWithID -> CollisionImpulse -> EntityMonad ()
-type CollisionStart   = CollidedWithID -> CollisionImpulse -> EntityMonad ()
-type CollisionEnd     = CollidedWithID -> EntityMonad ()
+type CollisionContinues = CollidedWithID -> CollisionImpulse -> EntityMonad ()
+type CollisionBegan     = CollidedWithID -> CollisionImpulse -> EntityMonad ()
+type CollisionEnded       = CollidedWithID -> EntityMonad ()
 
 type CollidedWithID     = EntityID
 type CollisionImpulse   = GLfloat
 
-defineComponentKey ''Colliding
-defineComponentKey ''CollisionStart
-defineComponentKey ''CollisionEnd
+defineComponentKey ''CollisionContinues
+defineComponentKey ''CollisionBegan
+defineComponentKey ''CollisionEnded
 
 initCollisionsSystem :: MonadState ECS m => m ()
 initCollisionsSystem = do
-    registerComponent "Colliding"      myColliding      (newComponentInterface myColliding)
-    registerComponent "CollisionStart" myCollisionStart (newComponentInterface myCollisionStart)
-    registerComponent "CollisionEnd"   myCollisionEnd   (newComponentInterface myCollisionEnd)
+    registerComponent "CollisionContinues" myCollisionContinues (newComponentInterface myCollisionContinues)
+    registerComponent "CollisionBegan"     myCollisionBegan     (newComponentInterface myCollisionBegan)
+    registerComponent "CollisionEnded"       myCollisionEnded       (newComponentInterface myCollisionEnded)
 
 -- | Loop through the collisions for this frame and call any
 -- entities' registered collision callbacks
@@ -40,23 +40,23 @@ tickCollisionsSystem = do
 
             lastCollisionPairs <- viewSystem sysPhysics phyCollisionPairs
 
-            forEntitiesWithComponent myColliding $ \(entityID, onColliding) -> do
+            forEntitiesWithComponent myCollisionContinues $ \(entityID, onCollisionContinues) -> do
                 (_, _, allCollisions) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ allCollisions $ \collidingID ->
                     inEntity entityID $
-                        runUserFunctionProtected myColliding (onColliding collidingID 0.1)
+                        runUserFunctionProtected myCollisionContinues (onCollisionContinues collidingID 0.1)
 
-            forEntitiesWithComponent myCollisionStart $ \(entityID, onCollisionStart) -> do
+            forEntitiesWithComponent myCollisionBegan $ \(entityID, onCollisionBegan) -> do
                 (newCollisions, _, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ newCollisions $ \collidingID ->
                     inEntity entityID $
-                        runUserFunctionProtected myCollisionStart (onCollisionStart collidingID 0.1)
+                        runUserFunctionProtected myCollisionBegan (onCollisionBegan collidingID 0.1)
 
-            forEntitiesWithComponent myCollisionEnd $ \(entityID, onCollisionEnd) -> do
+            forEntitiesWithComponent myCollisionEnded $ \(entityID, onCollisionEnded) -> do
                 (_, oldCollisions, _) <- calculateCollisionDiffs entityID lastCollisionPairs
                 forM_ oldCollisions $ \collidingID ->
                     inEntity entityID $
-                        runUserFunctionProtected myCollisionEnd (onCollisionEnd collidingID)
+                        runUserFunctionProtected myCollisionEnded (onCollisionEnded collidingID)
         else do
             -- When not playing, do a collisions tick so we can still calculate intersections
             dynamicsWorld <- viewSystem sysPhysics phyDynamicsWorld

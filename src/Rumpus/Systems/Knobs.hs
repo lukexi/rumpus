@@ -31,7 +31,7 @@ addQuickKnob name (low, high) action = do
 
     _knobID <- spawnEntity $ do
         myShape ==> Cube
-        myDrag ==> \changeM44 -> do
+        myDragContinues ==> \changeM44 -> do
             let newValue = changeM44 ^. translation . _x
             myKnobValues ==% (at name ?~ newValue)
             action newValue

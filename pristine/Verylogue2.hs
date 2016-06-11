@@ -160,12 +160,12 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
         myBody         ==> Animated
         myDragOverride ==> True
         myDragBegan ==> do
-            withComponent_ myDragFrom $ \(DragFrom _handEntityID startM44) -> do
+            withComponent_ myActiveDrag $ \(ActiveDrag _handEntityID startM44) -> do
                 editState $ \ks -> return $ ks {
                         ksLastHandPose = startM44
                     }
-        myDrag ==> \dragM44 -> do
-            withComponent_ myDragFrom $ \(DragFrom handEntityID _startM44) -> do
+        myDragContinues ==> \dragM44 -> do
+            withComponent_ myActiveDrag $ \(ActiveDrag handEntityID _startM44) -> do
                 -- Calculate the rotation for this tick
                 newHandPose <- getEntityPose handEntityID
                 oldState    <- getState newKnobState

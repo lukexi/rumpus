@@ -32,7 +32,7 @@ start = do
 
     updateNote
 
-    myCollisionStart ==> \hitEntityID _ -> do
+    myCollisionBegan ==> \hitEntityID _ -> do
         note <- getState (0::Int)
         acquirePolyPatch "Note.pd"
         sendSynth "note" (fromIntegral note)
@@ -44,5 +44,5 @@ start = do
             toColor   = colorHSL hue         0.8 0.5
         animateColor 0.2 fromColor toColor
 
-    myDrag ==> \_ -> updateNote
+    myDragContinues ==> \_ -> updateNote
     myCodeHidden ==> True

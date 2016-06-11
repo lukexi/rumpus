@@ -26,7 +26,7 @@ start = do
                     y = 1 + iF * 0.4
                     z = 1 + 0.3 * iF * sin t
                 setPose (identity & translation .~ V3 x y z)
-            myCollisionStart ==> \_ _ -> do
+            myCollisionBegan ==> \_ _ -> do
                 myColor ==> colorHSL 1 0.5 0.5
 
         return ()

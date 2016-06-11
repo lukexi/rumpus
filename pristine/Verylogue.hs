@@ -32,9 +32,9 @@ makePianoKey parentID parentPose i noteDegree = do
     myBody           ==> Detector
     myPose           ==> parentPose !*! position keyPos
     mySize           ==> pianoKeySize
-    myCollisionStart ==> \_ _ -> do
+    myCollisionBegan ==> \_ _ -> do
         myColor ==> colorOn
         sendEntitySynth parentID "piano-key" (List [note, 1])
-    myCollisionEnd    ==> \_ -> do
+    myCollisionEnded    ==> \_ -> do
         myColor ==> colorOff
         sendEntitySynth parentID "piano-key" (List [note, 0])

@@ -8,7 +8,7 @@ start = do
 
     initialPosition <- getPosition
     setState (initialPosition, Seq.empty :: Seq EntityID)
-    myDrag ==> \_ -> withState $ \(lastPosition, blots) -> do
+    myDragContinues ==> \_ -> withState $ \(lastPosition, blots) -> do
         newPose <- getPose
         let newPosition = newPose ^. translation
         when (distance lastPosition newPosition > 0.05) $ do

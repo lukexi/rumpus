@@ -159,7 +159,10 @@ start = do
 
 Knobs are cool because their values are saved as persistent state, which means they are also sent across in multiplayer.
 
-### PHYSICS
+### INTERACTION AND PHYSICS
+To create your own interactive objects, your object must have a myBody component.
+
+Adding a body adds an entity to the physics simulation so it can react to gravity, collisions, or objects passing through it (like your hand).
 Rumpus integrates the Bullet Physics Engine for rigid body dynamics.
 
 To spawn a basic physics object, try a start function like this:
@@ -168,27 +171,32 @@ start = do
     spawnChild $ do
         myColor      ==> colorHSL 0.5 0.7 0.7
         myShape      ==> Cube
-        myPose       ==> position (V3 0 0 -1)
+        myPose       ==> position (V3 0 1 0)
         mySize       ==> 0.1
         myBody       ==> Physical
 ```
 The object will fall into the void. Try pulling out a Platform object for it to land on.
 You can change the object's Mass, Restitution, and Gravity using myMass, myRestitution, and myGravity.
 
-To react when the object hits another object (including your hands), use my myCollisionStart, myColliding, and myCollisionEnd components.
+To react when the object hits another object (including your hands), use my myCollisionBegan, myCollisionContinues, and myCollisionEnded components.
 For example, to change color every time we touch something:
 ```
 start = do
     spawnChild $ do
         myColor          ==> colorHSL 0.5 0.7 0.7
         myShape          ==> Cube
-        myPose           ==> position (V3 0 0 -1)
+        myPose           ==> position (V3 0 1 0)
         mySize           ==> 0.1
         myBody           ==> Physical
-        myCollisionStart ==> \_ _ -> do
+        myCollisionBegan ==> \_ _ -> do
             hue <- randomRange (0,1)
             setColor (colorHSL hue 0.5 0.5)
 ```
+Adding a physics body also makes myPose refer to absolute rather than relative coordinates.
+
+### ATTACHMENT
+
+### DRAGGING
 
 ### TELEPORTATION
 You can mark any physics object as "Teleportable" to allow yourself to teleport on top of it using the Grip (side) buttons on the Vive controller.
@@ -214,7 +222,7 @@ majorScale = map (+56) [0,2,4,7,9]
 start = do
     setSynthPatch "Fountain.pd"
 
-    myCollisionStart ==> \_ _ -> do
+    myCollisionBegan ==> \_ _ -> do
         note <- randomFrom majorScale
         sendSynth "note" (realToFrac note)
 ```
@@ -228,7 +236,7 @@ Instead, we can use `acquirePolyPatch` like so:
 majorScale = map (+56) [0,2,4,7,9]
 
 start = do
-    myCollisionStart ==> \_ _ -> do
+    myCollisionBegan ==> \_ _ -> do
         note <- randomFrom majorScale
         acquirePolyPatch "Note.pd"
         sendSynth "note" (fromIntegral note)
