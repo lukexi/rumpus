@@ -28,7 +28,7 @@ addQuickKnob :: String -> (Float, Float) -> (GLfloat -> EntityMonad ()) -> Entit
 addQuickKnob name (low, high) action = do
     savedValue <- fromMaybe 0 . Map.lookup name . fromMaybe mempty <$> getComponent myKnobValues
     action savedValue
-    
+
     _knobID <- spawnEntity $ do
         myShape ==> Cube
         myDrag ==> \changeM44 -> do
@@ -42,3 +42,9 @@ addQuickKnob name (low, high) action = do
             }
     appendComponent myKnobs [knob]
 
+
+-- Must use prependComponent rather than appendComponent to update the Map,
+-- as its <> is left-biased
+setKnobData knobName value = prependComponent myKnobValues (Map.singleton knobName value)
+
+getKnobData knobName defVal = Map.lookupDefault defVal knobName . fromMaybe mempty <$> getComponent myKnobValues

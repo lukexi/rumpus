@@ -22,6 +22,7 @@ initializeECS ghc pd vrPal = do
     initCreatorSystem
     initDragSystem
     initHapticsSystem
+    initKnobsSystem
     initLifetimeSystem
     initPhysicsSystem
     initPlayPauseSystem

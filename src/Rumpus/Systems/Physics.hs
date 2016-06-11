@@ -23,13 +23,19 @@ data Property = Floating        -- ^ Sets bullet "Kinematic" flag
               | Holographic     -- ^ Removes physics shape entirely
               | Ungrabbable     -- ^ Marks objects we don't want to grab
               | Teleportable    -- ^ Marks objects we want to allow teleportation to. Must have physics shape.
-    deriving (Eq, Show, Generic, FromJSON, ToJSON)
+              deriving (Eq, Show, Generic, FromJSON, ToJSON)
+
+data BodyType = Physical
+              | Kinematic
+              | Ghostly_ -- aka NoContactResponse
+              deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 type Properties = [Property]
 
 
 defineSystemKey ''PhysicsSystem
 
+defineComponentKeyWithType "Body"           [t|BodyType|]
 defineComponentKeyWithType "Mass"           [t|GLfloat|]
 defineComponentKeyWithType "Restitution"    [t|GLfloat|]
 defineComponentKeyWithType "Gravity"        [t|V3 GLfloat|]
@@ -49,6 +55,7 @@ initPhysicsSystem = do
         { ciDeriveComponent = Just (deriveRigidBody dynamicsWorld)
         , ciRemoveComponent = removeRigidBodyComponent dynamicsWorld
         }
+    registerComponent "Body"              myBody               (savedComponentInterface myBody)
     registerComponent "Properties"        myProperties         (savedComponentInterface myProperties)
     registerComponent "Mass"              myMass               (newComponentInterface myMass)
     registerComponent "Gravity"           myGravity            (newComponentInterface myGravity)

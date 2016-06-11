@@ -7,7 +7,7 @@ import Data.IORef
 import Data.Time
 
 versionString :: String
-versionString = "0.1.4"
+versionString = "0.1.5"
 
 isInReleaseMode :: Bool
 #if defined(RUMPUS_RELEASE)

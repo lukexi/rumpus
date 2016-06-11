@@ -17,7 +17,7 @@ import Rumpus.Systems.Shared
 
 tickHandControlsSystem :: ECSMonad ()
 tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
-    
+
     let editSceneWithHand whichHand handEntityID otherHandEntityID event = case event of
             HandStateEvent hand -> do
                 -- Shift the hands down a bit, since OpenVR gives us the position
@@ -30,16 +30,16 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                 continueDrag handEntityID
                 continueHapticDrag whichHand newHandPose
                 updateBeam whichHand
-            HandButtonEvent HandButtonGrip ButtonDown -> 
+            HandButtonEvent HandButtonGrip ButtonDown ->
                 beginBeam whichHand
-            HandButtonEvent HandButtonGrip ButtonUp -> 
+            HandButtonEvent HandButtonGrip ButtonUp ->
                 endBeam whichHand
-            HandButtonEvent HandButtonTrigger ButtonDown -> 
+            HandButtonEvent HandButtonTrigger ButtonDown ->
                 initiateGrab whichHand handEntityID otherHandEntityID
             HandButtonEvent HandButtonTrigger ButtonUp -> do
                 maybeHeldEntity <- getOneEntityAttachment handEntityID
                 wasDestroyed    <- checkForDestruction whichHand
-                
+
                 endHapticDrag whichHand
                 endDrag handEntityID
                 detachAttachedEntities handEntityID
@@ -54,9 +54,9 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                             isPersistent <- isEntityPersistent entityID
                             when isPersistent $
                                 sceneWatcherSaveEntity entityID
-            HandButtonEvent HandButtonStart ButtonDown -> 
+            HandButtonEvent HandButtonStart ButtonDown ->
                 openEntityLibrary whichHand
-            HandButtonEvent HandButtonStart ButtonUp -> 
+            HandButtonEvent HandButtonStart ButtonUp ->
                 closeEntityLibrary whichHand
             _ -> return ()
 
@@ -69,7 +69,7 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
 filterUngrabbableEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
 filterUngrabbableEntityIDs = filterM (fmap (notElem Ungrabbable) . getEntityProperties)
 
-
+getGrabbableEntityIDs :: EntityID -> ECSMonad [EntityID]
 getGrabbableEntityIDs = filterUngrabbableEntityIDs <=< getEntityOverlappingEntityIDs
 
 initiateGrab :: WhichHand -> EntityID -> EntityID -> ECSMonad ()
@@ -77,7 +77,7 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
     -- Find the entities overlapping the hand, and attach them to it
     overlappingEntityIDs <- getGrabbableEntityIDs handEntityID
 
-    when (null overlappingEntityIDs)  
+    when (null overlappingEntityIDs)
         clearSelection
         --didPlaceCursor <- raycastCursor handEntityID
 

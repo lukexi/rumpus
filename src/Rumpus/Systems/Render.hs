@@ -209,12 +209,12 @@ renderEntities projViewM44 shapes = do
 -- This avoids duplicate matrix multiplications.
 getFinalMatrices :: (MonadIO m, MonadState ECS m) => m (Map EntityID (M44 GLfloat))
 getFinalMatrices = do
-    poseMap                   <- getComponentMap myPose
-    poseScaledMap             <- getComponentMap myPoseScaled
-    childrenMap               <- getComponentMap myChildren
-    parentMap                 <- getComponentMap myParent
-    --sizeMap                   <- getComponentMap mySize
-    inheritParentTransformMap <- getComponentMap myInheritPose
+    poseMap        <- getComponentMap myPose
+    poseScaledMap  <- getComponentMap myPoseScaled
+    childrenMap    <- getComponentMap myChildren
+    parentMap      <- getComponentMap myParent
+    --sizeMap        <- getComponentMap mySize
+    inheritPoseMap <- getComponentMap myInheritPose
 
     let entityIDs           = Set.fromList . Map.keys $ poseMap
         entityIDsWithChild  = Set.fromList . Map.keys $ childrenMap
@@ -222,7 +222,7 @@ getFinalMatrices = do
         rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
         go mParentMatrix !accum entityID =
 
-            let inherit                  = Map.lookup entityID inheritParentTransformMap
+            let inherit                  = Map.lookup entityID inheritPoseMap
                 entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
                 entityMatrixLocal        = Map.lookupDefault identity entityID poseScaledMap
 

@@ -1,77 +1,77 @@
-#N canvas 461 50 872 747 10;
-#X obj 532 295 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+#N canvas 266 55 883 812 10;
+#X obj 532 375 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
-#X obj 532 335 metro 1000;
-#X obj 592 297 hsl 128 15 0 1000 0 0 empty empty empty -2 -8 0 10 -262144
+#X obj 532 415 metro 1000;
+#X obj 592 377 hsl 128 15 0 1000 0 0 empty empty empty -2 -8 0 10 -262144
 -1 -1 0 1;
-#X obj 322 591 poly 4;
-#X obj 322 624 pack f f f;
-#X obj 322 650 s \$0note-on;
-#X msg 322 546 \$1 1;
-#X msg 366 546 \$1 0;
-#X obj 9 4 cnv 15 850 270 empty empty empty 20 12 0 14 -162280 -66577
+#X obj 322 611 poly 4;
+#X obj 322 644 pack f f f;
+#X obj 322 670 s \$0note-on;
+#X msg 322 566 \$1 1;
+#X msg 366 566 \$1 0;
+#X obj 9 14 cnv 15 850 270 empty empty empty 20 12 0 14 -162280 -66577
 0;
-#X obj 22 25 vradio 15 1 0 4 \$0octave1 \$0octave1-r octave 0 -8 0
-10 -262144 -1 -1 1;
-#X obj 22 115 vradio 15 1 0 4 \$0octave2 \$0octave2-r octave 0 -8 0
-10 -262144 -1 -1 2;
-#X obj 72 25 vradio 15 1 0 3 \$0wave1 \$0wave1-r wave 0 -8 0 10 -262144
--1 -1 0;
-#X obj 72 115 vradio 15 1 0 3 \$0wave2 \$0wave2-r wave 0 -8 0 10 -262144
--1 -1 0;
-#X obj 117 27 vsl 40 50 0 127 0 0 \$0pitch1 \$0pitch1-r pitch 0 -9
-0 10 -262144 -1 -1 0 1;
-#X obj 117 117 vsl 40 50 0 127 0 0 \$0pitch2 \$0pitch2-r pitch 0 -9
-0 10 -262144 -1 -1 0 1;
-#X obj 177 27 vsl 40 50 0 1 0 0 \$0shape1 \$0shape1-r shape 0 -9 0
-10 -262144 -1 -1 0 1;
-#X obj 177 117 vsl 40 50 0 127 0 0 \$0shape2 \$0shape2-r shape 0 -9
-0 10 -262144 -1 -1 0 1;
-#X obj 257 27 vsl 40 50 0 1 0 0 \$0vco1-amp \$0vco1-amp-r vco1 0 -9
-0 10 -262144 -1 -1 4900 1;
-#X obj 257 117 vsl 40 50 0 1 0 0 \$0vco2-amp \$0vco2-amp-r vco2 0 -9
-0 10 -262144 -1 -1 4900 1;
-#X obj 337 117 vsl 40 50 0 1 0 0 \$0res \$0res-r resonance 0 -9 0 10
--262144 -1 -1 0 1;
-#X obj 397 117 vsl 40 50 0 2000 0 0 \$0eg-int \$0eg-int-r eg-int 0
--9 0 10 -262144 -1 -1 0 1;
-#X obj 357 27 vsl 60 50 0 10000 0 0 \$0cutoff \$0cutoff-r cutoff 0
--9 0 10 -262144 -1 -1 490 1;
-#X obj 257 207 vsl 40 50 0 1 0 0 \$0noise-amp \$0noise-amp-r noise
-0 -9 0 10 -262144 -1 -1 0 1;
-#X obj 477 27 vsl 40 50 0 127 0 0 \$0amp-attack \$0amp-attack-r attack
-0 -9 0 10 -262144 -1 -1 386 1;
-#X obj 537 27 vsl 40 50 0 127 0 0 \$0amp-decay \$0amp-decay-r decay
-0 -9 0 10 -262144 -1 -1 386 1;
-#X obj 597 27 vsl 40 50 0 1 0 0 \$0amp-sustain \$0amp-sustain-r sustain
+#X obj 22 45 vradio 15 1 0 4 \$0vco1-octave \$0vco1-octave-r octave
+0 -8 0 10 -262144 -1 -1 1;
+#X obj 22 135 vradio 15 1 0 4 \$0vco2-octave \$0vco2-octave-r octave
+0 -8 0 10 -262144 -1 -1 2;
+#X obj 72 45 vradio 15 1 0 3 \$0vco1-wave \$0vco1-wave-r wave 0 -8
+0 10 -262144 -1 -1 2;
+#X obj 72 135 vradio 15 1 0 3 \$0vco2-wave \$0vco2-wave-r wave 0 -8
+0 10 -262144 -1 -1 1;
+#X obj 117 47 vsl 40 50 -1 1 0 0 \$0vco1-pitch \$0vco1-pitch-r pitch
 0 -9 0 10 -262144 -1 -1 2450 1;
-#X obj 657 27 vsl 40 50 0 1000 0 0 \$0amp-release \$0amp-release-r
-release 0 -9 0 10 -262144 -1 -1 1225 1;
-#X obj 477 117 vsl 40 50 0 500 0 0 \$0env-attack \$0env-attack-r attack
+#X obj 117 137 vsl 40 50 -1 1 0 0 \$0vco2-pitch \$0vco2-pitch-r pitch
+0 -9 0 10 -262144 -1 -1 2450 1;
+#X obj 177 47 vsl 40 50 0 1 0 0 \$0vco1-shape \$0vco1-shape-r shape
+0 -9 0 10 -262144 -1 -1 2450 1;
+#X obj 177 137 vsl 40 50 0 1 0 0 \$0vco2-shape \$0vco2-shape-r shape
+0 -9 0 10 -262144 -1 -1 2450 1;
+#X obj 257 47 vsl 40 50 0 1 0 0 \$0vco1-amp \$0vco1-amp-r vco1 0 -9
+0 10 -262144 -1 -1 4900 1;
+#X obj 257 137 vsl 40 50 0 1 0 0 \$0vco2-amp \$0vco2-amp-r vco2 0 -9
+0 10 -262144 -1 -1 4900 1;
+#X obj 337 137 vsl 40 50 0 1 0 0 \$0resonance \$0resonance-r resonance
+0 -9 0 10 -262144 -1 -1 0 1;
+#X obj 397 137 vsl 40 50 0 1 0 0 \$0cutoff-eg-int \$0cutoff-eg-int-r
+eg-int 0 -9 0 10 -262144 -1 -1 0 1;
+#X obj 357 47 vsl 60 50 1 96 0 0 \$0cutoff \$0cutoff-r cutoff 0 -9
+0 10 -262144 -1 -1 4075 1;
+#X obj 257 227 vsl 40 50 0 1 0 0 \$0noise-amp \$0noise-amp-r noise
+0 -9 0 10 -262144 -1 -1 0 1;
+#X obj 477 47 vsl 40 50 0 127 0 0 \$0amp-attack \$0amp-attack-r attack
+0 -9 0 10 -262144 -1 -1 386 1;
+#X obj 537 47 vsl 40 50 0 500 0 0 \$0amp-decay \$0amp-decay-r decay
 0 -9 0 10 -262144 -1 -1 98 1;
-#X obj 537 117 vsl 40 50 0 127 0 0 \$0env-decay \$0env-decay-r decay
-0 -9 0 10 -262144 -1 -1 386 1;
-#X obj 597 117 vsl 40 50 0 1 0 0 \$0env-sustain \$0env-sustain-r sustain
+#X obj 597 47 vsl 40 50 0 1 0 0 \$0amp-sustain \$0amp-sustain-r sustain
 0 -9 0 10 -262144 -1 -1 2450 1;
-#X obj 657 117 vsl 40 50 0 1000 0 0 \$0env-release \$0env-release-r
+#X obj 657 47 vsl 40 50 0 1000 0 0 \$0amp-release \$0amp-release-r
 release 0 -9 0 10 -262144 -1 -1 1225 1;
-#X obj 537 207 vsl 40 50 0 127 0 0 \$0lfo-rate \$0lfo-rate-r rate 0
--9 0 10 -262144 -1 -1 0 1;
-#X obj 597 207 vsl 40 50 0 127 0 0 \$0lfo-int \$0lfo-int-r int 0 -9
-0 10 -262144 -1 -1 0 1;
-#X obj 472 205 vradio 15 1 0 3 \$0lfo-wave \$0lfo-wave-r wave 0 -8
-0 10 -262144 -1 -1 0;
-#X obj 502 205 vradio 15 1 0 3 \$0eg-mod \$0eg-mod-r eg-mod 0 -8 0
-10 -262144 -1 -1 0;
-#X obj 662 205 vradio 15 1 0 3 \$0lfo-target \$0lfo-target-r target
-0 -8 0 10 -262144 -1 -1 0;
-#X obj 57 207 vsl 40 50 0 127 0 0 \$0crossdepth \$0crossdepth-r crossdepth
+#X obj 477 137 vsl 40 50 0 500 0 0 \$0env-attack \$0env-attack-r attack
+0 -9 0 10 -262144 -1 -1 98 1;
+#X obj 537 137 vsl 40 50 0 500 0 0 \$0env-decay \$0env-decay-r decay
+0 -9 0 10 -262144 -1 -1 980 1;
+#X obj 597 137 vsl 40 50 0 1 0 0 \$0env-sustain \$0env-sustain-r sustain
+0 -9 0 10 -262144 -1 -1 2450 1;
+#X obj 657 137 vsl 40 50 0 1000 0 0 \$0env-release \$0env-release-r
+release 0 -9 0 10 -262144 -1 -1 1225 1;
+#X obj 537 227 vsl 40 50 0.1 250 1 0 \$0lfo-rate \$0lfo-rate-r rate
 0 -9 0 10 -262144 -1 -1 0 1;
-#X obj 117 207 vsl 40 50 0 127 0 0 \$0pitch-eg-int \$0pitch-eg-int-r
+#X obj 597 227 vsl 40 50 0 1 0 0 \$0lfo-int \$0lfo-int-r int 0 -9 0
+10 -262144 -1 -1 0 1;
+#X obj 452 225 vradio 15 1 0 3 \$0lfo-wave \$0lfo-wave-r wave 0 -8
+0 10 -262144 -1 -1 2;
+#X obj 482 225 vradio 15 1 0 3 \$0lfo-eg-mod \$0lfo-eg-mod-r eg-mod
+0 -8 0 10 -262144 -1 -1 0;
+#X obj 662 225 vradio 15 1 0 3 \$0lfo-target \$0lfo-target-r target
+0 -8 0 10 -262144 -1 -1 0;
+#X obj 57 227 vsl 40 50 0 1 0 0 \$0vco2-crossdepth \$0vco2-crossdepth-r
+crossdepth 0 -9 0 10 -262144 -1 -1 0 1;
+#X obj 137 227 vsl 40 50 0 1 0 0 \$0vco2-pitch-eg-int \$0vco2-pitch-eg-int-r
 pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
-#X obj 737 25 cnv 15 100 100 empty empty empty 20 12 0 14 -262144 -66577
+#X obj 737 45 cnv 15 100 100 empty empty empty 20 12 0 14 -262144 -66577
 0;
-#X obj 43 306 catch~ \$0voice-out;
+#X obj 43 326 catch~ \$0voice-out;
 #N canvas 72 100 450 300 scope 0;
 #N canvas 0 50 450 278 (subpatch) 0;
 #X array \$0scope 441 float 0;
@@ -81,7 +81,7 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X obj 250 69 inlet~;
 #X obj 259 109 loadbang;
 #N canvas 151 218 450 300 graph-refresh-workaround 0;
-#X obj 145 191 tabwrite \$0scope;
+#X obj 145 231 tabwrite \$0scope;
 #X obj 125 124 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
 #X msg 145 144 0;
@@ -89,12 +89,14 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X obj 145 103 loadbang;
 #X obj 145 124 metro 33;
 #X text 42 61 workaround to force graph to update regularly;
+#X obj 145 197 tabread \$0scope;
 #X connect 1 0 5 0;
 #X connect 2 0 3 0;
-#X connect 3 0 0 0;
+#X connect 3 0 7 0;
 #X connect 3 1 0 1;
 #X connect 4 0 5 0;
 #X connect 5 0 2 0;
+#X connect 7 0 0 0;
 #X restore 18 25 pd graph-refresh-workaround;
 #X obj 350 111 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
@@ -106,45 +108,69 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X connect 6 0 1 0;
 #X connect 7 0 1 0;
 #X coords 0 -1 1 1 100 100 1 100 100;
-#X restore 737 25 pd scope;
-#X obj 103 336 s~ \$0scope;
-#X obj 43 337 *~ 0.5, f 7;
-#X obj 778 504 scales;
-#X obj 532 441 t a b;
-#X obj 559 480 + 2;
-#X obj 559 502 * 12;
-#X obj 559 461 random 5;
-#X obj 366 523 pipe 300;
-#X obj 588 315 * 2;
-#X obj 643 342 * 0.66;
-#X obj 543 379 del;
-#X obj 689 371 hsl 128 15 0 2 0 0 empty empty empty -2 -8 0 10 -262144
+#X restore 737 45 pd scope;
+#X obj 103 356 s~ \$0scope;
+#X obj 43 357 *~ 0.5, f 7;
+#X obj 778 584 scales;
+#X obj 532 521 t a b;
+#X obj 559 560 + 2;
+#X obj 559 582 * 12;
+#X obj 559 541 random 5;
+#X obj 366 543 pipe 300;
+#X obj 588 395 * 2;
+#X obj 643 422 * 0.66;
+#X obj 543 459 del;
+#X obj 689 451 hsl 128 15 0 2 0 0 empty empty empty -2 -8 0 10 -262144
 -1 -1 0 1;
-#X obj 683 396 t b a;
-#X obj 532 414 array-get-random minor;
-#X obj 182 360 verylogue-voice \$0 1;
-#X obj 182 380 verylogue-voice \$0 2;
-#X obj 182 400 verylogue-voice \$0 3;
-#X obj 182 420 verylogue-voice \$0 4;
-#X msg 661 469 major;
-#X msg 661 489 minor;
-#X obj 221 546 r \$0piano-key;
-#X obj 60 517 \$0;
-#X obj 60 497 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+#X obj 683 476 t b a;
+#X obj 532 494 array-get-random minor;
+#X obj 272 370 verylogue-voice \$0 1;
+#X msg 661 549 major;
+#X msg 661 569 minor;
+#X obj 221 566 r \$0piano-key;
+#X obj 60 537 \$0;
+#X obj 60 517 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
 -1;
-#X obj 87 489 loadbang;
-#X msg 60 541 \; \$1amp-attack-r 10 \; \$1amp-decay-r 10 \; \$1amp-sustain-r
-0.5 \; \$1amp-release-r 250 \; \$1env-attack-r 10 \; \$1env-decay-r
-10 \; \$1env-sustain-r 0.5 \; \$1env-release-r 250 \; \$1cutoff-r 1000
-\; \$1vco1-amp-r 1 \; \$1vco2-amp-r 1 \; \$1octave1-r 1 \; \$1octave2-r
-2 \;;
-#X obj 93 401 r \$0dac;
-#X obj 43 400 sdac~;
-#X obj 322 470 r \$0note;
-#X obj 532 521 + 24;
-#X obj 322 491 unpack f f;
-#X msg 532 543 \$1 300;
-#X obj 532 564 s \$0note;
+#X obj 87 509 loadbang;
+#X obj 322 490 r \$0note;
+#X obj 532 601 + 24;
+#X obj 322 511 unpack f f;
+#X msg 532 623 \$1 300;
+#X obj 532 644 s \$0note;
+#X obj 43 420 sdac~ \$0;
+#X text 89 60 sin;
+#X text 89 44 saw;
+#X text 89 76 squ;
+#X text 89 150 sin;
+#X text 89 134 saw;
+#X text 89 166 squ;
+#X text 426 239 sin;
+#X text 426 223 saw;
+#X text 426 255 squ;
+#X text 678 223 pitch;
+#X text 678 239 shape;
+#X text 678 255 cutoff;
+#X text 502 223 int;
+#X text 502 239 rate;
+#X text 502 255 off;
+#X text 572 22 amp;
+#X text 576 109 EG;
+#X text 572 198 LFO;
+#X text 95 16 VCO1;
+#X text 95 106 VCO2;
+#X obj 129 417 dac~;
+#X msg 709 695 clear;
+#X obj 708 723 s \$0to-filter;
+#X msg 60 561 \; \$1vco1-octave-r 1 \; \$1vco2-octave-r 2 \; \$1vco1-wave-r
+2 \; \$1vco2-wave-r 1 \; \$1vco1-pitch-r 0 \; \$1vco2-pitch-r 0 \;
+\$1vco1-shape-r 0.5 \; \$1vco2-shape-r 0.5 \; \$1vco1-amp-r 1 \; \$1vco2-amp-r
+1 \; \$1amp-attack-r 10 \; \$1amp-decay-r 10 \; \$1amp-sustain-r 0.5
+\; \$1amp-release-r 250 \; \$1env-attack-r 10 \; \$1env-decay-r 100
+\; \$1env-sustain-r 0.5 \; \$1env-release-r 250 \; \$1cutoff-r 80 \;
+;
+#X obj 272 390 verylogue-voice \$0 2;
+#X obj 272 410 verylogue-voice \$0 3;
+#X obj 272 430 verylogue-voice \$0 4;
 #X connect 0 0 1 0;
 #X connect 1 0 51 0;
 #X connect 1 0 54 0;
@@ -159,10 +185,10 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X connect 39 0 41 0;
 #X connect 39 0 42 0;
 #X connect 42 0 67 0;
-#X connect 44 0 69 0;
+#X connect 44 0 63 0;
 #X connect 44 1 47 0;
 #X connect 45 0 46 0;
-#X connect 46 0 69 1;
+#X connect 46 0 63 1;
 #X connect 47 0 45 0;
 #X connect 48 0 7 0;
 #X connect 49 0 1 1;
@@ -172,16 +198,16 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X connect 53 0 2 0;
 #X connect 53 1 50 1;
 #X connect 54 0 44 0;
-#X connect 59 0 54 1;
-#X connect 60 0 54 1;
-#X connect 61 0 3 0;
-#X connect 62 0 65 0;
-#X connect 63 0 62 0;
-#X connect 64 0 62 0;
-#X connect 66 0 67 1;
-#X connect 68 0 70 0;
-#X connect 69 0 71 0;
-#X connect 70 0 6 0;
-#X connect 70 0 48 0;
-#X connect 70 1 48 1;
-#X connect 71 0 72 0;
+#X connect 56 0 54 1;
+#X connect 57 0 54 1;
+#X connect 58 0 3 0;
+#X connect 59 0 91 0;
+#X connect 60 0 59 0;
+#X connect 61 0 59 0;
+#X connect 62 0 64 0;
+#X connect 63 0 65 0;
+#X connect 64 0 6 0;
+#X connect 64 0 48 0;
+#X connect 64 1 48 1;
+#X connect 65 0 66 0;
+#X connect 89 0 90 0;

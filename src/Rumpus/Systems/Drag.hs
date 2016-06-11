@@ -9,9 +9,11 @@ data DragFrom = DragFrom HandEntityID (M44 GLfloat)
 
 type Drag = M44 GLfloat -> EntityMonad ()
 type DragBegan = EntityMonad ()
+type DragEnded = EntityMonad ()
 type DragOverride = Bool
 defineComponentKey ''DragFrom
 defineComponentKey ''DragBegan
+defineComponentKey ''DragEnded
 defineComponentKey ''Drag
 defineComponentKey ''DragOverride --
 
@@ -22,6 +24,7 @@ initDragSystem :: MonadState ECS m => m ()
 initDragSystem = do
     registerComponent "DragFrom"     myDragFrom     (newComponentInterface myDragFrom)
     registerComponent "DragBegan"    myDragBegan    (newComponentInterface myDragBegan)
+    registerComponent "DragEnded"    myDragEnded    (newComponentInterface myDragEnded)
     registerComponent "Drag"         myDrag         (newComponentInterface myDrag)
     registerComponent "DragOverride" myDragOverride (newComponentInterface myDragOverride)
 
@@ -45,8 +48,12 @@ continueDrag draggingHandEntityID = do
                 withComponent_ myDrag $ \drag ->
                     runUserFunctionProtected myDrag (drag dragDistance)
 
-endDrag :: MonadState ECS m => HandEntityID -> m ()
+endDrag :: HandEntityID -> ECSMonad ()
 endDrag endingDragHandEntityID = do
     forEntitiesWithComponent myDragFrom $ \(entityID, DragFrom handEntityID _) -> do
         when (handEntityID == endingDragHandEntityID) $ do
             removeEntityComponent myDragFrom entityID
+
+            inEntity entityID $
+                withComponent_ myDragEnded $ \dragEnded ->
+                    runUserFunctionProtected myDragEnded dragEnded
