@@ -107,7 +107,7 @@ deriveRigidBody dynamicsWorld = do
 
 updateRigidBodyWithBodyType :: MonadIO m => RigidBody -> BodyType -> m ()
 updateRigidBodyWithBodyType rigidBody bodyType = do
-    setRigidBodyKinematic rigidBody (bodyType `elem` [Detector, Animated])
+    setRigidBodyKinematic         rigidBody (bodyType `elem` [Detector, Animated])
     setRigidBodyNoContactResponse rigidBody (bodyType == Detector)
 
 
@@ -127,7 +127,7 @@ tickSyncPhysicsPosesSystem = whenWorldPlaying $ do
     forEntitiesWithComponent myRigidBody $
         \(entityID, rigidBody) -> inEntity entityID $ do
             poseM44 <- transformationFromPose . uncurry Pose <$> getBodyState rigidBody
-            size <- getEntitySize entityID
+            size    <- getEntitySize entityID
             setEntityComponent myPose poseM44 entityID
             cacheScaledPose entityID poseM44 size
 

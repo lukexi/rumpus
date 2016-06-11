@@ -11,11 +11,12 @@ notesPerMeter = 24
 
 start :: Start
 start = do
+    setBody Animated
     setSize (V3 0.2 (1/24) 0.3)
 
     setState (0::Int)
 
-    let noteHue note = fromIntegral note/notesPerMeter
+    let noteHue note = fromIntegral note / notesPerMeter
 
     let updateNote = editState $ \currentNote -> do
             position <- getPosition

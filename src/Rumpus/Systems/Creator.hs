@@ -17,7 +17,7 @@ import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.SceneLoader
-import Data.List (delete)
+import Data.List (delete, sort)
 import RumpusLib
 
 activeDestructorOrbSize :: V3 GLfloat
@@ -78,7 +78,7 @@ openEntityLibrary whichHand = do
         modifySystemState sysCreator $ crtOpenLibrary . at whichHand ?= []
 
         rumpusRoot <- getRumpusRootFolder
-        codePaths  <- getDirectoryContentsWithExtension "hs" rumpusRoot
+        codePaths  <- sort <$> getDirectoryContentsWithExtension "hs" rumpusRoot
 
         let codePathsWithNewObject = (Nothing : map Just codePaths)
             positions = goldenSectionSpiralPoints (length codePathsWithNewObject)

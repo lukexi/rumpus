@@ -19,7 +19,7 @@ start = do
             myPose             ==> translateMatrix (V3 0 y 0.1)
             myTextPose         ==> scaleMatrix 0.05
             myText             ==> name
-            myTransformType    ==> InheritFull
+            myTransformType    ==> RelativeFull
         -- Graph
         childIDs <- forM [0..maxProfilerHistory - 1] $ \z -> spawnChild $ do
             let brightness = 1 -
@@ -27,7 +27,7 @@ start = do
                     fromIntegral maxProfilerHistory
                     * 0.5 + 0.3)
             myShape            ==> Cube
-            myTransformType    ==> InheritFull
+            myTransformType    ==> RelativeFull
             mySize             ==> 0.1
             myColor            ==> colorHSL
                 (i / fromIntegral numSamples)

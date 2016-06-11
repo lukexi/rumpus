@@ -17,19 +17,19 @@ start = do
     -- Create a container node that inherits
     -- pose, but not scale, from the root object
     container <- spawnChild $ do
-        mySize          ==> 0.800
+        mySize ==> 0.800
 
     -- Create a node that inherits scale from the container node,
     -- but whose own scale is 1
     scaler <- spawnChildOf container $ do
-        myTransformType ==> InheritFull
+        myTransformType ==> RelativeFull
         mySize          ==> 1
 
     sun <- spawnChildOf scaler $ do
-        myShape            ==> Sphere
-        mySize             ==> 0.08
-        myColor            ==> colorHSL 0.1 0.8 0.5
-        myPose ==> positionRotation
+        myShape ==> Sphere
+        mySize  ==> 0.08
+        myColor ==> colorHSL 0.1 0.8 0.5
+        myPose  ==> positionRotation
                         (V3 0 0.5 0)
                         -- Tilted axis
                         (axisAngle (V3 1 0 0) -0.4)

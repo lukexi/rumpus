@@ -21,7 +21,7 @@ initCollisionsSystem :: MonadState ECS m => m ()
 initCollisionsSystem = do
     registerComponent "CollisionContinues" myCollisionContinues (newComponentInterface myCollisionContinues)
     registerComponent "CollisionBegan"     myCollisionBegan     (newComponentInterface myCollisionBegan)
-    registerComponent "CollisionEnded"       myCollisionEnded       (newComponentInterface myCollisionEnded)
+    registerComponent "CollisionEnded"     myCollisionEnded     (newComponentInterface myCollisionEnded)
 
 -- | Loop through the collisions for this frame and call any
 -- entities' registered collision callbacks

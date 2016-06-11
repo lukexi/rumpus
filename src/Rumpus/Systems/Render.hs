@@ -106,63 +106,13 @@ tickRenderSystem headM44 = do
 
     -- Render the scene
     vrPal  <- viewSystem sysControls ctsVRPal
-    renderWith' vrPal headM44 $ \projM44 viewM44 -> do
+    renderWith vrPal headM44 $ \projM44 viewM44 -> do
         glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT)
         let projViewM44 = projM44 !*! viewM44
         renderEntities     projViewM44 shapeCounts
         renderEntitiesText projViewM44 finalMatricesByEntityID
     --putStrLnIO "Render Frame Errors:" >> glGetErrors
 
-renderWith' :: (MonadIO m, MonadState ECS m)
-            => VRPal
-            -> M44 GLfloat
-            -> (M44 GLfloat -> M44 GLfloat -> m b)
-            -> m ()
-renderWith' VRPal{..} headM44 eyeRenderFunc = do
-    let viewM44 = inv44 headM44
-    case gpHMD of
-        NoHMD  -> do
-            (x,y,w,h) <- getWindowViewport gpWindow
-            glViewport x y w h
-            renderFlat gpWindow viewM44 eyeRenderFunc
-            swapBuffers gpWindow
-        OpenVRHMD openVR -> do
-            renderOpenVR' openVR viewM44 eyeRenderFunc
-            when (not gpUseSDKMirror) $ do
-                (w,h) <- getWindowSize gpWindow
-                -- Mirror one eye to the window
-                let oneEye = listToMaybe (ovrEyes openVR)
-                forM_ oneEye (\eye -> mirrorOpenVREyeToWindow eye (fromIntegral w) (fromIntegral h))
-
-                -- This is a workaround to horrible regular stalls when calling swapBuffers on the main thread.
-                -- We use a one-slot MVar rather than a channel to avoid any memory leaks if the background
-                -- thread can't keep up - it's not important to update the mirror window on any particular
-                -- schedule as long as it happens semi-regularly.
-                void . liftIO $ tryPutMVar gpBackgroundSwap (swapBuffers gpWindow)
-
-renderOpenVR' :: (MonadIO m, MonadState ECS m)
-             => OpenVR
-             -> M44 GLfloat
-             -> (M44 GLfloat -> M44 GLfloat -> m a)
-             -> m ()
-renderOpenVR' OpenVR{..} viewM44 eyeRenderFunc = do
-
-    -- Render each eye, with multisampling
-    forM_ ovrEyes $ \EyeInfo{..} -> do
-
-        -- Will render into mfbResolveTextureID
-        withMultisamplingFramebuffer eiMultisampleFramebuffer $ do
-            let (x, y, w, h) = eiViewport
-                finalView    = eiEyeHeadTrans !*! viewM44
-            glViewport x y w h
-
-            _ <- eyeRenderFunc eiProjection finalView
-            return ()
-
-    -- Submit frames after rendering both
-    forM_ ovrEyes $ \EyeInfo{..} -> do
-        let MultisampleFramebuffer{..} = eiMultisampleFramebuffer
-        submitFrameForEye ovrCompositor eiEye (unTextureID mfbResolveTextureID)
 
 fillShapeBuffers :: (MonadIO m, MonadState ECS m)
                  => Map EntityID (M44 GLfloat)
@@ -227,13 +177,13 @@ getFinalMatrices = do
             -- Physics bodies don't support relative positioning, currently. Use Attachments.
             let inherit                  = if Map.member entityID bodyMap
                     then AbsolutePose
-                    else Map.lookupDefault InheritPose entityID transformTypeMap
+                    else Map.lookupDefault RelativePose entityID transformTypeMap
                 entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
                 entityMatrixLocal        = Map.lookupDefault identity entityID poseScaledMap
 
                 parentTransform          = case (inherit, mParentMatrix) of
-                    (InheritFull, Just (parentMatrix, _))        -> (parentMatrix        !*!)
-                    (InheritPose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!)
+                    (RelativeFull, Just (parentMatrix, _))        -> (parentMatrix        !*!)
+                    (RelativePose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!)
                     _                                            -> id
 
                 entityMatrix        = parentTransform entityMatrixLocal

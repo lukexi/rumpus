@@ -7,10 +7,11 @@ import qualified Data.List as L
 data ShapeType = Cube | Sphere
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
-data TransformType = InheritPose  -- ^ Default, relative to parent
-                   | AbsolutePose -- ^ No inheritance at all
-                   | InheritFull  -- ^ Inherit position and scale from parent.
+data TransformType = AbsolutePose  -- ^ No inheritance at all
+                   | RelativePose  -- ^ Default, relative to parent
+                   | RelativeFull  -- ^ Inherit position and scale from parent.
                                   --   Only uniform scaling will look right when rotations are involved.
+                   deriving (Eq, Show)
 
 defineComponentKey ''TransformType
 defineComponentKeyWithType "Shape"              [t|ShapeType|]
@@ -58,7 +59,7 @@ initSharedSystem = do
         {   ciDeriveComponent = Just $ do
                 -- More hax for release; one problem with this is that every entity will now
                 -- get a cached scale (even those without shapes, poses or sizes,
-                -- since getSze and getPose return defaults)
+                -- since getSize and getPose return defaults)
                 -- but I guess there aren't so many without shapes yet
                 size <- getSize
                 pose <- getPose

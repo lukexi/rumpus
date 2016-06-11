@@ -201,7 +201,7 @@ spawnKeyPads = do
                                     (axisAngle (V3 1 0 0) (pi/2))
         scaleContainerID <- spawnEntity $ do
             myParent         ==> keyPadID
-            myTransformType  ==> InheritFull
+            myTransformType  ==> RelativeFull
 
 
         (keyPadKeys, keyPadDims) <- spawnKeysForHand scaleContainerID keyRows
