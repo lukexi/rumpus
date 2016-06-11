@@ -287,18 +287,3 @@ This is a historical accident and will be fixed in a future version.
 
 
 
-TODO:
-myLifetime ==> 10
-(make Lifetime instance of Num, with Nothing for startTime that is filled in later?)
-myDelayed ==> do
-myRepeating ==> do
-myAttachOffset?
-These can just be there for consistency, processed and then henceforth ignored or removed.
-* try
-infixr 0 ==>
-again:
-let (##) = (<>); infixr 0 ##
-Just "hi" ## Just $ "!!"
-works and we'd like to be able to do things like myFoo ==> blah $ V3 1 1 1
-(Possibly what won't work is spawnEntity $ myFoo ==> Bar in that case?? which is fine! But actually that seems to work too in GHCi
-Just $ Just "hi" ## Just "!!")
