@@ -48,7 +48,7 @@ start = do
         sendEntitySynth rootID "cutoff" (realToFrac n)
 
     spawnActiveKnob "Resonance" (0,1) 0 $ \n -> do
-        sendEntitySynth rootID "res" (realToFrac n)
+        sendEntitySynth rootID "resonance" (realToFrac n)
 
     spawnActiveKnob "EG Int" (0,1) 0.5 $ \n -> do
         sendEntitySynth rootID "cutoff-eg-int" (realToFrac n)
@@ -183,7 +183,8 @@ spawnActiveKnobAt knobPos name (low,hi) defVal action = do
                 oldState    <- getState newKnobState
                 let diff = newHandPose `subtractMatrix` ksLastHandPose oldState
                     V3 dX _dY _dZ = testEpsilon $ quatToEuler (quaternionFromMatrix diff)
-                    newRotation = max 0 . min twoPi $ ksRotation oldState + dX
+                    -- We want clockwise rotation, so bound to -2pi <> 0
+                    newRotation = min 0 . max (-twoPi) $ ksRotation oldState - dX
 
                 -- Update the knob's state and appearance
                 setState (KnobState { ksLastHandPose = newHandPose, ksRotation = newRotation })
@@ -210,8 +211,8 @@ spawnActiveKnobAt knobPos name (low,hi) defVal action = do
     return knob
 
 
-knobRotationToValue01 rot = (twoPi - rot) / twoPi
-value01ToKnobRotation val = val * twoPi
+knobRotationToValue01 rot = -rot / twoPi
+value01ToKnobRotation val = val * (-twoPi)
 
 twoPi = 2 * pi
 

@@ -78,14 +78,14 @@ deriveRigidBody dynamicsWorld = do
     -- removeComponent after ciRemoveComponent
     removeRigidBodyComponent dynamicsWorld
 
-    properties <- fromMaybe [] <$> getComponent myProperties
+    properties <- getComponentDefault [] myProperties
     unless (Holographic `elem` properties) $ do
         mShapeType <- getComponent myShape
         forM_ mShapeType $ \shapeType -> do
 
-            mass <- fromMaybe 1 <$> getComponent myMass
-            collisionGroup <- fromMaybe 1 <$> getComponent myCollisionGroup
-            collisionMask  <- fromMaybe 1 <$> getComponent myCollisionMask
+            mass           <- getComponentDefault 1 myMass
+            collisionGroup <- getComponentDefault 1 myCollisionGroup
+            collisionMask  <- getComponentDefault 1 myCollisionMask
             size <- getSize
             poseM44 <- getPose
             let pose = poseFromMatrix poseM44

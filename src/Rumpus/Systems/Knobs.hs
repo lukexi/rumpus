@@ -26,14 +26,14 @@ initKnobsSystem = do
 -- > addQuickKnob "Scale" (0.1, 10) setSize
 addQuickKnob :: String -> (Float, Float) -> (GLfloat -> EntityMonad ()) -> EntityMonad ()
 addQuickKnob name (low, high) action = do
-    savedValue <- fromMaybe 0 . Map.lookup name . fromMaybe mempty <$> getComponent myKnobValues
+    savedValue <- Map.lookupDefault 0 name <$> getComponentDefault mempty myKnobValues
     action savedValue
 
     _knobID <- spawnEntity $ do
         myShape ==> Cube
         myDrag ==> \changeM44 -> do
             let newValue = changeM44 ^. translation . _x
-            myKnobValues ==% (& at name ?~ newValue)
+            myKnobValues ==% (at name ?~ newValue)
             action newValue
     let knob = Knob
             { knbName = name
@@ -47,4 +47,4 @@ addQuickKnob name (low, high) action = do
 -- as its <> is left-biased
 setKnobData knobName value = prependComponent myKnobValues (Map.singleton knobName value)
 
-getKnobData knobName defVal = Map.lookupDefault defVal knobName . fromMaybe mempty <$> getComponent myKnobValues
+getKnobData knobName defVal = Map.lookupDefault defVal knobName <$> getComponentDefault mempty myKnobValues
