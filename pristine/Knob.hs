@@ -4,6 +4,9 @@ import Text.Printf
 
 majorScale = [0,2,4,5,7,9,11,12]
 
+data KnobScale = Linear Float Float
+               | Stepped [String]
+
 start :: Start
 start = do
     setSynthPatch "Verylogue.pd"
@@ -12,75 +15,78 @@ start = do
     setState (0::Int)
 
     -- VCO1
-    spawnActiveKnob "VCO1 Octave" (0,4.99) 1 $ \n -> do
+    spawnActiveKnob "VCO1 Octave" (Stepped ["0", "1", "2", "3"]) 1 $ \n -> do
         sendEntitySynth rootID "vco1-amp" (realToFrac (floor n))
-    spawnActiveKnob "VCO1 Pitch" (-1,1) 0 $ \n -> do
+    spawnActiveKnob "VCO1 Pitch" (Linear -1 1) 0 $ \n -> do
         sendEntitySynth rootID "vco1-pitch" (realToFrac n)
-    spawnActiveKnob "VCO1 Shape" (0,1) 0.5 $ \n -> do
+    spawnActiveKnob "VCO1 Shape" (Linear 0 1) 0.5 $ \n -> do
         sendEntitySynth rootID "vco1-shape" (realToFrac n)
-    spawnActiveKnob "VCO1 Wave" (0,2.99) 2 $ \n -> do
+    spawnActiveKnob "VCO1 Wave" (Stepped ["Saw", "Sin", "Squ"]) 2 $ \n -> do
         sendEntitySynth rootID "vco1-wave" (realToFrac (floor n))
 
     -- VCO2
-    spawnActiveKnob "VCO2 Octave" (0,4.99) 2 $ \n -> do
+    spawnActiveKnob "VCO2 Octave" (Stepped ["0", "1", "2", "3"]) 2 $ \n -> do
         sendEntitySynth rootID "vco2-amp" (realToFrac (floor n))
-    spawnActiveKnob "VCO2 Wave" (0,2.99) 1 $ \n -> do
+    spawnActiveKnob "VCO2 Wave" (Stepped ["Saw", "Sin", "Squ"]) 1 $ \n -> do
         sendEntitySynth rootID "vco2-wave" (realToFrac (floor n))
-    spawnActiveKnob "VCO2 Pitch" (-1,1) 0 $ \n -> do
+    spawnActiveKnob "VCO2 Pitch" (Linear -1 1) 0 $ \n -> do
         sendEntitySynth rootID "vco2-pitch" (realToFrac n)
-    spawnActiveKnob "VCO2 Shape" (0,1) 0.5 $ \n -> do
+    spawnActiveKnob "VCO2 Shape" (Linear 0 1) 0.5 $ \n -> do
         sendEntitySynth rootID "vco2-shape" (realToFrac n)
 
-    spawnActiveKnob "VCO2 Cross" (0,1) 0 $ \n -> do
+    spawnActiveKnob "VCO2 Cross" (Linear 0 1) 0 $ \n -> do
         sendEntitySynth rootID "vco2-crossmod" (realToFrac n)
-    spawnActiveKnob "VCO2 EG>Pitch" (0,1) 0 $ \n -> do
+    spawnActiveKnob "VCO2 EG>Pitch" (Linear 0 1) 0 $ \n -> do
         sendEntitySynth rootID "vco2-pitch-eg-int" (realToFrac n)
 
     -- Mixer
-    spawnActiveKnob "VCO1 Amp" (0,1) 1 $ \n -> do
+    spawnActiveKnob "VCO1 Amp" (Linear 0 1) 1 $ \n -> do
         sendEntitySynth rootID "vco1-amp" (realToFrac n)
-    spawnActiveKnob "VCO2 Amp" (0,1) 1 $ \n -> do
+    spawnActiveKnob "VCO2 Amp" (Linear 0 1) 1 $ \n -> do
         sendEntitySynth rootID "vco2-amp" (realToFrac n)
-    spawnActiveKnob "Noise Amp" (0,1) 0 $ \n -> do
+    spawnActiveKnob "Noise Amp" (Linear 0 1) 0 $ \n -> do
         sendEntitySynth rootID "noise-amp" (realToFrac n)
 
-    cutoffKnob <- spawnActiveKnob "Cutoff" (0, 96) 80 $ \n -> do
+    -- Filter
+    cutoffKnob <- spawnActiveKnob "Cutoff" (Linear 0 96) 80 $ \n -> do
         sendEntitySynth rootID "cutoff" (realToFrac n)
 
-    spawnActiveKnob "Resonance" (0,1) 0 $ \n -> do
+    spawnActiveKnob "Resonance" (Linear 0 1) 0 $ \n -> do
         sendEntitySynth rootID "resonance" (realToFrac n)
 
-    spawnActiveKnob "EG Int" (0,1) 0.5 $ \n -> do
+    spawnActiveKnob "EG Int" (Linear 0 1) 0.5 $ \n -> do
         sendEntitySynth rootID "cutoff-eg-int" (realToFrac n)
 
-    spawnActiveKnob "Amp Atk" (0,1000) 10 $ \n -> do
+    -- Amp EG
+    spawnActiveKnob "Amp Atk" (Linear 0 1000) 10 $ \n -> do
         sendEntitySynth rootID "amp-attack" (realToFrac n)
-    spawnActiveKnob "Amp Dec" (0,1000) 100 $ \n -> do
+    spawnActiveKnob "Amp Dec" (Linear 0 1000) 100 $ \n -> do
         sendEntitySynth rootID "amp-decay" (realToFrac n)
-    spawnActiveKnob "Amp Sus" (0,1) 0.5 $ \n -> do
+    spawnActiveKnob "Amp Sus" (Linear 0 1) 0.5 $ \n -> do
         sendEntitySynth rootID "amp-sustain" (realToFrac n)
-    spawnActiveKnob "Amp Rel" (0,1000) 250 $ \n -> do
+    spawnActiveKnob "Amp Rel" (Linear 0 1000) 250 $ \n -> do
         sendEntitySynth rootID "amp-release" (realToFrac n)
 
-    spawnActiveKnob "Env Atk" (0,1000) 10 $ \n -> do
+    -- Assignable EG
+    spawnActiveKnob "Env Atk" (Linear 0 1000) 10 $ \n -> do
         sendEntitySynth rootID "env-attack" (realToFrac n)
-    spawnActiveKnob "Env Dec" (0,1000) 100 $ \n -> do
+    spawnActiveKnob "Env Dec" (Linear 0 1000) 100 $ \n -> do
         sendEntitySynth rootID "env-decay" (realToFrac n)
-    spawnActiveKnob "Env Sus" (0,1) 0.5 $ \n -> do
+    spawnActiveKnob "Env Sus" (Linear 0 1) 0.5 $ \n -> do
         sendEntitySynth rootID "env-sustain" (realToFrac n)
-    spawnActiveKnob "Env Rel" (0,1000) 250 $ \n -> do
+    spawnActiveKnob "Env Rel" (Linear 0 1000) 250 $ \n -> do
         sendEntitySynth rootID "env-release" (realToFrac n)
 
     -- LFO
-    spawnActiveKnob "LFO Wave" (0,2.99) 0 $ \n -> do
+    spawnActiveKnob "LFO Wave" (Stepped ["Saw", "Sin", "Squ"]) 0 $ \n -> do
         sendEntitySynth rootID "lfo-wave" (realToFrac (floor n))
-    spawnActiveKnob "LFO EG-Mod" (0,2.99) 2 $ \n -> do
+    spawnActiveKnob "LFO EG-Mod" (Stepped ["Int", "Rate", "Off"]) 2 $ \n -> do
         sendEntitySynth rootID "lfo-eg-mod" (realToFrac (floor n))
-    spawnActiveKnob "LFO Rate" (0.1,250) 7 $ \n -> do
+    spawnActiveKnob "LFO Rate" (Linear 0.1 250) 7 $ \n -> do
         sendEntitySynth rootID "lfo-rate" (realToFrac n)
-    spawnActiveKnob "LFO Int" (0,1) 0.1 $ \n -> do
+    spawnActiveKnob "LFO Int" (Linear 0 1) 0.1 $ \n -> do
         sendEntitySynth rootID "lfo-int" (realToFrac n)
-    spawnActiveKnob "LFO Target" (0,2.99) 1 $ \n -> do
+    spawnActiveKnob "LFO Target" (Stepped ["Pitch", "Rate", "Cutoff"]) 1 $ \n -> do
         sendEntitySynth rootID "lfo-target" (realToFrac (floor n))
 
     setRepeatingAction 0.1 $ do
@@ -136,19 +142,29 @@ data KnobState = KnobState
 newKnobState :: KnobState
 newKnobState = KnobState identity 0
 
-spawnActiveKnob name (low, hi) defVal action = do
+spawnActiveKnob name knobScale defVal action = do
     i <- getState (0::Int)
     setState (i+1)
     let x = fromIntegral (i `div` 4) * 0.4
         y = fromIntegral (i `mod` 4) * 0.3 - 0.45
         knobPos = V3 (0.5 + x) y 0
-    spawnActiveKnobAt knobPos name (low, hi) defVal action
+    spawnActiveKnobAt knobPos name knobScale defVal action
 
-spawnActiveKnobAt knobPos name (low,hi) defVal action = do
-    let range = hi - low
-        val01ToValue value01 = low + range * value01
+spawnActiveKnobAt knobPos name knobScale defVal action = do
+
+    let (low, high) = case knobScale of
+            Linear low high -> (low, high)
+            Stepped options -> (0, fromIntegral (length options) - 1)
+        range = high - low
+
+    let val01ToValue value01 = case knobScale of
+            Linear _ _ -> low + range * value01
+            -- E.g. for [foo,bar,baz] 0-0.33 should be 0, 0.33-0.66 should be 1, 0.66-1 should be 2
+            Stepped _  -> fromIntegral . floor . min (range + 1 - 0.001) $ (range + 1) * value01
         valueToVal01 value = (value - low) / range
-        displayValue value = (printf "%.2f" (value::Float))
+        displayValue value = case knobScale of
+            Linear _ _      -> (printf "%.2f" (value::Float))
+            Stepped options -> let i = round value in if i >= 0 && i < length options then options !! i else "<over>"
         initialRotation = value01ToKnobRotation (valueToVal01 defVal)
 
     initialValue01 <- getKnobData name (valueToVal01 defVal)

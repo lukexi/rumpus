@@ -34,7 +34,7 @@ KnobValues:
   VCO2 Amp: 1
   VCO2 Shape: 0.5031567
   VCO2 EG>Pitch: 0.0
-  VCO1 Wave: 0.75565946
+  VCO1 Wave: 0.0
   VCO1 Octave: 0.22670643
 Properties:
 - Floating
