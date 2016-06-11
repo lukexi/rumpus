@@ -3,8 +3,54 @@ import Rumpus
 
 majorScale = [0,2,4,5,7,9,11,12]
 
-data KnobScale = Linear Float Float
-               | Stepped [String]
+verylogueKnobs =
+    [
+    -- VCO1
+      ( "VCO1 Octave"   , "vco1-amp"  , Stepped ["0", "1", "2", "3"], 1 )
+    , ( "VCO1 Pitch"    , "vco1-pitch", Linear -1 1, 0 )
+    , ( "VCO1 Shape"    , "vco1-shape", Linear 0 1, 0.5 )
+    , ( "VCO1 Wave"     , "vco1-wave" , Stepped ["Saw", "Sin", "Squ"], 2 )
+
+    -- VCO2
+    , ( "VCO2 Octave"   , "vco2-amp"  , Stepped ["0", "1", "2", "3"], 2 )
+    , ( "VCO2 Wave"     , "vco2-wave" , Stepped ["Saw", "Sin", "Squ"], 1 )
+    , ( "VCO2 Pitch"    , "vco2-pitch", Linear -1 1, 0 )
+    , ( "VCO2 Shape"    , "vco2-shape", Linear 0 1, 0.5 )
+
+    , ( "VCO2 Cross"    , "vco2-crossmod"    , Linear 0 1, 0 )
+    , ( "VCO2 EG>Pitch" , "vco2-pitch-eg-int", Linear 0 1, 0 )
+
+    -- Mixer
+    , ( "VCO1 Amp"      , "vco1-amp"     , Linear 0 1, 1 )
+    , ( "VCO2 Amp"      , "vco2-amp"     , Linear 0 1, 1 )
+    , ( "Noise Amp"     , "noise-amp"    , Linear 0 1, 0 )
+
+    -- Filter
+    , ( "Cutoff"        , "cutoff"       , Linear 0 96, 80 )
+    , ( "Resonance"     , "resonance"    , Linear 0 1, 0 )
+    , ( "EG Int"        , "cutoff-eg-int", Linear 0 1, 0.5 )
+
+    -- Amp EG
+    , ( "Amp Atk"       , "amp-attack"   , Linear 0 1000, 10 )
+    , ( "Amp Dec"       , "amp-decay"    , Linear 0 1000, 100 )
+    , ( "Amp Sus"       , "amp-sustain"  , Linear 0 1, 0.5 )
+    , ( "Amp Rel"       , "amp-release"  , Linear 0 1000, 250 )
+
+    -- Assignable EG
+    , ( "Env Atk"       , "env-attack"   , Linear 0 1000, 10 )
+    , ( "Env Dec"       , "env-decay"    , Linear 0 1000, 100 )
+    , ( "Env Sus"       , "env-sustain"  , Linear 0 1, 0.5 )
+    , ( "Env Rel"       , "env-release"  , Linear 0 1000, 250 )
+
+    -- LFO
+    , ( "LFO Wave"      , "lfo-wave"     , Stepped ["Saw", "Sin", "Squ"], 0 )
+    , ( "LFO EG-Mod"    , "lfo-eg-mod"   , Stepped ["Int", "Rate", "Off"], 2 )
+    , ( "LFO Rate"      , "lfo-rate"     , Linear 0.1 250, 7 )
+    , ( "LFO Int"       , "lfo-int"      , Linear 0 1, 0.1 )
+    , ( "LFO Target"    , "lfo-target"   , Stepped ["Pitch", "Rate", "Cutoff"], 1 )
+
+
+    ]
 
 start :: Start
 start = do
@@ -12,81 +58,9 @@ start = do
 
     rootID <- ask
     setState (0::Int)
-
-    -- VCO1
-    spawnActiveKnob "VCO1 Octave" (Stepped ["0", "1", "2", "3"]) 1 $ \n -> do
-        sendEntitySynth rootID "vco1-amp" (realToFrac (floor n))
-    spawnActiveKnob "VCO1 Pitch" (Linear -1 1) 0 $ \n -> do
-        sendEntitySynth rootID "vco1-pitch" (realToFrac n)
-    spawnActiveKnob "VCO1 Shape" (Linear 0 1) 0.5 $ \n -> do
-        sendEntitySynth rootID "vco1-shape" (realToFrac n)
-    spawnActiveKnob "VCO1 Wave" (Stepped ["Saw", "Sin", "Squ"]) 2 $ \n -> do
-        sendEntitySynth rootID "vco1-wave" (realToFrac (floor n))
-
-    -- VCO2
-    spawnActiveKnob "VCO2 Octave" (Stepped ["0", "1", "2", "3"]) 2 $ \n -> do
-        sendEntitySynth rootID "vco2-amp" (realToFrac (floor n))
-    spawnActiveKnob "VCO2 Wave" (Stepped ["Saw", "Sin", "Squ"]) 1 $ \n -> do
-        sendEntitySynth rootID "vco2-wave" (realToFrac (floor n))
-    spawnActiveKnob "VCO2 Pitch" (Linear -1 1) 0 $ \n -> do
-        sendEntitySynth rootID "vco2-pitch" (realToFrac n)
-    spawnActiveKnob "VCO2 Shape" (Linear 0 1) 0.5 $ \n -> do
-        sendEntitySynth rootID "vco2-shape" (realToFrac n)
-
-    spawnActiveKnob "VCO2 Cross" (Linear 0 1) 0 $ \n -> do
-        sendEntitySynth rootID "vco2-crossmod" (realToFrac n)
-    spawnActiveKnob "VCO2 EG>Pitch" (Linear 0 1) 0 $ \n -> do
-        sendEntitySynth rootID "vco2-pitch-eg-int" (realToFrac n)
-
-    -- Mixer
-    spawnActiveKnob "VCO1 Amp" (Linear 0 1) 1 $ \n -> do
-        sendEntitySynth rootID "vco1-amp" (realToFrac n)
-    spawnActiveKnob "VCO2 Amp" (Linear 0 1) 1 $ \n -> do
-        sendEntitySynth rootID "vco2-amp" (realToFrac n)
-    spawnActiveKnob "Noise Amp" (Linear 0 1) 0 $ \n -> do
-        sendEntitySynth rootID "noise-amp" (realToFrac n)
-
-    -- Filter
-    cutoffKnob <- spawnActiveKnob "Cutoff" (Linear 0 96) 80 $ \n -> do
-        sendEntitySynth rootID "cutoff" (realToFrac n)
-
-    spawnActiveKnob "Resonance" (Linear 0 1) 0 $ \n -> do
-        sendEntitySynth rootID "resonance" (realToFrac n)
-
-    spawnActiveKnob "EG Int" (Linear 0 1) 0.5 $ \n -> do
-        sendEntitySynth rootID "cutoff-eg-int" (realToFrac n)
-
-    -- Amp EG
-    spawnActiveKnob "Amp Atk" (Linear 0 1000) 10 $ \n -> do
-        sendEntitySynth rootID "amp-attack" (realToFrac n)
-    spawnActiveKnob "Amp Dec" (Linear 0 1000) 100 $ \n -> do
-        sendEntitySynth rootID "amp-decay" (realToFrac n)
-    spawnActiveKnob "Amp Sus" (Linear 0 1) 0.5 $ \n -> do
-        sendEntitySynth rootID "amp-sustain" (realToFrac n)
-    spawnActiveKnob "Amp Rel" (Linear 0 1000) 250 $ \n -> do
-        sendEntitySynth rootID "amp-release" (realToFrac n)
-
-    -- Assignable EG
-    spawnActiveKnob "Env Atk" (Linear 0 1000) 10 $ \n -> do
-        sendEntitySynth rootID "env-attack" (realToFrac n)
-    spawnActiveKnob "Env Dec" (Linear 0 1000) 100 $ \n -> do
-        sendEntitySynth rootID "env-decay" (realToFrac n)
-    spawnActiveKnob "Env Sus" (Linear 0 1) 0.5 $ \n -> do
-        sendEntitySynth rootID "env-sustain" (realToFrac n)
-    spawnActiveKnob "Env Rel" (Linear 0 1000) 250 $ \n -> do
-        sendEntitySynth rootID "env-release" (realToFrac n)
-
-    -- LFO
-    spawnActiveKnob "LFO Wave" (Stepped ["Saw", "Sin", "Squ"]) 0 $ \n -> do
-        sendEntitySynth rootID "lfo-wave" (realToFrac (floor n))
-    spawnActiveKnob "LFO EG-Mod" (Stepped ["Int", "Rate", "Off"]) 2 $ \n -> do
-        sendEntitySynth rootID "lfo-eg-mod" (realToFrac (floor n))
-    spawnActiveKnob "LFO Rate" (Linear 0.1 250) 7 $ \n -> do
-        sendEntitySynth rootID "lfo-rate" (realToFrac n)
-    spawnActiveKnob "LFO Int" (Linear 0 1) 0.1 $ \n -> do
-        sendEntitySynth rootID "lfo-int" (realToFrac n)
-    spawnActiveKnob "LFO Target" (Stepped ["Pitch", "Rate", "Cutoff"]) 1 $ \n -> do
-        sendEntitySynth rootID "lfo-target" (realToFrac (floor n))
+    forM_ verylogueKnobs $ \(name, synthTarget, knobScale, knobDefault) ->
+        spawnActiveKnob name knobScale knobDefault $ \n ->
+            sendEntitySynth rootID synthTarget (realToFrac n)
 
     -- Knob backplane
     let backW = 3.2
@@ -105,7 +79,7 @@ start = do
         let degree01 = (fromIntegral degree / 12)
             hue = degree01
 
-        brightness <- (*0.7) <$> readKnob cutoffKnob
+        brightness <- (*0.7) <$> getKnobData "Cutoff" 0.7
         void . spawnChild $ do
             myShape       ==> Cube
             mySize        ==> 0.2
@@ -132,6 +106,8 @@ start = do
 
 
 
+data KnobScale = Linear Float Float
+               | Stepped [String]
 
 data KnobState = KnobState
     { ksLastHandPose :: !(M44 GLfloat)
@@ -144,7 +120,7 @@ spawnActiveKnob name knobScale defVal action = do
     i <- getState (0::Int)
     setState (i+1)
     let x = fromIntegral (i `div` 4) * 0.4
-        y = fromIntegral (i `mod` 4) * 0.3 - 0.45
+        y = (3 - fromIntegral (i `mod` 4)) * 0.3 - 0.45
         knobPos = V3 (0.5 + x) y 0
     spawnActiveKnobAt knobPos name knobScale defVal action
 
@@ -196,7 +172,7 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
                 let diff = newHandPose `subtractMatrix` ksLastHandPose oldState
                     V3 dX _dY _dZ = testEpsilon $ quatToEuler (quaternionFromMatrix diff)
                     -- We want clockwise rotation, so bound to -2pi <> 0
-                    newRotation = min 0 . max (-twoPi) $ ksRotation oldState - dX
+                    newRotation = min 0 . max maxKnobRot $ ksRotation oldState - dX
 
                 -- Update the knob's state and appearance
                 setState (KnobState { ksLastHandPose = newHandPose, ksRotation = newRotation })
@@ -223,10 +199,11 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
     return knob
 
 
-knobRotationToValue01 rot = -rot / twoPi
-value01ToKnobRotation val = val * (-twoPi)
+knobRotationToValue01 rot = rot / maxKnobRot
+value01ToKnobRotation val = val * maxKnobRot
 
 twoPi = 2 * pi
+maxKnobRot = -twoPi * 3 / 4
 
 readKnob knobID = knobRotationToValue01 . ksRotation <$> inEntity knobID (getState newKnobState)
 

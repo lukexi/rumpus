@@ -31,10 +31,10 @@ Shape: Cube
 KnobValues:
   Resonance: 0.0
   Amp Rel: 0.112079985
+  LFO Wave: 0.0
   VCO2 Amp: 1
-  VCO2 Shape: 0.5031567
+  VCO2 Shape: 0.53921944
   VCO2 EG>Pitch: 0.0
-  VCO1 Wave: 0.0
-  VCO1 Octave: 0.22670643
-Properties:
-- Floating
+  Cutoff: 0.39925152
+  VCO1 Wave: 1
+  VCO1 Octave: 1
