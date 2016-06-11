@@ -128,8 +128,7 @@ addExitOrb whichHand = do
 
     handID   <- getHandID whichHand
     handPose <- getEntityPose handID
-    setEntityPose exitOrbID (handPose !*! translateMatrix exitOrbOffset)
-    attachEntityToEntity handID exitOrbID False
+    attachEntityToEntity handID exitOrbID (translateMatrix exitOrbOffset)
 
     inEntity exitOrbID $ animateSizeTo exitOrbSize animDur
 
@@ -182,8 +181,7 @@ addDestructionOrb whichHand = do
                     crtPendingDestruction . at whichHand .= Nothing
 
 
-    setEntityPose destructorID (handPose !*! translateMatrix creatorOffset)
-    attachEntityToEntity handID destructorID False
+    attachEntityToEntity handID destructorID (translateMatrix creatorOffset)
 
     inEntity destructorID $ animateSizeTo destructorOrbSize animDur
     addEntityToOpenLibrary whichHand destructorID
@@ -242,10 +240,10 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
 
     -- Hand is usually held vertically, so we rotate objects such that they'll
     -- have their code facing towards the user in that case
-    setEntityPose newEntityID
-        (handPose !*! translateMatrix creatorOffset
-                  !*! positionRotation (spherePosition * 0.2) (axisAngle (V3 1 0 0) (-pi/2)))
-    attachEntityToEntity handID newEntityID False
+    attachEntityToEntity handID newEntityID
+        (positionRotation
+            (creatorOffset + spherePosition * 0.2)
+            (axisAngle (V3 1 0 0) (-pi/2)))
 
     inEntity newEntityID $ animateSizeTo libraryItemSize animDur
     addEntityToOpenLibrary whichHand newEntityID

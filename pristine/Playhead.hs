@@ -29,7 +29,7 @@ start = do
         myCollisionBegan ==> \hitEntityID _ -> when (hitEntityID /= thisID) $ do
             flashColor <- getEntityColor hitEntityID
             animateColor 0.2 flashColor (V4 1 1 1 1)
-    attachEntity playHead
+    attachEntity playHead (translateMatrix (V3 0 0 0))
 
     -- track
     spawnChild $ do

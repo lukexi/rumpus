@@ -13,16 +13,16 @@ start = do
         let note = fromIntegral $ n + 60
         sendSynth "piano-key" (List [note, 0])
     rootEntityID <- ask
-    rootPose <- getPose
     forM_ (zip [0..] majorScale) $ \(i, note) -> do
-        keyID <- spawnEntity $
-            makePianoKey rootEntityID rootPose i note
-        attachEntity keyID
 
-makePianoKey parentID parentPose i noteDegree = do
+        let x        = (1/12) * fromIntegral i - 0.27
+            keyPos   = V3 x 0.4 0
+        keyID <- spawnEntity $
+            makePianoKey rootEntityID i note
+        attachEntity keyID (position keyPos)
+
+makePianoKey parentID i noteDegree = do
     let note = fromIntegral $ noteDegree + 60
-        x        = (1/12) * fromIntegral i - 0.27
-        keyPos   = V3 x 0.4 0
         hue      = fromIntegral i / fromIntegral (length majorScale)
         colorOn  = colorHSL hue 0.8 0.8
         colorOff = colorHSL hue 0.8 0.4
@@ -30,7 +30,6 @@ makePianoKey parentID parentPose i noteDegree = do
     myParent         ==> parentID
     myShape          ==> Cube
     myBody           ==> Detector
-    myPose           ==> parentPose !*! position keyPos
     mySize           ==> pianoKeySize
     myCollisionBegan ==> \_ _ -> do
         myColor ==> colorOn

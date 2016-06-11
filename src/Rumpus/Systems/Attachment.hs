@@ -18,7 +18,7 @@ initAttachmentSystem = do
         { ciDeriveComponent = Just $ do
             withComponent_ myHolder $ \holderID -> do
                 entityID <- ask
-                attachEntityToEntity holderID entityID False
+                attachEntityToEntityAtCurrentOffset holderID entityID
         , ciRemoveComponent = detachFromHolder >> removeComponent myHolder
         }
 
@@ -45,23 +45,27 @@ setAttachmentOffset newOffset = do
         myID <- ask
         modifyEntityComponent holderID myAttachments (Map.adjust (const newOffset) myID)
 
-attachEntity :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => EntityID -> m ()
-attachEntity toEntityID = do
+attachEntityAtCurrentOffset :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => EntityID -> m ()
+attachEntityAtCurrentOffset toEntityID = do
     holderID <- ask
-    attachEntityToEntity holderID toEntityID False
+    attachEntityToEntityAtCurrentOffset holderID toEntityID
 
-attachEntityToEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> Bool -> m ()
-attachEntityToEntity holderID toEntityID exclusive = do
-
-    detachEntityFromHolder toEntityID
-
-    -- Detach any current attachments
-    when exclusive $
-        detachAttachedEntities holderID
-
+attachEntityToEntityAtCurrentOffset :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
+attachEntityToEntityAtCurrentOffset holderID toEntityID = do
     entityPose   <- getEntityPose holderID
     toEntityPose <- getEntityPose toEntityID
     let offset = toEntityPose `subtractMatrix` entityPose
+    attachEntityToEntity holderID toEntityID offset
+
+attachEntity :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => EntityID -> M44 GLfloat -> m ()
+attachEntity toEntityID offset = do
+    holderID <- ask
+    attachEntityToEntity holderID toEntityID offset
+
+attachEntityToEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> M44 GLfloat -> m ()
+attachEntityToEntity holderID toEntityID offset = do
+
+    detachEntityFromHolder toEntityID
 
     appendAttachment holderID toEntityID offset
     inEntity toEntityID (myHolder ==> holderID)

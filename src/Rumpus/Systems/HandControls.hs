@@ -95,7 +95,8 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
 grabEntity :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 grabEntity handEntityID grabbedID = do
     selectEntity grabbedID
-    attachEntityToEntity handEntityID grabbedID True
+    detachAttachedEntities handEntityID
+    attachEntityToEntityAtCurrentOffset handEntityID grabbedID
 
 --grabDuplicateEntity grabbedID otherHandEntityID = do
     --isBeingHeldByOtherHand <- isEntityAttachedTo grabbedID otherHandEntityID

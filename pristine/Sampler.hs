@@ -31,9 +31,7 @@ start = do
         myCollisionEnded    ==> \_ -> do
             sendEntitySynth mainID "record-toggle" 0
 
-    attachEntity button
-    inEntity button $
-        setAttachmentOffset (position $ V3 0 0.5 0)
+    attachEntity button (position $ V3 0 0.5 0)
 
     myUpdate          ==> do
         fftSample <- V.convert <$> readPdArray "sample-fft" 0 numSamples
