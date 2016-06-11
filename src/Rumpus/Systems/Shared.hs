@@ -7,9 +7,12 @@ import qualified Data.List as L
 data ShapeType = Cube | Sphere
     deriving (Eq, Show, Ord, Enum, Generic, FromJSON, ToJSON)
 
-data InheritPose = InheritFull | InheritPose
+data TransformType = InheritPose  -- ^ Default, relative to parent
+                   | AbsolutePose -- ^ No inheritance at all
+                   | InheritFull  -- ^ Inherit position and scale from parent.
+                                  --   Only uniform scaling will look right when rotations are involved.
 
-defineComponentKey ''InheritPose
+defineComponentKey ''TransformType
 defineComponentKeyWithType "Shape"              [t|ShapeType|]
 defineComponentKeyWithType "Name"               [t|String|]
 defineComponentKeyWithType "Pose"               [t|M44 GLfloat|]
@@ -72,7 +75,7 @@ initSharedSystem = do
     registerComponent "Children" myChildren $ (newComponentInterface myChildren)
         { ciRemoveComponent = removeChildren >> removeComponent myChildren
         }
-    registerComponent "InheritPose" myInheritPose (newComponentInterface myInheritPose)
+    registerComponent "TransformType" myTransformType (newComponentInterface myTransformType)
     registerComponent "TeleportScale" myTeleportScale (newComponentInterface myTeleportScale)
 
     -- Allows Script and CodeEditor to access these
@@ -153,11 +156,11 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID myColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
-getEntityInheritPose :: (MonadState ECS m) => EntityID -> m (Maybe InheritPose)
-getEntityInheritPose entityID = getEntityComponent entityID myInheritPose
+getEntityTransformType :: (MonadState ECS m) => EntityID -> m (Maybe TransformType)
+getEntityTransformType entityID = getEntityComponent entityID myTransformType
 
-getInheritPose :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe InheritPose)
-getInheritPose = getEntityInheritPose =<< ask
+getTransformType :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe TransformType)
+getTransformType = getEntityTransformType =<< ask
 
 getEntityChildren :: (MonadState ECS m) => EntityID -> m [EntityID]
 getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID myChildren

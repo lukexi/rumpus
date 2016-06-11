@@ -56,8 +56,6 @@ start = do
                     myPose        ==> position pos
                     myShape       ==> Cube
                     mySize        ==> 0.01
-                    myProperties  ==> [Holographic]
-                    myInheritPose ==> InheritPose
                     myColor       ==> colorHSL
                         (fromIntegral e/2) 0.7 (fromIntegral e)
             setState (tickGOL grid)

@@ -29,7 +29,7 @@ addEditorFrame entityID = do
             myShape      ==> Sphere
             myColor      ==> color
             mySize       ==> 0.1
-            myProperties ==> [Floating, Ghostly]
+            myBody       ==> Detector
             myConstraint ==> RelativePositionTo editorFrame (V3 (-0.5) 0.5 0)
             myDrag       ==> \changeM44 -> do
                 let x = changeM44 ^. translation . _x
@@ -42,7 +42,7 @@ addEditorFrame entityID = do
             myShape      ==> Cube
             myColor      ==> V4 0.3 0.3 1 1
             mySize       ==> 0.2
-            myProperties ==> [Floating, Ghostly]
+            myBody       ==> Detector
             myConstraint ==> RelativePositionTo editorFrame (V3 0.5 0.5 0)
             myDrag       ==> \changeM44 -> do
                 let size = max 0.05 (abs $ changeM44 ^. translation)

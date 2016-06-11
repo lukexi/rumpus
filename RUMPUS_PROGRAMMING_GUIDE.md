@@ -2,7 +2,7 @@
 
 Ok, so you're ready to rump. Rumping is not for the faint-hearted; nothing is finished, everything is subject to change. I don't think typing letters into virtual screens in VR is a "good idea"*. But it's still a heck of a good time and you'll probably have some fun.
 
-> *I am working on higher-level languages that are "VR Native", but I wanted a development environment and "assembly language" first, and Rumpus is a snapshot of that process.
+> *Higher-level "VR native" languages are underway, but I wanted a development environment and "assembly language" first, and Rumpus is a snapshot of that process.
 
 ### RUMPUS BASICS
 When you boot up Rumpus you'll be in the **Scene Loader**. Choose one of the orbs around you to visit that world.
@@ -170,7 +170,7 @@ start = do
         myShape      ==> Cube
         myPose       ==> position (V3 0 0 -1)
         mySize       ==> 0.1
-        myProperties ==> [Physical]
+        myBodyFlags ==> [Physical]
 ```
 The object will fall into the void. Try pulling out a Platform object for it to land on.
 You can change the object's Mass, Restitution, and Gravity using myMass, myRestitution, and myGravity.
@@ -184,7 +184,7 @@ start = do
         myShape          ==> Cube
         myPose           ==> position (V3 0 0 -1)
         mySize           ==> 0.1
-        myProperties     ==> [Physical]
+        myBodyFlags     ==> [Physical]
         myCollisionStart ==> \_ _ -> do
             hue <- randomRange (0,1)
             setColor (colorHSL hue 0.5 0.5)
@@ -199,7 +199,7 @@ start = do
         myShape      ==> Cube
         myPose       ==> position (V3 0 0 -1)
         mySize       ==> 0.1
-        myProperties ==> [Teleportable]
+        myBodyFlags ==> [Teleportable]
 ```
 
 ### SYNTHESIS
@@ -288,12 +288,6 @@ This is a historical accident and will be fixed in a future version.
 
 
 TODO:
-* Change Holographic to be the default
-* Change InheritPose to be the default? Add AbsolutePose. Force Physical objects to not inherit pose.
-* Add a "MakePropertiesConsistent" function that e.g. adds Physical to Ghostly/Floating/Teleportable,
-removes InheritPose/InheritPoseAndScale from Physical
-* Change Properties to a HashSet (use OverloadedLists??)
-* Have Knobs auto-grid themselves along the right of the code slab.
 myLifetime ==> 10
 (make Lifetime instance of Num, with Nothing for startTime that is filled in later?)
 myDelayed ==> do

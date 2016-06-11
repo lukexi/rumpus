@@ -10,7 +10,6 @@ start = do
 
     spawnChild $ do
         myShape      ==> Cube
-        myProperties ==> [Holographic]
         myPose       ==> position (V3 0 2 0)
         mySize       ==> 0.2
         myUpdate     ==> do

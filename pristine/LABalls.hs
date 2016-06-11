@@ -13,7 +13,7 @@ start = do
         spawnChild $ do
             myShape      ==> Sphere
             mySize       ==> 0.5
-            myProperties ==> [Floating]
+            myBody       ==> Animated
             myUpdate     ==> do
                 now <- (+ x) <$> getNow
                 let pos = V3 (sin now*1 + x) (cos now*1 + y) (z - 1.5)

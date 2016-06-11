@@ -17,11 +17,9 @@ start = do
             myShape            ==> Cube
             mySize             ==> 1
             myColor            ==> V4 0.8 0.9 0.4 1
-            myPose             ==> rotationAndPosition
-                (axisAngle (V3 0 1 0) (-n))
-                (V3 x 0.6 z)
-            myProperties       ==> [Holographic]
-            myInheritPose      ==> InheritPose
+            myPose             ==> positionRotation
+                                    (V3 x 0.6 z)
+                                    (axisAngle (V3 0 1 0) (-n))
     mainID <- ask
     myUpdate          ==> do
         fftSample <- V.convert <$> readPdArray "sample-fft" 0 numSamples

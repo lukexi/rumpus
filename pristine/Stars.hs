@@ -22,9 +22,7 @@ start = do
         sphere = drop (numPoints `div` 2) $ pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void . spawnChild $ do
-        myPose       ==> mkTransformation
-                            (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
         myShape      ==> Sphere
-        myProperties ==> [Holographic]
         mySize       ==> 5
         myColor      ==> colorHSL hue 0.8 0.8
+        myPose       ==> position (pos * 1000)

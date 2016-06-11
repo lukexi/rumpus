@@ -12,7 +12,7 @@ start = do
         childID <- spawnEntity $ do
             myParent ==> parentID
             myShape ==> Sphere
-            myProperties ==> [Floating]
+            myBody ==> Animated
             mySize ==> 0.2
             myMass ==> 0.1
             let h = (fromIntegral $ (i * 27) `mod` 37) / 37

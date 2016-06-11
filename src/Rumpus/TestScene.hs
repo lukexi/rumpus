@@ -47,10 +47,10 @@ room = do
     builderID <- ask
     let makeWall pos size hue = void . spawnEntity $ do
             myParent            ==> builderID
-            myPose              ==> mkTransformation
-                (axisAngle (V3 0 0 1) 0) (pos & _y +~ roomOffset)
-            myShape         ==> Cube
-            myProperties ==> [Floating, Ungrabbable]
+            myPose              ==> position (pos & _y +~ roomOffset)
+            myShape             ==> Cube
+            myBody              ==> Animated
+            myBodyFlags         ==> [Ungrabbable]
             mySize              ==> size
             myColor             ==> colorHSL hue 0.8 0.6
             myMass              ==> 0
@@ -102,10 +102,8 @@ createBuildings = do
 
         when (x /= 0 && z /= 0) $ void . spawnEntity $ do
             myParent               ==> rootEntityID
-            myPose                 ==> mkTransformation
-                                            (axisAngle (V3 0 0 1) 0) (V3 x y z)
+            myPose                 ==> position (V3 x y z)
             myShape            ==> Cube
-            myProperties    ==> [Holographic]
             --myUpdate ==> do
             --    now <- getNow
             --    let newHeight = ((sin (now+_i) + 1) + 1) * height
@@ -122,10 +120,8 @@ createStars = do
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
         myParent               ==> rootEntityID
-        myPose                 ==> mkTransformation
-                                        (axisAngle (V3 0 0 1) 0.3) (pos * 1000)
+        myPose                 ==> position (pos * 1000)
         myShape            ==> Sphere
-        myProperties    ==> [Holographic]
         mySize                 ==> 5
         myColor                ==> colorHSL hue 0.8 0.8
 

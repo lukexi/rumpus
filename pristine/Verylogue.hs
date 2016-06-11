@@ -29,7 +29,7 @@ makePianoKey parentID parentPose i noteDegree = do
     myColor          ==> colorOff
     myParent         ==> parentID
     myShape          ==> Cube
-    myProperties     ==> [Floating, Ghostly]
+    myBody           ==> Detector
     myPose           ==> parentPose !*! position keyPos
     mySize           ==> pianoKeySize
     myCollisionStart ==> \_ _ -> do

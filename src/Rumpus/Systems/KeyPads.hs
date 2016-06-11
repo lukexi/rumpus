@@ -1,5 +1,6 @@
 module Rumpus.Systems.KeyPads where
 import PreludeExtra
+import RumpusLib
 
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Hands
@@ -187,23 +188,20 @@ spawnKeyPads = do
     let handsWithKeys = [ (LeftHand,  leftHandKeys,  V3 (-0.3) 0 0.1)
                         , (RightHand, rightHandKeys, V3   0.3  0 0.1)
                         ]
-    --keyPadContainerID <- spawnChild $ do
-    keyPadContainerID <- spawnEntity $ do
-        myInheritPose ==> InheritPose
-        return ()
+    --keyPadContainerID <- spawnChild (return ())
+    keyPadContainerID <- spawnEntity (return ())
     keyPads <- forM handsWithKeys $ \(whichHand, keyRows, offset) -> do
 
         keyPadID         <- spawnEntity $ do
-            myParent             ==> keyPadContainerID
-            myInheritPose   ==> InheritPose
-            --mySize               ==> maximizedKeyPadSize
-            mySize               ==> minimizedKeyPadSize
-            myPose               ==> mkTransformation
-                                        (axisAngle (V3 1 0 0) (pi/2))
-                                        offset
+            myParent         ==> keyPadContainerID
+            --mySize           ==> maximizedKeyPadSize
+            mySize           ==> minimizedKeyPadSize
+            myPose           ==> positionRotation
+                                    offset
+                                    (axisAngle (V3 1 0 0) (pi/2))
         scaleContainerID <- spawnEntity $ do
-            myParent             ==> keyPadID
-            myInheritPose   ==> InheritFull
+            myParent         ==> keyPadID
+            myTransformType  ==> InheritFull
 
 
         (keyPadKeys, keyPadDims) <- spawnKeysForHand scaleContainerID keyRows
@@ -217,8 +215,6 @@ spawnKeyPads = do
             -- Visualize dimensions of keypad
             --spawnChild $ do
             --    myShape ==> Cube
-            --    myProperties ==> [Holographic]
-            --    myInheritPose ==> InheritPose
             --    myPose ==> translateMatrix (V3 (keyPadDims^._x/2) 0 (keyPadDims^._y/2))
             --    mySize ==> V3 (keyPadDims^._x) 0.01 (keyPadDims^._y)
 
@@ -303,10 +299,8 @@ makeKeyboardKey containerID key keyPosition keySize = do
         myParent                 ==> containerID
         myColor                  ==> keyColorOff
         myShape                  ==> Cube
-        myProperties             ==> [Holographic]
         myPose                   ==> translateMatrix keyPosition
         mySize                   ==> keySize
-        myInheritPose       ==> InheritPose
     -- Spawn key name separately so it doesn't inherit the stretched size of its parent
     keyNameID <- spawnEntity $ do
         let keyTitleScale = if length keyTitle > 1
@@ -315,11 +309,10 @@ makeKeyboardKey containerID key keyPosition keySize = do
             keyTitle      = showKey False key
         myParent   ==> keyBackID
         myText     ==> keyTitle
-        myTextPose ==> mkTransformation
-                          (axisAngle (V3 1 0 0) (-pi/2))
+        myTextPose ==> positionRotation
                           (V3 0 (keyDepth/2 + 0.001) 0)
+                          (axisAngle (V3 1 0 0) (-pi/2))
                         !*! scaleMatrix (keyTitleScale * realToFrac keyWidth)
-        myInheritPose ==> InheritPose
 
     return (keyBackID, keyNameID)
 
@@ -342,9 +335,7 @@ makeThumbNub containerID (V2 x y) = do
     myParent           ==> containerID
     myColor            ==> keyColorOn
     myShape            ==> Sphere
-    myProperties       ==> [Holographic]
     mySize             ==> realToFrac keyDepth * 2
-    myInheritPose ==> InheritPose
     myPose             ==> translateMatrix (V3 (x / 2) 0 (y / 2))
 
 -- | Check if a point is in the given rectangle

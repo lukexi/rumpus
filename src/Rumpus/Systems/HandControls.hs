@@ -67,7 +67,7 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
 
 
 filterUngrabbableEntityIDs :: MonadState ECS m => [EntityID] -> m [EntityID]
-filterUngrabbableEntityIDs = filterM (fmap (notElem Ungrabbable) . getEntityProperties)
+filterUngrabbableEntityIDs = filterM (fmap (notElem Ungrabbable) . getEntityBodyFlags)
 
 getGrabbableEntityIDs :: EntityID -> ECSMonad [EntityID]
 getGrabbableEntityIDs = filterUngrabbableEntityIDs <=< getEntityOverlappingEntityIDs

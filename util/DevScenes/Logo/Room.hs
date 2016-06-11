@@ -20,7 +20,7 @@ start = do
     let makeWall pos size hue = spawnChild $ do
             myPose       ==> translateMatrix (pos & _y +~ roomOffset)
             myShape      ==> Cube
-            myProperties ==> [Floating, Ungrabbable]
+            myBodyFlags ==> [Floating, Ungrabbable]
             mySize       ==> size
             myColor      ==> colorHSL hue 0.8 0.6 1
             myMass       ==> 0
@@ -42,7 +42,8 @@ start = do
     spawnChild $ do
         myPose       ==> translateMatrix (V3 0 roomOffset 2)
         myShape      ==> Sphere
-        myProperties ==> [Floating, Ungrabbable]
+        myBody       ==> Animated
+        myBodyFlags  ==> [Ungrabbable]
         mySize       ==> 0.8
         myColor      ==> colorHSL 0.2 0.7 0.6
         myMass       ==> 0

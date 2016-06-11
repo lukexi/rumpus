@@ -4,8 +4,6 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Physics
 import qualified Data.HashMap.Strict as Map
-import qualified Data.List as List
-
 
 type Attachments = Map EntityID (M44 GLfloat)
 
@@ -81,11 +79,11 @@ overrideSetKinematicMode entityID =
     withEntityRigidBody entityID $ \rigidBody ->
         setRigidBodyKinematic rigidBody True
 
--- | Restores the kinematic mode requested in the entity's myProperties
+-- | Restores the kinematic mode requested in the entity's myBodyFlags
 restoreSetKinematicMode :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 restoreSetKinematicMode entityID = do
-    properties <- getEntityProperties entityID
-    unless (Floating `elem` properties) $
+    mBodyType <- getEntityBody entityID
+    unless (mBodyType == Just Animated) $
         withEntityRigidBody entityID $ \rigidBody ->
             setRigidBodyKinematic rigidBody False
 
@@ -106,7 +104,7 @@ withAttachments :: MonadState ECS m => EntityID -> (Attachments -> m b) -> m ()
 withAttachments entityID = withEntityComponent_ entityID myAttachments
 
 getEntityAttachments :: (MonadState ECS m) => EntityID -> m (Map EntityID (M44 GLfloat))
-getEntityAttachments entityID = fromMaybe mempty <$> getEntityComponent entityID myAttachments
+getEntityAttachments entityID = getEntityComponentDefault mempty entityID myAttachments
 
 isEntityAttachedTo :: (MonadState ECS m) => EntityID -> EntityID -> m Bool
 isEntityAttachedTo childID parentID = Map.member childID <$> getEntityAttachments parentID
@@ -119,16 +117,18 @@ getOneEntityAttachment entityID = listToMaybe . Map.keys <$> getEntityAttachment
 hasHolder :: (MonadState ECS m, MonadReader EntityID m) => m Bool
 hasHolder = hasComponent myHolder
 
-setFloating :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
-setFloating isFloating = do
-    if isFloating
-        then do
-            prependComponent myProperties [Floating]
-            myProperties ==% List.nub
-        else do
-            myProperties ==% List.delete Floating
+setBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => BodyType -> m ()
+setBody bodyType = do
+    hadBody <- hasComponent myBody
+    myBody ==> bodyType
 
+    if hadBody
+        then withRigidBody $ \rigidBody ->
+            updateRigidBodyWithBodyType rigidBody bodyType
+        else deriveRigidBody =<< getDynamicsWorld
+
+    -- Ensure body stays kinematic when being held
     isHeld <- hasHolder
-    unless isHeld $
+    when isHeld $
         withRigidBody $ \rigidBody ->
-            setRigidBodyKinematic rigidBody isFloating
+            setRigidBodyKinematic rigidBody True

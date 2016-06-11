@@ -109,7 +109,7 @@ addExitOrb whichHand = do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
         mySize       ==> initialLibraryItemSize
-        myProperties ==> [Floating] -- FIXME: We can't make this Ungrabbable as that inhibits clicks
+        myBody       ==> Detector -- FIXME: We can't make this Ungrabbable as that inhibits clicks
         myUpdate     ==> normalPulse
         -- Pulse the other hand when it hovers over us
         myColliding ==> \entityID _ -> do
@@ -152,7 +152,8 @@ addDestructionOrb whichHand = do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
         mySize       ==> initialLibraryItemSize
-        myProperties ==> [Floating, Ungrabbable]
+        myBody       ==> Detector
+        myBodyFlags  ==> [Ungrabbable]
         myUpdate     ==> normalPulse
 
         -- When an entity collides with us that's held by the other hand,
@@ -201,11 +202,11 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
     newEntityID <- spawnEntity $ do
         myShape      ==> Cube
         mySize       ==> initialLibraryItemSize
-        myProperties ==> [Floating]
+        myBody       ==> Animated
         myText       ==> maybe "New Object" takeBaseName maybeCodePath
-        myTextPose   ==> mkTransformation
-                            (axisAngle (V3 1 0 0) (0))
+        myTextPose   ==> positionRotation
                             (V3 0 (-1) 0)
+                            (axisAngle (V3 1 0 0) (0))
                             !*! scaleMatrix 0.3
         myColor      ==> V4 0.1 0.1 0.1 1
         -- Make the new object pulse
@@ -243,7 +244,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
     -- have their code facing towards the user in that case
     setEntityPose newEntityID
         (handPose !*! translateMatrix creatorOffset
-                  !*! mkTransformation (axisAngle (V3 1 0 0) (-pi/2)) (spherePosition * 0.2))
+                  !*! positionRotation (spherePosition * 0.2) (axisAngle (V3 1 0 0) (-pi/2)))
     attachEntityToEntity handID newEntityID False
 
     inEntity newEntityID $ animateSizeTo libraryItemSize animDur

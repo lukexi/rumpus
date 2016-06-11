@@ -12,6 +12,7 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Text
+import Rumpus.Systems.Physics
 --import Rumpus.Systems.Profiler
 import Graphics.GL.TextBuffer
 
@@ -209,27 +210,31 @@ renderEntities projViewM44 shapes = do
 -- This avoids duplicate matrix multiplications.
 getFinalMatrices :: (MonadIO m, MonadState ECS m) => m (Map EntityID (M44 GLfloat))
 getFinalMatrices = do
-    poseMap        <- getComponentMap myPose
-    poseScaledMap  <- getComponentMap myPoseScaled
-    childrenMap    <- getComponentMap myChildren
-    parentMap      <- getComponentMap myParent
+    poseMap          <- getComponentMap myPose
+    poseScaledMap    <- getComponentMap myPoseScaled
+    childrenMap      <- getComponentMap myChildren
+    parentMap        <- getComponentMap myParent
+    bodyMap          <- getComponentMap myBody
     --sizeMap        <- getComponentMap mySize
-    inheritPoseMap <- getComponentMap myInheritPose
+    transformTypeMap <- getComponentMap myTransformType
 
     let entityIDs           = Set.fromList . Map.keys $ poseMap
         entityIDsWithChild  = Set.fromList . Map.keys $ childrenMap
         entityIDsWithParent = Set.fromList . Map.keys $ parentMap
-        rootIDs = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
+        rootIDs             = Set.union entityIDs entityIDsWithChild Set.\\ entityIDsWithParent
         go mParentMatrix !accum entityID =
 
-            let inherit                  = Map.lookup entityID inheritPoseMap
+            -- Physics bodies don't support relative positioning, currently. Use Attachments.
+            let inherit                  = if Map.member entityID bodyMap
+                    then AbsolutePose
+                    else Map.lookupDefault InheritPose entityID transformTypeMap
                 entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
                 entityMatrixLocal        = Map.lookupDefault identity entityID poseScaledMap
 
                 parentTransform          = case (inherit, mParentMatrix) of
-                    (Just InheritFull, Just (parentMatrix, _))        -> (parentMatrix        !*!)
-                    (Just InheritPose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!)
-                    _                                                 -> id
+                    (InheritFull, Just (parentMatrix, _))        -> (parentMatrix        !*!)
+                    (InheritPose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!)
+                    _                                            -> id
 
                 entityMatrix        = parentTransform entityMatrixLocal
                 entityMatrixNoScale = parentTransform entityMatrixLocalNoScale

@@ -92,10 +92,8 @@ start = do
     let backW = 3.2
     spawnChild $ do
         myShape ==> Cube
-        myProperties ==> [Holographic]
-        myInheritPose ==> InheritPose
-        myPose ==> position (V3 (0.3 + 0.5*backW) 0 -0.1)
-        mySize ==> V3 backW 1.5 0.01
+        mySize  ==> V3 backW 1.5 0.01
+        myPose  ==> position (V3 (0.3 + 0.5*backW) 0 -0.1)
         myColor ==> V4 0.2 0.2 0.23 1
 
 
@@ -108,14 +106,12 @@ start = do
             hue = degree01
 
         brightness <- (*0.7) <$> readKnob cutoffKnob
-        noteCube   <- spawnChild $ do
+        void . spawnChild $ do
             myShape       ==> Cube
-            myProperties  ==> [Holographic]
-            myPose        ==> position (V3 0 (0.5+degree01) 0)
-            myInheritPose ==> InheritPose
             mySize        ==> 0.2
             myColor       ==> colorHSL degree01 0.8 brightness
-        inEntity noteCube $ setLifetime 1
+            myPose        ==> position (V3 0 (0.5+degree01) 0)
+            myLifetime    ==> 1
 
     return ()
 
@@ -175,19 +171,17 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
     nameLabel <- spawnChild $ do
         myText        ==> name
         myTextPose    ==> position (V3 0 0.1 0) !*! scaleMatrix 0.05
-        myInheritPose ==> InheritPose
         myPose        ==> position knobPos
     valueLabel <- spawnChild $ do
         myText        ==> displayValue initialValue
         myTextPose    ==> position (V3 0 -0.1 0) !*! scaleMatrix 0.05
-        myInheritPose ==> InheritPose
         myPose        ==> position knobPos
 
     parentID <- ask
     knob <- spawnChild $ do
         myShape        ==> Cube
         mySize         ==> 0.1
-        myProperties   ==> [Floating]
+        myBody         ==> Animated
         myDragOverride ==> True
         myDragBegan ==> do
             withComponent_ myDragFrom $ \(DragFrom _handEntityID startM44) -> do
@@ -206,8 +200,8 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
 
                 -- Update the knob's state and appearance
                 setState (KnobState { ksLastHandPose = newHandPose, ksRotation = newRotation })
-                setAttachmentOffset (mkTransformation
-                    (axisAngle (V3 0 0 1) newRotation) knobPos)
+                setAttachmentOffset (positionRotation knobPos
+                    (axisAngle (V3 0 0 1) newRotation) )
 
                 -- Update the knob's label,
                 -- and run the its action,
@@ -225,7 +219,7 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
     attachEntity knob
     inEntity knob $ do
         setState newKnobState { ksRotation = initialRotation }
-        setAttachmentOffset (mkTransformation (axisAngle (V3 0 0 1) initialRotation) knobPos)
+        setAttachmentOffset (positionRotation knobPos (axisAngle (V3 0 0 1) initialRotation))
     return knob
 
 

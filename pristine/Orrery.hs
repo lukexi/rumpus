@@ -1,15 +1,10 @@
 module Orrery where
 import Rumpus
 
-setCelestialBody radius hue = do
-    myInheritPose ==> InheritPose
+spawnPlanetOf parentID radius hue orbitRadius orbitRate = spawnChildOf parentID $ do
+    myShape            ==> Sphere
     mySize             ==> radius
     myColor            ==> colorHSL hue 0.8 0.5
-    myShape            ==> Sphere
-    myProperties       ==> [Holographic]
-
-spawnPlanetOf parentID radius hue orbitRadius orbitRate = spawnChildOf parentID $ do
-    setCelestialBody radius hue
     myUpdate ==> do
         now <- getNow
         let n = orbitRate * now * 8
@@ -19,26 +14,25 @@ spawnPlanetOf parentID radius hue orbitRadius orbitRate = spawnChildOf parentID 
 
 start :: Start
 start = do
-    myProperties ==% (Teleportable:)
-    myTeleportScale ==> 0.1
     -- Create a container node that inherits
     -- pose, but not scale, from the root object
     container <- spawnChild $ do
-        myInheritPose ==> InheritPose
-        mySize             ==> 0.800
+        mySize          ==> 0.800
 
     -- Create a node that inherits scale from the container node,
     -- but whose own scale is 1
     scaler <- spawnChildOf container $ do
-        myInheritPose ==> InheritFull
-        mySize             ==> 1
+        myTransformType ==> InheritFull
+        mySize          ==> 1
 
     sun <- spawnChildOf scaler $ do
-        setCelestialBody 0.08 0.1
-        myPose ==> mkTransformation
+        myShape            ==> Sphere
+        mySize             ==> 0.08
+        myColor            ==> colorHSL 0.1 0.8 0.5
+        myPose ==> positionRotation
+                        (V3 0 0.5 0)
                         -- Tilted axis
                         (axisAngle (V3 1 0 0) -0.4)
-                        (V3 0 0.5 0)
 
     --                               Radius Hue   OrbitRadius OrbitRate
     sun2    <- spawnPlanetOf sun     0.03   0.8   0.4         0.1

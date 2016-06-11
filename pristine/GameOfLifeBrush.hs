@@ -56,11 +56,11 @@ start = do
                 let V2 x y = (fromIntegral <$> i) / (fromIntegral <$> gridMax) * 0.1
                     pos = V3 x (y+0.5) 0
                 spawnChild $ do
-                    myPose       ==> newPose !*! position pos
-                    myShape      ==> Cube
-                    mySize       ==> 0.02
-                    myProperties ==> [Holographic]
-                    myColor      ==> colorHSL
+                    myPose          ==> newPose !*! position pos
+                    myShape         ==> Cube
+                    mySize          ==> 0.02
+                    myTransformType ==> AbsolutePose
+                    myColor         ==> colorHSL
                         hue 0.7 0.8
 
             let (newBlots, oldBlots) = Seq.splitAt maxBlots blots

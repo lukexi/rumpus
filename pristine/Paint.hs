@@ -13,11 +13,11 @@ start = do
         let newPosition = newPose ^. translation
         when (distance lastPosition newPosition > 0.05) $ do
             newBlot <- spawnChild $ do
-                myPose       ==> newPose
-                myShape      ==> Cube
-                mySize       ==> 0.1
-                myProperties ==> [Holographic]
-                myColor      ==> colorHSL
+                myPose          ==> newPose
+                myShape         ==> Cube
+                mySize          ==> 0.1
+                myTransformType ==> AbsolutePose
+                myColor         ==> colorHSL
                     (newPosition ^. _x) 0.7 0.8
             return ()
 

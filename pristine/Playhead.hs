@@ -9,7 +9,8 @@ start = do
     thisID <- ask
     playHead <- spawnChild $ do
         myShape      ==> Cube
-        myProperties ==> [Floating, Ghostly, Ungrabbable]
+        myBodyFlags  ==> [Ungrabbable]
+        myBody       ==> Detector
         mySize       ==> size
         myUpdate     ==> do
             now <- getNow
@@ -33,9 +34,7 @@ start = do
     -- track
     spawnChild $ do
         myShape ==> Cube
-        myProperties ==> [Holographic]
-        myInheritPose ==> InheritPose
-        mySize ==> V3 duration 0.01 0.01
-        myPose ==> translateMatrix (V3 (duration / 2) 0 0)
+        mySize  ==> V3 duration 0.01 0.01
+        myPose  ==> translateMatrix (V3 (duration / 2) 0 0)
 
     return ()

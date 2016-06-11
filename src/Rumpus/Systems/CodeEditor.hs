@@ -288,4 +288,3 @@ spawnChildInstance codeFileName = do
     spawnChild $ do
         myStartExpr   ==> (codePath, "start")
         myCodeHidden  ==> True
-        myInheritPose ==> InheritPose

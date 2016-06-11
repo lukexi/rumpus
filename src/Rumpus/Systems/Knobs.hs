@@ -45,6 +45,8 @@ addQuickKnob name (low, high) action = do
 
 -- Must use prependComponent rather than appendComponent to update the Map,
 -- as its <> is left-biased
+setKnobData :: (MonadState s m, MonadReader EntityID m, HasComponents s) => KnobName -> Float -> m ()
 setKnobData knobName value = prependComponent myKnobValues (Map.singleton knobName value)
 
+getKnobData :: (MonadState s m, MonadReader EntityID m, HasComponents s) => KnobName -> Float -> m Float
 getKnobData knobName defVal = Map.lookupDefault defVal knobName <$> getComponentDefault mempty myKnobValues

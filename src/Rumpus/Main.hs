@@ -60,7 +60,7 @@ initializeECS ghc pd vrPal = do
                     void . spawnEntity $ do
                         myShape      ==> Cube
                         mySize       ==> newEntitySize
-                        myProperties ==> [Floating]
+                        myBody       ==> Animated
                         myColor      ==> V4 0.1 0.1 0.1 1
                         myStartExpr  ==> codeInFile
 

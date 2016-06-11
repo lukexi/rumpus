@@ -7,7 +7,6 @@ import PreludeExtra
 import Rumpus.Systems.Shared
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Controls
-import qualified Data.List as List
 import Foreign.C
 
 import Physics.Bullet
@@ -18,20 +17,17 @@ data PhysicsSystem = PhysicsSystem
     } deriving Show
 makeLenses ''PhysicsSystem
 
-data Property = Floating        -- ^ Sets bullet "Kinematic" flag
-              | Ghostly         -- ^ Sets bullet "NoContactResponse" flag
-              | Holographic     -- ^ Removes physics shape entirely
-              | Ungrabbable     -- ^ Marks objects we don't want to grab
+data BodyType = Physical
+              | Animated -- aka Kinematic
+              | Detector -- aka NoContactResponse
+              deriving (Eq, Show, Generic, FromJSON, ToJSON)
+
+
+data BodyFlag = Ungrabbable     -- ^ Marks objects we don't want to grab
               | Teleportable    -- ^ Marks objects we want to allow teleportation to. Must have physics shape.
               deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
-data BodyType = Physical
-              | Kinematic
-              | Ghostly_ -- aka NoContactResponse
-              deriving (Eq, Show, Generic, FromJSON, ToJSON)
-
-type Properties = [Property]
-
+type BodyFlags = [BodyFlag]
 
 defineSystemKey ''PhysicsSystem
 
@@ -43,7 +39,7 @@ defineComponentKeyWithType "CollisionGroup" [t|CShort|]
 defineComponentKeyWithType "CollisionMask"  [t|CShort|]
 defineComponentKey ''RigidBody
 defineComponentKey ''SpringConstraint
-defineComponentKey ''Properties
+defineComponentKey ''BodyFlags
 
 
 initPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -56,7 +52,7 @@ initPhysicsSystem = do
         , ciRemoveComponent = removeRigidBodyComponent dynamicsWorld
         }
     registerComponent "Body"              myBody               (savedComponentInterface myBody)
-    registerComponent "Properties"        myProperties         (savedComponentInterface myProperties)
+    registerComponent "BodyFlags"         myBodyFlags          (savedComponentInterface myBodyFlags)
     registerComponent "Mass"              myMass               (newComponentInterface myMass)
     registerComponent "Gravity"           myGravity            (newComponentInterface myGravity)
     registerComponent "SpringConstraint"  mySpringConstraint   (newComponentInterface mySpringConstraint)
@@ -78,8 +74,8 @@ deriveRigidBody dynamicsWorld = do
     -- removeComponent after ciRemoveComponent
     removeRigidBodyComponent dynamicsWorld
 
-    properties <- getComponentDefault [] myProperties
-    unless (Holographic `elem` properties) $ do
+    mBodyType  <- getComponent myBody
+    forM_ mBodyType $ \bodyType -> do
         mShapeType <- getComponent myShape
         forM_ mShapeType $ \shapeType -> do
 
@@ -107,24 +103,15 @@ deriveRigidBody dynamicsWorld = do
                 setRigidBodyGravity rigidBody gravity
                 setRigidBodyDisableDeactivation rigidBody True
 
-            when (Ghostly `elem` properties || Floating `elem` properties) $ do
-                setRigidBodyKinematic rigidBody True
+            updateRigidBodyWithBodyType rigidBody bodyType
 
-            when (Ghostly `elem` properties) $
-                setRigidBodyNoContactResponse rigidBody True
+updateRigidBodyWithBodyType :: MonadIO m => RigidBody -> BodyType -> m ()
+updateRigidBodyWithBodyType rigidBody bodyType = do
+    setRigidBodyKinematic rigidBody (bodyType `elem` [Detector, Animated])
+    setRigidBodyNoContactResponse rigidBody (bodyType == Detector)
 
 
-setGhostly :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Bool -> m ()
-setGhostly isGhostly = do
-    if isGhostly
-        then do
-            prependComponent myProperties [Ghostly]
-            myProperties ==% List.nub
-        else
-            myProperties ==% List.delete Ghostly
 
-    withRigidBody $ \rigidBody ->
-        setRigidBodyNoContactResponse rigidBody isGhostly
 
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
@@ -218,11 +205,11 @@ setEntityRigidBodySize :: (Fractional a, Real a, MonadIO m, MonadState ECS m) =>
 setEntityRigidBodySize entityID newSize = do
     withEntityRigidBody entityID $ \rigidBody -> do
         withSystem sysPhysics $ \(PhysicsSystem dynamicsWorld _) -> do
-            mass       <- fromMaybe 1    <$> getEntityComponent entityID myMass
-            shapeType  <- fromMaybe Cube <$> getEntityComponent entityID myShape
+            mass       <- getEntityComponentDefault 1    entityID myMass
+            shapeType  <- getEntityComponentDefault Cube entityID myShape
 
-            collisionGroup <- fromMaybe 1 <$> getEntityComponent entityID myCollisionGroup
-            collisionMask  <- fromMaybe 1 <$> getEntityComponent entityID myCollisionMask
+            collisionGroup <- getEntityComponentDefault 1 entityID myCollisionGroup
+            collisionMask  <- getEntityComponentDefault 1 entityID myCollisionMask
             let bodyInfo = mempty { rbMass           = mass
                                   , rbCollisionGroup = collisionGroup
                                   , rbCollisionMask  = collisionMask
@@ -287,9 +274,14 @@ setRotationQ rotQuat = do
     pose <- getPose
     setPose $ mkTransformation rotQuat (pose ^. translation)
 
+getEntityBody :: (MonadState s m, HasComponents s) => EntityID -> m (Maybe BodyType)
+getEntityBody entityID = getEntityComponent entityID myBody
 
-getEntityProperties :: (HasComponents s, MonadState s f) => EntityID -> f Properties
-getEntityProperties entityID = fromMaybe [] <$> getEntityComponent entityID myProperties
+getEntityBodyFlags :: (HasComponents s, MonadState s m) => EntityID -> m BodyFlags
+getEntityBodyFlags entityID = getEntityComponentDefault [] entityID myBodyFlags
+
+getBodyFlags :: (HasComponents s, MonadState s m, MonadReader EntityID m) => m BodyFlags
+getBodyFlags = getEntityBodyFlags =<< ask
 
 applyForce :: (Real a, MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 a -> m ()
 applyForce aForce =  ask >>= \eid -> applyForceToEntity eid aForce
@@ -301,4 +293,4 @@ applyForceToEntity entityID aForce = do
 
 
 getIsTeleportable :: MonadState ECS m => EntityID -> m Bool
-getIsTeleportable = fmap (elem Teleportable) . getEntityProperties
+getIsTeleportable = fmap (elem Teleportable) . getEntityBodyFlags

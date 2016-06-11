@@ -10,9 +10,7 @@ start = do
     rootSample <- getSampleHistory
     let indexedSamples = zip [0..] (Map.toList rootSample)
         numSamples = Map.size rootSample
-    containerID <- spawnChild $ do
-        myInheritPose ==> InheritPose
-        mySize ==> 0.3
+    containerID <- spawnChild (mySize ==> 0.3)
     gauges <- inEntity containerID $ do
       Map.fromList <$> forM indexedSamples (\(i, (name, values)) -> do
         let y = i*0.1 + 1
@@ -21,7 +19,7 @@ start = do
             myPose             ==> translateMatrix (V3 0 y 0.1)
             myTextPose         ==> scaleMatrix 0.05
             myText             ==> name
-            myInheritPose ==> InheritFull
+            myTransformType    ==> InheritFull
         -- Graph
         childIDs <- forM [0..maxProfilerHistory - 1] $ \z -> spawnChild $ do
             let brightness = 1 -
@@ -29,8 +27,7 @@ start = do
                     fromIntegral maxProfilerHistory
                     * 0.5 + 0.3)
             myShape            ==> Cube
-            myProperties       ==> [Holographic]
-            myInheritPose ==> InheritFull
+            myTransformType    ==> InheritFull
             mySize             ==> 0.1
             myColor            ==> colorHSL
                 (i / fromIntegral numSamples)

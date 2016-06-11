@@ -12,7 +12,6 @@ initClockSystem = do
     registerComponent "ClockAction" myClockAction (newComponentInterface myClockAction)
 
 tickClockSystem :: ECSMonad ()
---tickClockSystem = whenWorldPlaying $ do
 tickClockSystem = do
     now <- liftIO getCurrentTime
 

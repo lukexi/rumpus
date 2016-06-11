@@ -36,7 +36,7 @@ pianokey parentID parentPose i j noteDegree = do
         colorOff = colorHSL hue 0.8 0.4
     myColor      ==> colorOff
     myShape      ==> Cube
-    myProperties ==> [Floating, Ghostly]
+    myBody       ==> Detector
     myPose       ==> parentPose !*! (identity & translation .~ pose)
     mySize       ==> V3 0.01 0.2 0.3
     myCollisionStart ==> \_ _ -> do

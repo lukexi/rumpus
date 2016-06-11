@@ -9,8 +9,7 @@ beginBeam :: (MonadState ECS m, MonadIO m) => WhichHand -> m ()
 beginBeam whichHand = do
 
     beamID <- spawnEntity $ do
-        myShape      ==> Cube
-        myProperties ==> [Holographic]
+        myShape ==> Cube
 
     modifySystemState sysHands $ hndBeams . at whichHand ?= beamID
     updateBeam whichHand

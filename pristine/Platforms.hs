@@ -11,7 +11,8 @@ start = do
     let platform pos size hue = spawnChild $ do
             myPose       ==> translateMatrix (pos & _y -~ (size^._y/2))
             myShape      ==> Cube
-            myProperties ==> [Teleportable, Floating, Ungrabbable]
+            myBody       ==> Animated
+            myBodyFlags  ==> [Teleportable, Ungrabbable]
             mySize       ==> size
             myColor      ==> colorHSL hue 0.8 0.6
             myMass       ==> 0

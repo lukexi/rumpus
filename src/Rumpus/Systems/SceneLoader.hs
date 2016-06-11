@@ -73,8 +73,9 @@ showSceneLoader = do
     inEntity sceneLoaderRootID $ do
         forM_ positionsAndCodePaths $ \(pos, maybeCodePath) -> do
             addSceneLibraryItem pos maybeCodePath
-        spawnChildInstance "Stars"
-        spawnChildInstance "Platform"
+        _ <- spawnChildInstance "Stars"
+        _ <- spawnChildInstance "Platform"
+        return ()
     return ()
 
 hideSceneLoader :: (MonadState ECS m, MonadIO m) => m ()
@@ -104,12 +105,12 @@ addSceneLibraryItem spherePosition maybeScenePath = do
         myPose         ==> translateMatrix (spherePosition * 1 + libraryCenter)
         myShape        ==> Sphere
         mySize         ==> sceneLoaderAnimationInitialSize
-        myProperties   ==> [Floating]
+        myBody         ==> Animated
         myDragOverride ==> True
         myText         ==> maybe "New Scene" takeBaseName maybeScenePath
-        myTextPose     ==> rotationAndPosition
-                            (axisAngle (V3 1 0 0) (0))
+        myTextPose     ==> positionRotation
                             (V3 0 (-1) 0)
+                            (axisAngle (V3 1 0 0) (0))
                             !*! scaleMatrix 0.3
         myColor      ==> V4 0.1 0.1 0.1 1
         -- Make the new object pulse

@@ -4,9 +4,9 @@ import Rumpus
 start :: Start
 start = do
     forM_ [0..100] $ \i -> spawnChild $ do
-        myShape      ==> Cube
-        myProperties ==> [Holographic]
-        myUpdate     ==> do
+        myShape         ==> Cube
+        myTransformType ==> AbsolutePose
+        myUpdate        ==> do
             now <- getNow
             let n = now * 1 + (i * 0.05)
                 y = 5 * sin n

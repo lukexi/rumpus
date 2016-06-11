@@ -5,7 +5,7 @@ import qualified Data.Vector as V
 start :: Start
 start = do
     setSynthPatch "Sampler.pd"
-    
+
     let numSamples = 32 -- actual generated is 256
     children <- V.generateM numSamples $ \i -> do
         let x = fromIntegral i / 8 + 1
@@ -14,14 +14,12 @@ start = do
             mySize             ==> 1
             myColor            ==> V4 0.8 0.9 0.4 1
             myPose             ==> position (V3 x 0 0)
-            myProperties       ==> [Holographic]
-            myInheritPose      ==> InheritPose
     mainID <- ask
-    
+
     pose <- getPose
     button <- spawnChild $ do
         myShape           ==> Cube
-        myProperties      ==> [Floating]
+        myBody            ==> Animated
         mySize            ==> 0.1
         -- Set initial pose so there's not a spurious collision
         myPose            ==> pose !*! position (V3 0 0.5 0)
@@ -32,11 +30,11 @@ start = do
             sendEntitySynth mainID "record-toggle" 1
         myCollisionEnd    ==> \_ -> do
             sendEntitySynth mainID "record-toggle" 0
-    
+
     attachEntity button
-    inEntity button $ 
+    inEntity button $
         setAttachmentOffset (position $ V3 0 0.5 0)
-    
+
     myUpdate          ==> do
         fftSample <- V.convert <$> readPdArray "sample-fft" 0 numSamples
         V.forM_ (V.zip children fftSample) $ \(childID, sample) -> do

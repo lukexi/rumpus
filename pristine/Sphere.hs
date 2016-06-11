@@ -26,10 +26,8 @@ start = do
         myParent           ==> rootEntityID
         myPose             ==> translateMatrix pos
         myShape            ==> Sphere
-        myProperties       ==> [Holographic]
-        myInheritPose ==> InheritFull
-        mySize             ==> V3 0.5 0.5 0.5
+        mySize             ==> 0.05
         myColor            ==> colorHSL hue 0.8 0.5
         myUpdate ==> do
             now <- sin <$> getNow
-            setSize (realToFrac ((sin now + 1) * 0.1 + 0.01))
+            setSize (realToFrac ((sin now + 1) * 0.05 + 0.01))

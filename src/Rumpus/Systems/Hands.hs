@@ -26,7 +26,8 @@ startHandsSystem = do
             myColor           ==> handColor
             mySize            ==> V3 0.075 0.075 0.25
             myShape           ==> Cube
-            myProperties      ==> [Floating, Ghostly, Ungrabbable]
+            myBody            ==> Detector
+            myBodyFlags       ==> [Ungrabbable]
             myMass            ==> 0
             myCollisionStart  ==> \_ impulse -> do
                 hapticPulse whichHand (floor $ impulse * 10000)
@@ -94,7 +95,7 @@ isEntityBeingHeldByHand :: MonadState ECS m
 isEntityBeingHeldByHand entityID whichHand = do
     handID <- getHandID whichHand
     isEntityAttachedTo entityID handID
-    
+
 isBeingHeldByHand :: (MonadState ECS m, MonadReader EntityID m)
                      => WhichHand -> m Bool
 isBeingHeldByHand whichHand = do

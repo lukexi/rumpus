@@ -8,7 +8,7 @@ start = do
     setShape Sphere
     setSize 0.2
     setColor (V4 0.2 0.3 0.1 1)
-    setFloating False
+    setBody Physical
 
     myCollisionStart ==> \_ _ -> do
         isHeld <- isBeingHeld

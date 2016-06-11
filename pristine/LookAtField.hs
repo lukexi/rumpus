@@ -8,11 +8,11 @@ start = do
         positions = [ V3 x (y+3) z - realToFrac n / 2 | x <- m, y <- m, z <- m ]
     forM_ positions $ \((/3) -> pos) -> do
         spawnChild $ do
-            myPose        ==> position pos
-            myShape       ==> Cube
-            mySize        ==> V3 0.01 0.01 0.3
-            myProperties  ==> [Holographic]
-            myColor       ==> colorHSL 0 0.7 0.9
+            myPose          ==> position pos
+            myShape         ==> Cube
+            mySize          ==> V3 0.01 0.01 0.3
+            myTransformType ==> AbsolutePose
+            myColor         ==> colorHSL 0 0.7 0.9
             myUpdate ==> do
                 leftHandPos <- view translation <$> (getEntityPose =<< getLeftHandID)
                 let rotPos = inv44 $ lookAt pos leftHandPos (V3 0 1 0)

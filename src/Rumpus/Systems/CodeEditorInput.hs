@@ -14,7 +14,6 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.CodeEditor
 
 import qualified Data.Sequence as Seq
-import Data.Sequence (Seq)
 
 -- | Passes keyboard events to the active code editor
 tickCodeEditorInputSystem :: (MonadIO m, MonadState ECS m) => m ()
@@ -45,8 +44,6 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 
                 -- Disabling til I have energy to debug this
                 wasModuleNameChange <- checkForModuleNameChange codeInFile
-
-                let wasModuleNameChange = False
                 unless wasModuleNameChange $
                     recompileCodeInFile codeInFile
 
