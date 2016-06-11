@@ -1,6 +1,5 @@
-module Knob where
+module Verylogue2 where
 import Rumpus
-import Text.Printf
 
 majorScale = [0,2,4,5,7,9,11,12]
 
@@ -89,6 +88,18 @@ start = do
     spawnActiveKnob "LFO Target" (Stepped ["Pitch", "Rate", "Cutoff"]) 1 $ \n -> do
         sendEntitySynth rootID "lfo-target" (realToFrac (floor n))
 
+    -- Knob backplane
+    let backW = 3.2
+    spawnChild $ do
+        myShape ==> Cube
+        myProperties ==> [Holographic]
+        myInheritPose ==> InheritPose
+        myPose ==> position (V3 (0.3 + 0.5*backW) 0 -0.1)
+        mySize ==> V3 backW 1.5 0.01
+        myColor ==> V4 0.2 0.2 0.23 1
+
+
+    -- Random sequencer
     setRepeatingAction 0.1 $ do
         degree <- randomFrom majorScale
         let note = degree + 60
@@ -105,15 +116,6 @@ start = do
             mySize        ==> 0.2
             myColor       ==> colorHSL degree01 0.8 brightness
         inEntity noteCube $ setLifetime 1
-
-    let backW = 3.2
-    spawnChild $ do
-        myShape ==> Cube
-        myProperties ==> [Holographic]
-        myInheritPose ==> InheritPose
-        myPose ==> position (V3 (0.3 + 0.5*backW) 0 -0.1)
-        mySize ==> V3 backW 1.5 0.01
-        myColor ==> V4 0.2 0.2 0.23 1
 
     return ()
 

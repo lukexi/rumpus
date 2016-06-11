@@ -16,6 +16,7 @@ import Control.Concurrent.STM as Exports hiding (atomically)
 
 import Data.Char as Exports
 import Text.Read as Exports (readMaybe)
+import Text.Printf as Exports
 
 import System.Random as Exports
 import System.Directory as Exports
