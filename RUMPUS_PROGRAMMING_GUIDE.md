@@ -170,7 +170,7 @@ start = do
         myShape      ==> Cube
         myPose       ==> position (V3 0 0 -1)
         mySize       ==> 0.1
-        myBodyFlags ==> [Physical]
+        myBody       ==> Physical
 ```
 The object will fall into the void. Try pulling out a Platform object for it to land on.
 You can change the object's Mass, Restitution, and Gravity using myMass, myRestitution, and myGravity.
@@ -184,7 +184,7 @@ start = do
         myShape          ==> Cube
         myPose           ==> position (V3 0 0 -1)
         mySize           ==> 0.1
-        myBodyFlags     ==> [Physical]
+        myBody           ==> Physical
         myCollisionStart ==> \_ _ -> do
             hue <- randomRange (0,1)
             setColor (colorHSL hue 0.5 0.5)
@@ -199,7 +199,7 @@ start = do
         myShape      ==> Cube
         myPose       ==> position (V3 0 0 -1)
         mySize       ==> 0.1
-        myBodyFlags ==> [Teleportable]
+        myBodyFlags  ==> [Teleportable]
 ```
 
 ### SYNTHESIS
