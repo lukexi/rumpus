@@ -13,7 +13,7 @@ start = do
         puffID <- spawnChild $ do
             myShape  ==> Sphere
             myColor  ==> colorHSL hue 0.5 0.5
-            myPose   ==> translateMatrix (V3 x y z)
+            myPose   ==> position (V3 x y z)
             myUpdate ==> do
                 now <- (i +) <$> getNow
                 setSize (realToFrac (sin now / 2 + 1) * 0.2 + 0.2) -- 0.2<->0.4
@@ -27,7 +27,7 @@ start = do
                 hue <- randomRange (0.5,0.7)
                 drop <- spawnChild $ do
                     myShape ==> Sphere
-                    myPose  ==> cloudPose !*! translateMatrix startPos
+                    myPose  ==> cloudPose !*! position startPos
                     mySize  ==> 0.03
                     myBody  ==> Physical
                     myColor ==> colorHSL hue 0.5 0.8

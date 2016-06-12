@@ -16,7 +16,7 @@ start = do
             now <- getNow
             let time = mod' now duration
                 x = time
-            setAttachmentOffset (translateMatrix (V3 x 0 0))
+            setAttachmentOffset (position (V3 x 0 0))
 
             -- Scale in/out
             let timeR    = duration - time
@@ -29,12 +29,12 @@ start = do
         myCollisionBegan ==> \hitEntityID _ -> when (hitEntityID /= thisID) $ do
             flashColor <- getEntityColor hitEntityID
             animateColor 0.2 flashColor (V4 1 1 1 1)
-    attachEntity playHead (translateMatrix (V3 0 0 0))
+    attachEntity playHead (position (V3 0 0 0))
 
     -- track
     spawnChild $ do
         myShape ==> Cube
         mySize  ==> V3 duration 0.01 0.01
-        myPose  ==> translateMatrix (V3 (duration / 2) 0 0)
+        myPose  ==> position (V3 (duration / 2) 0 0)
 
     return ()

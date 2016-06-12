@@ -79,7 +79,10 @@ deriveRigidBody dynamicsWorld = do
         mShapeType <- getComponent myShape
         forM_ mShapeType $ \shapeType -> do
 
-            mass           <- getComponentDefault 1 myMass
+            -- Force animated bodies to infinite mass
+            mass           <- case bodyType of
+                Animated -> return 0
+                _        -> getComponentDefault 1 myMass
             collisionGroup <- getComponentDefault 1 myCollisionGroup
             collisionMask  <- getComponentDefault 1 myCollisionMask
             size <- getSize

@@ -11,7 +11,7 @@ roomOffset = (roomH/2 - wallD/2)
 start :: Start
 start = do
     let makeWall pos size hue extraProps = spawnChild $ do
-            myPose       ==> translateMatrix (pos & _y +~ roomOffset)
+            myPose       ==> position (pos & _y +~ roomOffset)
             myShape      ==> Cube
             myBody       ==> Animated
             myBodyFlags  ==> extraProps ++ [Ungrabbable]

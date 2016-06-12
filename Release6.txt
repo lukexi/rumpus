@@ -12,3 +12,7 @@
     you should be able to just zip up a folder and drop it into the rumpus dir
     to pass something to someone else.
 
+    OK: a plan for this.
+    Keep code files in Scenes.
+    Keep pd patches in Rumpus Root.
+    Add "Import" to browse your scenes, and copy file into current scene when grabbed

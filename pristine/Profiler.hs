@@ -16,7 +16,7 @@ start = do
         let y = i*0.1 + 1
         -- Label
         spawnChild $ do
-            myPose             ==> translateMatrix (V3 0 y 0.1)
+            myPose             ==> position (V3 0 y 0.1)
             myTextPose         ==> scaleMatrix 0.05
             myText             ==> name
             myTransformType    ==> RelativeFull
@@ -33,7 +33,7 @@ start = do
                 (i / fromIntegral numSamples)
                 1
                 brightness
-            myPose             ==> translateMatrix (V3 0 y (-fromIntegral z*0.1))
+            myPose             ==> position (V3 0 y (-fromIntegral z*0.1))
         return (name, childIDs))
 
     --removeComponent myUpdate

@@ -9,13 +9,12 @@ d = 0.5
 start :: Start
 start = do
     let platform pos size hue = spawnChild $ do
-            myPose       ==> translateMatrix (pos & _y -~ (size^._y/2))
+            myPose       ==> position (pos & _y -~ (size^._y/2))
             myShape      ==> Cube
             myBody       ==> Animated
-            myBodyFlags  ==> [Teleportable, Ungrabbable]
+            myBodyFlags  ==> [Ungrabbable, Teleportable]
             mySize       ==> size
             myColor      ==> colorHSL hue 0.8 0.6
-            myMass       ==> 0
 
     -- Platforms
     platform (V3 0     0  0)     (V3 w d w) 0.1

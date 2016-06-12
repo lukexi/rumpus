@@ -36,6 +36,7 @@ tickGOL grid = array (bounds grid) (go <$> assocs grid)
 start :: Start
 start = do
 
+    -- Glider
     let initialGrid :: GOL
         initialGrid = listArray gridBounds (repeat 0)
                         //  [ (V2 0 0, 1)
