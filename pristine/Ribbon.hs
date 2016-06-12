@@ -3,16 +3,16 @@ import Rumpus
 
 start :: Start
 start = do
-    speedKnob <- spawnActiveKnob "Speed" (Linear 0 5) 1 (const $ return ()) 
-    barKnob   <- spawnActiveKnob "Bar" (Linear 0 5) 1 (const $ return ()) 
-    thisID <- ask
+    speedKnob <- spawnKnob "Speed" (Linear 0 5) 1
+    barKnob <- spawnKnob "Bar" (Linear 0 5) 1
+    rootID <- ask
     forM_ [0..100] $ \i -> spawnChild $ do
         myShape         ==> Cube
         myTransformType ==> AbsolutePose
         myUpdate        ==> do
             now <- getNow
-            speed <- inEntity thisID $ getKnobData "Speed"
-            bar <- inEntity thisID $ getKnobData "Bar"
+            speed <- getKnobValue speedKnob
+            bar   <- getKnobValue barKnob
             let n = now * speed + (i * 0.05)
                 y = bar * 10 * sin n
             setPositionRotationSize

@@ -29,6 +29,7 @@ tickAttachmentSystem =
             forM_ (Map.toList attachments) $ \(toEntityID, offset) -> do
                 setPoseFromAttachment holderID toEntityID offset
 
+setPoseFromAttachment :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> M44 GLfloat -> m ()
 setPoseFromAttachment holderID toEntityID offset = do
     pose <- getEntityPose holderID
     setEntityPose toEntityID (pose `addMatrix` offset)

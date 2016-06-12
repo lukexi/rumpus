@@ -33,18 +33,23 @@ newKnobState :: KnobState
 newKnobState = KnobState identity 0
 
 
-type KnobDefs = Map KnobName KnobDef
+type KnobDefs   = Map KnobName KnobDef
 type KnobValues = Map KnobName Float
 
 defineComponentKey ''KnobDefs
 defineComponentKey ''KnobValues
 defineComponentKey ''KnobState
 
+type KnobValueCached = Float
+defineComponentKey ''KnobValueCached
+
 initKnobsSystem :: MonadState ECS m => m ()
 initKnobsSystem = do
     registerComponent "KnobDefs"   myKnobDefs   (newComponentInterface myKnobDefs)
     registerComponent "KnobState"  myKnobState  (newComponentInterface myKnobState)
     registerComponent "KnobValues" myKnobValues (savedComponentInterface myKnobValues)
+
+    registerComponent "KnobValueCached"  myKnobValueCached  (newComponentInterface myKnobValueCached)
 
 addKnobDef :: (MonadState ECS m, MonadReader EntityID m)
            => KnobName -> KnobDef -> m ()
@@ -55,8 +60,8 @@ addKnobDef knobName knobDef = prependComponent myKnobDefs (Map.singleton knobNam
 setKnobValue01 :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> Float -> m ()
 setKnobValue01 knobName value = prependComponent myKnobValues (Map.singleton knobName value)
 
-getKnobValue01 :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
-getKnobValue01 knobName = do
+getKnobValue01ByName :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
+getKnobValue01ByName knobName = do
     knobValues <- getComponentDefault mempty myKnobValues
     case Map.lookup knobName knobValues of
         Just value -> return value
@@ -66,19 +71,22 @@ getKnobValue01 knobName = do
                 Just knobDef -> return (knbDefault01 knobDef)
                 Nothing      -> return 0
 
-getEntityKnobValue01 :: (MonadState ECS m) => EntityID -> KnobName -> m Float
-getEntityKnobValue01 entityID knobName = inEntity entityID (getKnobValue01 knobName)
+getEntityKnobValue01ByName :: (MonadState ECS m) => EntityID -> KnobName -> m Float
+getEntityKnobValue01ByName entityID knobName = inEntity entityID (getKnobValue01ByName knobName)
 
+getEntityKnobValueByName :: (MonadState ECS m) => EntityID -> KnobName -> m Float
+getEntityKnobValueByName entityID knobName = inEntity entityID (getKnobValueByName knobName)
 
-getEntityKnobValue :: (MonadState ECS m) => EntityID -> KnobName -> m Float
-getEntityKnobValue entityID knobName = inEntity entityID (getKnobValue knobName)
+getKnobValue :: (MonadState ECS m) => EntityID -> m Float
+getKnobValue knobID = getEntityComponentDefault 0 knobID myKnobValueCached
 
-getKnobValue :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
-getKnobValue knobName = do
+-- Faster to use getKnobValue on the knob entity itself
+getKnobValueByName :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
+getKnobValueByName knobName = do
     knobDefs <- getComponentDefault mempty myKnobDefs
     case Map.lookup knobName knobDefs of
         Just knobDef -> do
-            knbVal01ToValue knobDef <$> getKnobValue01 knobName
+            knbVal01ToValue knobDef <$> getKnobValue01ByName knobName
         Nothing -> return 0
 
 spawnKnob :: KnobName -> KnobScale -> Float -> EntityMonad EntityID
@@ -125,7 +133,7 @@ spawnActiveKnobAt knobPos name knobDef@KnobDef{..} = do
     let initialRotation = value01ToKnobRotation knbDefault01
 
 
-    initialValue01 <- getKnobValue01 name
+    initialValue01 <- getKnobValue01ByName name
     let initialValue = knbVal01ToValue initialValue01
 
     knbAction initialValue
@@ -181,21 +189,21 @@ spawnActiveKnobAt knobPos name knobDef@KnobDef{..} = do
                 setAttachmentOffset (positionRotation knobPos
                     (axisAngle (V3 0 0 1) newRotation) )
 
-                -- Update the knob's label,
-                -- and run the its action,
-                -- with the scaled value
+                -- Update the knob's label
                 let newValue01     = knobRotationToValue01 newRotation
-                    newValueScaled = knbVal01ToValue newValue01
-                inEntity valueLabel $ setText (displayValue knobDef newValueScaled)
-
-                knbAction newValueScaled
-
-                -- Update the knob "light"
+                    newValue       = knbVal01ToValue newValue01
+                inEntity valueLabel $ setText (displayValue knobDef newValue)
+                -- Update the knob's "light"
                 updateKnobLight newValue01
+
+                -- Run the action
+                knbAction newValue
 
                 -- Record the knob value in the parent so it can be persisted
                 inEntity parentID $ do
                     setKnobValue01 name newValue01
+                -- Cache the knob value in the knob entity itself so it can be grabbed quickly
+                myKnobValueCached ==> newValue
         myDragEnded ==> do
             sceneWatcherSaveEntity parentID
         myKnobState ==> newKnobState { ksRotation = initialRotation }
