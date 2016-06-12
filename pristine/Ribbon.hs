@@ -4,8 +4,7 @@ import Rumpus
 start :: Start
 start = do
     speedKnob <- spawnKnob "Speed" (Linear 0 5) 1
-    barKnob <- spawnKnob "Bar" (Linear 0 5) 1
-    rootID <- ask
+    barKnob   <- spawnKnob "Bar"   (Linear 0 5) 1
     forM_ [0..100] $ \i -> spawnChild $ do
         myShape         ==> Cube
         myTransformType ==> AbsolutePose
