@@ -17,13 +17,13 @@ import Control.Exception
 
 import RumpusLib
 import Rumpus.Types
-
+import Data.List (sort)
 libraryCenter :: V3 GLfloat
---libraryCenter = V3 0 1.5 0
-libraryCenter = if isInReleaseMode
-    then V3 0 1.5 0
+libraryCenter = V3 0 1.5 0
+--libraryCenter = if isInReleaseMode
+    --then V3 0 1.5 0
     -- offset for couch access
-    else V3 -1.5 1.5 0
+    --else V3 -1.5 1.5 0
 
 data SceneLoaderSystem = SceneLoaderSystem
     { _sclSceneLoaderRootID :: !(Maybe EntityID)
@@ -53,7 +53,7 @@ listScenes :: (MonadState ECS m, MonadIO m) => m [FilePath]
 listScenes = do
     rumpusRoot <- getRumpusRootFolder
 
-    scenePaths <- listDirectories rumpusRoot
+    scenePaths <- sort <$> listDirectories rumpusRoot
     return scenePaths
 
 showSceneLoader :: (MonadState ECS m, MonadIO m) => m ()
@@ -74,7 +74,9 @@ showSceneLoader = do
         forM_ positionsAndCodePaths $ \(pos, maybeCodePath) -> do
             addSceneLibraryItem pos maybeCodePath
         _ <- spawnChildInstance "Stars"
+        _ <- spawnChildInstance "VoicePillars"
         _ <- spawnChildInstance "Platform"
+        _ <- spawnChildInstance "Grass"
         return ()
     return ()
 
@@ -101,8 +103,9 @@ listDirectories inPath = liftIO $
 addSceneLibraryItem :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                     => V3 GLfloat -> Maybe FilePath -> m ()
 addSceneLibraryItem spherePosition maybeScenePath = do
+    let itemPosition = spherePosition * 1 + libraryCenter
     itemID <- spawnChild $ do
-        myPose         ==> translateMatrix (spherePosition * 1 + libraryCenter)
+        myPose         ==> position itemPosition
         myShape        ==> Sphere
         mySize         ==> sceneLoaderAnimationInitialSize
         myBody         ==> Animated
@@ -110,14 +113,16 @@ addSceneLibraryItem spherePosition maybeScenePath = do
         myText         ==> maybe "New Scene" takeBaseName maybeScenePath
         myTextPose     ==> positionRotation
                             (V3 0 (-1) 0)
-                            (axisAngle (V3 1 0 0) (0))
+                            (axisAngle (V3 0 1 0) pi)
                             !*! scaleMatrix 0.3
         myColor      ==> V4 0.1 0.1 0.1 1
         -- Make the new object pulse
-        when (isNothing maybeScenePath) $ do
-            myUpdate ==> do
+        myUpdate ==> do
+            when (isNothing maybeScenePath) $ do
                 now <- getNow
                 setColor (colorHSL now 0.3 0.8)
+            headPose <- getHeadPose
+            setPose $ orientToward itemPosition (headPose ^. translation) (V3 0 1 0)
         myDragBegan ==> do
             rumpusRoot <- getRumpusRootFolder
             mScenePathToLoad <- case maybeScenePath of

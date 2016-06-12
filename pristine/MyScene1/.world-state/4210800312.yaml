@@ -1,0 +1,60 @@
+StartExpr:
+- Verylogue2.hs
+- start
+Size:
+- 0.4
+- 0.4
+- 0.1
+Color:
+- 0.1
+- 0.1
+- 0.1
+- 1
+Body: Animated
+Pose:
+- - 0.9984261
+  - 2.8884865e-2
+  - -4.807315e-2
+  - -1.4085505
+- - -2.5139298e-2
+  - 0.99673164
+  - 7.677314e-2
+  - 1.4580145
+- - 5.013361e-2
+  - -7.5443774e-2
+  - 0.99588895
+  - -0.6954894
+- - 0.0
+  - 0.0
+  - 0.0
+  - 1
+Shape: Cube
+KnobValues:
+  Resonance: 1.2462586e-2
+  LFO EG-Mod: 1
+  VCO1 Shape: 0.4326894
+  Env Dec: 0.45988432
+  VCO1 Amp: 1
+  Amp Rel: 0.62991154
+  Amp Atk: 8.798051e-2
+  VCO2 Wave: 0.9378404
+  Env Sus: 0.74122185
+  LFO Wave: 0.5928707
+  Env Rel: 0.8357806
+  Amp Dec: 0.44484583
+  VCO2 Amp: 1
+  LFO Target: 0.50855327
+  VCO2 Shape: 0.4459055
+  LFO Rate: 2.7377482e-3
+  VCO2 EG>Pitch: 0.0
+  VCO2 Octave: 0.7862633
+  VCO1 Pitch: 0.4979341
+  Cutoff: 0.38375473
+  Env Atk: 0.10848002
+  LFO Int: 0.66864634
+  VCO2 Cross: 7.928725e-3
+  VCO2 Pitch: 0.49779794
+  VCO1 Wave: 0.79256976
+  VCO1 Octave: 0.2753602
+  EG Int: 0.4416329
+  Amp Sus: 0.7241745

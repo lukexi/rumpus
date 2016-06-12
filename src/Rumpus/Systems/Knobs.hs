@@ -5,7 +5,6 @@ import Rumpus.Systems.Shared
 import Rumpus.Systems.Drag
 import Rumpus.Systems.Text
 import Rumpus.Systems.Physics
-import Rumpus.Systems.Script
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.SceneWatcher
 import qualified Data.HashMap.Strict as Map
@@ -14,7 +13,7 @@ type KnobName = String
 
 data KnobDef = KnobDef
     { knbScale   :: !KnobScale
-    , knbDefault :: !Float
+    , knbDefault01 :: !Float
     , knbAction  :: !(GLfloat -> EntityMonad ())
     }
 
@@ -45,8 +44,8 @@ initKnobsSystem = do
 
 addKnobDef :: (MonadState s m, MonadReader EntityID m, HasComponents s)
            => KnobName -> KnobScale -> Float -> (GLfloat -> EntityMonad ()) -> m ()
-addKnobDef knobName scale defVal action = prependComponent myKnobDefs (Map.singleton knobName knobDef)
-    where knobDef = KnobDef { knbScale = scale, knbDefault = defVal, knbAction = action }
+addKnobDef knobName scale defVal01 action = prependComponent myKnobDefs (Map.singleton knobName knobDef)
+    where knobDef = KnobDef { knbScale = scale, knbDefault01 = defVal01, knbAction = action }
 
 -- Must use prependComponent rather than appendComponent to update the Map,
 -- as its <> is left-biased
@@ -61,7 +60,7 @@ getKnobData knobName = do
         Nothing -> do
             knobDefs <- getComponentDefault mempty myKnobDefs
             case Map.lookup knobName knobDefs of
-                Just knobDef -> return (knbDefault knobDef)
+                Just knobDef -> return (knbDefault01 knobDef)
                 Nothing      -> return 0
 
 
@@ -69,7 +68,6 @@ getKnobData knobName = do
 
 
 spawnActiveKnob name knobScale defVal action = do
-    addKnobDef name knobScale defVal action
 
     i <- Map.size <$> getComponentDefault mempty myKnobDefs
     let x = fromIntegral (i `div` 4) * 0.4
@@ -94,6 +92,8 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
             Linear _ _      -> (printf "%.2f" (value::Float))
             Stepped options -> let i = round value in if i >= 0 && i < length options then options !! i else "<over>"
         initialRotation = value01ToKnobRotation (valueToVal01 defVal)
+
+    addKnobDef name knobScale (valueToVal01 defVal) action
 
     initialValue01 <- getKnobData name
     let initialValue = val01ToValue initialValue01
@@ -124,7 +124,7 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
                 let diff = newHandPose `subtractMatrix` ksLastHandPose oldState
                     V3 dX _dY _dZ = testEpsilon $ quatToEuler (quaternionFromMatrix diff)
                     -- We want clockwise rotation, so bound to -2pi <> 0
-                    newRotation = min 0 . max maxKnobRot $ ksRotation oldState - dX
+                    newRotation = min 0 . max maxKnobRot $ ksRotation oldState + dX
 
                 -- Update the knob's state and appearance
                 myKnobState ==> (KnobState { ksLastHandPose = newHandPose, ksRotation = newRotation })

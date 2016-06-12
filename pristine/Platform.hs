@@ -16,5 +16,5 @@ start = do
         myBody       ==> Animated
         myBodyFlags  ==> [Ungrabbable, Teleportable]
         mySize       ==> V3 roomW wallD roomD
-        myColor      ==> colorHSL 0.5 0.8 0.2
+        myColor      ==> colorHSL 0.25 0.8 0.2
     return ()

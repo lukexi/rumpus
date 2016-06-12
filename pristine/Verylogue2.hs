@@ -3,6 +3,45 @@ import Rumpus
 
 majorScale = [0,2,4,5,7,9,11,12]
 
+start :: Start
+start = do
+    setSynthPatch "Verylogue.pd"
+
+    rootID <- ask
+    forM_ verylogueKnobs $ \(name, synthTarget, knobScale, knobDefault) ->
+        spawnActiveKnob name knobScale knobDefault $ \n ->
+            sendEntitySynth rootID synthTarget (realToFrac n)
+
+    -- Knob backplane
+    let backW = 3.2
+    spawnChild $ do
+        myShape ==> Cube
+        mySize  ==> V3 backW 1.5 0.01
+        myPose  ==> position (V3 (0.3 + 0.5*backW) 0 -0.1)
+        myColor ==> V4 0.2 0.2 0.23 1
+
+
+
+    -- Random sequencer
+    setRepeatingAction 0.5 $ do
+        degree <- randomFrom majorScale
+        let note = degree + 60
+        sendSynth "note" (List [realToFrac (note::Int), 100])
+        let degree01 = (fromIntegral degree / 12)
+            hue = degree01
+
+        brightness <- (*0.7) <$> getKnobData "Cutoff"
+        currentPose <- getPose
+        void . spawnChild $ do
+            myShape         ==> Cube
+            mySize          ==> 0.2
+            myColor         ==> colorHSL degree01 0.8 brightness
+            myPose          ==> currentPose !*! position (V3 0 (0.5+degree01) 0)
+            myTransformType ==> AbsolutePose
+            myLifetime      ==> 1
+
+    return ()
+    
 verylogueKnobs =
     [
     -- VCO1
@@ -51,42 +90,3 @@ verylogueKnobs =
 
 
     ]
-
-start :: Start
-start = do
-    setSynthPatch "Verylogue.pd"
-
-    rootID <- ask
-    setState (0::Int)
-    forM_ verylogueKnobs $ \(name, synthTarget, knobScale, knobDefault) ->
-        spawnActiveKnob name knobScale knobDefault $ \n ->
-            sendEntitySynth rootID synthTarget (realToFrac n)
-
-    -- Knob backplane
-    let backW = 3.2
-    spawnChild $ do
-        myShape ==> Cube
-        mySize  ==> V3 backW 1.5 0.01
-        myPose  ==> position (V3 (0.3 + 0.5*backW) 0 -0.1)
-        myColor ==> V4 0.2 0.2 0.23 1
-
-
-    -- Random sequencer
-    setRepeatingAction 0.1 $ do
-        degree <- randomFrom majorScale
-        let note = degree + 60
-        sendSynth "note" (List [realToFrac (note::Int), 100])
-        let degree01 = (fromIntegral degree / 12)
-            hue = degree01
-
-        brightness <- (*0.7) <$> getKnobData "Cutoff"
-        currentPose <- getPose
-        void . spawnChild $ do
-            myShape         ==> Cube
-            mySize          ==> 0.2
-            myColor         ==> colorHSL degree01 0.8 brightness
-            myPose          ==> currentPose !*! position (V3 0 (0.5+degree01) 0)
-            myTransformtype ==> AbsolutePose
-            myLifetime      ==> 1
-
-    return ()

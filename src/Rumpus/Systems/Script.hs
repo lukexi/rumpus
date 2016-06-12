@@ -4,6 +4,7 @@ import PreludeExtra
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Shared
 import Rumpus.Systems.CodeProtect
+import Rumpus.Systems.Knobs
 
 import qualified Data.HashMap.Strict as Map
 
@@ -37,6 +38,7 @@ runScripts = runUserScriptsWithTimeout_ $ do
             -- This should probably be configurable but it's what
             -- I always find myself doing so I'm hardcoding it for now.
             removeChildren
+            removeComponent myKnobDefs
 
             -- Only call Start once.
             runUserFunctionProtected myStart onStart

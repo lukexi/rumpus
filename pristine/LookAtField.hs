@@ -15,6 +15,6 @@ start = do
             myColor         ==> colorHSL 0 0.7 0.9
             myUpdate ==> do
                 leftHandPos <- view translation <$> getHandPose LeftHand
-                let rotPos = inv44 $ lookAt pos leftHandPos (V3 0 1 0)
+                let rotPos = orientTowards pos leftHandPos (V3 0 1 0)
                 setPose rotPos
                 setColor (colorHSL (rotPos ^. _x . _x) 0.8 0.7)

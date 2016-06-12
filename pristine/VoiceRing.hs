@@ -1,4 +1,4 @@
-module SampleRing where
+module VoiceRing where
 import Rumpus
 
 import qualified Data.Vector as V
