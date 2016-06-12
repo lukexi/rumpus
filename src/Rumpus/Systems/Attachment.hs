@@ -25,10 +25,13 @@ initAttachmentSystem = do
 tickAttachmentSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickAttachmentSystem =
     forEntitiesWithComponent myAttachments $
-        \(entityID, attachments) ->
+        \(holderID, attachments) ->
             forM_ (Map.toList attachments) $ \(toEntityID, offset) -> do
-                pose <- getEntityPose entityID
-                setEntityPose toEntityID (pose `addMatrix` offset)
+                setPoseFromAttachment holderID toEntityID offset
+
+setPoseFromAttachment holderID toEntityID offset = do
+    pose <- getEntityPose holderID
+    setEntityPose toEntityID (pose `addMatrix` offset)
 
 detachFromHolder :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => m ()
 detachFromHolder = detachEntityFromHolder =<< ask
@@ -70,6 +73,8 @@ attachEntityToEntity holderID toEntityID offset = do
     appendAttachment holderID toEntityID offset
     inEntity toEntityID (myHolder ==> holderID)
     overrideSetKinematicMode toEntityID
+
+    setPoseFromAttachment holderID toEntityID offset
 
 detachAttachedEntity :: (MonadState ECS m, MonadIO m) => EntityID -> EntityID -> m ()
 detachAttachedEntity holderID entityID = do

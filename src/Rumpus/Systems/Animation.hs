@@ -40,8 +40,9 @@ tickComponentAnimation now animComponentKey setter =
 
 animateSizeTo :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> DiffTime -> m ()
 animateSizeTo newSize time = do
+    let time' = max 0.001 time
     currentSize <- getSize
-    animation <- makeAnimation time currentSize newSize
+    animation <- makeAnimation time' currentSize newSize
     mySizeAnimation ==> animation
 
 
