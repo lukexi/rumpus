@@ -80,11 +80,13 @@ start = do
             hue = degree01
 
         brightness <- (*0.7) <$> getKnobData "Cutoff"
+        currentPose <- getPose
         void . spawnChild $ do
-            myShape       ==> Cube
-            mySize        ==> 0.2
-            myColor       ==> colorHSL degree01 0.8 brightness
-            myPose        ==> position (V3 0 (0.5+degree01) 0)
-            myLifetime    ==> 1
+            myShape         ==> Cube
+            mySize          ==> 0.2
+            myColor         ==> colorHSL degree01 0.8 brightness
+            myPose          ==> currentPose !*! position (V3 0 (0.5+degree01) 0)
+            myTransformtype ==> AbsolutePose
+            myLifetime      ==> 1
 
     return ()

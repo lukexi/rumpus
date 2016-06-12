@@ -1,0 +1,14 @@
+
+
+[ ] Put manual into Rumpus
+
+[ ] Try to repro "file locked" error messages in release build
+
+[ ] Add knobs to more objects
+
+[ ] Try state-saving paint-brush?
+
+[ ] Hmmm... a very good reason to keep files in the folder is for sharing;
+    you should be able to just zip up a folder and drop it into the rumpus dir
+    to pass something to someone else.
+

@@ -64,6 +64,8 @@ getHandIDs = do
            , (RightHand, rightHandID)
            ]
 
+getHandPose :: MonadState ECS m => WhichHand -> m (M44 GLfloat)
+getHandPose whichHand = getEntityPose =<< getHandID whichHand
 
 otherHandFrom :: WhichHand -> WhichHand
 otherHandFrom whichHand = case whichHand of

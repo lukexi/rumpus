@@ -13,6 +13,8 @@ Press and hold the "App Button" (above the touchpad on your Vive controller) on 
 
 To return to the **Scene Loader**, click the green orb that appears at the bottom of the wand when holding the App Button with your other hand.
 
+You can create your own scene by clicking the "New Scene" orb in the **Scene Loader**. Scenes are persistent, so you can build arrangements and revist them later.
+
 To learn to edit and create your own objects, see _RUMPUS PROGRAMMING GUIDE_ below.
 
 ### RUMPUS MULTIPLAYER
@@ -176,9 +178,18 @@ start = do
         myBody       ==> Physical
 ```
 The object will fall into the void. Try pulling out a Platform object for it to land on.
-You can change the object's Mass, Restitution, and Gravity using myMass, myRestitution, and myGravity.
 
-To react when the object hits another object (including your hands), use my myCollisionBegan, myCollisionContinues, and myCollisionEnded components.
+There are 3 kinds of physics body you can request in `myBody`:
+* `Physical` creates a "real-world" object that can be picked up, thrown, knocked around, etc.
+    You can change these objects' Mass, Restitution, and Gravity using myMass, myRestitution, and myGravity
+    (by default, they'll experience an Earth gravity of 9.8m/s^2)
+* `Animated` creates a physics object that you animate yourself (e.g. with `myUpdate`).
+    It is still a solid object, so it will knock other Physical objects around, but has effectively infinite mass and thus won't be affected by them.
+    This corresponds to "Kinematic" in Bullet Physics.
+* `Detector` creates an ethereal physics object that detects when objects are intersecting it but passes through them like a ghost.
+    This corresponds to "NoContactResponse" in Bullet Physics.
+
+To react when the object hits another object (including your hands), use the myCollisionBegan, myCollisionContinues, and myCollisionEnded components.
 For example, to change color every time we touch something:
 ```
 start = do
@@ -195,8 +206,26 @@ start = do
 Adding a physics body also makes myPose refer to absolute rather than relative coordinates.
 
 ### ATTACHMENT
+You can attach physics bodies to one another with attachEntity like so:
+```
+start = do
+    childID <- spawnChild $ do
+        myColor          ==> colorHSL 0.5 0.7 0.7
+        myShape          ==> Cube
+        myPose           ==> position (V3 0 1 0)
+        mySize           ==> 0.1
+        myBody           ==> Animated
+        myCollisionBegan ==> \_ _ -> do
+            hue <- randomRange (0,1)
+            setColor (colorHSL hue 0.5 0.5)
+    attachEntity childID (position (V3 0 0.5 0))
+```
+The second argument to `attachEntity` is the pose offset at which the entity should be attached.
 
 ### DRAGGING
+Entities with myBody set will receive myDragBegan, myDragContinues, and myDragEnded events when dragged by the hand controllers. You can use this to implement interactive objects. If you'd like to handle dragging yourself rather than using the built-in behavior of attaching entities to the hand controllers when they are dragged, you can set `myDragOverride ==> True` on your entity.
+
+
 
 ### TELEPORTATION
 You can mark any physics object as "Teleportable" to allow yourself to teleport on top of it using the Grip (side) buttons on the Vive controller.
