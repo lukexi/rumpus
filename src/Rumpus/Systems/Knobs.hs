@@ -41,7 +41,9 @@ defineComponentKey ''KnobValues
 defineComponentKey ''KnobState
 
 type KnobValueCached = Float
+type KnobValueCachedNew = Bool
 defineComponentKey ''KnobValueCached
+defineComponentKey ''KnobValueCachedNew
 
 initKnobsSystem :: MonadState ECS m => m ()
 initKnobsSystem = do
@@ -49,7 +51,8 @@ initKnobsSystem = do
     registerComponent "KnobState"  myKnobState  (newComponentInterface myKnobState)
     registerComponent "KnobValues" myKnobValues (savedComponentInterface myKnobValues)
 
-    registerComponent "KnobValueCached"  myKnobValueCached  (newComponentInterface myKnobValueCached)
+    registerComponent "KnobValueCached"    myKnobValueCached    (newComponentInterface myKnobValueCached)
+    registerComponent "KnobValueCachedNew" myKnobValueCachedNew (newComponentInterface myKnobValueCachedNew)
 
 addKnobDef :: (MonadState ECS m, MonadReader EntityID m)
            => KnobName -> KnobDef -> m ()
@@ -79,6 +82,21 @@ getEntityKnobValueByName entityID knobName = inEntity entityID (getKnobValueByNa
 
 getKnobValue :: (MonadState ECS m) => EntityID -> m Float
 getKnobValue knobID = getEntityComponentDefault 0 knobID myKnobValueCached
+
+-- For cases where we only want to do something semi-expensive on knob changes
+getNewKnobValue :: (MonadState ECS m) => EntityID -> m (Maybe Float)
+getNewKnobValue knobID = do
+    isNew <- getEntityComponentDefault False knobID myKnobValueCachedNew
+    if isNew
+        then do
+            inEntity knobID (myKnobValueCachedNew ==> False)
+            Just <$> getEntityComponentDefault 0 knobID myKnobValueCached
+        else return Nothing
+
+whenNewKnobValue :: MonadState ECS m => EntityID -> (Float -> m a) -> m ()
+whenNewKnobValue knobID action = do
+    mNewValue <- getNewKnobValue knobID
+    forM_ mNewValue action
 
 -- Faster to use getKnobValue on the knob entity itself
 getKnobValueByName :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
@@ -203,7 +221,8 @@ spawnActiveKnobAt knobPos name knobDef@KnobDef{..} = do
                 inEntity parentID $ do
                     setKnobValue01 name newValue01
                 -- Cache the knob value in the knob entity itself so it can be grabbed quickly
-                myKnobValueCached ==> newValue
+                myKnobValueCached    ==> newValue
+                myKnobValueCachedNew ==> True
         myDragEnded ==> do
             sceneWatcherSaveEntity parentID
         myKnobState ==> newKnobState { ksRotation = initialRotation }

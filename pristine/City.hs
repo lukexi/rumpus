@@ -7,6 +7,7 @@ start = do
         dim = 20
         height = dim * 5
         buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
+    heightKnob <- spawnKnob "Height" (Linear 0.1 100) 1
     -- Ground
     spawnChild $ do
         let y = -height*2
@@ -27,7 +28,6 @@ start = do
             myStart ==> do
                 setDelayedAction (fromIntegral i*0.1) $ do
                     animateSizeTo (V3 dim (abs x) dim) 0.5
-            -- myUpdate             ==> do
-            --    let rate = 7000
-            --    now <- getNow
-            --    setSize $ V3 dim (height * (sin $ rate * now / (x * z))) dim
+            myUpdate ==> do
+                whenNewKnobValue heightKnob $ \newHeight ->
+                    setSize (V3 dim (abs x * newHeight) dim)
