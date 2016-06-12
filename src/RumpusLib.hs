@@ -36,8 +36,8 @@ positionRotation = flip mkTransformation
 position :: Num a => V3 a -> M44 a
 position  = translateMatrix
 rotation :: (Epsilon a, Floating a) => V3 a -> a -> M44 a
-rotation axis angle =
-    rotationQ (axisAngle axis angle)
+rotation axis angle_ =
+    rotationQ (axisAngle axis angle_)
 rotationQ :: Num a => Quaternion a -> M44 a
 rotationQ q = mkTransformation q 0
 

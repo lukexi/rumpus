@@ -422,6 +422,18 @@ getAllKeys = viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdKeys . traverse)
 tickKeyPadsSystem :: ECSMonad ()
 tickKeyPadsSystem = do
 
+    -- Flash keys when real keyboard events come in
+    charKeys <- viewSystem sysKeyPads kpsCharKeys
+    events <- getEvents
+    forM_ events $ \case
+        GLFWEvent (Character c) -> do
+            forM_ (Map.lookup (toLower c) charKeys) $ \key -> do
+                inEntity (key ^. kpkKeyBackID) $ do
+                    randomHue <- randomRange (0,1)
+                    let randomColor = colorHSL randomHue 0.7 0.7
+                    animateColor keyPadAnimDur randomColor keyColorOff
+        _ -> return ()
+
     -- Sync the keys to the selected object manually to avoid interacting
     -- with the Child system (which the selected object might be using)
     -- This may become unnecessary with the proposed Deck system.

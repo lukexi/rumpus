@@ -18,8 +18,6 @@ import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Unboxed as V
 
-import Graphics.VR.OpenVR
-
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
     , uCamera         :: UniformLocation (V3  GLfloat)
