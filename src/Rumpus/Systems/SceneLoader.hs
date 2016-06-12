@@ -14,10 +14,10 @@ import Rumpus.Systems.CodeEditor
 --import Rumpus.Systems.SceneWatcher
 --import Rumpus.Types
 import Control.Exception
+import Data.List (sort)
 
 import RumpusLib
-import Rumpus.Types
-import Data.List (sort)
+--import Rumpus.Types
 libraryCenter :: V3 GLfloat
 libraryCenter = V3 0 1.5 0
 --libraryCenter = if isInReleaseMode

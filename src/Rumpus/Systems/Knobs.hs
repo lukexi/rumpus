@@ -14,9 +14,11 @@ import qualified Data.HashMap.Strict as Map
 type KnobName = String
 
 data KnobDef = KnobDef
-    { knbScale   :: !KnobScale
-    , knbDefault01 :: !Float
-    , knbAction  :: !(GLfloat -> EntityMonad ())
+    { knbScale        :: !KnobScale
+    , knbDefault01    :: !Float
+    , knbAction       :: !(GLfloat -> EntityMonad ())
+    , knbVal01ToValue :: !(Float -> Float)
+    , knbValueToVal01 :: !(Float -> Float)
     }
 
 
@@ -44,18 +46,17 @@ initKnobsSystem = do
     registerComponent "KnobState"  myKnobState  (newComponentInterface myKnobState)
     registerComponent "KnobValues" myKnobValues (savedComponentInterface myKnobValues)
 
-addKnobDef :: (MonadState s m, MonadReader EntityID m, HasComponents s)
-           => KnobName -> KnobScale -> Float -> (GLfloat -> EntityMonad ()) -> m ()
-addKnobDef knobName scale defVal01 action = prependComponent myKnobDefs (Map.singleton knobName knobDef)
-    where knobDef = KnobDef { knbScale = scale, knbDefault01 = defVal01, knbAction = action }
+addKnobDef :: (MonadState ECS m, MonadReader EntityID m)
+           => KnobName -> KnobDef -> m ()
+addKnobDef knobName knobDef = prependComponent myKnobDefs (Map.singleton knobName knobDef)
 
 -- Must use prependComponent rather than appendComponent to update the Map,
 -- as its <> is left-biased
-setKnobData :: (MonadState s m, MonadReader EntityID m, HasComponents s) => KnobName -> Float -> m ()
-setKnobData knobName value = prependComponent myKnobValues (Map.singleton knobName value)
+setKnobValue01 :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> Float -> m ()
+setKnobValue01 knobName value = prependComponent myKnobValues (Map.singleton knobName value)
 
-getKnobData :: (MonadState s m, MonadReader EntityID m, HasComponents s) => KnobName -> m Float
-getKnobData knobName = do
+getKnobValue01 :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
+getKnobValue01 knobName = do
     knobValues <- getComponentDefault mempty myKnobValues
     case Map.lookup knobName knobValues of
         Just value -> return value
@@ -65,47 +66,76 @@ getKnobData knobName = do
                 Just knobDef -> return (knbDefault01 knobDef)
                 Nothing      -> return 0
 
+getEntityKnobValue01 :: (MonadState ECS m) => EntityID -> KnobName -> m Float
+getEntityKnobValue01 entityID knobName = inEntity entityID (getKnobValue01 knobName)
 
 
+getEntityKnobValue :: (MonadState ECS m) => EntityID -> KnobName -> m Float
+getEntityKnobValue entityID knobName = inEntity entityID (getKnobValue knobName)
 
+getKnobValue :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
+getKnobValue knobName = do
+    knobDefs <- getComponentDefault mempty myKnobDefs
+    case Map.lookup knobName knobDefs of
+        Just knobDef -> do
+            knbVal01ToValue knobDef <$> getKnobValue01 knobName
+        Nothing -> return 0
 
+spawnKnob :: KnobName -> KnobScale -> Float -> EntityMonad EntityID
+spawnKnob name knobScale defVal = spawnActiveKnob name knobScale defVal (const (return ()))
+
+spawnActiveKnob :: KnobName
+                -> KnobScale
+                -> Float
+                -> (GLfloat -> EntityMonad ())
+                -> EntityMonad EntityID
 spawnActiveKnob name knobScale defVal action = do
 
     i <- Map.size <$> getComponentDefault mempty myKnobDefs
     let x = fromIntegral (i `div` 4) * 0.4
         y = (3 - fromIntegral (i `mod` 4)) * 0.3 - 0.45
         knobPos = V3 (0.5 + x) y 0
-    spawnActiveKnobAt knobPos name knobScale defVal action
 
+    spawnActiveKnobAt knobPos name (makeKnobDef knobScale defVal action)
 
-spawnActiveKnobAt knobPos name knobScale defVal action = do
-
+makeKnobDef :: KnobScale -> Float -> (GLfloat -> EntityMonad ()) -> KnobDef
+makeKnobDef knobScale defVal action =
     let (low, high) = case knobScale of
-            Linear low high -> (low, high)
+            Linear  l h -> (l, h)
             Stepped options -> (0, fromIntegral (length options) - 1)
         range = high - low
-
-    let val01ToValue value01 = case knobScale of
+        val01ToValue value01 = case knobScale of
             Linear _ _ -> low + range * value01
             -- E.g. for [foo,bar,baz] 0-0.33 should be 0, 0.33-0.66 should be 1, 0.66-1 should be 2
-            Stepped _  -> fromIntegral . floor . min (range + 1 - 0.001) $ (range + 1) * value01
+            Stepped _  -> fromIntegral . (\i -> i::Int) . floor . min (range + 1 - 0.001) $ (range + 1) * value01
         valueToVal01 value = (value - low) / range
-        displayValue value = case knobScale of
-            Linear _ _      -> (printf "%.2f" (value::Float))
-            Stepped options -> let i = round value in if i >= 0 && i < length options then options !! i else "<over>"
-        initialRotation = value01ToKnobRotation (valueToVal01 defVal)
 
-    addKnobDef name knobScale (valueToVal01 defVal) action
+    in KnobDef
+        { knbScale = knobScale
+        , knbDefault01 = valueToVal01 defVal
+        , knbAction = action
+        , knbVal01ToValue = val01ToValue
+        , knbValueToVal01 = valueToVal01
+        }
 
-    initialValue01 <- getKnobData name
-    let initialValue = val01ToValue initialValue01
-    action initialValue
-    nameLabel <- spawnChild $ do
+spawnActiveKnobAt :: V3 GLfloat -> KnobName -> KnobDef -> EntityMonad EntityID
+spawnActiveKnobAt knobPos name knobDef@KnobDef{..} = do
+    addKnobDef name knobDef
+
+    let initialRotation = value01ToKnobRotation knbDefault01
+
+
+    initialValue01 <- getKnobValue01 name
+    let initialValue = knbVal01ToValue initialValue01
+
+    knbAction initialValue
+
+    _nameLabel <- spawnChild $ do
         myText        ==> name
         myTextPose    ==> position (V3 0 0.1 0) !*! scaleMatrix 0.05
         myPose        ==> position knobPos
     valueLabel <- spawnChild $ do
-        myText        ==> displayValue initialValue
+        myText        ==> displayValue knobDef initialValue
         myTextPose    ==> position (V3 0 -0.1 0) !*! scaleMatrix 0.05
         myPose        ==> position knobPos
 
@@ -129,15 +159,18 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
         myDragBegan ==> do
             withComponent_ myActiveDrag $ \(ActiveDrag _handEntityID startM44) -> do
                 myKnobState ==% \k -> k { ksLastHandPose = startM44 }
-        myDragContinues ==> \dragM44 -> do
+        myDragContinues ==> \_dragM44 -> do
             withComponent_ myActiveDrag $ \(ActiveDrag handEntityID _startM44) -> do
                 -- Calculate the rotation for this tick
                 newHandPose <- getEntityPose handEntityID
                 oldState    <- getComponentDefault newKnobState myKnobState
                 let diff = newHandPose `subtractMatrix` ksLastHandPose oldState
-                    V3 dX _dY _dZ = testEpsilon $ quatToEuler (quaternionFromMatrix diff)
+                    -- Eliminate below epsilon to avoid drift
+                    V3 dX _dY _dZ = testEpsilon (quatToEuler (quaternionFromMatrix diff))
                     -- We want clockwise rotation, so bound to -2pi <> 0
                     newRotation = min 0 . max maxKnobRot $ ksRotation oldState + dX
+
+                -- Haptic feedback based on turn rate
                 when (abs dX > 0) $ do
                     mWhichHand <-  getWhichHand handEntityID
                     forM_ mWhichHand $ \whichHand -> do
@@ -152,16 +185,17 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
                 -- and run the its action,
                 -- with the scaled value
                 let newValue01     = knobRotationToValue01 newRotation
-                    newValueScaled = val01ToValue newValue01
-                inEntity valueLabel $ setText (displayValue newValueScaled)
-                action newValueScaled
+                    newValueScaled = knbVal01ToValue newValue01
+                inEntity valueLabel $ setText (displayValue knobDef newValueScaled)
+
+                knbAction newValueScaled
 
                 -- Update the knob "light"
                 updateKnobLight newValue01
 
                 -- Record the knob value in the parent so it can be persisted
                 inEntity parentID $ do
-                    setKnobData name newValue01
+                    setKnobValue01 name newValue01
         myDragEnded ==> do
             sceneWatcherSaveEntity parentID
         myKnobState ==> newKnobState { ksRotation = initialRotation }
@@ -173,11 +207,19 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
             (axisAngle (V3 0 0 1) initialRotation))
     return knob
 
-
+knobRotationToValue01 :: Float -> Float
 knobRotationToValue01 rot = rot / maxKnobRot
+value01ToKnobRotation :: Float -> Float
 value01ToKnobRotation val = val * maxKnobRot
-
+twoPi :: Float
 twoPi = 2 * pi
-maxKnobRot = -twoPi * 3 / 4
+maxKnobRot :: Float
+maxKnobRot = 3/4 * (-twoPi)
 
+testEpsilon :: Epsilon a => a -> a
 testEpsilon n = if nearZero n then 0 else n
+
+displayValue :: KnobDef -> Float -> String
+displayValue knobDef value = case knbScale knobDef of
+    Linear _ _      -> (printf "%.2f" (value::Float))
+    Stepped options -> let i = round value in if i >= 0 && i < length options then options !! i else "<over>"

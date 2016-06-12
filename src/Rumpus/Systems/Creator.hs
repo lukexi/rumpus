@@ -127,7 +127,6 @@ addExitOrb whichHand = do
                 showSceneLoader
 
     handID   <- getHandID whichHand
-    handPose <- getEntityPose handID
     attachEntityToEntity handID exitOrbID (translateMatrix exitOrbOffset)
 
     inEntity exitOrbID $ animateSizeTo exitOrbSize animDur
@@ -146,7 +145,6 @@ addDestructionOrb whichHand = do
             let brightness = (* 0.5) . (+1) . (/2) . sin . (*10) $ now
             setColor (colorHSL 0.1 0.8 brightness)
     handID   <- getHandID whichHand
-    handPose <- getEntityPose handID
     destructorID <- spawnEntity $ do
         myColor      ==> (colorHSL 0.7 0.8 0)
         myShape      ==> Sphere
@@ -196,7 +194,6 @@ addHandLibraryItem :: (MonadIO m, MonadState ECS m)
                    => WhichHand -> V3 GLfloat -> Maybe FilePath -> m ()
 addHandLibraryItem whichHand spherePosition maybeCodePath = do
     handID   <- getHandID whichHand
-    handPose <- getEntityPose handID
     newEntityID <- spawnEntity $ do
         myShape      ==> Cube
         mySize       ==> initialLibraryItemSize

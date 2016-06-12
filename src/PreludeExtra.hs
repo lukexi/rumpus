@@ -73,4 +73,5 @@ exhaustTChan chan = tryReadTChan chan >>= \case
 atomically :: MonadIO m => STM a -> m a
 atomically = liftIO . STM.atomically
 
+orientToward :: (Floating a, Epsilon a) => V3 a -> V3 a -> V3 a -> M44 a
 orientToward eye target up = inv44 (lookAt eye target up)
