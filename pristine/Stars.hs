@@ -17,11 +17,14 @@ start :: Start
 start = do
     -- We only take half the request points to get the upper hemisphere
     let numPoints = 200 :: Int
-        points    = drop (numPoints `div` 2) $ pointsOnSphere numPoints
+        points    = reverse $ drop (numPoints `div` 2) $ pointsOnSphere numPoints
         hues      = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
-    forM_ (zip points hues) $ \(pos, hue) -> spawnChild $ do
-        myTransformType ==> AbsolutePose
-        myShape         ==> Sphere
-        mySize          ==> 5
-        myColor         ==> colorHSL hue 0.8 0.8
-        myPose          ==> position (pos * 500)
+    forM_ (zip3 [0..] points hues) $ \(i, pos, hue) -> spawnChild $ do
+            myTransformType ==> AbsolutePose
+            myShape         ==> Sphere
+            mySize          ==> 0.001
+            myColor         ==> colorHSL hue 0.8 0.8
+            myPose          ==> position (pos * 500)
+            myStart         ==> do
+                setDelayedAction (fromIntegral i * 0.05) $
+                    setSize 5

@@ -22,7 +22,7 @@ start = do
                                     (V3 x 0.6 z)
                                     (axisAngle (V3 0 1 0) (-n))
     mainID <- ask
-    myUpdate          ==> do
+    myUpdate ==> do
         fftSample <- V.convert <$> readPdArray "sample-fft" 0 numSamples
         V.forM_ (V.zip children fftSample) $ \(childID, sample) -> do
             let val = realToFrac sample

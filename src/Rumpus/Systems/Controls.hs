@@ -23,6 +23,9 @@ getNow = do
 getVRPal :: MonadState ECS m => m VRPal
 getVRPal = viewSystem sysControls ctsVRPal
 
+getEvents :: MonadState ECS m => m [VRPalEvent]
+getEvents = viewSystem sysControls ctsEvents
+
 fadeToColor :: (MonadIO m, MonadState ECS m) => V4 GLfloat -> GLfloat -> m ()
 fadeToColor color time = do
     vrPal <- getVRPal

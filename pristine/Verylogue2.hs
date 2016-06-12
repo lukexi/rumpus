@@ -31,6 +31,7 @@ start = do
             hue = degree01
 
         brightness <- (*0.7) <$> getKnobData "Cutoff"
+        -- Spawn cubes as absolute so they hang in the air
         currentPose <- getPose
         void . spawnChild $ do
             myShape         ==> Cube
@@ -41,7 +42,7 @@ start = do
             myLifetime      ==> 1
 
     return ()
-    
+
 verylogueKnobs =
     [
     -- VCO1
@@ -70,16 +71,16 @@ verylogueKnobs =
     , ( "EG Int"        , "cutoff-eg-int", Linear 0 1, 0.5 )
 
     -- Amp EG
-    , ( "Amp Atk"       , "amp-attack"   , Linear 0 1000, 10 )
-    , ( "Amp Dec"       , "amp-decay"    , Linear 0 1000, 100 )
+    , ( "Amp Atk"       , "amp-attack"   , Linear 1 1000, 10 )
+    , ( "Amp Dec"       , "amp-decay"    , Linear 1 1000, 100 )
     , ( "Amp Sus"       , "amp-sustain"  , Linear 0 1, 0.5 )
-    , ( "Amp Rel"       , "amp-release"  , Linear 0 1000, 250 )
+    , ( "Amp Rel"       , "amp-release"  , Linear 1 4000, 1000 )
 
     -- Assignable EG
-    , ( "Env Atk"       , "env-attack"   , Linear 0 1000, 10 )
-    , ( "Env Dec"       , "env-decay"    , Linear 0 1000, 100 )
+    , ( "Env Atk"       , "env-attack"   , Linear 1 1000, 10 )
+    , ( "Env Dec"       , "env-decay"    , Linear 1 1000, 100 )
     , ( "Env Sus"       , "env-sustain"  , Linear 0 1, 0.5 )
-    , ( "Env Rel"       , "env-release"  , Linear 0 1000, 250 )
+    , ( "Env Rel"       , "env-release"  , Linear 1 4000, 1000 )
 
     -- LFO
     , ( "LFO Wave"      , "lfo-wave"     , Stepped ["Saw", "Sin", "Squ"], 0 )

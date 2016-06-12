@@ -54,10 +54,8 @@ library
                        Rumpus.Systems.CodeEditor
                        Rumpus.Systems.CodeEditorInput
                        Rumpus.Systems.Collisions
-                       Rumpus.Systems.Constraint
                        Rumpus.Systems.Controls
                        Rumpus.Systems.Drag
-                       Rumpus.Systems.EditorFrame
                        Rumpus.Systems.HandControls
                        Rumpus.Systems.Hands
                        Rumpus.Systems.Haptics

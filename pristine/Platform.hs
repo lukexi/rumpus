@@ -11,7 +11,7 @@ start :: Start
 start = do
 
     spawnChild $ do
-        myPose       ==> translateMatrix (V3 0 roomOffset 0)
+        myPose       ==> position (V3 0 roomOffset 0)
         myShape      ==> Cube
         myBody       ==> Animated
         myBodyFlags  ==> [Ungrabbable, Teleportable]

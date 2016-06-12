@@ -14,7 +14,25 @@ import Rumpus.Systems.Clock
 import qualified Graphics.UI.GLFW.Pal as GLFW
 import qualified Data.HashMap.Strict as Map
 
-data HandKey = HandKeyChar Char Char
+data KeyPad = KeyPad
+    { _kpdKeyPadID    :: EntityID
+    , _kpdKeys        :: [KeyPadKey]
+    , _kpdThumbNub    :: EntityID
+    , _kpdKeyRepeater :: Maybe EntityID
+    , _kpdDims        :: (V2 Float)
+    , _kpdShiftDown   :: Bool
+    , _kpdCurrentKey  :: Maybe HandKey
+    , _kpdLastKey     :: Maybe HandKey
+    }
+data KeyPadKey = KeyPadKey
+    { _kpkKeyBackID    :: EntityID
+    , _kpkKeyNameID    :: EntityID
+    , _kpkKey          :: HandKey
+    , _kpkPointIsInKey :: V2 GLfloat -> Bool
+    }
+
+
+data HandKey = HandKeyChar Char
              | HandKeyEnter
              | HandKeyBackspace
              | HandKeyTab
@@ -33,9 +51,13 @@ data HandKey = HandKeyChar Char Char
              | HandKeyBlank -- Just a spacer
              deriving (Eq, Show)
 
+
+makeLenses ''KeyPadKey
+makeLenses ''KeyPad
+
 keyCapWidth :: HandKey -> GLfloat
-keyCapWidth (HandKeyChar ' ' ' ') = 8
-keyCapWidth (HandKeyChar _ _)     = 1
+keyCapWidth (HandKeyChar ' ')     = 8
+keyCapWidth (HandKeyChar _)       = 1
 keyCapWidth HandKeyEnter          = 2
 keyCapWidth HandKeyShift          = 2
 keyCapWidth HandKeyBackspace      = 2
@@ -60,8 +82,8 @@ keyCapHeight HandKeyRight         = 7
 keyCapHeight _                    = 1
 
 showKey :: Bool -> HandKey -> [Char]
-showKey False (HandKeyChar unshifted _) = [unshifted]
-showKey True  (HandKeyChar _ shifted)   = [shifted]
+showKey False (HandKeyChar unshifted)   = [unshifted]
+showKey True  (HandKeyChar unshifted)   = [Map.lookupDefault ' ' unshifted shiftMap]
 showKey _ HandKeyEnter                  = "Enter"
 showKey _ HandKeyShift                  = "Shift"
 showKey _ HandKeyBackspace              = "<-"
@@ -88,16 +110,16 @@ keyToEvent shift HandKeyUp                 = Just (toPressedKey shift False Key'
 keyToEvent shift HandKeyDown               = Just (toPressedKey shift False Key'Down)
 keyToEvent shift HandKeyLeft               = Just (toPressedKey shift False Key'Left)
 keyToEvent shift HandKeyRight              = Just (toPressedKey shift False Key'Right)
-keyToEvent shift HandKeyIndent             = Just (toPressedKey shift True Key'RightBracket)
-keyToEvent shift HandKeyUnIndent           = Just (toPressedKey shift True Key'LeftBracket)
-keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True  True Key'Up)
-keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True  True Key'Down)
-keyToEvent _     HandKeyCut                = Just (toPressedKey False True Key'X)
-keyToEvent _     HandKeyCopy               = Just (toPressedKey False True Key'C)
-keyToEvent _     HandKeyPaste              = Just (toPressedKey False True Key'V)
-keyToEvent False (HandKeyChar unshifted _) = Just (Character unshifted)
-keyToEvent True  (HandKeyChar _ shifted)   = Just (Character shifted)
-keyToEvent _ _ = Nothing
+keyToEvent shift HandKeyIndent             = Just (toPressedKey shift True  Key'RightBracket)
+keyToEvent shift HandKeyUnIndent           = Just (toPressedKey shift True  Key'LeftBracket)
+keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True  True  Key'Up)
+keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True  True  Key'Down)
+keyToEvent _     HandKeyCut                = Just (toPressedKey False True  Key'X)
+keyToEvent _     HandKeyCopy               = Just (toPressedKey False True  Key'C)
+keyToEvent _     HandKeyPaste              = Just (toPressedKey False True  Key'V)
+keyToEvent False (HandKeyChar unshifted)   = Just (Character unshifted)
+keyToEvent True  (HandKeyChar unshifted)   = Just (Character (Map.lookupDefault ' ' unshifted shiftMap))
+keyToEvent _ _                             = Nothing
 
 toPressedKey :: Bool -> Bool -> GLFW.Key -> Event
 toPressedKey shift control key = KeyboardKey key noKeyCode KeyState'Pressed modifierKeys
@@ -107,34 +129,42 @@ toPressedKey shift control key = KeyboardKey key noKeyCode KeyState'Pressed modi
         modifierKeys = GLFW.ModifierKeys shift control alt super
         (alt, super) = (False, False)
 
+lowerChars, upperChars :: [Char]
+upperChars = "~!@#$%^&*()_+" ++ "QWERTYUIOP{}|"  ++ "ASDFGHJKL:\"" ++ "ZXCVBNM<>?" ++ " "
+lowerChars = "`1234567890-=" ++ "qwertyuiop[]\\" ++ "asdfghjkl;'"  ++ "zxcvbnm,./" ++ " "
+
+shiftMap, unshiftMap :: Map Char Char
+shiftMap   = Map.fromList (zip lowerChars upperChars)
+unshiftMap = Map.fromList (zip upperChars lowerChars)
+
 
 leftHandKeys :: [[HandKey]]
 leftHandKeys =
     [ [HandKeyUp]
     , [HandKeyMoveLineUp, HandKeyMoveLineDown, HandKeyCut, HandKeyCopy, HandKeyPaste]
-    ,                   cs "`123456" "~!@#$%^"
-    , HandKeyIndent   : cs "qwert"  "QWERT"
-    , HandKeyUnIndent : cs "asdfg"  "ASDFG"
-    , HandKeyShift : cs "zxcvb"  "ZXCVB"
-    , [HandKeyChar ' ' ' ']
+    ,                   cs "`123456"
+    , HandKeyIndent   : cs "qwert"
+    , HandKeyUnIndent : cs "asdfg"
+    , HandKeyShift    : cs "zxcvb"
+    , [HandKeyChar ' ']
     , [HandKeyDown]
     ]
     where
-        cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
+        cs = map HandKeyChar
 
 rightHandKeys :: [[HandKey]]
 rightHandKeys =
     [ [HandKeyUp]
     , [HandKeyMoveLineUp, HandKeyMoveLineDown, HandKeyCut, HandKeyCopy, HandKeyPaste]
-    , cs "7890-="   "&*()_+"  ++ [HandKeyBackspace]
-    , cs "yuiop[]\\" "YUIOP{}|"
-    , cs "hjkl;'"    "HJKL:\""  ++ [HandKeyEnter]
-    , cs "nm,./"     "NM<>?"    ++ [HandKeyShift]
-    , [HandKeyChar ' ' ' ']
+    , cs "7890-="   ++ [HandKeyBackspace]
+    , cs "yuiop[]\\"
+    , cs "hjkl;'"   ++ [HandKeyEnter]
+    , cs "nm,./"    ++ [HandKeyShift]
+    , [HandKeyChar ' ']
     , [HandKeyDown]
     ]
     where
-        cs unshifted shifted = map (uncurry HandKeyChar) (zip unshifted shifted)
+        cs = map HandKeyChar
 
 keyWidth, keyHeight, keyDepth, keyPadding :: GLfloat
 keyWidth        = 0.05
@@ -147,8 +177,8 @@ keyWidthT       = keyWidth + keyPadding
 keyHeightT      = keyHeight + keyPadding
 
 keyColorOn, keyColorOff :: V4 GLfloat
-keyColorOn               = colorHSL 0.2 0.8 0.8
-keyColorOff              = colorHSL 0.3 0.8 0.4
+keyColorOn      = colorHSL 0.2 0.8 0.8
+keyColorOff     = colorHSL 0.3 0.8 0.4
 
 minimizedKeyPadSize :: V3 GLfloat
 minimizedKeyPadSize = 0.001
@@ -159,24 +189,6 @@ maximizedKeyPadSize = 0.3
 keyPadAnimDur :: DiffTime
 keyPadAnimDur = 0.2
 
-data KeyPad = KeyPad
-    { _kpdKeyPadID    :: EntityID
-    , _kpdKeys        :: [KeyPadKey]
-    , _kpdThumbNub    :: EntityID
-    , _kpdKeyRepeater :: Maybe EntityID
-    , _kpdDims        :: (V2 Float)
-    , _kpdShiftDown   :: Bool
-    , _kpdCurrentKey  :: Maybe HandKey
-    , _kpdLastKey     :: Maybe HandKey
-    }
-data KeyPadKey = KeyPadKey
-    { _kpkKeyBackID    :: EntityID
-    , _kpkKeyNameID    :: EntityID
-    , _kpkKey          :: HandKey
-    , _kpkPointIsInKey :: V2 GLfloat -> Bool
-    }
-makeLenses ''KeyPadKey
-makeLenses ''KeyPad
 
 --start :: Start
 --start = void spawnKeyPads
@@ -261,11 +273,14 @@ spawnKeysForHand containerID keyRows = do
 
     -- Spawn keys
     keyPadKeysByRow <- forM (zip ([0..]::[Int]) keyRows) $ \(rowNum, keyRow) -> do
+
         foldM (\(xOffset, rowKeyPadKeysSoFar) key -> do
+
             (keyPadKey, keySize) <- makeKeyPadKey containerID key xOffset (fromIntegral rowNum)
+
             let newAccum = keyPadKey:rowKeyPadKeysSoFar
 
-            return (xOffset+keySize^._x+keyPadding, newAccum)) (keyWidth+keyPadding,[]) keyRow
+            return (xOffset + keySize^._x + keyPadding, newAccum)) (keyWidth + keyPadding,[]) keyRow
 
     -- Spawn right arrow
     let widestXOffset = maximum $ map fst keyPadKeysByRow
@@ -274,7 +289,9 @@ spawnKeysForHand containerID keyRows = do
     let finalDimens = V2 (widestXOffset + rightKeySize ^. _x)
                          (fromIntegral totalKeyRows * keyHeight
                           + (fromIntegral totalKeyRows - 1) * keyPadding)
-    return (leftKey : rightKey : concatMap snd keyPadKeysByRow, finalDimens)
+        allKeys = leftKey : rightKey : concatMap snd keyPadKeysByRow
+
+    return (allKeys, finalDimens)
 
 getKeyPose :: HandKey -> GLfloat -> GLfloat
            -> (V3 GLfloat, V3 GLfloat)
@@ -353,6 +370,7 @@ inRectWithCenter pose size = inRect topLeft size
 data KeyPadsSystem = KeyPadsSystem
     { _kpsKeyPads           :: Map WhichHand KeyPad
     , _kpsKeyPadContainer   :: EntityID
+    , _kpsCharKeys          :: Map Char KeyPadKey
     }
 defineSystemKey ''KeyPadsSystem
 makeLenses ''KeyPadsSystem
@@ -361,8 +379,15 @@ makeLenses ''KeyPadsSystem
 startKeyPadsSystem :: ECSMonad ()
 startKeyPadsSystem = do
     (keyPadContainerID, keyPads) <- spawnKeyPads
+
+    let allkeys = concatMap (_kpdKeys . snd) keyPads
+        charKeys = foldl' (\accum key -> case _kpkKey key of
+            HandKeyChar char -> Map.insert char key accum
+            _ -> accum) mempty allkeys
+
     registerSystem sysKeyPads $ KeyPadsSystem
         { _kpsKeyPads         = Map.fromList keyPads
+        , _kpsCharKeys        = charKeys
         , _kpsKeyPadContainer = keyPadContainerID
         }
 
@@ -450,7 +475,7 @@ tickKeyPadsSystem = do
                         then do
 
                             -- Momentary shift
-                            modifySystemState sysKeyPads (kpsKeyPads . ix whichHand . kpdShiftDown .= True)
+                            setShiftDown whichHand True
 
                             -- Flip the text of all the keys to reflect the shifted state
                             let shiftIsDown = True
@@ -461,7 +486,7 @@ tickKeyPadsSystem = do
 
                         -- We don't send any events for Shift, just using it to toggle internal state.
                         else do
-                            isShiftDown <- or <$> viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdShiftDown)
+                            isShiftDown <- isEitherShiftDown
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
                                 sendInternalEvent (GLFWEvent event)
 
@@ -476,7 +501,7 @@ tickKeyPadsSystem = do
 
             HandButtonEvent HandButtonPad ButtonUp -> do
                 -- Stop key-repeating
-                mKeyRepeaterID <- viewSystemP sysKeyPads (kpsKeyPads . ix whichHand . kpdKeyRepeater . traverse)
+                mKeyRepeaterID <- getKeyRepeater whichHand
 
                 forM_ mKeyRepeaterID $ \keyRepeaterID -> do
                     removeEntity keyRepeaterID
@@ -484,22 +509,33 @@ tickKeyPadsSystem = do
                     kpsKeyPads . ix whichHand . kpdKeyRepeater .= Nothing
 
                 -- Stop shifting when both shifts are off
-                wasShiftDown <- or <$> viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdShiftDown)
-                modifySystemState sysKeyPads (kpsKeyPads . ix whichHand . kpdShiftDown .= False)
-                isShiftDown <- or <$> viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdShiftDown)
+                wasShiftDown <- isEitherShiftDown
+                setShiftDown whichHand False
+                isShiftDown  <- isEitherShiftDown
                 when (wasShiftDown && not isShiftDown) $ do
                     allKeys <- getAllKeys
                     forM_ allKeys $ \KeyPadKey{..} -> do
                         inEntity _kpkKeyNameID $ setText (showKey False _kpkKey)
 
                     -- Allow iOS-style shift-drag-release to type chars
-                    mCurrentKey <- viewSystemP sysKeyPads (kpsKeyPads . ix whichHand . kpdCurrentKey . traverse)
+                    mCurrentKey <- getCurrentKey whichHand
                     forM_ mCurrentKey $ \currentKey ->
                         forM_ (keyToEvent True currentKey) $ \event -> do
                             sendInternalEvent (GLFWEvent event)
 
             _ -> return ()
 
+getCurrentKey :: MonadState ECS m => WhichHand -> m (Maybe HandKey)
+getCurrentKey whichHand = viewSystemP sysKeyPads (kpsKeyPads . ix whichHand . kpdCurrentKey . traverse)
+
+getKeyRepeater :: MonadState ECS m => WhichHand -> m (Maybe EntityID)
+getKeyRepeater whichHand = viewSystemP sysKeyPads (kpsKeyPads . ix whichHand . kpdKeyRepeater . traverse)
+
+setShiftDown :: MonadState ECS m => WhichHand -> Bool -> m ()
+setShiftDown whichHand flag = modifySystemState sysKeyPads (kpsKeyPads . ix whichHand . kpdShiftDown .= flag)
+
+isEitherShiftDown :: ECSMonad Bool
+isEitherShiftDown = or <$> viewSystemL sysKeyPads (kpsKeyPads . traverse . kpdShiftDown)
 
 clearSelection :: (MonadIO m, MonadState ECS m) => m ()
 clearSelection = do

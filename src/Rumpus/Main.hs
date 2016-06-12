@@ -17,7 +17,6 @@ initializeECS ghc pd vrPal = do
     initClockSystem
     initCodeEditorSystem ghc
     initCollisionsSystem
-    initConstraintSystem
     initControlsSystem vrPal
     initCreatorSystem
     initDragSystem
@@ -96,7 +95,6 @@ tickLogic = do
     profile "CodeEditorInput"   $ tickCodeEditorInputSystem
     profile "CodeEditorResults" $ tickCodeEditorResultsSystem
     profile "Attachment"        $ tickAttachmentSystem
-    profile "Constraint"        $ tickConstraintSystem
     profile "Script"            $ tickScriptSystem
     profile "Lifetime"          $ tickLifetimeSystem
     profile "Animation"         $ tickAnimationSystem

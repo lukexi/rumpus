@@ -7,6 +7,8 @@ import Rumpus.Systems.Text
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Attachment
 import Rumpus.Systems.SceneWatcher
+import Rumpus.Systems.Hands
+import Rumpus.Systems.Controls
 import qualified Data.HashMap.Strict as Map
 
 type KnobName = String
@@ -108,6 +110,17 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
         myPose        ==> position knobPos
 
     parentID <- ask
+
+    knobLight <- spawnEntity $ do
+        myShape         ==> Cube
+        mySize          ==> V3 0.09 0.09 0.11
+        myTransformType ==> RelativePose
+    let updateKnobLight value01 = do
+            inEntity knobLight $ do
+                setSize (V3 (0.09 * value01) (0.09 * value01) 0.11)
+                setColor $ colorHSL value01 0.5 0.5
+    updateKnobLight initialValue01
+
     knob <- spawnChild $ do
         myShape        ==> Cube
         mySize         ==> 0.1
@@ -125,6 +138,10 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
                     V3 dX _dY _dZ = testEpsilon $ quatToEuler (quaternionFromMatrix diff)
                     -- We want clockwise rotation, so bound to -2pi <> 0
                     newRotation = min 0 . max maxKnobRot $ ksRotation oldState + dX
+                when (abs dX > 0) $ do
+                    mWhichHand <-  getWhichHand handEntityID
+                    forM_ mWhichHand $ \whichHand -> do
+                        hapticPulse whichHand (floor $ abs dX * 10000)
 
                 -- Update the knob's state and appearance
                 myKnobState ==> (KnobState { ksLastHandPose = newHandPose, ksRotation = newRotation })
@@ -139,12 +156,18 @@ spawnActiveKnobAt knobPos name knobScale defVal action = do
                 inEntity valueLabel $ setText (displayValue newValueScaled)
                 action newValueScaled
 
+                -- Update the knob "light"
+                updateKnobLight newValue01
+
                 -- Record the knob value in the parent so it can be persisted
                 inEntity parentID $ do
                     setKnobData name newValue01
         myDragEnded ==> do
             sceneWatcherSaveEntity parentID
         myKnobState ==> newKnobState { ksRotation = initialRotation }
+
+    inEntity knobLight (setParent knob)
+
     attachEntity knob
         (positionRotation knobPos
             (axisAngle (V3 0 0 1) initialRotation))
