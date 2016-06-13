@@ -1,6 +1,7 @@
 module City where
 import Rumpus
 
+
 start :: Start
 start = do
 
@@ -30,7 +31,7 @@ start = do
             myStart ==> do
                 initialHeight <- getKnobValue heightKnob
                 -- Animate each building in
-                setDelayedAction (fromIntegral i*0.1) $ do
+                setDelayedAction (fromIntegral i*0.05) $ do
                     animateSizeFromTo 0 (V3 dim (abs x * initialHeight) dim) 0.5
                     -- Poll for height changes once animation has begun
                     myUpdate ==> do
