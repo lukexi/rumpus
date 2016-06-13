@@ -1,3 +1,9 @@
+[x] Try state-saving paint-brush?
+
+[ ] Physics demo
+    Ocean example: make pool
+
+[ ] Titled doors with tiled floor for loader room
 
 
 [ ] Put manual into Rumpus
@@ -6,13 +12,14 @@
 
 [ ] Add knobs to more objects
 
-[ ] Try state-saving paint-brush?
 
 [ ] Hmmm... a very good reason to keep files in the folder is for sharing;
     you should be able to just zip up a folder and drop it into the rumpus dir
     to pass something to someone else.
 
-    OK: a plan for this.
+    OK: a possible plan for this.
     Keep code files in Scenes.
     Keep pd patches in Rumpus Root.
     Add "Import" to browse your scenes, and copy file into current scene when grabbed
+
+[ ] Brick object with xyz color knobs? Can't really handle the "too big" case well yet though (well, what if we allow XY freely and then set Z center according to size?)
