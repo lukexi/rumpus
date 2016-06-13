@@ -34,6 +34,7 @@ tickComponentAnimation now animComponentKey setter =
             let evaled = evalAnim now animation
 
             _ <- setter (evanResult evaled)
+            traceM $ show (now, animStart animation, animDuration animation)
             when (evanRunning evaled == False) $ do
                 removeComponent animComponentKey
 

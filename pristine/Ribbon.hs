@@ -3,8 +3,8 @@ import Rumpus
 
 start :: Start
 start = do
-    speedKnob  <- spawnKnob "Speed" (Linear 0 5) 1
-    yScaleKnob <- spawnKnob "YScale"   (Linear 0 10) 1
+    speedKnob  <- addKnob "Speed" (Linear 0 5) 1
+    yScaleKnob <- addKnob "YScale"   (Linear 0 10) 1
     forM_ [0..100] $ \i -> spawnChild $ do
         myShape         ==> Cube
         myTransformType ==> AbsolutePose

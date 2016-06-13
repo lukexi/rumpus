@@ -15,6 +15,7 @@ pointsOnSphere (fromIntegral -> n) =
 
 start :: Start
 start = do
+    
     -- We only take half the request points to get the upper hemisphere
     let numPoints = 200 :: Int
         points    = reverse $ drop (numPoints `div` 2) $ pointsOnSphere numPoints

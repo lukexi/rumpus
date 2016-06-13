@@ -3,11 +3,12 @@ import Rumpus
 
 start :: Start
 start = do
+
     let n = 5
         dim = 20
         height = dim * 5
         buildSites = [V3 (x * dim * 2) (-height) (z * dim * 2) | x <- [-n..n], z <- [-n..n]]
-    heightKnob <- spawnKnob "Height" (Linear 0.1 100) 1
+    heightKnob <- addKnob "Height" (Exponential 0.1 100) 1
     -- Ground
     spawnChild $ do
         let y = -height*2
@@ -26,8 +27,11 @@ start = do
             mySize          ==> V3 0 0 0
             myColor         ==> colorHSL hue 0.8 0.8
             myStart ==> do
-                setDelayedAction (fromIntegral i*0.1) $ do
-                    animateSizeTo (V3 dim (abs x) dim) 0.5
+                initialHeight <- getKnobValue heightKnob
+                --setDelayedAction (fromIntegral i*0.1) $ do
+                animateSizeTo (V3 dim (abs x * initialHeight) dim) 0.5
             myUpdate ==> do
-                whenNewKnobValue heightKnob $ \newHeight ->
-                    setSize (V3 dim (abs x * newHeight) dim)
+                newHeight <- getKnobValue heightKnob
+
+                setSize (V3 dim (abs x * newHeight) dim)
+                return ()

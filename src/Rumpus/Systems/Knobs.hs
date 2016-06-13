@@ -21,8 +21,11 @@ data KnobDef = KnobDef
     , knbValueToVal01 :: !(Float -> Float)
     }
 
-
+-- TODO: Nicer to make Linear/Exponential a tag of a "Smooth" knob, but seemed
+-- to feel more complicated as an API
+-- (e.g. addKnob (Smooth Linear 0 10) 1)
 data KnobScale = Linear Float Float
+               | Exponential Float Float
                | Stepped [String]
 
 data KnobState = KnobState
@@ -107,33 +110,35 @@ getKnobValueByName knobName = do
             knbVal01ToValue knobDef <$> getKnobValue01ByName knobName
         Nothing -> return 0
 
-spawnKnob :: KnobName -> KnobScale -> Float -> EntityMonad EntityID
-spawnKnob name knobScale defVal = spawnActiveKnob name knobScale defVal (const (return ()))
+addKnob :: KnobName -> KnobScale -> Float -> EntityMonad EntityID
+addKnob name knobScale defVal = addActiveKnob name knobScale defVal (const (return ()))
 
-spawnActiveKnob :: KnobName
-                -> KnobScale
-                -> Float
-                -> (GLfloat -> EntityMonad ())
-                -> EntityMonad EntityID
-spawnActiveKnob name knobScale defVal action = do
+addActiveKnob :: KnobName
+              -> KnobScale
+              -> Float
+              -> (GLfloat -> EntityMonad ())
+              -> EntityMonad EntityID
+addActiveKnob name knobScale defVal action = do
 
     i <- Map.size <$> getComponentDefault mempty myKnobDefs
     let x = fromIntegral (i `div` 4) * 0.4
         y = (3 - fromIntegral (i `mod` 4)) * 0.3 - 0.45
         knobPos = V3 (0.5 + x) y 0
 
-    spawnActiveKnobAt knobPos name (makeKnobDef knobScale defVal action)
+    addActiveKnobAt knobPos name (makeKnobDef knobScale defVal action)
 
 makeKnobDef :: KnobScale -> Float -> (GLfloat -> EntityMonad ()) -> KnobDef
 makeKnobDef knobScale defVal action =
     let (low, high) = case knobScale of
-            Linear  l h -> (l, h)
+            Linear      l h -> (l, h)
+            Exponential l h -> (l, h)
             Stepped options -> (0, fromIntegral (length options) - 1)
         range = high - low
         val01ToValue value01 = case knobScale of
-            Linear _ _ -> low + range * value01
+            Linear      _ _ -> low + range * value01
+            Exponential _ _ -> low + range * (value01 ^ 2)
             -- E.g. for [foo,bar,baz] 0-0.33 should be 0, 0.33-0.66 should be 1, 0.66-1 should be 2
-            Stepped _  -> fromIntegral . (\i -> i::Int) . floor . min (range + 1 - 0.001) $ (range + 1) * value01
+            Stepped _       -> fromIntegral . (\i -> i::Int) . floor . min (range + 1 - 0.001) $ (range + 1) * value01
         valueToVal01 value = (value - low) / range
 
     in KnobDef
@@ -144,8 +149,8 @@ makeKnobDef knobScale defVal action =
         , knbValueToVal01 = valueToVal01
         }
 
-spawnActiveKnobAt :: V3 GLfloat -> KnobName -> KnobDef -> EntityMonad EntityID
-spawnActiveKnobAt knobPos name knobDef@KnobDef{..} = do
+addActiveKnobAt :: V3 GLfloat -> KnobName -> KnobDef -> EntityMonad EntityID
+addActiveKnobAt knobPos name knobDef@KnobDef{..} = do
     addKnobDef name knobDef
 
     let initialRotation = value01ToKnobRotation knbDefault01
@@ -153,6 +158,8 @@ spawnActiveKnobAt knobPos name knobDef@KnobDef{..} = do
 
     initialValue01 <- getKnobValue01ByName name
     let initialValue = knbVal01ToValue initialValue01
+
+
 
     knbAction initialValue
 
@@ -226,6 +233,8 @@ spawnActiveKnobAt knobPos name knobDef@KnobDef{..} = do
         myDragEnded ==> do
             sceneWatcherSaveEntity parentID
         myKnobState ==> newKnobState { ksRotation = initialRotation }
+        myKnobValueCached    ==> initialValue
+        myKnobValueCachedNew ==> True
 
     inEntity knobLight (setParent knob)
 
@@ -249,4 +258,5 @@ testEpsilon n = if nearZero n then 0 else n
 displayValue :: KnobDef -> Float -> String
 displayValue knobDef value = case knbScale knobDef of
     Linear _ _      -> (printf "%.2f" (value::Float))
+    Exponential _ _ -> (printf "%.2f" (value::Float))
     Stepped options -> let i = round value in if i >= 0 && i < length options then options !! i else "<over>"

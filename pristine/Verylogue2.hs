@@ -9,7 +9,7 @@ start = do
 
     rootID <- ask
     forM_ verylogueKnobs $ \(name, synthTarget, knobScale, knobDefault) ->
-        spawnActiveKnob name knobScale knobDefault $ \n ->
+        addActiveKnob name knobScale knobDefault $ \n ->
             sendEntitySynth rootID synthTarget (realToFrac n)
 
     -- Knob backplane
