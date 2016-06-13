@@ -11,16 +11,18 @@ ns = [-n..n]
 
 size  = V3 w d w
 
-tileCoords = [V2 (fromIntegral x) (fromIntegral z) | x <- ns, z <- ns]
+tileCoords = [V2 x z | x <- ns, z <- ns]
 
 start :: Start
 start = do
-    forM_ tileCoords $ \(V2 x z) -> do
+    forM_ (zip [0..] tileCoords) $ \(i, intCoord) -> do
+        let V2 xI zI = intCoord
+            V2 x z = fromIntegral <$> intCoord 
         let pos   = V3 (x*4) (y-d/2) (z*4)
             -- Raise the platforms around the rim
-            y     = if -n `elem` [x,z] || n `elem` [x,z] then 1 else 0
+            y     = if -n `elem` [xI,zI] || n `elem` [xI,zI] then 1 else 0
             -- Checkerboard pattern
-            color = if n `mod` 2 == 0 then V4 0.1 0.1 0.1 1 else V4 1 1 1 1
+            color = if i `mod` 2 == 0 then V4 0.1 0.1 0.1 1 else V4 1 1 1 1
         spawnChild $ do
             myPose       ==> position pos
             myShape      ==> Cube

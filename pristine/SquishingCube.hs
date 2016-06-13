@@ -3,14 +3,9 @@ import Rumpus
 
 start :: Start
 start = do
-
-    --setRotation (V3 0 1 0) (pi)
-    --setPosition (V3 0 1 0)
-    setColor (V4 0 1 0 1)
-
     spawnChild $ do
         myShape      ==> Cube
-        myPose       ==> position (V3 0 2 0)
+        myPose       ==> position (V3 0 0.5 0)
         mySize       ==> 0.2
         myUpdate     ==> do
             now <- getNow
