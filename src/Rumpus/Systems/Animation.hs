@@ -28,13 +28,12 @@ tickComponentAnimation :: MonadState ECS m
                        -> Key (EntityMap (Animation struct))
                        -> (struct -> ReaderT EntityID m a)
                        -> m ()
-tickComponentAnimation now animComponentKey setter =
+tickComponentAnimation now animComponentKey setterAction =
     forEntitiesWithComponent animComponentKey $
         \(entityID, animation) -> inEntity entityID $ do
             let evaled = evalAnim now animation
 
-            _ <- setter (evanResult evaled)
-            traceM $ show (now, animStart animation, animDuration animation)
+            _ <- setterAction (evanResult evaled)
             when (evanRunning evaled == False) $ do
                 removeComponent animComponentKey
 
@@ -44,6 +43,14 @@ animateSizeTo newSize time = do
     let time' = max 0.001 time
     currentSize <- getSize
     animation <- makeAnimation time' currentSize newSize
+    mySizeAnimation ==> animation
+
+
+animateSizeFromTo :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> V3 GLfloat -> DiffTime -> m ()
+animateSizeFromTo fromSize toSize time = do
+    let time' = max 0.001 time
+    currentSize <- getSize
+    animation <- makeAnimation time' fromSize toSize
     mySizeAnimation ==> animation
 
 

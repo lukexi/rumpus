@@ -4,6 +4,7 @@ import Rumpus
 start :: Start
 start = do
 
+
     let n = 5
         dim = 20
         height = dim * 5
@@ -28,10 +29,11 @@ start = do
             myColor         ==> colorHSL hue 0.8 0.8
             myStart ==> do
                 initialHeight <- getKnobValue heightKnob
-                --setDelayedAction (fromIntegral i*0.1) $ do
-                animateSizeTo (V3 dim (abs x * initialHeight) dim) 0.5
-            myUpdate ==> do
-                newHeight <- getKnobValue heightKnob
-
-                setSize (V3 dim (abs x * newHeight) dim)
-                return ()
+                -- Animate each building in
+                setDelayedAction (fromIntegral i*0.1) $ do
+                    animateSizeFromTo 0 (V3 dim (abs x * initialHeight) dim) 0.5
+                    -- Poll for height changes once animation has begun
+                    myUpdate ==> do
+                        newHeight <- getKnobValue heightKnob
+                        setSize (V3 dim (abs x * newHeight) dim)
+                        return ()

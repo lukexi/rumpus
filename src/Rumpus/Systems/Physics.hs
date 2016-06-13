@@ -187,8 +187,9 @@ setSize newSize = do
     case maybeAnim of
         Nothing -> setSizeNoAnim newSize
         Just sizeAnim -> do
-            newAnim <- redirectAnimation sizeAnim newSize
-            mySizeAnimation ==> newAnim
+            --newAnim <- redirectAnimation sizeAnim newSize
+            --mySizeAnimation ==> newAnim
+            mySizeAnimation ==> sizeAnim { animTo = newSize }
 
 setSizeNoAnim :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
 setSizeNoAnim newSize = ask >>= \eid -> setEntitySizeNoAnim eid newSize
