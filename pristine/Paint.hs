@@ -17,9 +17,11 @@ start = do
                 myShape         ==> Cube
                 mySize          ==> 0.1
                 myTransformType ==> AbsolutePose
+                myBody          ==> Animated
                 myColor         ==> colorHSL
                     (newPosition ^. _x) 0.7 0.8
-            return ()
+            makeEntityPersistent newBlot
+            sceneWatcherSaveEntity newBlot
 
             let (newBlots, oldBlots) = Seq.splitAt maxBlots blots
             forM_ oldBlots removeEntity
