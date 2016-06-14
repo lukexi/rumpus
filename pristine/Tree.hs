@@ -7,8 +7,6 @@ depth = 5
 
 start :: Start
 start = do
-    setSize (V3 0.4 0.4 0.1)
-
     hueShift <- randomRange (0,1)
     let branch parentID n pos rot = do
             let scale = realToFrac $ 1 / (2^n)

@@ -3,20 +3,19 @@ import Rumpus
 import qualified Data.Vector as V
 import Data.String
 
-toPdPathStyle path = do
-    absolute <- liftIO (makeAbsolute path)
-    return $ map (\c -> if c == '\\' then '/' else c) absolute
 
 start :: Start
 start = do
     setSynthPatch "Sampler.pd"
 
+    -- Inform the Sampler of where to save & load its sample
     thisID <- ask
     mStateFolder <- getSceneStateFolder
     forM_ mStateFolder $ \stateFolder -> do
         sampleFileName <- toPdPathStyle (stateFolder </> show thisID <.> "wav")
         sendSynth "sample-file" (fromString sampleFileName)
 
+    -- Create the entities representing the FFT
     let numSamples = 32 -- actual generated is 256
     children <- V.generateM numSamples $ \i -> do
         let x = fromIntegral i / 8 + 1
@@ -27,6 +26,7 @@ start = do
             myPose             ==> position (V3 x 0 0)
     mainID <- ask
 
+    -- Create a button to trigger sample recording
     pose <- getPose
     button <- spawnChild $ do
         myShape           ==> Cube
@@ -42,7 +42,8 @@ start = do
 
     attachEntity button (position $ V3 0 0.5 0)
 
-    myUpdate          ==> do
+    -- Update the FFT entities with FFT values each frame
+    myUpdate ==> do
         fftSample <- V.convert <$> readPdArray "sample-fft" 0 numSamples
         V.forM_ (V.zip children fftSample) $ \(childID, sample) -> do
             let val = sample

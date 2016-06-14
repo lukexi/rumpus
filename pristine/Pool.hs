@@ -1,8 +1,8 @@
 module Pool where
 import Rumpus
 
-roomCube = 10
-(roomW, roomH, roomD) = (roomCube,roomCube,roomCube)
+roomSize = 10
+(roomW, roomH, roomD) = (roomSize,roomSize,roomSize)
 wallD = 0.5
 
 roomOffset = roomH/2 - wallD/2 - 10
@@ -18,7 +18,7 @@ start = do
             mySize       ==> size
             myColor      ==> colorHSL hue 0.8 0.6
             myMass       ==> 0
-    let po = -roomCube/4        
+    let po = -roomSize/4
     makeWall (V3 po 0 (-roomD/2)) (V3 roomW roomH wallD) 0.1 [] -- back
     makeWall (V3 po 0 (roomD/2))  (V3 roomW roomH wallD) 0.2 [] -- front
     makeWall (V3 (po - roomW/2) 0 0) (V3 wallD roomH roomD) 0.3 [] -- left
@@ -29,8 +29,7 @@ start = do
 
     setRepeatingAction 0.1 $ do
         hue <- randomRange (0.4,0.6)
-        void . spawnChild $ do
-        --drop <- spawnChild $ do
+        spawnChild_ $ do
             myBody     ==> Physical
             myShape    ==> Sphere
             myColor    ==> colorHSL hue 0.6 0.7
@@ -38,4 +37,3 @@ start = do
             myLifetime ==> 20
             mySize     ==> 0.01
             myStart    ==> animateSizeTo 1 1
-        --animateEntitySizeTo drop 1 1

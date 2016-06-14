@@ -1,19 +1,18 @@
 module Platform where
 import Rumpus
 
-roomCube = 4
-(roomW, roomH, roomD) = (roomCube,roomCube,roomCube)
-wallD = 1
-
-roomOffset = -wallD/2
+-- Platform extent in x & z
+w = 4
+-- Platform depth in y
+d = 0.5
 
 start :: Start
 start = do
 
     spawnChild_ $ do
-        myPose       ==> position (V3 0 roomOffset 0)
+        myPose       ==> position (V3 0 (-d/2) 0)
         myShape      ==> Cube
         myBody       ==> Animated
         myBodyFlags  ==> [Ungrabbable, Teleportable]
-        mySize       ==> V3 roomW wallD roomD
+        mySize       ==> V3 w d w
         myColor      ==> colorHSL 0.25 0.8 0.2

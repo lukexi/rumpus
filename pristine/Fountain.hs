@@ -19,7 +19,7 @@ start = do
 
         -- Spawn a ball
         pose <- getPose
-        spawnEntity $ do
+        spawnChild $ do
             -- Spawn upwards from our parent's pose
             let parentRotation = pose ^. _m33
                 offset = parentRotation !* V3 0 0.3 0
