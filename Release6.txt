@@ -1,7 +1,8 @@
 [x] Try state-saving paint-brush?
 
-[ ] Physics demo
+[x] Physics demo
     Ocean example: make pool
+    Attractors
 
 [ ] Titled doors with tiled floor for loader room
 
@@ -13,13 +14,24 @@
 [ ] Add knobs to more objects
 
 
+
+
 [ ] Hmmm... a very good reason to keep files in the folder is for sharing;
     you should be able to just zip up a folder and drop it into the rumpus dir
     to pass something to someone else.
 
-    OK: a possible plan for this.
+    OK: a possible plan for this:
     Keep code files in Scenes.
-    Keep pd patches in Rumpus Root.
-    Add "Import" to browse your scenes, and copy file into current scene when grabbed
+    Keep pd patches in Rumpus Root. (must tell users they need to copy these manually, but that's OK. Could also add current scene to search path too.)
+    Add "Import" to browse your scenes,
+        Copy file into current scene when grabbed.
 
 [ ] Brick object with xyz color knobs? Can't really handle the "too big" case well yet though (well, what if we allow XY freely and then set Z center according to size?)
+
+[ ] Grappling hook/gravity gun object.
+[ ] Feynman lectures
+
+
+[ ] Avatar plan:
+    use getUserName. Hash this to get an entityID. Spawn an entity with this ID that represents the player upon entering, delete it when leaving a scene.
+    Since it will be an Animated body, other players can delete you if needed if stale players remain from crashes etc.

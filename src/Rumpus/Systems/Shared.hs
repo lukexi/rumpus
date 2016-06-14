@@ -112,10 +112,16 @@ removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren =
     withComponent_ myChildren (mapM_ removeEntity)
 
+spawnChild_ :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m ()
+spawnChild_ = void . spawnChild
+
 spawnChild :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID
 spawnChild actions = do
     thisEntityID <- ask
     spawnChildOf thisEntityID actions
+
+spawnChildOf_ :: (MonadIO m, MonadState ECS m) => EntityID -> ReaderT EntityID m () -> m ()
+spawnChildOf_ entityID = void . spawnChildOf entityID
 
 spawnChildOf :: (MonadIO m, MonadState ECS m) => EntityID -> ReaderT EntityID m () -> m EntityID
 spawnChildOf entityID actions =

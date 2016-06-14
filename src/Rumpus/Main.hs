@@ -56,7 +56,7 @@ initializeECS ghc pd vrPal = do
                         | fileExists    -> return (fileName, "start")
                         | name == "new" -> createNewStartExpr -- create a new object for quick dev work
                         | otherwise     -> createStartExpr name
-                    void . spawnEntity $ do
+                    spawnEntity_ $ do
                         myShape      ==> Cube
                         mySize       ==> newEntitySize
                         myBody       ==> Animated

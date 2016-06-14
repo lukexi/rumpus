@@ -45,7 +45,7 @@ room = do
     setPose (identity & translation .~ V3 0 roomOffset (-roomD/2 + 0.4))
     removeChildren
     builderID <- ask
-    let makeWall pos size hue = void . spawnEntity $ do
+    let makeWall pos size hue = spawnEntity_ $ do
             myParent            ==> builderID
             myPose              ==> position (pos & _y +~ roomOffset)
             myShape             ==> Cube
@@ -100,7 +100,7 @@ createBuildings = do
     forM_ (zip [0..] buildSites) $ \(_i::Int, V3 x y z) -> do
         hue <- liftIO randomIO
 
-        when (x /= 0 && z /= 0) $ void . spawnEntity $ do
+        when (x /= 0 && z /= 0) $ spawnEntity_ $ do
             myParent               ==> rootEntityID
             myPose                 ==> position (V3 x y z)
             myShape            ==> Cube
@@ -118,7 +118,7 @@ createStars = do
     let numPoints = 300 :: Int
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
-    forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
+    forM_ (zip sphere hues) $ \(pos, hue) -> spawnEntity_ $ do
         myParent               ==> rootEntityID
         myPose                 ==> position (pos * 1000)
         myShape            ==> Sphere

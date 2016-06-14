@@ -22,7 +22,7 @@ start = do
     forM_ (zip [0..] buildSites) $ \(i, V3 x y z) -> do
         hue <- liftIO randomIO
 
-        when (x /= 0 && z /= 0) $ void . spawnChild $ do
+        when (x /= 0 && z /= 0) $ spawnChild_ $ do
             myPose          ==> position (V3 x y z)
             myShape         ==> Cube
             myTransformType ==> AbsolutePose
@@ -37,4 +37,3 @@ start = do
                     myUpdate ==> do
                         newHeight <- getKnobValue heightKnob
                         setSize (V3 dim (abs x * newHeight) dim)
-                        return ()

@@ -33,7 +33,7 @@ start = do
         brightness <- (*0.7) <$> getKnobValue01ByName "Cutoff"
         -- Spawn cubes as absolute so they hang in the air
         currentPose <- getPose
-        void . spawnChild $ do
+        spawnChild_ $ do
             myShape         ==> Cube
             mySize          ==> 0.2
             myColor         ==> colorHSL degree01 0.8 brightness

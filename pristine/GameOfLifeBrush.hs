@@ -70,5 +70,4 @@ start = do
             forM_ oldBlots removeEntity
             setState
                 (newPosition, tickGOL grid, Seq.fromList children <> newBlots, hue + 0.1)
-    return ()
 

@@ -106,11 +106,12 @@ addExitOrb whichHand = do
             let brightness = (* 0.5) . (+1) . (/2) . sin $ now
             setColor (colorHSL 0.4 0.8 brightness)
     exitOrbID <- spawnEntity $ do
-        myColor      ==> (colorHSL 0.7 0.8 0)
-        myShape      ==> Sphere
-        mySize       ==> initialLibraryItemSize
-        myBody       ==> Detector -- FIXME: We can't make this Ungrabbable as that inhibits clicks
-        myUpdate     ==> normalPulse
+        myColor        ==> (colorHSL 0.7 0.8 0)
+        myShape        ==> Sphere
+        mySize         ==> initialLibraryItemSize
+        myBody         ==> Detector
+        myDragOverride ==> True
+        myUpdate       ==> normalPulse
         -- Pulse the other hand when it hovers over us
         myCollisionContinues ==> \entityID _ -> do
             when (entityID == otherHandID) $ do
@@ -146,7 +147,7 @@ addDestructionOrb whichHand = do
             setColor (colorHSL 0.1 0.8 brightness)
     handID   <- getHandID whichHand
     destructorID <- spawnEntity $ do
-        myColor      ==> (colorHSL 0.7 0.8 0)
+        myColor      ==> colorHSL 0.7 0.8 0
         myShape      ==> Sphere
         mySize       ==> initialLibraryItemSize
         myBody       ==> Detector
@@ -193,7 +194,6 @@ addDestructionOrb whichHand = do
 addHandLibraryItem :: (MonadIO m, MonadState ECS m)
                    => WhichHand -> V3 GLfloat -> Maybe FilePath -> m ()
 addHandLibraryItem whichHand spherePosition maybeCodePath = do
-    handID   <- getHandID whichHand
     newEntityID <- spawnEntity $ do
         myShape      ==> Cube
         mySize       ==> initialLibraryItemSize
@@ -237,6 +237,7 @@ addHandLibraryItem whichHand spherePosition maybeCodePath = do
 
     -- Hand is usually held vertically, so we rotate objects such that they'll
     -- have their code facing towards the user in that case
+    handID   <- getHandID whichHand
     attachEntityToEntity handID newEntityID
         (positionRotation
             (creatorOffset + spherePosition * 0.2)
@@ -299,25 +300,6 @@ createStartExpr name = do
 
 
 
-{-
-addCodeExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, Typeable a)
-            => FilePath
-            -> String
-            -> Key (EntityMap CodeInFile)
-            -> Key (EntityMap a)
-            -> m ()
-addCodeExpr fileName exprName codeFileComponentKey codeComponentKey = do
-    rumpusRoot <- getRumpusRootFolder
-    entityID <- ask
-    let defaultFilePath = "resources" </> "default-code" </> "Default" ++ fileName <.> "hs"
-        entityFileName = (show entityID ++ "-" ++ fileName) <.> "hs"
-        entityFilePath = rumpusRoot </> entityFileName
-        codeFile = (entityFileName, exprName)
-    liftIO $ copyFile defaultFilePath entityFilePath
-    codeFileComponentKey ==> codeFile
-    registerWithCodeEditor codeFile codeComponentKey
--}
-
 
 -----------------------------------------------
 -- Experiments in dynamic code addition/cloning
@@ -333,12 +315,11 @@ forkCode fromEntityID toEntityID = do
     forM_ mCodeExpr $ \(fullPath, expr) -> do
         let (path, fileName) = splitFileName fullPath
             (name, ext)      = splitExtension fileName
-        -- Slightly tricky to get right without overwriting files; need to enumerate directory and find unused name
-        -- so using getPosixTime for now.
-        --fileNum          = succ . fromMaybe 1 . readMaybe . reverse . takeWhile isDigit . reverse $ fileName
-        now <- liftIO $ getPOSIXTime
-        let newName = name ++ show now
-            newFullPath = path </> newName <.> ext
+
+        existing <- getDirectoryContentsWithExtension "hs" rumpusRoot
+        let newObjectName = findNextNumberedName name (map takeBaseName existing)
+
+        let newFullPath = path </> newObjectName <.> ext
         liftIO $ copyFile fullPath newFullPath
 
         let newCodeInFile = (newFullPath, expr)

@@ -10,11 +10,10 @@ roomOffset = -wallD/2
 start :: Start
 start = do
 
-    spawnChild $ do
+    spawnChild_ $ do
         myPose       ==> position (V3 0 roomOffset 0)
         myShape      ==> Cube
         myBody       ==> Animated
         myBodyFlags  ==> [Ungrabbable, Teleportable]
         mySize       ==> V3 roomW wallD roomD
         myColor      ==> colorHSL 0.25 0.8 0.2
-    return ()

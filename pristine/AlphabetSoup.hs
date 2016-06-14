@@ -5,13 +5,13 @@ start :: Start
 start = do
 
     let n = 0.3
-    forM (take 100 $ cycle ['a'..'z']) $ \letter -> do
+    forM_ (take 100 $ cycle ['a'..'z']) $ \letter -> do
         pos <- V3 <$> randomRange (-n,n)
                   <*> randomRange (-n,n)
                   <*> randomRange (-n,n)
 
         let (V3 x y z) = pos
-        void . spawnChild $ do
+        spawnChild_ $ do
             myPose          ==> position pos
             mySize          ==> 0.01
             myText          ==> [letter]
@@ -24,4 +24,3 @@ start = do
                     (axisAngle pos n)
                     (realToFrac (sin n))
                 --setColor (colorHSL (x+(sin n * 0.3)) 0.5 0.5)
-    return ()

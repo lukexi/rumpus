@@ -25,11 +25,10 @@ start = do
                                <*> randomRange (-0.1, 0.1)
                                <*> randomRange (-0.1, 0.1)
                 hue <- randomRange (0.5,0.7)
-                drop <- spawnChild $ do
+                spawnChild_ $ do
                     myShape ==> Sphere
                     myPose  ==> cloudPose !*! position startPos
                     mySize  ==> 0.03
                     myBody  ==> Physical
                     myColor ==> colorHSL hue 0.5 0.8
                     myLifetime ==> 2
-                return ()

@@ -26,4 +26,3 @@ start = do
             let (newBlots, oldBlots) = Seq.splitAt maxBlots blots
             forM_ oldBlots removeEntity
             setState (newPosition, newBlot <| newBlots)
-    return ()

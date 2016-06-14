@@ -22,9 +22,9 @@ start = do
     let numPoints = 30 :: Int
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
-    forM_ (zip sphere hues) $ \(pos, hue) -> void $ spawnEntity $ do
+    forM_ (zip sphere hues) $ \(pos, hue) -> spawnEntity_ $ do
         myParent           ==> rootEntityID
-        myPose             ==> translateMatrix pos
+        myPose             ==> position pos
         myShape            ==> Sphere
         mySize             ==> 0.05
         myColor            ==> colorHSL hue 0.8 0.5

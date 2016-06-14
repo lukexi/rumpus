@@ -16,4 +16,3 @@ start = do
            let y' = y + sin (now + x + z) + sin (now + z)
            setPose (position (V3 x (0.1*y') z))
            setColor (colorHSL ((y')/20) 0.5 0.5)
-    return ()

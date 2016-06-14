@@ -267,8 +267,6 @@ setPosition position = do
     pose <- getPose
     setPose $ (pose & translation .~ position)
 
-getPosition :: (MonadState ECS m, MonadReader EntityID m) => m (V3 GLfloat)
-getPosition = view translation <$> getPose
 
 setRotation :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> GLfloat -> m ()
 setRotation rotAxis rotAngle = setRotationQ (axisAngle rotAxis rotAngle)

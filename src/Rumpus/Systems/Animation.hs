@@ -37,6 +37,8 @@ tickComponentAnimation now animComponentKey setterAction =
             when (evanRunning evaled == False) $ do
                 removeComponent animComponentKey
 
+animateEntitySizeTo :: (MonadIO m, MonadState ECS m) => EntityID -> V3 GLfloat -> DiffTime -> m ()
+animateEntitySizeTo entityID newSize time = inEntity entityID $ animateSizeTo newSize time
 
 animateSizeTo :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> DiffTime -> m ()
 animateSizeTo newSize time = do
