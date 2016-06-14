@@ -4,7 +4,6 @@
     Ocean example: make pool
     Attractors
 
-[ ] Titled doors with tiled floor for loader room
 
 [ ] Fix exception catching
 
@@ -14,7 +13,9 @@
 
 [ ] Add knobs to more objects
 
+[ ] Better hand tips
 
+[ ] Titled doors with tiled floor for loader room
 
 
 [ ] Hmmm... a very good reason to keep files in the folder is for sharing;

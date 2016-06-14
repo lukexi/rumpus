@@ -66,8 +66,16 @@ getWhichHand entityID = do
         | otherwise               -> Nothing
 
 
-getHandIDs :: (MonadState ECS m) => m [(WhichHand, EntityID)]
+getHandIDs :: (MonadState ECS m) => m [EntityID]
 getHandIDs = do
+    leftHandID  <- getLeftHandID
+    rightHandID <- getRightHandID
+    return [ leftHandID
+           , rightHandID
+           ]
+
+getHandIDsByWhichHand :: (MonadState ECS m) => m [(WhichHand, EntityID)]
+getHandIDsByWhichHand = do
     leftHandID  <- getLeftHandID
     rightHandID <- getRightHandID
     return [ (LeftHand, leftHandID)
