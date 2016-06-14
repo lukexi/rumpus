@@ -142,6 +142,12 @@ getName = getEntityName =<< ask
 getEntityPose :: MonadState ECS m => EntityID -> m (M44 GLfloat)
 getEntityPose entityID = fromMaybe identity <$> getEntityComponent entityID myPose
 
+getEntityPosition :: MonadState ECS m => EntityID -> m (V3 GLfloat)
+getEntityPosition entityID = view translation <$> getEntityPose entityID
+
+getPosition :: (MonadReader EntityID m, MonadState ECS m) => m (V3 GLfloat)
+getPosition = getEntityPosition =<< ask
+
 getPose :: (MonadReader EntityID m, MonadState ECS m) => m (M44 GLfloat)
 getPose = getEntityPose =<< ask
 
