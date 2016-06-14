@@ -12,10 +12,9 @@ start = do
         myGravity ==> 0
         myBody ==> Physical
         myShape ==> Cube
-        mySize ==> 0.25
+        mySize  ==> 0.25
 
     let target = V3 0 1 0
-
     myUpdate ==> do
         x <- getKnobValue xKnob
         y <- getKnobValue yKnob
@@ -26,5 +25,5 @@ start = do
             position <- getEntityPosition body
             let orientation = normalize (target - position)
             applyForceToEntity body (orientation * strength)
-            let V3 x y z = abs <$> orientation
-            inEntity body $ setColor (colorHSL x y z)
+            let V3 h s l = abs <$> orientation
+            setEntityColor body (colorHSL h s l)

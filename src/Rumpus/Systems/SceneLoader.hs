@@ -67,12 +67,13 @@ showSceneLoader = do
 
     scenePaths <- listScenes
     let scenePathsWithNewScene = Nothing : map Just scenePaths
-        positions = goldenSectionSpiralPoints (length scenePathsWithNewScene)
-        positionsAndCodePaths = zip positions scenePathsWithNewScene
+        numItems = length scenePathsWithNewScene
+        positions = goldenSectionSpiralPoints numItems
+        positionsAndCodePaths = zip3 [0..] positions scenePathsWithNewScene
 
     inEntity sceneLoaderRootID $ do
-        forM_ positionsAndCodePaths $ \(pos, maybeCodePath) -> do
-            addSceneLibraryItem pos maybeCodePath
+        forM_ positionsAndCodePaths $ \(n, pos, maybeCodePath) -> do
+            addSceneLibraryItem (fromIntegral n / fromIntegral numItems) pos maybeCodePath
         _ <- spawnChildInstance "Stars"
         _ <- spawnChildInstance "VoicePillars"
         _ <- spawnChildInstance "Platform"
@@ -101,8 +102,8 @@ listDirectories inPath = liftIO $
     filterM (doesDirectoryExist . (inPath </>)) =<< getDirectoryContentsSafe inPath
 
 addSceneLibraryItem :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
-                    => V3 GLfloat -> Maybe FilePath -> m ()
-addSceneLibraryItem spherePosition maybeScenePath = do
+                    => GLfloat -> V3 GLfloat -> Maybe FilePath -> m ()
+addSceneLibraryItem n spherePosition maybeScenePath = do
     let itemPosition = spherePosition * 1 + libraryCenter
     itemID <- spawnChild $ do
         myPose         ==> position itemPosition
@@ -115,7 +116,7 @@ addSceneLibraryItem spherePosition maybeScenePath = do
                             (V3 0 (-1) 0)
                             (axisAngle (V3 0 1 0) pi)
                             !*! scaleMatrix 0.3
-        myColor      ==> V4 0.1 0.1 0.1 1
+        myColor      ==> colorHSL n 0.5 0.5
         -- Make the new object pulse
         myUpdate ==> do
             when (isNothing maybeScenePath) $ do

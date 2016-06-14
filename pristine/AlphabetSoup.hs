@@ -6,6 +6,7 @@ start = do
 
     let n = 0.3
     forM_ (take 100 $ cycle ['!'..'~']) $ \letter -> do
+        printIO letter
         pos <- V3 <$> randomRange (-n,n)
                   <*> randomRange (-n,n)
                   <*> randomRange (-n,n)
