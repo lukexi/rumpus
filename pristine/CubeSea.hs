@@ -5,7 +5,7 @@ start :: Start
 start = do
     baseHueKnob <- addKnob "Base Hue" (Linear 0 1) 0
     
-    let n = 10
+    let n = 8
         size = 10
     let things = [V2 x z | x <- [-n..n], z <- [-n..n]]
     forM_ (zip [0..] things) $ \(i, pos) -> spawnChild $ do

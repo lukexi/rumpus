@@ -6,7 +6,6 @@ start = do
 
     let n = 0.3
     forM_ (take 100 $ cycle ['!'..'~']) $ \letter -> do
-        printIO letter
         pos <- V3 <$> randomRange (-n,n)
                   <*> randomRange (-n,n)
                   <*> randomRange (-n,n)
@@ -24,4 +23,3 @@ start = do
                     (pos & _x +~ sin n & _y +~ cos n)
                     (axisAngle pos n)
                     (realToFrac (sin n*0.1))
-                --setColor (colorHSL (x+(sin n * 0.3)) 0.5 0.5)

@@ -4,6 +4,8 @@
     Ocean example: make pool
     Attractors
 
+[ ] Sound for pool, attractor, ribbon?
+    [ ] Use Verylogue!
 
 [ ] Fix exception catching
 

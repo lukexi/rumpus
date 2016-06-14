@@ -106,7 +106,7 @@ addExitOrb whichHand = do
             let brightness = (* 0.5) . (+1) . (/2) . sin $ now
             setColor (colorHSL 0.4 0.8 brightness)
     exitOrbID <- spawnEntity $ do
-        myColor        ==> (colorHSL 0.7 0.8 0)
+        myColor        ==> (colorHSL 0.4 0.8 0.5)
         myShape        ==> Sphere
         mySize         ==> initialLibraryItemSize
         myBody         ==> Detector

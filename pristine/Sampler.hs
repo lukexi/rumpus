@@ -6,6 +6,7 @@ import Data.String
 
 start :: Start
 start = do
+
     setSynthPatch "Sampler.pd"
 
     -- Inform the Sampler of where to save & load its sample
@@ -35,7 +36,7 @@ start = do
         -- Set initial pose so there's not a spurious collision
         myPose            ==> pose !*! position (V3 0 0.5 0)
         myDragOverride    ==> True
-        myCollisionBegan  ==> \_ _ -> do
+        myDragBegan  ==> do
             hue <- randomRange (0,1)
             setColor $ colorHSL hue 0.8 0.4
             sendEntitySynth mainID "begin-recording" Bang
