@@ -6,6 +6,7 @@
 
 [ ] Titled doors with tiled floor for loader room
 
+[ ] Fix exception catching
 
 [ ] Put manual into Rumpus
 

@@ -25,8 +25,8 @@ runUserScriptsWithTimeout_ = void . runUserScriptsWithTimeout
 runUserFunctionProtected :: (MonadIO m, MonadState ECS m, MonadReader EntityID m, MonadCatch m)
                          => Key (EntityMap a) -> m () -> m ()
 runUserFunctionProtected functionKey userFunction =
-    userFunction `catchAll` (\e -> do
+    catchAll userFunction (\e -> do
         removeComponent functionKey
-        let runtimeErrors = show e
+        let runtimeErrors = displayException e
         setErrorText runtimeErrors
         putStrLnIO runtimeErrors)

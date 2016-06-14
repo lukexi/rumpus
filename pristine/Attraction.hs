@@ -1,18 +1,30 @@
 module Attraction where
 import Rumpus
 
-main = do
+start :: Start
+start = do
 
-    bodies <- forM spawnChild $ do
+    xKnob <- addKnob "CenterX" (Linear -10 10) 0
+    yKnob <- addKnob "CenterY" (Linear -10 10) 0
+    zKnob <- addKnob "CenterZ" (Linear -10 10) 0
+    strengthKnob <- addKnob "Strength" (Linear 0 1) 0.1
+    bodies <- forM [0..100] $ \_ -> spawnChild $ do
         myGravity ==> 0
         myBody ==> Physical
         myShape ==> Cube
-        mySize ==> 0.1
+        mySize ==> 0.25
 
-    let target = V3 0 0 0
+    let target = V3 0 1 0
+
     myUpdate ==> do
-        forM_ bodyIDs $ \body -> do
+        x <- getKnobValue xKnob
+        y <- getKnobValue yKnob
+        z <- getKnobValue zKnob
+        strength <- realToFrac <$> getKnobValue strengthKnob
+        let target = V3 x y z
+        forM_ bodies $ \body -> do
             position <- getEntityPosition body
-            let orientation = normalize (target - (position :: V3 GLfloat)) :: V3 GLfloat
-            applyForceToEntity body orientation
-            setColor (1 & _xyz .~ orientation)
+            let orientation = normalize (target - position)
+            applyForceToEntity body (orientation * strength)
+            let V3 x y z = abs <$> orientation
+            inEntity body $ setColor (colorHSL x y z)
