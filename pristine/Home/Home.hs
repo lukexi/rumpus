@@ -1,68 +1,53 @@
-module Rumpus.Systems.SceneLoader where
-import PreludeExtra hiding (delete, catch)
-import Rumpus.Systems.Drag
-import Rumpus.Systems.Animation
-import Rumpus.Systems.Clock
-import Rumpus.Systems.Shared
-import Rumpus.Systems.Controls
-import Rumpus.Systems.Scene
-import Rumpus.Systems.PlayPause
-import Rumpus.Systems.Physics
-import Rumpus.Systems.Text
-import Rumpus.Systems.CodeEditor
-import Control.Exception
+module Home where
+import Rumpus
 
-import RumpusLib
 libraryCenter :: V3 GLfloat
 libraryCenter = V3 0 1.5 0
+
+minimizedItemSize :: V3 GLfloat
+minimizedItemSize = 0.01
+
+itemSize :: V3 GLfloat
+itemSize = 0.3
+
+sceneTransitionTime :: Float
+sceneTransitionTime = 0.1
 
 start :: Start
 start = do
     setPlayerPosition 0
 
-    scenePaths <- listScenes
-    let scenePathsWithNewScene = Nothing : map Just scenePaths
-        numItems               = length scenePathsWithNewScene
+    sceneNames <- listScenes
+    let sceneNamesWithNewScene = Nothing : map Just sceneNames
+        numItems               = length sceneNamesWithNewScene
         positions              = goldenSectionSpiralPoints numItems
-        positionsAndCodePaths  = zip3 [0..] positions scenePathsWithNewScene
+        positionsAndCodePaths  = zip3 [0..] positions sceneNamesWithNewScene
 
     forM_ positionsAndCodePaths $ \(n, pos, maybeCodePath) -> do
         addSceneLibraryItem (fromIntegral n / fromIntegral numItems) pos maybeCodePath
-    _ <- spawnChildInstance "Stars"
-    --_ <- spawnChildInstance "VoicePillars"
-    _ <- spawnChildInstance "Platform"
-    _ <- spawnChildInstance "Grass"
 
     return ()
 
-sceneLoaderAnimationInitialSize :: V3 GLfloat
-sceneLoaderAnimationInitialSize = V3 0.01 0.01 0.01
-
-sceneLoaderAnimationFinalSize :: V3 GLfloat
-sceneLoaderAnimationFinalSize   = V3 0.3  0.3  0.3
-
-sceneLoaderAnimationDuration :: Double
-sceneLoaderAnimationDuration    = 0.3
-
 addSceneLibraryItem :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                     => GLfloat -> V3 GLfloat -> Maybe FilePath -> m ()
-addSceneLibraryItem n spherePosition maybeScenePath = do
+addSceneLibraryItem n spherePosition maybeSceneName = do
     let itemPosition = spherePosition * 1 + libraryCenter
     spawnEntity_ $ do
         myPose         ==> position itemPosition
         myShape        ==> Sphere
-        mySize         ==> sceneLoaderAnimationInitialSize
+        mySize         ==> minimizedItemSize
         myBody         ==> Animated
         myDragOverride ==> True
-        myText         ==> maybe "New Scene" takeBaseName maybeScenePath
+        myText         ==> fromMaybe "New Scene" maybeSceneName
         myTextPose     ==> positionRotationScale
                             (V3 0 (-1) 0)
                             (axisAngle (V3 0 1 0) pi)
                             0.3
         myColor        ==> colorHSL n 0.5 0.5
-        -- Make the new object pulse
+        myStart        ==> animateSizeTo itemSize 0.3
         myUpdate ==> do
-            when (isNothing maybeScenePath) $ do
+            -- Make the new object pulse
+            when (isNothing maybeSceneName) $ do
                 now <- getNow
                 setColor (colorHSL now 0.3 0.8)
 
@@ -70,29 +55,16 @@ addSceneLibraryItem n spherePosition maybeScenePath = do
             headPose <- getHeadPose
             setPose $ orientToward itemPosition (headPose ^. translation) (V3 0 1 0)
         myDragBegan ==> do
-            rumpusRoot <- getRumpusRootFolder
-            mScenePathToLoad <- case maybeScenePath of
-                Just scenePath -> return (Just (rumpusRoot </> scenePath))
+            sceneName <- case maybeSceneName of
+                Just sceneName -> return sceneName
                 Nothing        -> createNewScene
-            forM_ mScenePathToLoad $ \scenePathToLoad -> do
-                fadeToColor (V4 1 1 1 1) 1
-                setDelayedAction 1 $ do
-                    fadeToColor (V4 0 0 0 0) 1
-                    setWorldPlaying False
-                    loadScene scenePathToLoad
-        myStart ==> animateSizeTo sceneLoaderAnimationFinalSize 0.3
 
-createNewScene :: (MonadIO m, MonadState ECS m) => m (Maybe FilePath)
-createNewScene = do
-    rumpusRoot <- getRumpusRootFolder
-    -- FIXME two users could create a new scene at once and we don't handle this
-    scenePaths <- listScenes
-    let newSceneName = findNextNumberedName "MyScene" scenePaths
-        newScenePath = rumpusRoot </> newSceneName
+            -- Fade out while loading
+            fadeToColor (V4 1 1 1 1) sceneTransitionTime
 
-    -- Do nothing if we can't create the folder
-    createdSuccessfully <- createDirectorySafe newScenePath
-    if createdSuccessfully
-        then return (Just newScenePath)
-        else return Nothing
+            -- Load after 1 second
+            setDelayedAction sceneTransitionTime $ do
+                fadeToColor (V4 0 0 0 0) sceneTransitionTime
+                loadScene sceneName
+
 

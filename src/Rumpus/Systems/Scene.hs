@@ -1,6 +1,7 @@
 module Rumpus.Systems.Scene where
 import Data.ECS
 import Rumpus.Types
+import Rumpus.Systems.PlayPause
 import PreludeExtra hiding (catch)
 import Control.Exception
 
@@ -78,6 +79,8 @@ closeScene = do
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneName = do
+    setWorldPlaying False
+
     rumpusRoot <- getRumpusRootFolder
     let sceneFolder = rumpusRoot </> sceneName
 
@@ -109,6 +112,20 @@ fileInRumpusRoot :: MonadState ECS m => FilePath -> m FilePath
 fileInRumpusRoot fileName = do
     rumpusRootFolder <- getRumpusRootFolder
     return (rumpusRootFolder </> fileName)
+
+createNewScene :: (MonadIO m, MonadState ECS m) => m (Maybe String)
+createNewScene = do
+    rumpusRoot <- getRumpusRootFolder
+    -- FIXME two users could create a new scene at once and we don't handle this
+    scenePaths <- listScenes
+    let newSceneName = findNextNumberedName "MyScene" scenePaths
+        newScenePath = rumpusRoot </> newSceneName
+
+    -- Do nothing if we can't create the folder
+    createdSuccessfully <- createDirectorySafe newScenePath
+    if createdSuccessfully
+        then return (Just newSceneName)
+        else return Nothing
 
 
 
