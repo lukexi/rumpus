@@ -11,10 +11,9 @@ start = do
 
     -- Inform the Sampler of where to save & load its sample
     thisID <- ask
-    mStateFolder <- getSceneStateFolder
-    forM_ mStateFolder $ \stateFolder -> do
-        sampleFileName <- toPdPathStyle (stateFolder </> show thisID <.> "wav")
-        sendSynth "sample-file" (fromString sampleFileName)
+    stateFolder <- getSceneStateFolder
+    sampleFileName <- toPdPathStyle (stateFolder </> show thisID <.> "wav")
+    sendSynth "sample-file" (fromString sampleFileName)
 
     -- Create the entities representing the FFT
     let numSamples = 32 -- actual generated is 256

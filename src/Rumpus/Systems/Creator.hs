@@ -31,8 +31,11 @@ exitOrbSize = 0.05
 initialLibraryItemSize :: V3 GLfloat
 initialLibraryItemSize = 0.001
 
-libraryItemSize :: V3 GLfloat
-libraryItemSize = V3 0.05 0.05 0.01
+entityItemSize :: V3 GLfloat
+entityItemSize = V3 0.05 0.05 0.01
+
+sceneItemSize :: V3 GLfloat
+sceneItemSize = 0.05
 
 newEntitySize :: V3 GLfloat
 newEntitySize = V3 0.4 0.4 0.1
@@ -45,6 +48,9 @@ creatorOffset = V3 0 0 -0.4
 
 exitOrbOffset :: V3 GLfloat
 exitOrbOffset = V3 0 0 0.2
+
+transitionTime :: Fractional a => a
+transitionTime = 0.5
 
 -- NOTE: this illustrates how handy it will be to have arbitrary components;
 -- rather than creating yet more maps, we can just say
@@ -146,7 +152,12 @@ addObjectLibraryItem whichHand n spherePosition itemType = do
             (creatorOffset + spherePosition * 0.2)
             (axisAngle (V3 1 0 0) (-pi/2)))
 
-    inEntity newEntityID $ animateSizeTo libraryItemSize animDur
+    let finalSize = case itemType of
+            ObjectItem _ _ -> entityItemSize
+            NewObjectItem -> entityItemSize
+            SceneItem _ -> sceneItemSize
+            ToScenesItem -> sceneItemSize
+    inEntity newEntityID $ animateSizeTo finalSize animDur
     addEntityToOpenLibrary whichHand newEntityID
 
 makeSceneItem whichHand hue spherePosition sceneName = spawnEntity $ do
@@ -309,15 +320,15 @@ addExitOrb whichHand = do
             when (entityID == otherHandID) $ do
                 hapticPulse otherHand 1000
         myDragBegan ==> do
-            fadeToColor 1 1
+            fadeToColor 1 transitionTime
             -- Add the delayed action to the hand, since the exit orb will disappear
             -- when the user releases the library button
-            inEntity otherHandID $ setDelayedAction 1 $ do
-                fadeToColor 0 1
+            inEntity otherHandID $ setDelayedAction transitionTime $ do
                 closeCreator whichHand
                 releasePolyPatches
                 closeScene
                 loadScene "Home"
+                fadeToColor 0 transitionTime
 
     handID   <- getHandID whichHand
     attachEntityToEntity handID exitOrbID (translateMatrix exitOrbOffset)

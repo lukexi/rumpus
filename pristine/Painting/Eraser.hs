@@ -13,4 +13,4 @@ start = do
         myCollisionBegan ==> \entityID _ ->
             unless (entityID `elem` excluded) $ do
                 sceneWatcherRemoveEntity entityID
-    attachEntity eraser (V3 0 0.5 0)
+    attachEntity eraser (position $ V3 0 0.5 0)

@@ -3,6 +3,7 @@ import Data.ECS
 import Rumpus.Types
 import Rumpus.Systems.PlayPause
 import PreludeExtra hiding (catch)
+import RumpusLib
 import Control.Exception
 
 data SceneSystem = SceneSystem
