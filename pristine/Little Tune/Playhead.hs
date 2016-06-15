@@ -1,11 +1,11 @@
-module Sequencer where
+module Playhead where
 import Rumpus
 
 start :: Start
 start = do
     durationKnob <- addKnob "Duration" (Stepped (map show [1..10])) 3
-    heightKnob <- addKnob "Height" (Linear 1 4) 1
-    
+    heightKnob   <- addKnob "Height" (Linear 1 4) 1
+
     thisID <- ask
     playHead <- spawnChild $ do
         myShape      ==> Cube
@@ -26,10 +26,10 @@ start = do
                 scaleIn  = min time  0.2 * recip 0.2
                 scaleOut = min timeR 0.2 * recip 0.2
                 scale    = min 1 $ scaleIn * scaleOut
-            
+
             setSize (realToFrac scale * size)
             return ()
-        myCollisionBegan ==> \hitEntityID _ -> 
+        myCollisionBegan ==> \hitEntityID _ ->
             when (hitEntityID /= thisID) $ do
               flashColor <- getEntityColor hitEntityID
               animateColor 0.2 flashColor (V4 1 1 1 1)
@@ -41,6 +41,6 @@ start = do
         myUpdate ==> do
             duration <- succ <$> getKnobValue durationKnob
             setPose (position (V3 (duration / 2) 0 0))
-            setSize (V3 duration 0.01 0.01) 
+            setSize (V3 duration 0.01 0.01)
 
     return ()

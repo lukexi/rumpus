@@ -24,7 +24,6 @@ import Rumpus.Systems.Profiler as Exports
 import Rumpus.Systems.Render as Exports
 import Rumpus.Systems.Scene as Exports
 import Rumpus.Systems.SceneWatcher as Exports
-import Rumpus.Systems.SceneLoader as Exports
 import Rumpus.Systems.Script as Exports
 import Rumpus.Systems.Selection as Exports
 import Rumpus.Systems.Shared as Exports

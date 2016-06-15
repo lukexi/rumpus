@@ -68,7 +68,6 @@ library
                        Rumpus.Systems.Profiler
                        Rumpus.Systems.Scene
                        Rumpus.Systems.SceneWatcher
-                       Rumpus.Systems.SceneLoader
                        Rumpus.Systems.Script
                        Rumpus.Systems.Shared
                        Rumpus.Systems.Synth

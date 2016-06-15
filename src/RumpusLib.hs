@@ -33,6 +33,9 @@ randomRange = liftIO . randomRIO
 positionRotation :: Num a => V3 a -> Quaternion a -> M44 a
 positionRotation = flip mkTransformation
 
+positionRotationScale :: Num a => V3 a -> Quaternion a -> V3 a -> M44 a
+positionRotationScale pos rot scale = positionRotation pos rot !*! scaleMatrix scale
+
 position :: Num a => V3 a -> M44 a
 position  = translateMatrix
 rotation :: (Epsilon a, Floating a) => V3 a -> a -> M44 a

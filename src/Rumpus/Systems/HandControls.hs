@@ -57,7 +57,7 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
             HandButtonEvent HandButtonStart ButtonDown ->
                 openEntityLibrary whichHand
             HandButtonEvent HandButtonStart ButtonUp ->
-                closeEntityLibrary whichHand
+                closeCreator whichHand
             _ -> return ()
 
     leftHandID  <- getLeftHandID

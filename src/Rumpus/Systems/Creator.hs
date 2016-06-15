@@ -16,8 +16,7 @@ import Rumpus.Systems.Synth
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import Rumpus.Systems.SceneWatcher
-import Rumpus.Systems.SceneLoader
-import Data.List (delete, sort)
+import Data.List (delete)
 import RumpusLib
 
 activeDestructorOrbSize :: V3 GLfloat
@@ -52,7 +51,7 @@ exitOrbOffset = V3 0 0 0.2
 -- defineComponent OpenLibrary EntityID
 -- and then be able to access those instantly on the hands.
 data CreatorSystem = CreatorSystem
-    { _crtOpenLibrary        :: !(Map WhichHand [EntityID])
+    { _crtLibraryItems       :: !(Map WhichHand [EntityID])
     , _crtPendingDestruction :: !(Map WhichHand EntityID)
     }
 makeLenses ''CreatorSystem
@@ -63,6 +62,8 @@ initCreatorSystem :: MonadState ECS m => m ()
 initCreatorSystem = do
     registerSystem sysCreator (CreatorSystem mempty mempty)
 
+-- See if an object is currently touching the destruction orb, and destroy it if so.
+-- This is called when the hands release their grip on an item.
 checkForDestruction :: (MonadIO m, MonadState ECS m) => WhichHand -> m Bool
 checkForDestruction whichHand = do
     let otherHand = otherHandFrom whichHand
@@ -71,28 +72,219 @@ checkForDestruction whichHand = do
         sceneWatcherRemoveEntity destroyID
     return (isJust maybePendingDestruction)
 
-openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
-    aSceneIsOpen <- isJust <$> getSceneFolder
-    when aSceneIsOpen $ do
-        modifySystemState sysCreator $ crtOpenLibrary . at whichHand ?= []
+    sceneName <- getSceneName
+    openEntityLibraryForScene whichHand sceneName
 
-        rumpusRoot <- getRumpusRootFolder
-        codePaths  <- sort <$> getDirectoryContentsWithExtension "hs" rumpusRoot
+openEntityLibraryForScene :: (MonadIO m, MonadState ECS m) => WhichHand -> String -> m ()
+openEntityLibraryForScene whichHand sceneName = do
+    modifySystemState sysCreator $ crtLibraryItems . at whichHand ?= []
 
-        let codePathsWithNewObject = (Nothing : map Just codePaths)
-            positions = goldenSectionSpiralPoints (length codePathsWithNewObject)
-            positionsAndCodePaths = zip positions codePathsWithNewObject
+    sceneFolder <- sceneFolderForScene sceneName
+    codePaths   <- sort <$> getDirectoryContentsWithExtension "hs" sceneFolder
 
-        forM_ positionsAndCodePaths $ \(pos, maybeCodePath) -> do
-            addHandLibraryItem whichHand pos maybeCodePath
+    currentSceneName <- getSceneName
+    let isCurrentScene = sceneName == currentSceneName
+        buttons = if isCurrentScene then [ToScenesItem "Import", NewObjectItem] else [ToScenesItem "Back"]
+        codePathsWithNewObject = buttons ++ map (ObjectItem sceneName) codePaths
+        positions              = goldenSectionSpiralPoints (length codePathsWithNewObject)
+        positionsAndCodePaths  = zip positions codePathsWithNewObject
 
-        addDestructionOrb whichHand
+    forM_ positionsAndCodePaths $ \(pos, item) -> do
+        addObjectLibraryItem whichHand 0 pos item
 
-        addExitOrb whichHand
+    addDestructionOrb whichHand
+
+    addExitOrb whichHand
+
+
+data ItemType = ObjectItem String FilePath
+              | NewObjectItem
+              | SceneItem String
+              | ToScenesItem String -- Text is "Import" or "Back" depending on if we're viewing the current scene
+
+openSceneLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
+openSceneLibrary whichHand = do
+    modifySystemState sysCreator $ crtLibraryItems . at whichHand ?= []
+
+    sceneNames <- listScenes
+
+    let numItems = length sceneNames
+        positions = goldenSectionSpiralPoints numItems
+        positionsAndSceneNames = zip3 [0..] positions sceneNames
+
+    forM_ positionsAndSceneNames $ \(n, pos, sceneName) -> do
+        addObjectLibraryItem whichHand (fromIntegral n / fromIntegral numItems) pos (SceneItem sceneName)
+
+    addDestructionOrb whichHand
+
+    addExitOrb whichHand
 
 addEntityToOpenLibrary :: (MonadState ECS m) => WhichHand -> EntityID -> m ()
-addEntityToOpenLibrary whichHand entityID = modifySystemState sysCreator $ crtOpenLibrary . ix whichHand %= (entityID:)
+addEntityToOpenLibrary whichHand entityID = modifySystemState sysCreator $ crtLibraryItems . ix whichHand %= (entityID:)
+
+
+-- FIXME: it would be extra cool to add the startExpr immediately rather than on grab,
+-- so that we can see tiny versions of the code on each object.
+-- This would require a 'paused' flag to keep the script from actually running,
+-- and we would not want code on the NewObject (or, just make sure it isn't copied right away.)
+-- See if this is a performance problem.
+addObjectLibraryItem :: (MonadIO m, MonadState ECS m)
+                     => WhichHand -> GLfloat -> V3 GLfloat -> ItemType -> m ()
+addObjectLibraryItem whichHand n spherePosition itemType = do
+    newEntityID <- case itemType of
+        ObjectItem sceneName codeName -> makeEntityItem whichHand spherePosition (Just (sceneName, codeName))
+        NewObjectItem                 -> makeEntityItem whichHand spherePosition Nothing
+        SceneItem sceneName           -> makeSceneItem whichHand n spherePosition sceneName
+        ToScenesItem title            -> makeToScenesItem whichHand spherePosition title
+
+    -- Hand is usually held vertically, so we rotate objects such that they'll
+    -- have their code facing towards the user in that case
+    handID   <- getHandID whichHand
+    attachEntityToEntity handID newEntityID
+        (positionRotation
+            (creatorOffset + spherePosition * 0.2)
+            (axisAngle (V3 1 0 0) (-pi/2)))
+
+    inEntity newEntityID $ animateSizeTo libraryItemSize animDur
+    addEntityToOpenLibrary whichHand newEntityID
+
+makeSceneItem whichHand hue spherePosition sceneName = spawnEntity $ do
+    myShape      ==> Sphere
+    mySize       ==> initialLibraryItemSize
+    myBody       ==> Animated
+    myText       ==> sceneName
+    myTextPose   ==> position (V3 0 (-1) 0) !*! scaleMatrix 0.3
+    myColor      ==> colorHSL hue 0.5 0.5
+    myDragBegan  ==> do
+        closeCreator whichHand
+        openEntityLibraryForScene whichHand sceneName
+
+makeToScenesItem whichHand spherePosition title = spawnEntity $ do
+    myShape      ==> Sphere
+    mySize       ==> initialLibraryItemSize
+    myBody       ==> Animated
+    myText       ==> title
+    myTextPose   ==> position (V3 0 (-1) 0) !*! scaleMatrix 0.3
+    myUpdate     ==> do
+        now <- getNow
+        setColor (colorHSL now 0.5 0.5)
+    myDragBegan  ==> do
+        closeCreator whichHand
+        openSceneLibrary whichHand
+
+
+makeEntityItem whichHand spherePosition maybeCodePath = spawnEntity $ do
+    myShape      ==> Cube
+    mySize       ==> initialLibraryItemSize
+    myBody       ==> Animated
+    myText       ==> maybe "New Object" (takeBaseName . snd) maybeCodePath
+    myTextPose   ==> position (V3 0 (-1) 0) !*! scaleMatrix 0.3
+    myColor      ==> V4 0.1 0.1 0.1 1
+    -- Make the new object pulse
+    when (isNothing maybeCodePath) $ do
+        myUpdate ==> do
+            now <- getNow
+            setColor (colorHSL now 0.3 0.8)
+    myDragBegan ==> do
+        -- Remove this instance from the library so it is not deleted when the library is closed
+        entityID <- ask
+        removeFromOpenLibrary whichHand entityID
+
+        -- Re-add a new instance to the library so the user can spawn us again
+        addObjectLibraryItem whichHand 0 spherePosition (maybe NewObjectItem (uncurry ObjectItem) maybeCodePath)
+
+        -- Don't select right away; wait for a second click.
+        -- This is cleaner when "using" objects (e.g. note, seed)
+        -- where you don't always care about the code
+        clearSelection
+
+
+        removeComponent myUpdate
+        removeComponent myDragBegan
+        removeComponent myText
+        removeComponent myTextPose
+        removeTextRendererComponent
+
+        makeEntityPersistent entityID
+
+        animateSizeTo newEntitySize animDur
+        case maybeCodePath of
+            Just (sourceSceneName, codePath) -> do
+                currentSceneName <- getSceneName
+
+                when (sourceSceneName /= currentSceneName) $ do
+                    sourceFolder <- sceneFolderForScene sourceSceneName
+                    targetFolder <- sceneFolderForScene currentSceneName
+                    liftIO $ copyFile (sourceFolder </> codePath) (targetFolder </> codePath)
+
+                setStartExpr (codePath, "start")
+            Nothing       -> addNewStartExpr
+
+removeFromOpenLibrary :: MonadState ECS m => WhichHand -> EntityID -> m ()
+removeFromOpenLibrary whichHand entityID =
+    modifySystemState sysCreator $
+        crtLibraryItems . ix whichHand %= delete entityID
+
+closeCreator :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
+closeCreator whichHand = do
+    libraryEntities <- fromMaybe [] <$> viewSystem sysCreator (crtLibraryItems . at whichHand)
+    forM_ libraryEntities $ \entityID ->
+        inEntity entityID $ do
+            removeComponent myDragBegan -- Don't allow drag during close animation
+            animateSizeTo initialLibraryItemSize animDur
+            setDelayedAction animDur (removeEntity =<< ask)
+
+    modifySystemState sysCreator $ do
+        crtPendingDestruction . at whichHand .= Nothing
+        crtLibraryItems . at whichHand .= Nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+defaultStartCodeWithModuleName :: String -> String
+defaultStartCodeWithModuleName moduleName = unlines
+    [ "module " ++ moduleName ++ " where"
+    , "import Rumpus"
+    , ""
+    , "start :: Start"
+    , "start = do"
+    , "    return ()"
+    ]
+
+addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+                => m ()
+addNewStartExpr = do
+    codeInFile <- createNewStartExpr
+
+    -- Rumpus folder is auto-appended in CodeEditor, so we just need the filename with no path.
+    setStartExpr codeInFile
+
+createNewStartExpr :: (MonadIO m, MonadState ECS m) => m CodeInFile
+createNewStartExpr = do
+    rumpusRoot <- getRumpusRootFolder
+    files <- getDirectoryContentsWithExtension "hs" rumpusRoot
+
+    let newObjectName = findNextNumberedName "MyObject" (map takeBaseName files)
+    createStartExpr newObjectName
+
+createStartExpr :: (MonadIO m, MonadState ECS m) => String -> m CodeInFile
+createStartExpr name = do
+    rumpusRoot <- getRumpusRootFolder
+    let entityFileName    = name <.> "hs"
+        entityFilePath    = rumpusRoot </> entityFileName
+    liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName name)
+    return (entityFileName, "start")
 
 addExitOrb :: (MonadIO m, MonadState ECS m)
            => WhichHand -> m ()
@@ -106,7 +298,7 @@ addExitOrb whichHand = do
             let brightness = (* 0.5) . (+1) . (/2) . sin $ now
             setColor (colorHSL 0.4 0.8 brightness)
     exitOrbID <- spawnEntity $ do
-        myColor        ==> (colorHSL 0.4 0.8 0.5)
+        myColor        ==> colorHSL 0.4 0.8 0.5
         myShape        ==> Sphere
         mySize         ==> initialLibraryItemSize
         myBody         ==> Detector
@@ -122,10 +314,10 @@ addExitOrb whichHand = do
             -- when the user releases the library button
             inEntity otherHandID $ setDelayedAction 1 $ do
                 fadeToColor 0 1
-                closeEntityLibrary whichHand
+                closeCreator whichHand
                 releasePolyPatches
                 closeScene
-                showSceneLoader
+                loadScene "Home"
 
     handID   <- getHandID whichHand
     attachEntityToEntity handID exitOrbID (translateMatrix exitOrbOffset)
@@ -184,121 +376,6 @@ addDestructionOrb whichHand = do
 
     inEntity destructorID $ animateSizeTo destructorOrbSize animDur
     addEntityToOpenLibrary whichHand destructorID
-
-
--- FIXME: it would be extra cool to add the startExpr immediately rather than on grab,
--- so that we can see tiny versions of the code on each object.
--- This would require a 'paused' flag to keep the script from actually running,
--- and we would not want code on the NewObject (or, just make sure it isn't copied right away.)
--- See if this is a performance problem.
-addHandLibraryItem :: (MonadIO m, MonadState ECS m)
-                   => WhichHand -> V3 GLfloat -> Maybe FilePath -> m ()
-addHandLibraryItem whichHand spherePosition maybeCodePath = do
-    newEntityID <- spawnEntity $ do
-        myShape      ==> Cube
-        mySize       ==> initialLibraryItemSize
-        myBody       ==> Animated
-        myText       ==> maybe "New Object" takeBaseName maybeCodePath
-        myTextPose   ==> positionRotation
-                            (V3 0 (-1) 0)
-                            (axisAngle (V3 1 0 0) (0))
-                            !*! scaleMatrix 0.3
-        myColor      ==> V4 0.1 0.1 0.1 1
-        -- Make the new object pulse
-        when (isNothing maybeCodePath) $ do
-            myUpdate ==> do
-                now <- getNow
-                setColor (colorHSL now 0.3 0.8)
-        myDragBegan ==> do
-
-            -- Re-add ourselves to the library so the user can spawn us again
-            addHandLibraryItem whichHand spherePosition maybeCodePath
-
-            -- Don't select right away; wait for a second click.
-            -- This is cleaner when "using" objects (e.g. note, seed)
-            -- where you don't always care about the code
-            clearSelection
-
-            entityID <- ask
-            removeFromOpenLibrary whichHand entityID
-
-            removeComponent myUpdate
-            removeComponent myDragBegan
-            removeComponent myText
-            removeComponent myTextPose
-            removeTextRendererComponent
-
-            makeEntityPersistent entityID
-
-            animateSizeTo newEntitySize animDur
-            case maybeCodePath of
-                Just codePath -> setStartExpr (codePath, "start")
-                Nothing       -> addNewStartExpr
-
-    -- Hand is usually held vertically, so we rotate objects such that they'll
-    -- have their code facing towards the user in that case
-    handID   <- getHandID whichHand
-    attachEntityToEntity handID newEntityID
-        (positionRotation
-            (creatorOffset + spherePosition * 0.2)
-            (axisAngle (V3 1 0 0) (-pi/2)))
-
-    inEntity newEntityID $ animateSizeTo libraryItemSize animDur
-    addEntityToOpenLibrary whichHand newEntityID
-
-removeFromOpenLibrary :: MonadState ECS m => WhichHand -> EntityID -> m ()
-removeFromOpenLibrary whichHand entityID =
-    modifySystemState sysCreator $
-        crtOpenLibrary . ix whichHand %= delete entityID
-
-closeEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
-closeEntityLibrary whichHand = do
-    libraryEntities <- fromMaybe [] <$> viewSystem sysCreator (crtOpenLibrary . at whichHand)
-    forM_ libraryEntities $ \entityID ->
-        inEntity entityID $ do
-            removeComponent myDragBegan -- Don't allow drag during close animation
-            animateSizeTo initialLibraryItemSize animDur
-            setDelayedAction animDur (removeEntity =<< ask)
-
-    modifySystemState sysCreator $ do
-        crtPendingDestruction . at whichHand .= Nothing
-        crtOpenLibrary . at whichHand .= Nothing
-
-defaultStartCodeWithModuleName :: String -> String
-defaultStartCodeWithModuleName moduleName = unlines
-    [ "module " ++ moduleName ++ " where"
-    , "import Rumpus"
-    , ""
-    , "start :: Start"
-    , "start = do"
-    , "    return ()"
-    ]
-
-addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
-                => m ()
-addNewStartExpr = do
-    codeInFile <- createNewStartExpr
-
-    -- Rumpus folder is auto-appended in CodeEditor, so we just need the filename with no path.
-    setStartExpr codeInFile
-
-createNewStartExpr :: (MonadIO m, MonadState ECS m) => m CodeInFile
-createNewStartExpr = do
-    rumpusRoot <- getRumpusRootFolder
-    files <- getDirectoryContentsWithExtension "hs" rumpusRoot
-
-    let newObjectName = findNextNumberedName "MyObject" (map takeBaseName files)
-    createStartExpr newObjectName
-
-createStartExpr :: (MonadIO m, MonadState ECS m) => String -> m CodeInFile
-createStartExpr name = do
-    rumpusRoot <- getRumpusRootFolder
-    let entityFileName    = name <.> "hs"
-        entityFilePath    = rumpusRoot </> entityFileName
-    liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName name)
-    return (entityFileName, "start")
-
-
 
 
 -----------------------------------------------

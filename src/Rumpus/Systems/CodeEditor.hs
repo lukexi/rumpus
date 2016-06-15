@@ -88,8 +88,8 @@ initCodeEditorSystem ghcChan = do
         }
 
     registerComponent         "CodeHidden"           myCodeHidden           (newComponentInterface myCodeHidden)
-    registerCodeExprComponent "StartExpr"          myStartExpr          myStart
-    registerCodeExprComponent "UpdateExpr"         myUpdateExpr         myUpdate
+    registerCodeExprComponent "StartExpr"            myStartExpr            myStart
+    registerCodeExprComponent "UpdateExpr"           myUpdateExpr           myUpdate
     --registerCodeExprComponent "CollidingExpr"      myCollisionContinuesExpr      myCollisionContinues
     --registerCodeExprComponent "CollisionBeganExpr" myCollisionBeganExpr myCollisionBegan
 
@@ -139,13 +139,12 @@ addCodeEditorDependency codeInFile realCodeKey = do
     modifySystemState sysCodeEditor $
         cesCodeEditors . at codeInFile . traverse . cedDependents . at entityID ?= updateCodeAction
 
-
 createCodeEditor :: (MonadIO m, MonadState ECS m)
                  => CodeInFile -> m CodeEditor
 createCodeEditor (codeFile, codeExpr) = do
     ghcChan         <- getGHCChan
     font            <- getFont
-    codeFileInScene <- fileInRumpusRoot codeFile
+    codeFileInScene <- fileInCurrentScene codeFile
 
     recompiler <- recompilerForExpression ghcChan codeFileInScene codeExpr True
 

@@ -89,4 +89,4 @@ NewObject2.hs
 Duplicating
 
 
-Sequencer Note
+Playhead Note

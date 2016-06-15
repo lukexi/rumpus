@@ -30,7 +30,6 @@ initializeECS ghc pd vrPal = do
     initSynthSystem pd
     initSelectionSystem
     initSceneSystem
-    initSceneLoaderSystem
     initSceneWatcherSystem
     initSharedSystem
     initTextSystem
@@ -39,18 +38,17 @@ initializeECS ghc pd vrPal = do
     startKeyPadsSystem
     startSceneWatcherSystem
 
+    -- If the name of a scene is given, load it.
+    -- Otherwise assume it is the name of a code file.
     listToMaybe <$> liftIO getArgs >>= \case
-        Nothing -> showSceneLoader
+        Nothing -> loadScene "Home"
         Just name -> do
-            rumpusRoot <- getRumpusRootFolder
-            let scene = rumpusRoot </> name
-            sceneExists <- liftIO $ doesDirectoryExist scene
-            -- If the name of a scene is given, load it.
-            -- Otherwise assume it is the name of a code file.
+            sceneExists <- doesSceneExist name
             if sceneExists
-                then loadScene scene
+                then loadScene name
                 else do
                     let fileName = name <.> "hs"
+                    rumpusRoot <- getRumpusRootFolder
                     fileExists <- liftIO $ doesFileExist (rumpusRoot </> fileName)
                     codeInFile <- if
                         | fileExists    -> return (fileName, "start")

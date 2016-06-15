@@ -62,9 +62,9 @@ tickSceneWatcherSystem = do
     fileEventChan <- getFileEventChan
     events        <- liftIO . atomically . exhaustTChan $ fileEventChan
 
-    mSceneStateFolder <- getSceneStateFolderAbsolute
+    sceneStateFolder <- getSceneStateFolderAbsolute
 
-    -- If no open scene, ignore events
+    -- Watch for events in the current scene
     -- FIXME: we don't live-watch for new scenes, so
     -- users won't see them if they're created while
     -- they're in the SceneLoader (until they re-enter it)
@@ -72,21 +72,20 @@ tickSceneWatcherSystem = do
     -- we'll need to watch the library files outside the scene
     -- (in RumpusRoot) to actuate code/text editor update
 
-    forM_ mSceneStateFolder $ \sceneStateFolder ->
-        forM_ events $ \event -> do
-            -- Ignore event if
-            --     | outside scene state folder,
-            --     | due to a local modification,
-            --     | or if it's not an entity file
+    forM_ events $ \event -> do
+        -- Ignore event if
+        --     | outside scene state folder,
+        --     | due to a local modification,
+        --     | or if it's not an entity file
 
-            let shouldIgnore = checkIfShouldIgnore sceneStateFolder fileStatuses event
-            unless shouldIgnore $ do
-                let maybeEntityID = entityPathToEntityID (eventPath event)
-                forM_ maybeEntityID $ \entityID ->
-                    case event of
-                        Added    path _ -> loadEntityFile path
-                        Modified path _ -> loadEntityFile path
-                        Removed  _    _ -> removeEntity entityID
+        let shouldIgnore = checkIfShouldIgnore sceneStateFolder fileStatuses event
+        unless shouldIgnore $ do
+            let maybeEntityID = entityPathToEntityID (eventPath event)
+            forM_ maybeEntityID $ \entityID ->
+                case event of
+                    Added    path _ -> loadEntityFile path
+                    Modified path _ -> loadEntityFile path
+                    Removed  _    _ -> removeEntity entityID
 
 checkIfShouldIgnore :: FilePath
                     -> Map FilePath LocalFileStatus
@@ -111,17 +110,16 @@ checkIfShouldIgnoreDueToStatus (WrittenAt writeTime) eventtTime
 sceneWatcherRemoveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherRemoveEntity entityID = do
 
-    mSceneStateFolder <- getSceneStateFolder
-    forM_ mSceneStateFolder $ \sceneStateFolder -> do
+    sceneStateFolder <- getSceneStateFolder
 
-        entityPath <- liftIO . makeAbsolute $ pathForEntity sceneStateFolder entityID
-        setWatchedFileStatus entityPath Deleted
+    entityPath <- liftIO . makeAbsolute $ pathForEntity sceneStateFolder entityID
+    setWatchedFileStatus entityPath Deleted
 
-        liftIO $ removeFile entityPath
-            `catchIOError` (\e ->
-                putStrLn ("sceneWatcherRemoveEntity: "
-                    ++ show entityPath ++ " " ++ show e))
-        removeEntity entityID
+    liftIO $ removeFile entityPath
+        `catchIOError` (\e ->
+            putStrLn ("sceneWatcherRemoveEntity: "
+                ++ show entityPath ++ " " ++ show e))
+    removeEntity entityID
 
 setWatchedFileStatus :: MonadState ECS m => FilePath -> LocalFileStatus -> m ()
 setWatchedFileStatus path status =
@@ -130,13 +128,12 @@ setWatchedFileStatus path status =
 
 sceneWatcherSaveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherSaveEntity entityID = do
-    mSceneStateFolder <- getSceneStateFolder
-    forM_ mSceneStateFolder $ \sceneStateFolder -> do
-        putStrLnIO $ "Saving to " ++ sceneStateFolder
-        entityPath <- liftIO . makeAbsolute $ pathForEntity sceneStateFolder entityID
+    sceneStateFolder <- getSceneStateFolder
+    putStrLnIO $ "Saving to " ++ sceneStateFolder
+    entityPath <- liftIO . makeAbsolute $ pathForEntity sceneStateFolder entityID
 
-        setWatchedFileStatus entityPath Writing
-        saveEntity entityID sceneStateFolder
-        writtenTime <- liftIO getCurrentTime
-        setWatchedFileStatus entityPath (WrittenAt writtenTime)
+    setWatchedFileStatus entityPath Writing
+    saveEntity entityID sceneStateFolder
+    writtenTime <- liftIO getCurrentTime
+    setWatchedFileStatus entityPath (WrittenAt writtenTime)
 

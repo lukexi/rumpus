@@ -76,7 +76,7 @@ We also have no way to rename scenes from within the world
 OK! Option 7!
 Conversation with Jason convinced me of the value of a hierarchical object organization.
 Idea is: Scenes also function as "folders" for objects. So, have "Music" scene, "Math" scene, "Games" scene etc.
-Music scene holds Sequencer, Note, etc.
+Music scene holds Playhead, Note, etc.
 Hold down button to bring up library, see Music Math etc.
 Click on Music and you can pull out as many objects as you like
 Aha, not as simple as hoped...

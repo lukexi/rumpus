@@ -1,21 +1,24 @@
 module Rumpus.Systems.Scene where
 import Data.ECS
 import Rumpus.Types
-import PreludeExtra
-
+import PreludeExtra hiding (catch)
+import Control.Exception
 
 data SceneSystem = SceneSystem
-    { _scnScene   :: !(Maybe FilePath)
+    { _scnSceneName  :: !String
     , _scnRumpusRoot :: !FilePath
     }
 makeLenses ''SceneSystem
 
 defineSystemKey ''SceneSystem
 
+pristineDir :: FilePath
+pristineDir = "pristine"
+
 initSceneSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSceneSystem = do
 
-    userRumpusRoot <- getUserRumpusRoot
+    userRumpusRoot <- determineUserRumpusRoot
 
     copyPristineDirIfMissing pristineDir userRumpusRoot
     copyRedirectFileIfMissing
@@ -28,60 +31,85 @@ initSceneSystem = do
     putStrLnIO ("Using rumpus root: " ++ rootToUse)
 
     registerSystem sysScene $ SceneSystem
-        { _scnScene = Nothing
+        { _scnSceneName  = "Home"
         , _scnRumpusRoot = rootToUse
         }
 
 getRumpusRootFolder :: MonadState ECS m => m FilePath
 getRumpusRootFolder = viewSystem sysScene scnRumpusRoot
 
-getSceneFolder :: MonadState ECS m => m (Maybe FilePath)
-getSceneFolder = viewSystem sysScene scnScene
+getSceneName :: MonadState ECS m => m String
+getSceneName = viewSystem sysScene scnSceneName
 
-getSceneStateFolder :: MonadState ECS m => m (Maybe FilePath)
-getSceneStateFolder = do
-    maybeFolder <- getSceneFolder
-    return $ stateFolderForSceneFolder <$> maybeFolder
 
-getSceneStateFolderAbsolute :: (MonadIO m, MonadState ECS m) => m (Maybe FilePath)
-getSceneStateFolderAbsolute = do
-    mfolder <- getSceneStateFolder
-    mapM (liftIO . makeAbsolute) mfolder
+getSceneFolder :: MonadState ECS m => m FilePath
+getSceneFolder =
+    sceneFolderForScene =<< getSceneName
+
+getSceneStateFolder :: MonadState ECS m => m FilePath
+getSceneStateFolder =
+    stateFolderForSceneFolder <$> getSceneFolder
+
+getSceneStateFolderAbsolute :: (MonadIO m, MonadState ECS m) => m FilePath
+getSceneStateFolderAbsolute =
+    liftIO . makeAbsolute =<< getSceneStateFolder
+
+listDirectories :: MonadIO m => FilePath -> m [FilePath]
+listDirectories inPath = liftIO $
+    filterM (doesDirectoryExist . (inPath </>)) =<< getDirectoryContentsSafe inPath
+
+listScenes :: (MonadState ECS m, MonadIO m) => m [String]
+listScenes = do
+    rumpusRoot <- getRumpusRootFolder
+    sceneNames <- sort <$> listDirectories rumpusRoot
+    return sceneNames
+
 
 stateFolderForSceneFolder :: FilePath -> FilePath
 stateFolderForSceneFolder = (</> ".world-state")
 
-setSceneFolder :: MonadState ECS m => FilePath -> m ()
-setSceneFolder sceneFolder = modifySystemState sysScene (scnScene ?= sceneFolder)
+setSceneName :: MonadState ECS m => FilePath -> m ()
+setSceneName sceneFolder = modifySystemState sysScene (scnSceneName .= sceneFolder)
 
 closeScene :: (MonadIO m, MonadState ECS m) => m ()
 closeScene = do
     existingEntities <- wldPersistentEntities <<.= mempty
     forM_ existingEntities removeEntity
-    modifySystemState sysScene $ scnScene .= Nothing
 
 loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
-loadScene sceneFolder = do
+loadScene sceneName = do
+    rumpusRoot <- getRumpusRootFolder
+    let sceneFolder = rumpusRoot </> sceneName
+
     closeScene
 
     putStrLnIO $ "Loading scene: " ++ sceneFolder
-    setSceneFolder sceneFolder
+    setSceneName sceneName
 
     let stateFolder = stateFolderForSceneFolder sceneFolder
     liftIO $ createDirectoryIfMissing True stateFolder
     loadEntities stateFolder
 
--- FIXME: move the .world-state concept into extensible-ecs
+doesSceneExist :: (MonadIO m, MonadState ECS m) => FilePath -> m Bool
+doesSceneExist sceneName = do
+    sceneFolder <- sceneFolderForScene sceneName
+    liftIO (doesDirectoryExist sceneFolder)
 
-fileInScene :: MonadState ECS m => FilePath -> m (Maybe FilePath)
-fileInScene fileName = do
+sceneFolderForScene :: MonadState ECS m => FilePath -> m FilePath
+sceneFolderForScene sceneName = do
+    rumpusRoot <- getRumpusRootFolder
+    return (rumpusRoot </> sceneName)
+
+fileInCurrentScene :: MonadState ECS m => FilePath -> m FilePath
+fileInCurrentScene fileName = do
     sceneFolder <- getSceneFolder
-    return (sceneFolder <&> (</> fileName))
+    return (sceneFolder </> fileName)
 
 fileInRumpusRoot :: MonadState ECS m => FilePath -> m FilePath
 fileInRumpusRoot fileName = do
     rumpusRootFolder <- getRumpusRootFolder
     return (rumpusRootFolder </> fileName)
+
 
 
 -- | Copy the 'pristine' Scenes folder into the user's Documents/Rumpus directory on startup
@@ -110,11 +138,42 @@ copyRedirectFileIfMissing = liftIO $ do
                 (\e -> putStrLnIO ("copyRedirectFileIfMissing: " ++ show e))
 
 
-pristineSceneDirWithName :: String -> FilePath
-pristineSceneDirWithName name = pristineDir </> name
 
-pristineDir :: FilePath
-pristineDir = "pristine"
+determineUserRumpusRoot :: MonadIO m => m FilePath
+determineUserRumpusRoot = liftIO $ do
+    userDocsDir <- getUserDocumentsDirectory
+    -- We look for the redirect file in the root of the rumpus directory
+    let userRumpusRoot   = userDocsDir </> "Rumpus"
+        userRedirectFile = userDocsDir </> "Rumpus" </> "redirect.txt"
+
+        protect f = f `catchIOError`
+                        (\e -> putStrLnIO ("determineUserRumpusRoot: " ++ show e)
+                                >> return userRumpusRoot)
+    hasRedirect <- doesFileExist userRedirectFile
+    if hasRedirect
+        then putStrLnIO $ "Found redirect"
+        else putStrLnIO $ "No redirect found in " ++ userRedirectFile
+    rumpusRoot <- protect $ if hasRedirect
+        then do
+            redirectContents <- readFile userRedirectFile
+            let maybeLine = fmap (dropWhile isSpace) . listToMaybe . lines
+                            $ redirectContents
+            case maybeLine of
+                Just pathLine
+                    | isAbsolute pathLine -> do
+                            redirectPath <- canonicalizePath pathLine
+                            exists <- doesDirectoryExist redirectPath
+                            if exists
+                                then return redirectPath
+                                else return userRumpusRoot
+                _ -> return userRumpusRoot
+        else return userRumpusRoot
+
+    -- Append the version string
+    return (rumpusRoot </> versionString)
+
+
+
 
 copyDirectory :: MonadIO m => FilePath -> FilePath -> m ()
 copyDirectory src dst = liftIO $ do
@@ -139,37 +198,10 @@ copyDirectory src dst = liftIO $ do
         orM xs = or <$> sequence xs
         whenM s r = s >>= flip when r
 
-
-
-getUserRumpusRoot :: MonadIO m => m FilePath
-getUserRumpusRoot = liftIO $ do
-    userDocsDir <- getUserDocumentsDirectory
-    -- We look for the redirect file in the root of the rumpus directory
-    let userRumpusRoot   = userDocsDir </> "Rumpus"
-        userRedirectFile = userDocsDir </> "Rumpus" </> "redirect.txt"
-
-        protect f = f `catchIOError`
-                        (\e -> putStrLnIO ("getUserRumpusRoot: " ++ show e)
-                                >> return userRumpusRoot)
-    hasRedirect <- doesFileExist userRedirectFile
-    if hasRedirect
-        then putStrLnIO $ "Found redirect"
-        else putStrLnIO $ "No redirect found in " ++ userRedirectFile
-    rumpusRoot <- protect $ if hasRedirect
-        then do
-            redirectContents <- readFile userRedirectFile
-            let maybeLine = fmap (dropWhile isSpace) . listToMaybe . lines
-                            $ redirectContents
-            case maybeLine of
-                Just pathLine
-                    | isAbsolute pathLine -> do
-                            redirectPath <- canonicalizePath pathLine
-                            exists <- doesDirectoryExist redirectPath
-                            if exists
-                                then return redirectPath
-                                else return userRumpusRoot
-                _ -> return userRumpusRoot
-        else return userRumpusRoot
-
-    -- Append the version string
-    return (rumpusRoot </> versionString)
+createDirectorySafe :: MonadIO m => FilePath -> m Bool
+createDirectorySafe dirName = liftIO (do
+    createDirectoryIfMissing True dirName
+    return True
+    `catch` (\e -> do
+        putStrLn ("Error in getDirectoryContentsSafe: " ++ show (e :: IOException))
+        return False))

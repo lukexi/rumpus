@@ -2,7 +2,7 @@
 
 
 [ ] Implement the larger scene plan with
-        [x] Sequencer room
+        [x] Playhead room
                 Playheads could have handles they move relative to so they could be picked up and moved
                 Play/pause? Or just code it as demo
                 Precompose some sequences and then duplicate the playhead and carry it over to the next sequence
