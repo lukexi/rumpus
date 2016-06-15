@@ -10,16 +10,11 @@ import Halive.FileListener
 import qualified Data.HashMap.Strict as Map
 import Data.ECS.Vault
 
---import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.SceneWatcher
---import Rumpus.Systems.Hands
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import System.IO.Error
---import Data.Time.Clock.POSIX
-
-
 
 data CodeEditor = CodeEditor
     { _cedRecompiler    :: !Recompiler
