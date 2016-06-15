@@ -9,7 +9,7 @@ roomOffset = roomH/2 - wallD/2 - 10
 
 start :: Start
 start = do
-
+    setSynthFile "Bubbles.pd"
     let makeWall pos size hue extraProps = spawnChild $ do
             myPose       ==> position (pos & _y +~ roomOffset)
             myShape      ==> Cube
