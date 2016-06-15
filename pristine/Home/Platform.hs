@@ -16,3 +16,11 @@ start = do
         myBodyFlags  ==> [Ungrabbable, Teleportable]
         mySize       ==> V3 w d w
         myColor      ==> colorHSL 0.25 0.8 0.2
+    spawnChild_ $ do
+        myPose       ==> position (V3 0 (-d/2 + 3) 10)
+        myShape      ==> Cube
+        myBody       ==> Animated
+        myBodyFlags  ==> [Ungrabbable, Teleportable]
+        mySize       ==> V3 w d w
+        myColor      ==> colorHSL 0.67 0.5 0.3
+    

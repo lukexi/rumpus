@@ -22,7 +22,8 @@ start = do
         positions              = goldenSectionSpiralPoints numItems
         positionsAndCodePaths  = zip3 [0..] positions sceneNamesWithNewScene
     forM_ positionsAndCodePaths $ \(n, pos, maybeCodePath) -> do
-        addSceneLibraryItem (fromIntegral n / fromIntegral numItems) pos maybeCodePath
+        addSceneLibraryItem
+            (fromIntegral n / fromIntegral numItems) pos maybeCodePath
 
     return ()
 
@@ -51,7 +52,8 @@ addSceneLibraryItem n spherePosition maybeSceneName = do
 
             -- Orient items towards head
             headPose <- getHeadPose
-            setPose $ orientToward itemPosition (headPose ^. translation) (V3 0 1 0)
+            setPose $ orientToward itemPosition
+                (headPose ^. translation) (V3 0 1 0)
         myDragBegan ==> do
             mSceneName <- case maybeSceneName of
                 Just sceneName -> return $ Just sceneName

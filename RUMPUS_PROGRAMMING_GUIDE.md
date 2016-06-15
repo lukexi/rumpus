@@ -9,7 +9,7 @@ of a good time and you'll probably have some fun.
 development environment and "assembly language" first, and Rumpus
 is a snapshot of that process.
 
-***
+***Intro
 
 ### RUMPUS BASICS
 When you boot up Rumpus you'll be in the **Scene Loader**.
@@ -94,7 +94,7 @@ and is in no way a good piece of design in the snapshot you're using.
 And again with the counter-caveats: you can do a lot with it
 regardless - just be ready to rewrite some or all of it as Rumpus evolves : ).
 
-***
+***CreatingYourFirstObject
 
 ### Creating your first object
 Hold the "App Button" on your Vive controller (just above the touchpad)
@@ -127,7 +127,7 @@ You'll find the file you're editing in
 > Change the name at the top of the file (after module) to rename the object
 and its associated .hs file.
 
-***
+***Start
 
 The `start` function is called once whenever a new instance of your
 object is created, and again each time you make a valid change to the code.
@@ -157,7 +157,7 @@ performing tasks like Rendering, Physics, and Sound.
 In the current version, Systems are "behind the scenes",
 but you'll eventually be able to modify and build them too.
 
-***
+***CreatingEntities
 
 You can create entities in two ways: by grabbing them out of
 the Object Bouquet, or by creating them programmatically.
@@ -184,7 +184,7 @@ changed `start` function can take their place - usually so quickly
 that you won't notice.
 By default, child objects will be positioned relative to their parents.
 
-***
+***GivingLife
 
 You can give life to our entity in a variety of ways.
 The swiss-army knife of vivification is the `myUpdate` component;
@@ -202,6 +202,8 @@ start = do
             setPosition (V3 0 (sin t) 0)
             setColor (colorHSL (sin (t/2)) 0.7 0.7)
 ```
+`myUpdate` is called each frame (90hz in the Vive) and can thus
+be used to animate your object in whatever way you want.
 
 ***
 
@@ -429,6 +431,11 @@ This will create a bank of 8 Note.pd instances,
 and assign them on demand to the most recent entity to call acquirePolyPatch.
 
 ***
+
+### ANIMATIONS
+
+### STATE
+
 
 ### THE DIFFERENCE BETWEEN `myFoo ==> Bar` AND `setFoo Bar`
 

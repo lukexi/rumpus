@@ -54,7 +54,7 @@ initRenderSystem = do
     singleProg  <- createShaderProgram "resources/shaders/defaultSingle.vert" "resources/shaders/default.frag"
 
     cubeGeo     <- cubeGeometry (V3 1 1 1) 1
-    sphereGeo   <- octahedronGeometry 0.5 5 -- radius (which we halve to match boxes), subdivisions
+    sphereGeo   <- octahedronGeometry 0.5 4 -- radius (which we halve to match boxes), subdivisions
 
     cubeShape   <- makeShape cubeGeo   basicProg
     sphereShape <- makeShape sphereGeo basicProg

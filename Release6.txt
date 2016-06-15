@@ -11,36 +11,59 @@ DONE
 
     OK: a possible plan for this:
     Keep code files in Scenes.
-    Keep pd patches in Rumpus Root. (must tell users they need to copy these manually, but that's OK. Could also add current scene to search path too.)
+    Keep pd patches in Rumpus Root. (must tell users they need to copy these
+    manually, but that's OK. Could also add current scene to search path too.)
     Add "Import" to browse your scenes,
         Copy file into current scene when grabbed.
+
+[x] Better hand tips
 
 
 
 REMAINING
-[ ] Sound for pool, attractor, ribbon?
+
+[ ] Add 10foot hand controls explanation to Home
+    "Open Object Library"
+    "Press Import to copy objects from other scenes"
+    "Drag and drop objects here to destroy them"
+    "Hold, point and release to teleport to platforms (where available)"
+    "Press to return Home"
+
+[ ] Sound for
+    [x] pool
+    [ ] Attractor, ribbon, cubesea?
     [ ] Use Verylogue!
-    [ ] Skywriter, draw something, it gets projected to 100 feet, hangs in the air, then falls onto ground
+
+[ ] Skywriter, draw something, it gets projected to 100 feet, hangs in the air,
+    then falls onto ground
+    (needed for script)
+
 [ ] Fix exception catching
 
 [ ] Put manual into Rumpus
 
-[ ] Try to repro "file locked" error messages in release build
 
 [ ] Add knobs to more objects
 
-[ ] Better hand tips
-
-[ ] Titled doors with tiled floor for loader room
+[ ] Try to repro "file locked" error messages in release build
 
 [ ] Weird head thing when no hand pose
 
-[ ] Brick object with xyz color knobs? Can't really handle the "too big" case well yet though (well, what if we allow XY freely and then set Z center according to size?)
+MAYBE
+[ ] Titled doors with tiled floor for loader room
+
+LATER
+[ ] Brick object with xyz color knobs? Can't really handle the "too big" case
+    well yet though (well, what if we allow XY freely and
+    then set Z center according to size?)
 
 [ ] Grappling hook/gravity gun object.
 [ ] Feynman lectures
 
 
 [ ] Avatar plan:
-    use getUserName. Hash this to get an entityID. Spawn an entity with this ID that represents the player upon entering, delete it when leaving a scene.
-    Since it will be an Animated body, other players can delete you if needed if stale players remain from crashes etc.
+    use getUserName. Hash this to get an entityID. Spawn an entity with
+    this ID that represents the player upon entering,
+    delete it when leaving a scene.
+    Since it will be an Animated body, other players can delete you
+    if needed if stale players remain from crashes etc.
