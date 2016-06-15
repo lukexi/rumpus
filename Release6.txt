@@ -20,7 +20,7 @@ DONE
 REMAINING
 [ ] Sound for pool, attractor, ribbon?
     [ ] Use Verylogue!
-
+    [ ] Skywriter, draw something, it gets projected to 100 feet, hangs in the air, then falls onto ground
 [ ] Fix exception catching
 
 [ ] Put manual into Rumpus

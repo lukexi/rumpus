@@ -4,6 +4,7 @@ import Rumpus.Systems.Selection
 
 import Foreign.C.Types
 import qualified Graphics.VR.Pal as VRPal
+import RumpusLib
 
 data ControlsSystem = ControlsSystem
     { _ctsVRPal          :: !VRPal
@@ -81,8 +82,8 @@ tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
 
 
 setPlayerPosition :: MonadState ECS m => V3 GLfloat -> m ()
-setPlayerPosition position = modifySystemState sysControls $
-    ctsPlayer .= mkTransformation (axisAngle (V3 0 1 0) 0) position
+setPlayerPosition playerPos = modifySystemState sysControls $
+    ctsPlayer .= position playerPos
 
 setPlayerScale :: MonadState ECS m => V3 GLfloat -> m ()
 setPlayerScale newScale = modifySystemState sysControls $ do

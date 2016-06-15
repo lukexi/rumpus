@@ -44,10 +44,10 @@ animDur :: DiffTime
 animDur = 0.3
 
 creatorOffset :: V3 GLfloat
-creatorOffset = V3 0 0 -0.4
+creatorOffset = V3 0 0 -0.3
 
 exitOrbOffset :: V3 GLfloat
-exitOrbOffset = V3 0 0 0.2
+exitOrbOffset = V3 0 0 0.25
 
 transitionTime :: Fractional a => a
 transitionTime = 0.5
@@ -78,6 +78,7 @@ checkForDestruction whichHand = do
         sceneWatcherRemoveEntity destroyID
     return (isJust maybePendingDestruction)
 
+openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
     sceneName <- getSceneName
     openEntityLibraryForScene whichHand sceneName
@@ -117,7 +118,7 @@ openSceneLibrary whichHand = do
 
     let numItems = length sceneNames
         positions = goldenSectionSpiralPoints numItems
-        positionsAndSceneNames = zip3 [0..] positions sceneNames
+        positionsAndSceneNames = zip3 ([0..]::[Int]) positions sceneNames
 
     forM_ positionsAndSceneNames $ \(n, pos, sceneName) -> do
         addObjectLibraryItem whichHand (fromIntegral n / fromIntegral numItems) pos (SceneItem sceneName)
@@ -138,7 +139,7 @@ addEntityToOpenLibrary whichHand entityID = modifySystemState sysCreator $ crtLi
 addObjectLibraryItem :: (MonadIO m, MonadState ECS m)
                      => WhichHand -> GLfloat -> V3 GLfloat -> ItemType -> m ()
 addObjectLibraryItem whichHand n spherePosition itemType = do
-    newEntityID <- case itemType of
+    itemID <- case itemType of
         ObjectItem sceneName codeName -> makeEntityItem whichHand spherePosition (Just (sceneName, codeName))
         NewObjectItem                 -> makeEntityItem whichHand spherePosition Nothing
         SceneItem sceneName           -> makeSceneItem whichHand n spherePosition sceneName
@@ -147,7 +148,7 @@ addObjectLibraryItem whichHand n spherePosition itemType = do
     -- Hand is usually held vertically, so we rotate objects such that they'll
     -- have their code facing towards the user in that case
     handID   <- getHandID whichHand
-    attachEntityToEntity handID newEntityID
+    attachEntityToEntity handID itemID
         (positionRotation
             (creatorOffset + spherePosition * 0.2)
             (axisAngle (V3 1 0 0) (-pi/2)))
@@ -157,10 +158,11 @@ addObjectLibraryItem whichHand n spherePosition itemType = do
             NewObjectItem -> entityItemSize
             SceneItem _ -> sceneItemSize
             ToScenesItem _ -> sceneItemSize
-    inEntity newEntityID $ animateSizeTo finalSize animDur
-    addEntityToOpenLibrary whichHand newEntityID
+    inEntity itemID $ animateSizeTo finalSize animDur
+    addEntityToOpenLibrary whichHand itemID
 
-makeSceneItem whichHand hue spherePosition sceneName = spawnEntity $ do
+makeSceneItem :: (MonadIO m, MonadState ECS m) => WhichHand -> GLfloat -> t -> String -> m EntityID
+makeSceneItem whichHand hue _spherePosition sceneName = spawnEntity $ do
     myShape      ==> Sphere
     mySize       ==> initialLibraryItemSize
     myBody       ==> Animated
@@ -171,7 +173,8 @@ makeSceneItem whichHand hue spherePosition sceneName = spawnEntity $ do
         closeCreator whichHand
         openEntityLibraryForScene whichHand sceneName
 
-makeToScenesItem whichHand spherePosition title = spawnEntity $ do
+makeToScenesItem :: (MonadIO m, MonadState ECS m) => WhichHand -> t -> String -> m EntityID
+makeToScenesItem whichHand _spherePosition title = spawnEntity $ do
     myShape      ==> Sphere
     mySize       ==> initialLibraryItemSize
     myBody       ==> Animated
@@ -184,7 +187,7 @@ makeToScenesItem whichHand spherePosition title = spawnEntity $ do
         closeCreator whichHand
         openSceneLibrary whichHand
 
-
+makeEntityItem :: (MonadIO m, MonadState ECS m) => WhichHand -> V3 GLfloat -> Maybe (String, FilePath) -> m EntityID
 makeEntityItem whichHand spherePosition maybeCodePath = spawnEntity $ do
     myShape      ==> Cube
     mySize       ==> initialLibraryItemSize
