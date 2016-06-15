@@ -3,6 +3,8 @@ import Rumpus
 import qualified Data.Sequence as Seq
 
 maxBlots = 1000
+
+
 start :: Start
 start = do
 
@@ -12,7 +14,9 @@ start = do
         newPose <- getPose
         let newPosition = newPose ^. translation
         when (distance lastPosition newPosition > 0.05) $ do
-            newBlot <- spawnChild $ do
+            -- This paintbrush is persistent, via
+            -- spawnPersistentEntity and sceneWatcherSaveEntity
+            newBlot <- spawnPersistentEntity $ do
                 myPose          ==> newPose
                 myShape         ==> Cube
                 mySize          ==> 0.1
@@ -20,7 +24,6 @@ start = do
                 myBody          ==> Animated
                 myColor         ==> colorHSL
                     (newPosition ^. _x) 0.7 0.8
-            makeEntityPersistent newBlot
             sceneWatcherSaveEntity newBlot
 
             let (newBlots, oldBlots) = Seq.splitAt maxBlots blots

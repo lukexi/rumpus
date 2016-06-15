@@ -5,6 +5,7 @@ import Rumpus.Systems.Collisions
 import Rumpus.Systems.Shared
 import Rumpus.Systems.Attachment
 import PreludeExtra
+import RumpusLib
 
 type HandEntityID = EntityID
 
@@ -32,6 +33,12 @@ startHandsSystem = do
                 myMass            ==> 0
                 myCollisionBegan  ==> \_ impulse -> do
                     hapticPulse whichHand (floor $ impulse * 10000)
+            -- Create a "wrist" below the hand
+            spawnChildOf handID $ do
+                myColor           ==> handColor
+                mySize            ==> V3 0.07 0.07 0.15
+                myShape           ==> Cube
+                myPose            ==> position (V3 0 0 0.1)
             return handID
 
     leftHandID  <- makeHand LeftHand
