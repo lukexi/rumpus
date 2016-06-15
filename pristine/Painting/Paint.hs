@@ -4,6 +4,8 @@ import qualified Data.Sequence as Seq
 
 maxBlots = 1000
 
+-- This paintbrush is persistent, via
+-- spawnPersistentEntity and sceneWatcherSaveEntity
 
 start :: Start
 start = do
@@ -14,13 +16,10 @@ start = do
         newPose <- getPose
         let newPosition = newPose ^. translation
         when (distance lastPosition newPosition > 0.05) $ do
-            -- This paintbrush is persistent, via
-            -- spawnPersistentEntity and sceneWatcherSaveEntity
             newBlot <- spawnPersistentEntity $ do
                 myPose          ==> newPose
                 myShape         ==> Cube
                 mySize          ==> 0.1
-                myTransformType ==> AbsolutePose
                 myBody          ==> Animated
                 myColor         ==> colorHSL
                     (newPosition ^. _x) 0.7 0.8

@@ -435,15 +435,37 @@ and assign them on demand to the most recent entity to call acquirePolyPatch.
 ### ANIMATIONS
 
 ### STATE
+You can keep local state of any type in your entity using the `myState`
+component.
 
+### ENTITYIDS, CONTEXTS, SETTERS, GETTERS
 
-### THE DIFFERENCE BETWEEN `myFoo ==> Bar` AND `setFoo Bar`
+Every `spawnEntity`/`spawnChild`/`spawnChildOf` call returns an `EntityID`.
+
+You can use this EntityID with functions like `setEntityColor`
+and `getEntityColor` to make changes.
+
+If you want to make multiple changes to an entity, you can use the
+`inEntity` function to make that more convenient:
+```
+start = do
+    childID <- spawnChild $ myColor ==> colorHSL 0.5 0.5 0.8
+    -- You can do this:
+    setEntityColor childID (colorHSL 0.5 0.5 0.2)
+    setEntityPose childID (colorHSL 0.5 0.5 0.2)
+    -- Or this:
+    inEntity childID $ do
+        setColor (colorHSL 0.5 0.5 0.2)
+
+You'll notice two ways to set values:
+The `myFoo ==> Bar` syntax and the setFoo Bar functions.
 
 The basic rule of thumb is that `myFoo ==> Bar` is used
 when defining an object (i.e., within a spawnChild block),
 and `setFoo Bar` is used to modify an already existing
 object (e.g. in a `myUpdate` function).
-For cases where no side effects are needed (or wanted), ==> can still be used.
+For cases where no side effects are needed (or wanted),
+==> can still be used.
 
 This is a historical accident and will be fixed in a future version.
 (The reason they both exist: ==> is "side-effect free" and simply sets
