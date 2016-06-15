@@ -63,7 +63,6 @@ initRenderSystem = do
     textPlaneGeo    <- planeGeometry 1 (V3 0 0 1) (V3 0 1 0) 1
     textPlaneShape  <- makeShape textPlaneGeo singleProg
 
-    --let shapes = [(Cube, cubeShape), (Sphere, sphereShape), (StaticPlaneShape, planeShape)]
     let shapes = [(Cube, cubeShape), (Sphere, sphereShape)]
 
     shapesWithBuffers <- forM shapes $ \(shapeType, shape) -> do
