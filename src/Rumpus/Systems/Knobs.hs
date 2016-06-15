@@ -136,7 +136,7 @@ makeKnobDef knobScale defVal action =
         range = high - low
         val01ToValue value01 = case knobScale of
             Linear      _ _ -> low + range * value01
-            Exponential _ _ -> low + range * (value01 ^ 2)
+            Exponential _ _ -> low + range * (value01 ^ (2::Int))
             -- E.g. for [foo,bar,baz] 0-0.33 should be 0, 0.33-0.66 should be 1, 0.66-1 should be 2
             Stepped _       -> fromIntegral . (\i -> i::Int) . floor . min (range + 1 - 0.001) $ (range + 1) * value01
         valueToVal01 value = (value - low) / range

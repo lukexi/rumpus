@@ -156,7 +156,7 @@ addObjectLibraryItem whichHand n spherePosition itemType = do
             ObjectItem _ _ -> entityItemSize
             NewObjectItem -> entityItemSize
             SceneItem _ -> sceneItemSize
-            ToScenesItem -> sceneItemSize
+            ToScenesItem _ -> sceneItemSize
     inEntity newEntityID $ animateSizeTo finalSize animDur
     addEntityToOpenLibrary whichHand newEntityID
 

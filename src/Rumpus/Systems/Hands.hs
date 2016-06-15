@@ -23,17 +23,19 @@ startHandsSystem = do
     let handColor = V4 0.6 0.6 0.9 1
 
         makeHand whichHand = do
-            myColor           ==> handColor
-            mySize            ==> V3 0.075 0.075 0.25
-            myShape           ==> Cube
-            myBody            ==> Detector
-            myBodyFlags       ==> [Ungrabbable]
-            myMass            ==> 0
-            myCollisionBegan  ==> \_ impulse -> do
-                hapticPulse whichHand (floor $ impulse * 10000)
+            handID <- spawnEntity $ do
+                myColor           ==> handColor
+                mySize            ==> V3 0.075 0.075 0.075
+                myShape           ==> Cube
+                myBody            ==> Detector
+                myBodyFlags       ==> [Ungrabbable]
+                myMass            ==> 0
+                myCollisionBegan  ==> \_ impulse -> do
+                    hapticPulse whichHand (floor $ impulse * 10000)
+            return handID
 
-    leftHandID  <- spawnEntity $ makeHand LeftHand
-    rightHandID <- spawnEntity $ makeHand RightHand
+    leftHandID  <- makeHand LeftHand
+    rightHandID <- makeHand RightHand
 
     registerSystem sysHands $ HandsSystem
             { _hndLeftHand  = leftHandID

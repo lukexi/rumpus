@@ -8,6 +8,7 @@ start = do
     handIDs <- getHandIDs
     let excluded = thisID:handIDs
     eraser <- spawnChild $ do
+        myShape ==> Cube
         myBody ==> Animated
         mySize ==> 0.1
         myCollisionBegan ==> \entityID _ ->

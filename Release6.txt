@@ -33,7 +33,7 @@ REMAINING
 
 [ ] Titled doors with tiled floor for loader room
 
-
+[ ] Weird head thing when no hand pose
 
 [ ] Brick object with xyz color knobs? Can't really handle the "too big" case well yet though (well, what if we allow XY freely and then set Z center according to size?)
 
