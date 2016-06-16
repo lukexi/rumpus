@@ -8,14 +8,14 @@ change your start function to:
 -}
 start :: Start
 start = do
-    spawnChild $ do
+    spawnChild_ $ do
         myColor      ==> colorHSL 0.5 0.7 0.7
         myShape      ==> Sphere
         myPose       ==> position (V3 0 1 0)
         mySize       ==> 0.1
         myUpdate     ==> do
             t <- getNow
-            setPosition (V3 0 (sin t) 0)
+            setPosition (V3 0 (sin t * 0.1 + 0.5) 0)
             setColor (colorHSL (sin (t/2)) 0.7 0.7)
 {-
 ```

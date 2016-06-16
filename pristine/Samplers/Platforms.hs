@@ -8,7 +8,7 @@ d = 0.5
 
 start :: Start
 start = do
-    
+
     let platform pos size hue = spawnChild_ $ do
             myPose       ==> position (pos & _y -~ (size^._y/2))
             myShape      ==> Cube
