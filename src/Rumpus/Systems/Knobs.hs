@@ -38,10 +38,12 @@ newKnobState = KnobState identity 0
 
 type KnobDefs   = Map KnobName KnobDef
 type KnobValues = Map KnobName Float
+type KnobLayoutScale = Float
 
 defineComponentKey ''KnobDefs
 defineComponentKey ''KnobValues
 defineComponentKey ''KnobState
+defineComponentKey ''KnobLayoutScale
 
 type KnobValueCached = Float
 type KnobValueCachedNew = Bool
@@ -50,9 +52,10 @@ defineComponentKey ''KnobValueCachedNew
 
 initKnobsSystem :: MonadState ECS m => m ()
 initKnobsSystem = do
-    registerComponent "KnobDefs"   myKnobDefs   (newComponentInterface myKnobDefs)
-    registerComponent "KnobState"  myKnobState  (newComponentInterface myKnobState)
-    registerComponent "KnobValues" myKnobValues (savedComponentInterface myKnobValues)
+    registerComponent "KnobDefs"           myKnobDefs           (newComponentInterface myKnobDefs)
+    registerComponent "KnobState"          myKnobState          (newComponentInterface myKnobState)
+    registerComponent "KnobLayoutScale"    myKnobLayoutScale    (newComponentInterface myKnobLayoutScale)
+    registerComponent "KnobValues"         myKnobValues         (savedComponentInterface myKnobValues)
 
     registerComponent "KnobValueCached"    myKnobValueCached    (newComponentInterface myKnobValueCached)
     registerComponent "KnobValueCachedNew" myKnobValueCachedNew (newComponentInterface myKnobValueCachedNew)
@@ -82,6 +85,12 @@ getEntityKnobValue01ByName entityID knobName = inEntity entityID (getKnobValue01
 
 getEntityKnobValueByName :: (MonadState ECS m) => EntityID -> KnobName -> m Float
 getEntityKnobValueByName entityID knobName = inEntity entityID (getKnobValueByName knobName)
+
+getKnobLayoutScale :: (MonadState ECS m, MonadReader EntityID m) => m Float
+getKnobLayoutScale = getComponentDefault 0.5 myKnobLayoutScale
+
+getEntityKnobLayoutScale :: (MonadState ECS m) => EntityID -> m Float
+getEntityKnobLayoutScale entityID = inEntity entityID getKnobLayoutScale
 
 getKnobValue :: (MonadState ECS m) => EntityID -> m Float
 getKnobValue knobID = getEntityComponentDefault 0 knobID myKnobValueCached
@@ -119,13 +128,20 @@ addActiveKnob :: KnobName
               -> (GLfloat -> EntityMonad ())
               -> EntityMonad EntityID
 addActiveKnob name knobScale defVal action = do
+    layoutScale <- getKnobLayoutScale
+
+    let knobsPerRow = 4
 
     i <- Map.size <$> getComponentDefault mempty myKnobDefs
-    let x = fromIntegral (i `div` 4) * 0.4
-        y = (3 - fromIntegral (i `mod` 4)) * 0.3 - 0.45
-        knobPos = V3 (0.5 + x) y 0
+    let xI = fromIntegral (i `div` knobsPerRow)
+        yI = negate $
+            fromIntegral (i `mod` knobsPerRow) - fromIntegral knobsPerRow / 2
+    let x = xI * 0.4 * layoutScale
+        y = yI * 0.3 * layoutScale
+        knobPos = V3 (x + 0.5) y 0
 
-    addActiveKnobAt knobPos name (makeKnobDef knobScale defVal action)
+    addActiveKnobAt layoutScale knobPos name
+        (makeKnobDef knobScale defVal action)
 
 makeKnobDef :: KnobScale -> Float -> (GLfloat -> EntityMonad ()) -> KnobDef
 makeKnobDef knobScale defVal action =
@@ -137,20 +153,24 @@ makeKnobDef knobScale defVal action =
         val01ToValue value01 = case knobScale of
             Linear      _ _ -> low + range * value01
             Exponential _ _ -> low + range * (value01 ^ (2::Int))
-            -- E.g. for [foo,bar,baz] 0-0.33 should be 0, 0.33-0.66 should be 1, 0.66-1 should be 2
-            Stepped _       -> fromIntegral . (\i -> i::Int) . floor . min (range + 1 - 0.001) $ (range + 1) * value01
+            -- E.g. for [foo,bar,baz] 0-0.33 should be 0,
+            -- 0.33-0.66 should be 1, 0.66-1 should be 2
+            Stepped _       -> fromIntegral . (\i -> i::Int) . floor
+                                . min (range + 1 - 0.001)
+                                $ (range + 1) * value01
         valueToVal01 value = (value - low) / range
 
     in KnobDef
-        { knbScale = knobScale
-        , knbDefault01 = valueToVal01 defVal
-        , knbAction = action
+        { knbScale        = knobScale
+        , knbDefault01    = valueToVal01 defVal
+        , knbAction       = action
         , knbVal01ToValue = val01ToValue
         , knbValueToVal01 = valueToVal01
         }
 
-addActiveKnobAt :: V3 GLfloat -> KnobName -> KnobDef -> EntityMonad EntityID
-addActiveKnobAt knobPos name knobDef@KnobDef{..} = do
+addActiveKnobAt :: GLfloat -> V3 GLfloat -> KnobName -> KnobDef -> EntityMonad EntityID
+addActiveKnobAt knobLayoutScale knobPos name knobDef@KnobDef{..} = do
+    let finalKnobLayoutScale = 0.1 * realToFrac knobLayoutScale
     addKnobDef name knobDef
 
     let initialRotation = value01ToKnobRotation knbDefault01
@@ -163,30 +183,38 @@ addActiveKnobAt knobPos name knobDef@KnobDef{..} = do
 
     knbAction initialValue
 
-    _nameLabel <- spawnChild $ do
-        myText        ==> name
-        myTextPose    ==> position (V3 0 0.1 0) !*! scaleMatrix 0.05
-        myPose        ==> position knobPos
-    valueLabel <- spawnChild $ do
-        myText        ==> displayValue knobDef initialValue
-        myTextPose    ==> position (V3 0 -0.1 0) !*! scaleMatrix 0.05
-        myPose        ==> position knobPos
+    -- Position the text items relatively without inheriting the spin
+    -- of the knob itself
+    textContainer <- spawnChild $ do
+        myPose ==> position knobPos
+        mySize ==> finalKnobLayoutScale
 
-    parentID <- ask
+    nameLabel <- spawnEntity $ do
+        myText          ==> name
+        myTextPose      ==> position (V3 0 1 0) !*! scaleMatrix 0.5
+        myTransformType ==> RelativeFull
+    valueLabel <- spawnEntity $ do
+        myText          ==> displayValue knobDef initialValue
+        myTextPose      ==> position (V3 0 -1 0) !*! scaleMatrix 0.5
+        myTransformType ==> RelativeFull
+    inEntity nameLabel  (setParent textContainer)
+    inEntity valueLabel (setParent textContainer)
 
+    -- These is added as a child of the knob after it is created
     knobLight <- spawnEntity $ do
         myShape         ==> Cube
-        mySize          ==> V3 0.09 0.09 0.11
-        myTransformType ==> RelativePose
+        mySize          ==> V3 0.9 0.9 1.1
+        myTransformType ==> RelativeFull
     let updateKnobLight value01 = do
             inEntity knobLight $ do
-                setSize (V3 (0.09 * value01) (0.09 * value01) 0.11)
+                setSize (V3 (0.9 * value01) (0.9 * value01) 1.1)
                 setColor $ colorHSL value01 0.5 0.5
     updateKnobLight initialValue01
 
+    parentID <- ask
     knob <- spawnChild $ do
         myShape        ==> Cube
-        mySize         ==> 0.1
+        mySize         ==> finalKnobLayoutScale
         myBody         ==> Animated
         myDragOverride ==> True
         myDragBegan ==> do
@@ -236,7 +264,7 @@ addActiveKnobAt knobPos name knobDef@KnobDef{..} = do
         myKnobValueCached    ==> initialValue
         myKnobValueCachedNew ==> True
 
-    inEntity knobLight (setParent knob)
+    inEntity knobLight  (setParent knob)
 
     attachEntity knob
         (positionRotation knobPos

@@ -56,6 +56,8 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                             isPersistent <- isEntityPersistent entityID
                             when isPersistent $
                                 sceneWatcherSaveEntity entityID
+
+                setEntityBody handEntityID Detector
             HandButtonEvent HandButtonStart ButtonDown ->
                 openEntityLibrary whichHand
             HandButtonEvent HandButtonStart ButtonUp ->
@@ -79,11 +81,12 @@ initiateGrab whichHand handEntityID _otherHandEntityID = do
     -- Find the entities overlapping the hand, and attach them to it
     overlappingEntityIDs <- getGrabbableEntityIDs handEntityID
 
-    when (null overlappingEntityIDs)
+    if null overlappingEntityIDs then do
         clearSelection
+        setEntityBody handEntityID Animated
         --didPlaceCursor <- raycastCursor handEntityID
 
-    forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
+    else forM_ (listToMaybe overlappingEntityIDs) $ \grabbedID -> do
         handPose <- getEntityPose handEntityID
         beginHapticDrag whichHand handPose
 

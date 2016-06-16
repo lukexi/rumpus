@@ -6,6 +6,7 @@ majorScale = [0,2,4,5,7,9,11,12]
 start :: Start
 start = do
     setSynthPatch "Verylogue.pd"
+    myKnobLayoutScale ==> 0.5
 
     rootID <- ask
     forM_ verylogueKnobs $ \(name, synthTarget, knobScale, knobDefault) ->

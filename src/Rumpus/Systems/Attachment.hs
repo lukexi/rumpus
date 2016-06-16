@@ -127,6 +127,9 @@ getOneEntityAttachment entityID = listToMaybe . Map.keys <$> getEntityAttachment
 hasHolder :: (MonadState ECS m, MonadReader EntityID m) => m Bool
 hasHolder = hasComponent myHolder
 
+setEntityBody :: (MonadIO m, MonadState ECS m) => EntityID -> BodyType -> m ()
+setEntityBody entityID bodyType = inEntity entityID (setBody bodyType)
+
 setBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => BodyType -> m ()
 setBody bodyType = do
     hadBody <- hasComponent myBody

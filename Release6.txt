@@ -41,7 +41,11 @@ REMAINING
 [ ] Fix exception catching
 
 [ ] Put manual into Rumpus
-
+    [ ] Simple Text script to
+        split on ***Name,
+        take to next ***
+        insert comment blocks
+        write to pristine/manual/Name.hs
 
 [ ] Add knobs to more objects
 
@@ -51,6 +55,12 @@ REMAINING
 
 MAYBE
 [ ] Titled doors with tiled floor for loader room
+
+[ ] Funny ideas for hacking in interface for changing scene name:
+    setSceneName "Foo"
+    just tell users they can call this from anywhere.
+    Could do something similar for file management;
+    deleteThisCodeFile
 
 LATER
 [ ] Brick object with xyz color knobs? Can't really handle the "too big" case
