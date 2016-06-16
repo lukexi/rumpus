@@ -10,7 +10,7 @@ import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Controls
 import qualified Data.HashMap.Strict as Map
-
+import Data.List (genericLength)
 type KnobName = String
 
 data KnobDef = KnobDef
@@ -149,13 +149,13 @@ addActiveKnob name knobScale defVal action = do
 makeKnobDef :: KnobScale -> Float -> (GLfloat -> EntityMonad ()) -> KnobDef
 makeKnobDef knobScale defVal action =
     let (val01ToValue, valueToVal01) = case knobScale of
-            Linear      l h -> let range = h - l in
+            Linear      low high -> let range = high - low in
                 ( (+ low)   . (* range)
-                , (/ range) . (- low)
+                , (/ range) . (subtract low)
                 )
-            Exponential l h -> let range = h - l in
+            Exponential low high -> let range = high - low in
                 ( (+ low) . (* range) . (^(2::Int))
-                , sqrt    . (/ range) . (- low)
+                , sqrt    . (/ range) . (subtract low)
                 )
             DualExponential l h ->
                 let rangeH = h
@@ -175,9 +175,9 @@ makeKnobDef knobScale defVal action =
                 )
             -- E.g. for [foo,bar,baz] 0-0.33 should be 0,
             -- 0.33-0.66 should be 1, 0.66-1 should be 2
-            Stepped options -> let rangePlus1 = (0, genericLength options) in
-                ( min (rangePlus1 - 1) . (rangePlus1 *)
-                , (/ rangePlus1)
+            Stepped options -> let rangePlus1 = genericLength options in
+                ( min (rangePlus1 - 1) . (* rangePlus1)
+                ,                        (/ rangePlus1)
                 )
 
     in KnobDef

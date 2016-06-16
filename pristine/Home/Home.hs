@@ -20,10 +20,10 @@ start = do
     let sceneNamesWithNewScene = Nothing : map Just sceneNames
         numItems               = length sceneNamesWithNewScene
         positions              = goldenSectionSpiralPoints numItems
-        positionsAndCodePaths  = zip3 [0..] positions sceneNamesWithNewScene
-    forM_ positionsAndCodePaths $ \(n, pos, maybeCodePath) -> do
+        positionsAndSceneNames  = zip3 [0..] positions sceneNamesWithNewScene
+    forM_ positionsAndSceneNames $ \(n, pos, mayeSceneName) -> do
         addSceneLibraryItem
-            (fromIntegral n / fromIntegral numItems) pos maybeCodePath
+            (fromIntegral n / fromIntegral numItems) pos mayeSceneName
 
     return ()
 
