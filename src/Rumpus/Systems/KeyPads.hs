@@ -246,7 +246,7 @@ spawnKeyPads = do
     --return ()
     return (keyPadContainerID, keyPads)
 
-makeKeyPadKey :: (MonadIO m, MonadState ECS m)
+makeKeyPadKey :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
               => EntityID -> HandKey -> GLfloat -> GLfloat -> m (KeyPadKey, V3 GLfloat)
 makeKeyPadKey containerID key xOffset y = do
     let (keyPose, keySize) = getKeyPose key xOffset y
@@ -258,7 +258,7 @@ makeKeyPadKey containerID key xOffset y = do
         , _kpkPointIsInKey = inRectWithCenter (keyPose^._xz) (keySize^._xz)
         }, keySize)
 
-spawnKeysForHand :: (MonadIO m, MonadState ECS m)
+spawnKeysForHand :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
                  => EntityID
                  -> [[HandKey]]
                  -> m ([KeyPadKey], V2 GLfloat)
@@ -309,7 +309,7 @@ getKeyPose key x r = (keyPose, keySize)
         heightMult     = keyCapHeight key
 
 
-makeKeyboardKey :: (MonadState ECS m, MonadIO m)
+makeKeyboardKey :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m)
                 => EntityID -> HandKey -> V3 GLfloat -> V3 GLfloat -> m (EntityID, EntityID)
 makeKeyboardKey containerID key keyPosition keySize = do
     keyBackID <- spawnEntity $ do

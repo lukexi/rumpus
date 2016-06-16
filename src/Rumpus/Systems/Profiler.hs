@@ -34,6 +34,7 @@ getSampleHistory = viewSystem sysProfiler prfSampleHistory
 
 profile :: (MonadState ECS m, MonadIO m) => String -> m a -> m a
 profile name action = do
+    --putStrLnIO $ "RUNNING " ++ name
     before <- liftIO getCurrentTime
     a      <- action
     after  <- liftIO getCurrentTime

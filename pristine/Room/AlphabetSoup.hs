@@ -20,6 +20,6 @@ start = do
                 now <- getNow
                 let n = (now + pos ^. _x + pos ^. _y) * 0.5
                 setPositionRotationSize
-                    (pos & _x +~ sin n & _y +~ cos n)
+                    (pos & _x +~ sin n & _y +~ cos n & (*0.5))
                     (axisAngle pos n)
                     (realToFrac (sin n*0.1))

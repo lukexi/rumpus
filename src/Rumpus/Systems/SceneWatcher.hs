@@ -56,7 +56,7 @@ stopWatching = do
     stopWatcher <- getStopWatcher
     liftIO $ putMVar stopWatcher ()
 
-tickSceneWatcherSystem :: (MonadState ECS m, MonadIO m) => m ()
+tickSceneWatcherSystem :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m) => m ()
 tickSceneWatcherSystem = do
     fileStatuses  <- getFileStatuses
     fileEventChan <- getFileEventChan
@@ -126,7 +126,7 @@ setWatchedFileStatus path status =
     modifySystemState sysSceneWatcher $
         swaFileStatuses . at path ?= status
 
-sceneWatcherSaveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
+sceneWatcherSaveEntity :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherSaveEntity entityID = do
     sceneStateFolder <- getSceneStateFolder
     putStrLnIO $ "Saving to " ++ sceneStateFolder

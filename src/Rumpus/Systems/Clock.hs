@@ -29,13 +29,13 @@ tickClockSystem = do
 
 setClockAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
                => DiffTime -> ShouldRepeat -> EntityMonad () -> m ()
-setClockAction period shouldRepeat action = do
+setClockAction (max 0.001 -> !period) shouldRepeat action = do
     startTime <- liftIO getCurrentTime
     myClockAction ==> ClockAction startTime (realToFrac period) shouldRepeat action
 
 setRepeatingAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> EntityMonad () -> m ()
-setRepeatingAction period action = setClockAction period True action
+setRepeatingAction !period action = setClockAction period True action
 
 setDelayedAction :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> EntityMonad () -> m ()
-setDelayedAction period action = setClockAction period False action
+setDelayedAction !period action = setClockAction period False action
 

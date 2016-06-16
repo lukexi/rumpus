@@ -16,7 +16,7 @@ import Rumpus.Systems.CodeEditor
 import qualified Data.Sequence as Seq
 
 -- | Passes keyboard events to the active code editor
-tickCodeEditorInputSystem :: (MonadIO m, MonadState ECS m) => m ()
+tickCodeEditorInputSystem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => m ()
 tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     let events = _ctsEvents
         window = gpWindow _ctsVRPal
@@ -110,7 +110,7 @@ getChangedModuleName textBuffer = do
 -- | A facility to rename files and objects based on their module name,
 -- to avoid introducing any extra interface for naming things.
 -- Tricky as we must handle all the file watchers associated with the file.
-checkForModuleNameChange :: (MonadState ECS m, MonadIO m)
+checkForModuleNameChange :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m)
                          => CodeInFile -> m Bool
 checkForModuleNameChange codeInFile = do
     mBuffer <- viewSystemP sysCodeEditor

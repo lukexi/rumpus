@@ -17,10 +17,13 @@ DONE
         Copy file into current scene when grabbed.
 
 [x] Better hand tips
-
+[x] Fix keyboard hanging around when returning to Home
+[x] Fix exception catching
 
 
 REMAINING
+
+[ ] Add pitch control to sampler!
 
 [ ] Add 10foot hand controls explanation to Home
     "Open Object Library"
@@ -38,7 +41,6 @@ REMAINING
     then falls onto ground
     (needed for script)
 
-[ ] Fix exception catching
 
 [ ] Put manual into Rumpus
     [ ] Simple Text script to
@@ -77,3 +79,6 @@ LATER
     delete it when leaving a scene.
     Since it will be an Animated body, other players can delete you
     if needed if stale players remain from crashes etc.
+
+[ ] Birds! Just two flapping cubes...
+    Sunset over cube sea

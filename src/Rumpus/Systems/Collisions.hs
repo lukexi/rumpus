@@ -2,7 +2,7 @@ module Rumpus.Systems.Collisions where
 import PreludeExtra
 import Rumpus.Systems.Physics
 import Rumpus.Systems.PlayPause
-import Rumpus.Systems.CodeProtect
+import Rumpus.Systems.CodeEditor
 import qualified Data.HashSet as Set
 import qualified Data.HashMap.Strict as Map
 

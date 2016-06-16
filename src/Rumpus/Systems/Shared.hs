@@ -112,27 +112,27 @@ removeChildren :: (MonadState ECS m, MonadReader EntityID m, MonadIO m) => m ()
 removeChildren =
     withComponent_ myChildren (mapM_ removeEntity)
 
-spawnChild_ :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m ()
+spawnChild_ :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m ()
 spawnChild_ = void . spawnChild
 
-spawnChild :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID
+spawnChild :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID
 spawnChild actions = do
     thisEntityID <- ask
     spawnChildOf thisEntityID actions
 
-spawnChildOf_ :: (MonadIO m, MonadState ECS m) => EntityID -> ReaderT EntityID m () -> m ()
+spawnChildOf_ :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => EntityID -> ReaderT EntityID m () -> m ()
 spawnChildOf_ entityID = void . spawnChildOf entityID
 
-spawnChildOf :: (MonadIO m, MonadState ECS m) => EntityID -> ReaderT EntityID m () -> m EntityID
+spawnChildOf :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => EntityID -> ReaderT EntityID m () -> m EntityID
 spawnChildOf entityID actions =
     spawnEntity $ do
         myParent ==> entityID
         actions
 
-setEntityColor :: (MonadState ECS m, MonadIO m) => EntityID -> V4 GLfloat -> m ()
+setEntityColor :: (MonadState ECS m) => EntityID -> V4 GLfloat -> m ()
 setEntityColor entityID newColor = setEntityComponent myColor newColor entityID
 
-setColor :: (MonadReader EntityID m, MonadState ECS m, MonadIO m) => V4 GLfloat -> m ()
+setColor :: (MonadReader EntityID m, MonadState ECS m) => V4 GLfloat -> m ()
 setColor newColor = setComponent myColor newColor
 
 

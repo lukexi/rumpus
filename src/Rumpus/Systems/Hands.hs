@@ -19,7 +19,7 @@ makeLenses ''HandsSystem
 
 defineSystemKey ''HandsSystem
 
-startHandsSystem :: (MonadState ECS m, MonadIO m) => m ()
+startHandsSystem :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m) => m ()
 startHandsSystem = do
     let handColor = V4 0.6 0.6 0.9 1
 

@@ -3,7 +3,7 @@ import PreludeExtra
 
 import Rumpus.Systems.Hands
 import Rumpus.Systems.Shared
-import Rumpus.Systems.CodeProtect
+import Rumpus.Systems.CodeEditor
 
 data ActiveDrag = ActiveDrag HandEntityID (M44 GLfloat)
 

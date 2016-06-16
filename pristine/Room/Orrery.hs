@@ -1,13 +1,14 @@
 module Orrery where
 import Rumpus
 
-spawnPlanetOf parentID radius hue orbitRadius orbitRate = spawnChildOf parentID $ do
+spawnPlanetOf parentID rateKnob radius hue orbitRadius orbitRate = spawnChildOf parentID $ do
     myShape            ==> Sphere
     mySize             ==> radius
     myColor            ==> colorHSL hue 0.8 0.5
     myUpdate ==> do
+        rate <- getKnobValue rateKnob
         now <- getNow
-        let n = orbitRate * now * 8
+        let n = rate * orbitRate * now * 8
             x = orbitRadius * cos n
             z = orbitRadius * sin n
         setPosition (V3 x 0 z)
@@ -34,13 +35,15 @@ start = do
                         -- Tilted axis
                         (axisAngle (V3 1 0 0) -0.4)
 
-    --                               Radius Hue   OrbitRadius OrbitRate
-    sun2    <- spawnPlanetOf sun     0.03   0.8   0.4         0.1
-    planet0 <- spawnPlanetOf sun     0.02   0.0   0.1         0.7
-    planet1 <- spawnPlanetOf sun2    0.04   0.4   0.12        0.7
-    moon1   <- spawnPlanetOf planet1 0.01   0.8  0.03        2.1
-    planet2 <- spawnPlanetOf sun2    0.03   0.7   0.15        0.4
-    planet2 <- spawnPlanetOf sun2    0.03   0.55   0.2        0.5
-    planet3 <- spawnPlanetOf sun2    0.01   0.34  0.1         0.9
+    rateKnob <- addKnob "Orbit Rate" (Linear 0.1 5) 1
+
+    --                                        Radius Hue   OrbitRadius OrbitRate
+    sun2    <- spawnPlanetOf sun     rateKnob 0.03   0.8   0.4         0.1
+    planet0 <- spawnPlanetOf sun     rateKnob 0.02   0.0   0.1         0.7
+    planet1 <- spawnPlanetOf sun2    rateKnob 0.04   0.4   0.12        0.7
+    moon1   <- spawnPlanetOf planet1 rateKnob 0.01   0.8   0.03        2.1
+    planet2 <- spawnPlanetOf sun2    rateKnob 0.03   0.7   0.15        0.4
+    planet2 <- spawnPlanetOf sun2    rateKnob 0.03   0.55  0.2         0.5
+    planet3 <- spawnPlanetOf sun2    rateKnob 0.01   0.34  0.1         0.9
 
     return ()

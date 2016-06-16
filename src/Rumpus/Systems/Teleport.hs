@@ -5,7 +5,7 @@ import Rumpus.Systems.Physics
 import Rumpus.Systems.Shared
 import PreludeExtra
 
-beginBeam :: (MonadState ECS m, MonadIO m) => WhichHand -> m ()
+beginBeam :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m) => WhichHand -> m ()
 beginBeam whichHand = do
 
     beamID <- spawnEntity $ do

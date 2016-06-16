@@ -27,8 +27,7 @@ start = do
 
     return ()
 
-addSceneLibraryItem :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
-                    => GLfloat -> V3 GLfloat -> Maybe FilePath -> m ()
+addSceneLibraryItem :: GLfloat -> V3 GLfloat -> Maybe FilePath -> EntityMonad ()
 addSceneLibraryItem n spherePosition maybeSceneName = do
     let itemPosition = spherePosition * 1 + libraryCenter
     spawnChild_ $ do
@@ -66,5 +65,4 @@ addSceneLibraryItem n spherePosition maybeSceneName = do
                 setDelayedAction sceneTransitionTime $ do
                     loadScene sceneName
                     fadeToColor (V4 0 0 0 0) sceneTransitionTime
-
 

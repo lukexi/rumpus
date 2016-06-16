@@ -74,7 +74,6 @@ library
                        Rumpus.Systems.Selection
                        Rumpus.Systems.Teleport
                        Rumpus.Systems.Text
-                       Rumpus.Systems.CodeProtect
   ghc-options:         -O2 -Wall
   build-depends:       base
                      , pd-hs

@@ -9,7 +9,7 @@ import Rumpus.Systems.Creator
 import Rumpus.Systems.Haptics
 import Rumpus.Systems.Teleport
 import Rumpus.Systems.SceneWatcher
-import Rumpus.Systems.CodeProtect
+import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Selection
 import Rumpus.Systems.KeyPads
 import Rumpus.Systems.Shared
@@ -27,6 +27,8 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                     --handOffset = handRotation !* V3 0 0 0.05
                     --newHandPose = newHandPoseRaw & translation +~ handOffset
                     newHandPose = newHandPoseRaw
+                --printIO whichHand
+                --printIO newHandPose
                 --setEntityPose handEntityID newHandPose
                 setEntityPose handEntityID newHandPose
                 continueDrag handEntityID
@@ -50,8 +52,7 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
                     selectedEntityID <- getSelectedEntityID
                     if Just entityID == selectedEntityID && wasDestroyed
                         then do
-                            clearSelectedEntityID
-                            hideKeyPads
+                            clearSelection
                         else do
                             isPersistent <- isEntityPersistent entityID
                             when isPersistent $

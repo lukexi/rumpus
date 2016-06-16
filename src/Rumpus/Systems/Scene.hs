@@ -2,6 +2,7 @@ module Rumpus.Systems.Scene where
 import Data.ECS
 import Rumpus.Types
 import Rumpus.Systems.PlayPause
+import Rumpus.Systems.Selection
 import PreludeExtra hiding (catch)
 import RumpusLib
 import Control.Exception
@@ -73,13 +74,14 @@ stateFolderForSceneFolder = (</> ".world-state")
 setSceneName :: MonadState ECS m => FilePath -> m ()
 setSceneName sceneFolder = modifySystemState sysScene (scnSceneName .= sceneFolder)
 
-closeScene :: (MonadIO m, MonadState ECS m) => m ()
+closeScene :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => m ()
 closeScene = do
     existingEntities <- wldPersistentEntities <<.= mempty
     forM_ existingEntities removeEntity
 
-loadScene :: (MonadIO m, MonadState ECS m) => String -> m ()
+loadScene :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => String -> m ()
 loadScene sceneName = do
+
     setWorldPlaying False
 
     rumpusRoot <- getRumpusRootFolder

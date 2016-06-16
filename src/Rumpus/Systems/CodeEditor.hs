@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 module Rumpus.Systems.CodeEditor where
-import PreludeExtra hiding (Key)
+import PreludeExtra hiding (Key, catch)
 
 import Graphics.GL.TextBuffer
 import Halive.SubHalive
@@ -15,6 +15,10 @@ import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.Text
 import Rumpus.Systems.Scene
 import System.IO.Error
+
+import Control.Monad.Trans.Control
+import System.Timeout.Lifted
+import Control.Exception.Lifted
 
 data CodeEditor = CodeEditor
     { _cedRecompiler    :: !Recompiler
@@ -74,7 +78,7 @@ withRumpusGHC action = do
             else sharedGHCSessionConfig
     withGHC config action
 
-initCodeEditorSystem :: (MonadIO m, MonadState ECS m) => TChan CompilationRequest -> m ()
+initCodeEditorSystem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => TChan CompilationRequest -> m ()
 initCodeEditorSystem ghcChan = do
 
     registerSystem sysCodeEditor $ CodeEditorSystem
@@ -89,7 +93,7 @@ initCodeEditorSystem ghcChan = do
     --registerCodeExprComponent "CollisionBeganExpr" myCollisionBeganExpr myCollisionBegan
 
 
-registerCodeExprComponent :: (MonadState ECS m, Typeable a)
+registerCodeExprComponent :: (MonadBaseControl IO m, MonadState ECS m, Typeable a)
                           => String
                           -> Key (EntityMap CodeInFile)
                           -> Key (EntityMap a)
@@ -106,16 +110,17 @@ registerCodeExprComponent name codeInFileKey realCodeKey =
             removeComponent codeInFileKey
         }
 
-registerWithCodeEditor :: (Typeable a, MonadIO m, MonadState ECS m, MonadReader EntityID m)
+registerWithCodeEditor :: (Typeable a, MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m)
                        => CodeInFile
                        -> Key (EntityMap a)
                        -> m ()
 registerWithCodeEditor codeInFile realCodeKey = do
     viewSystem sysCodeEditor (cesCodeEditors . at codeInFile) >>= \case
         Just existingEditor -> do
-            forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> do
-                forM_ (getCompiledValue compiledValue)
-                    (setComponent realCodeKey)
+            runUserFunctionProtected realCodeKey $ do
+                forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> do
+                    forM_ (getCompiledValue compiledValue)
+                        (setComponent realCodeKey)
         Nothing -> do
             codeEditor <- createCodeEditor codeInFile
             modifySystemState sysCodeEditor $
@@ -128,8 +133,10 @@ addCodeEditorDependency codeInFile realCodeKey = do
     entityID <- ask
     let updateCodeAction newValue = do
             --putStrLnIO $ "Setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
-            forM_ (getCompiledValue newValue) $ \newCode ->
-                setEntityComponent realCodeKey newCode entityID
+            forM_ (getCompiledValue newValue) $ \newCode -> do
+                inEntity entityID $ do
+                    runUserFunctionProtected realCodeKey $ do
+                        realCodeKey ==> newCode
             --putStrLnIO $ "Done setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
     modifySystemState sysCodeEditor $
         cesCodeEditors . at codeInFile . traverse . cedDependents . at entityID ?= updateCodeAction
@@ -235,7 +242,7 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
                 dependents <- use (cesCodeEditors . ix codeInFile . cedDependents)
                 lift $ forM_ dependents ($ compiledValue)
 
-moveCodeEditorFile :: (MonadIO m, MonadState ECS m) => FilePath -> FilePath -> String -> m ()
+moveCodeEditorFile :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => FilePath -> FilePath -> String -> m ()
 moveCodeEditorFile oldFileName newFileName codeExpr = do
     let oldCodeInFile = (oldFileName, codeExpr)
         newCodeInFile = (newFileName, codeExpr)
@@ -270,15 +277,47 @@ moveCodeEditorFile oldFileName newFileName codeExpr = do
                         "moveCodeEditorFile couldn't find codeEditor for " ++ show oldCodeInFile
 
 
-setStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+setStartExpr :: (MonadIO m, MonadBaseControl IO m, MonadState ECS m, MonadReader EntityID m)
              => CodeInFile -> m ()
 setStartExpr codeInFile = do
     myStartExpr ==> codeInFile
     registerWithCodeEditor codeInFile myStart
 
-spawnChildInstance :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => FilePath -> m EntityID
+spawnChildInstance :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => FilePath -> m EntityID
 spawnChildInstance codeFileName = do
     let codePath = codeFileName <.> "hs"
     spawnChild $ do
         myStartExpr   ==> (codePath, "start")
         myCodeHidden  ==> True
+
+
+
+
+-- CODE PROTECTION
+
+-- | We give scripts a generous 1 second
+-- in case they want to generate a lot of geometry
+-- SteamVR will pull the screen away for us so it won't be painful.
+-- Timeout takes microseconds (1e6)
+maxUserFunctionTime :: Int
+maxUserFunctionTime = 1 * 10^(6::Int)
+
+-- | Returns Just a
+-- Should wrap each function call in runUserFunctionProtected
+runUserScriptsWithTimeout :: MonadBaseControl IO m => m a -> m (Maybe a)
+runUserScriptsWithTimeout = timeout maxUserFunctionTime
+
+runUserScriptsWithTimeout_ :: MonadBaseControl IO m => m a -> m ()
+runUserScriptsWithTimeout_ = void . runUserScriptsWithTimeout
+
+-- | Should be called within a runUserScriptsWithTimeout
+-- Handle any exceptions during a user function
+-- by writing them to the error pane and clearing the function.
+runUserFunctionProtected :: (MonadIO m, MonadBaseControl IO m, MonadState ECS m, MonadReader EntityID m)
+                         => Key (EntityMap a) -> m () -> m ()
+runUserFunctionProtected functionKey userFunction = do
+    catch userFunction (\e -> do
+        removeComponent functionKey
+        let runtimeErrors = displayException (e::SomeException)
+        setErrorText runtimeErrors
+        putStrLnIO $ "runUserFunctionProtected caught: " ++ runtimeErrors)

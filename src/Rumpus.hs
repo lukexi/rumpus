@@ -30,6 +30,6 @@ import Rumpus.Systems.Shared as Exports
 import Rumpus.Systems.Synth as Exports
 import Rumpus.Systems.Text as Exports
 import Rumpus.Systems.Teleport as Exports
-import Rumpus.Systems.CodeProtect as Exports
+import Rumpus.Systems.CodeEditor as Exports
 import RumpusLib as Exports
 

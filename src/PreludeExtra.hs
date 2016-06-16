@@ -7,6 +7,7 @@ module PreludeExtra
 
 import Control.Monad.State as Exports hiding (withState, withStateT)
 import Control.Monad.Reader as Exports hiding (local)
+import Control.Monad.Trans.Control as Exports
 import Data.Maybe as Exports
 import Data.Monoid as Exports
 import Data.Foldable as Exports

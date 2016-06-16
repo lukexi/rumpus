@@ -78,12 +78,12 @@ checkForDestruction whichHand = do
         sceneWatcherRemoveEntity destroyID
     return (isJust maybePendingDestruction)
 
-openEntityLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
+openEntityLibrary :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openEntityLibrary whichHand = do
     sceneName <- getSceneName
     openEntityLibraryForScene whichHand sceneName
 
-openEntityLibraryForScene :: (MonadIO m, MonadState ECS m) => WhichHand -> String -> m ()
+openEntityLibraryForScene :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => WhichHand -> String -> m ()
 openEntityLibraryForScene whichHand sceneName = do
     modifySystemState sysCreator $ crtLibraryItems . at whichHand ?= []
 
@@ -110,7 +110,7 @@ data ItemType = ObjectItem String FilePath
               | SceneItem String
               | ToScenesItem String -- Text is "Import" or "Back" depending on if we're viewing the current scene
 
-openSceneLibrary :: (MonadIO m, MonadState ECS m) => WhichHand -> m ()
+openSceneLibrary :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => WhichHand -> m ()
 openSceneLibrary whichHand = do
     modifySystemState sysCreator $ crtLibraryItems . at whichHand ?= []
 
@@ -136,7 +136,7 @@ addEntityToOpenLibrary whichHand entityID = modifySystemState sysCreator $ crtLi
 -- This would require a 'paused' flag to keep the script from actually running,
 -- and we would not want code on the NewObject (or, just make sure it isn't copied right away.)
 -- See if this is a performance problem.
-addObjectLibraryItem :: (MonadIO m, MonadState ECS m)
+addObjectLibraryItem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
                      => WhichHand -> GLfloat -> V3 GLfloat -> ItemType -> m ()
 addObjectLibraryItem whichHand n spherePosition itemType = do
     itemID <- case itemType of
@@ -161,7 +161,7 @@ addObjectLibraryItem whichHand n spherePosition itemType = do
     inEntity itemID $ animateSizeTo finalSize animDur
     addEntityToOpenLibrary whichHand itemID
 
-makeSceneItem :: (MonadIO m, MonadState ECS m) => WhichHand -> GLfloat -> t -> String -> m EntityID
+makeSceneItem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => WhichHand -> GLfloat -> t -> String -> m EntityID
 makeSceneItem whichHand hue _spherePosition sceneName = spawnEntity $ do
     myShape      ==> Sphere
     mySize       ==> initialLibraryItemSize
@@ -173,7 +173,8 @@ makeSceneItem whichHand hue _spherePosition sceneName = spawnEntity $ do
         closeCreator whichHand
         openEntityLibraryForScene whichHand sceneName
 
-makeToScenesItem :: (MonadIO m, MonadState ECS m) => WhichHand -> t -> String -> m EntityID
+makeToScenesItem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
+                 => WhichHand -> t -> String -> m EntityID
 makeToScenesItem whichHand _spherePosition title = spawnEntity $ do
     myShape      ==> Sphere
     mySize       ==> initialLibraryItemSize
@@ -187,7 +188,8 @@ makeToScenesItem whichHand _spherePosition title = spawnEntity $ do
         closeCreator whichHand
         openSceneLibrary whichHand
 
-makeEntityItem :: (MonadIO m, MonadState ECS m) => WhichHand -> V3 GLfloat -> Maybe (String, FilePath) -> m EntityID
+makeEntityItem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
+               => WhichHand -> V3 GLfloat -> Maybe (String, FilePath) -> m EntityID
 makeEntityItem whichHand spherePosition maybeCodePath = spawnEntity $ do
     myShape      ==> Cube
     mySize       ==> initialLibraryItemSize
@@ -276,7 +278,7 @@ defaultStartCodeWithModuleName moduleName = unlines
     , "    return ()"
     ]
 
-addNewStartExpr :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+addNewStartExpr :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m)
                 => m ()
 addNewStartExpr = do
     codeInFile <- createNewStartExpr
@@ -300,7 +302,7 @@ createStartExpr name = do
     liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName name)
     return (entityFileName, "start")
 
-addExitOrb :: (MonadIO m, MonadState ECS m)
+addExitOrb :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
            => WhichHand -> m ()
 addExitOrb whichHand = do
 
@@ -330,6 +332,7 @@ addExitOrb whichHand = do
                 closeCreator whichHand
                 releasePolyPatches
                 closeScene
+                clearSelection
                 loadScene "Home"
                 fadeToColor 0 transitionTime
 
@@ -340,7 +343,7 @@ addExitOrb whichHand = do
 
     addEntityToOpenLibrary whichHand exitOrbID
 
-addDestructionOrb :: (MonadIO m, MonadState ECS m)
+addDestructionOrb :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
                    => WhichHand -> m ()
 addDestructionOrb whichHand = do
     let normalPulse = do

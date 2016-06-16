@@ -3,7 +3,7 @@ import PreludeExtra
 
 import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Shared
-import Rumpus.Systems.CodeProtect
+import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Knobs
 
 import qualified Data.HashMap.Strict as Map
