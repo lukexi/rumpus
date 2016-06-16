@@ -135,10 +135,11 @@ setBody bodyType = do
     hadBody <- hasComponent myBody
     myBody ==> bodyType
 
-    if hadBody
-        then withRigidBody $ \rigidBody ->
-            updateRigidBodyWithBodyType rigidBody bodyType
-        else deriveRigidBody =<< getDynamicsWorld
+    --if hadBody
+    --    then withRigidBody $ \rigidBody ->
+    --        updateRigidBodyWithBodyType rigidBody bodyType
+    --    else deriveRigidBody =<< getDynamicsWorld
+    deriveRigidBody =<< getDynamicsWorld
 
     -- Ensure body stays kinematic when being held
     isHeld <- hasHolder

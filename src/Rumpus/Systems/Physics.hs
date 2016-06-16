@@ -172,8 +172,7 @@ getDynamicsWorld = viewSystem sysPhysics phyDynamicsWorld
 setShape :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => ShapeType -> m ()
 setShape newShape = do
     myShape ==> newShape
-    dynamicsWorld <- getDynamicsWorld
-    deriveRigidBody dynamicsWorld
+    deriveRigidBody =<< getDynamicsWorld
 
 setEntitySize :: (MonadIO m, MonadState ECS m) => EntityID -> V3 GLfloat -> m ()
 setEntitySize entityID = inEntity entityID . setSize

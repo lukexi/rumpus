@@ -25,6 +25,9 @@ REMAINING
 
 [ ] Add pitch control to sampler!
 
+[ ] Fix body updates from Animated to Physical
+    (probably Mass = 0??)
+
 [ ] Add 10foot hand controls explanation to Home
     "Open Object Library"
     "Press Import to copy objects from other scenes"
