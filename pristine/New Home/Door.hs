@@ -8,8 +8,9 @@ dD = 0.1
 start :: Start
 start = do
     
-    let sceneHue = 0.5
-    sceneHue <- randomRange (0,1)
+    
+    (mSceneName, sceneHue) <- getState (Just "Home", 0)
+    let sceneName = fromMaybe "New Scene" mSceneName 
     
     myCodeHidden ==> True
     setShape Cube
@@ -28,7 +29,7 @@ start = do
         myColor ==> colorHSL sceneHue 0.35 0.12
         myPose  ==> position $ V3 0 plaqueH 0
     spawnChild $ do
-        myText ==> "City Paint"
+        myText ==> sceneName
         mySize ==> 0.05
         myPose ==> position $ V3 0 plaqueH ((dD + 0.02) / 2)
     
