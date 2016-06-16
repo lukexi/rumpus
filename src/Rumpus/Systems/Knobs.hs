@@ -26,6 +26,7 @@ data KnobDef = KnobDef
 -- (e.g. addKnob (Smooth Linear 0 10) 1)
 data KnobScale = Linear Float Float
                | Exponential Float Float
+               | DualExponential Float Float
                | Stepped [String]
 
 data KnobState = KnobState
@@ -111,7 +112,8 @@ whenNewKnobValue knobID action = do
     forM_ mNewValue action
 
 -- Faster to use getKnobValue on the knob entity itself
-getKnobValueByName :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
+getKnobValueByName :: (MonadState ECS m, MonadReader EntityID m)
+                   => KnobName -> m Float
 getKnobValueByName knobName = do
     knobDefs <- getComponentDefault mempty myKnobDefs
     case Map.lookup knobName knobDefs of
@@ -120,7 +122,8 @@ getKnobValueByName knobName = do
         Nothing -> return 0
 
 addKnob :: KnobName -> KnobScale -> Float -> EntityMonad EntityID
-addKnob name knobScale defVal = addActiveKnob name knobScale defVal (const (return ()))
+addKnob name knobScale defVal =
+    addActiveKnob name knobScale defVal (const (return ()))
 
 addActiveKnob :: KnobName
               -> KnobScale
@@ -145,20 +148,37 @@ addActiveKnob name knobScale defVal action = do
 
 makeKnobDef :: KnobScale -> Float -> (GLfloat -> EntityMonad ()) -> KnobDef
 makeKnobDef knobScale defVal action =
-    let (low, high) = case knobScale of
-            Linear      l h -> (l, h)
-            Exponential l h -> (l, h)
-            Stepped options -> (0, fromIntegral (length options) - 1)
-        range = high - low
-        val01ToValue value01 = case knobScale of
-            Linear      _ _ -> low + range * value01
-            Exponential _ _ -> low + range * (value01 ^ (2::Int))
+    let (val01ToValue, valueToVal01) = case knobScale of
+            Linear      l h -> let range = h - l in
+                ( (+ low)   . (* range)
+                , (/ range) . (- low)
+                )
+            Exponential l h -> let range = h - l in
+                ( (+ low) . (* range) . (^(2::Int))
+                , sqrt    . (/ range) . (- low)
+                )
+            DualExponential l h ->
+                let rangeH = h
+                    rangeL = abs l
+
+                in
+                ( \val01 -> -- remap to -1 to 1 and square
+                    let val2 = (val01 * 2 - 1) ^ (2::Int)
+                    in if val01 > 0.5
+                        then val2 * rangeH
+                        else val2 * rangeL
+                , \val ->
+                    let valNeg1To1 = sqrt $ if val > 0
+                            then val / rangeH
+                            else val / rangeL
+                    in valNeg1To1 / 2 + 1
+                )
             -- E.g. for [foo,bar,baz] 0-0.33 should be 0,
             -- 0.33-0.66 should be 1, 0.66-1 should be 2
-            Stepped _       -> fromIntegral . (\i -> i::Int) . floor
-                                . min (range + 1 - 0.001)
-                                $ (range + 1) * value01
-        valueToVal01 value = (value - low) / range
+            Stepped options -> let rangePlus1 = (0, genericLength options) in
+                ( min (rangePlus1 - 1) . (rangePlus1 *)
+                , (/ rangePlus1)
+                )
 
     in KnobDef
         { knbScale        = knobScale
@@ -178,8 +198,6 @@ addActiveKnobAt knobLayoutScale knobPos name knobDef@KnobDef{..} = do
 
     initialValue01 <- getKnobValue01ByName name
     let initialValue = knbVal01ToValue initialValue01
-
-
 
     knbAction initialValue
 
@@ -285,6 +303,7 @@ testEpsilon n = if nearZero n then 0 else n
 
 displayValue :: KnobDef -> Float -> String
 displayValue knobDef value = case knbScale knobDef of
-    Linear _ _      -> (printf "%.2f" (value::Float))
-    Exponential _ _ -> (printf "%.2f" (value::Float))
+    Linear _ _          -> printf "%.2f" (value::Float)
+    Exponential _ _     -> printf "%.2f" (value::Float)
+    DualExponential _ _ -> printf "%.2f" (value::Float)
     Stepped options -> let i = round value in if i >= 0 && i < length options then options !! i else "<over>"

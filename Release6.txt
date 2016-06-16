@@ -24,6 +24,7 @@ DONE
 REMAINING
 
 [ ] Add pitch control to sampler!
+    [ ] needs bidirectional exponential knob type
 
 [ ] Fix body updates from Animated to Physical
     (probably Mass = 0??)

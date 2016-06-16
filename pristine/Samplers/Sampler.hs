@@ -15,6 +15,9 @@ start = do
     sampleFileName <- toPdPathStyle (stateFolder </> show thisID <.> "wav")
     sendSynth "sample-file" (fromString sampleFileName)
 
+    addKnob "Speed" (DualExponential -50 50) $ \val -> do
+        sendSynth "sample-speed" (realToFrac val)
+
     -- Create the entities representing the FFT
     let numSamples = 32 -- actual generated is 256
     children <- V.generateM numSamples $ \i -> do
