@@ -1,4 +1,5 @@
 module M03Start where
+import Rumpus
 {-
 The `start` function is called once whenever a new instance of your
 object is created, and again each time you make a valid change to the code.

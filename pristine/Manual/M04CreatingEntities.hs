@@ -8,10 +8,10 @@ To create a new entity via code, change the start function to:
 -}
 start :: Start
 start = do
-    spawnChild $ do
+    spawnChild_ $ do
         myColor      ==> colorHSL 0.5 0.7 0.7
         myShape      ==> Sphere
-        myPose       ==> position (V3 0 1 0)
+        myPose       ==> position (V3 0 0.5 0)
         mySize       ==> 0.1
 {-
 ```

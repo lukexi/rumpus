@@ -55,6 +55,13 @@ animateSizeFromTo fromSize toSize time = do
     animation <- makeAnimation time' fromSize toSize
     mySizeAnimation ==> animation
 
+animateSizeInFrom0 :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> m ()
+animateSizeInFrom0 time = do
+    currentSize <- getSize
+    animateSizeFromTo 0 currentSize time
+
+animateSizeOutTo0 :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> m ()
+animateSizeOutTo0 time = animateSizeTo 0 time
 
 animateColor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> V4 GLfloat -> V4 GLfloat -> m ()
 animateColor time fromColor toColor = do
