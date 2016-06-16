@@ -117,6 +117,8 @@ registerWithCodeEditor :: (Typeable a, MonadBaseControl IO m, MonadIO m, MonadSt
 registerWithCodeEditor codeInFile realCodeKey = do
     viewSystem sysCodeEditor (cesCodeEditors . at codeInFile) >>= \case
         Just existingEditor -> do
+            -- FIXME: see below note in addCodeEditorDependency
+            -- regarding the use of runUserFunctionProtected here
             runUserFunctionProtected realCodeKey $ do
                 forM_ (existingEditor ^. cedCompiledValue) $ \compiledValue -> do
                     forM_ (getCompiledValue compiledValue)
@@ -135,6 +137,9 @@ addCodeEditorDependency codeInFile realCodeKey = do
             --putStrLnIO $ "Setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
             forM_ (getCompiledValue newValue) $ \newCode -> do
                 inEntity entityID $ do
+                    -- FIXME: investigate this. The mere assignment of new code seems to
+                    -- somehow run the code inside of it (???) so we have to run the
+                    -- assignment in runUserFunctionProtected
                     runUserFunctionProtected realCodeKey $ do
                         realCodeKey ==> newCode
             --putStrLnIO $ "Done setting code  " ++ show codeInFile ++ " on entity: " ++ show entityID
