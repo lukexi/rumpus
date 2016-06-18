@@ -160,8 +160,10 @@ getPosition = getEntityPosition =<< ask
 getPose :: (MonadReader EntityID m, MonadState ECS m) => m (M44 GLfloat)
 getPose = getEntityPose =<< ask
 
+-- Defaults to 0.2 so you'll see it when spawning it initially
+-- (otherwise ends up within the code slab, which is 0.1 thick)
 getEntitySize :: MonadState ECS m => EntityID -> m (V3 GLfloat)
-getEntitySize entityID = fromMaybe 0.1 <$> getEntityComponent entityID mySize
+getEntitySize entityID = fromMaybe 0.2 <$> getEntityComponent entityID mySize
 
 getSize :: (MonadReader EntityID m, MonadState ECS m) => m (V3 GLfloat)
 getSize = getEntitySize =<< ask
