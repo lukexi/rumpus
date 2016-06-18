@@ -63,7 +63,17 @@ animateSizeInFrom0 time = do
 animateSizeOutTo0 :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> m ()
 animateSizeOutTo0 time = animateSizeTo 0 time
 
-animateColor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => DiffTime -> V4 GLfloat -> V4 GLfloat -> m ()
-animateColor time fromColor toColor = do
+animateColor :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V4 GLfloat -> V4 GLfloat -> DiffTime -> m ()
+animateColor fromColor toColor time = do
     animation <- makeAnimation time fromColor toColor
     myColorAnimation ==> animation
+
+animateColorTo :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V4 GLfloat -> DiffTime -> m ()
+animateColorTo toColor time = do
+    currentColor <- getColor
+    animateColor currentColor toColor time
+
+animateEntityColorTo :: (MonadIO m, MonadState ECS m)
+                     => EntityID -> V4 GLfloat -> DiffTime -> m ()
+animateEntityColorTo entityID toColor time = inEntity entityID $
+    animateColorTo toColor time

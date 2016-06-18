@@ -17,7 +17,7 @@ start = do
                 myPose          ==> newPose
                 myShape         ==> Cube
                 mySize          ==> 0.1
-                myBody          ==> Physical
+                myBody          ==> Animated
                 myGravity       ==> 0
                 myColor         ==> colorHSL
                     (newPosition ^. _x) 0.7 0.8

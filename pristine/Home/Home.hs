@@ -10,12 +10,9 @@ minimizedItemSize = 0.01
 itemSize :: V3 GLfloat
 itemSize = 0.3
 
-sceneTransitionTime :: Fractional a => a
-sceneTransitionTime = 0.5
-
 start :: Start
 start = do
-    setPlayerPosition 0
+
     sceneNames <- listScenes
     let sceneNamesWithNewScene = Nothing : map Just sceneNames
         numItems               = length sceneNamesWithNewScene
@@ -57,12 +54,6 @@ addSceneLibraryItem n spherePosition maybeSceneName = do
             mSceneName <- case maybeSceneName of
                 Just sceneName -> return $ Just sceneName
                 Nothing        -> createNewScene
-            forM_ mSceneName $ \ sceneName -> do
-                -- Fade out while loading
-                fadeToColor (V4 1 1 1 1) sceneTransitionTime
-
-                -- Load after 1 second
-                setDelayedAction sceneTransitionTime $ do
-                    loadScene sceneName
-                    fadeToColor (V4 0 0 0 0) sceneTransitionTime
+            forM_ mSceneName $ \sceneName -> do
+                transitionToScene sceneName
 

@@ -431,7 +431,7 @@ tickKeyPadsSystem = do
                 inEntity (key ^. kpkKeyBackID) $ do
                     randomHue <- randomRange (0,1)
                     let randomColor = colorHSL randomHue 0.7 0.7
-                    animateColor keyPadAnimDur randomColor keyColorOff
+                    animateColor randomColor keyColorOff keyPadAnimDur
         _ -> return ()
 
     -- Sync the keys to the selected object manually to avoid interacting

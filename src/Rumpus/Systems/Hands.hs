@@ -19,14 +19,18 @@ makeLenses ''HandsSystem
 
 defineSystemKey ''HandsSystem
 
+handSize :: V3 GLfloat
+handSize = V3 0.075 0.075 0.075
+
+handColor :: V4 GLfloat
+handColor = V4 0.6 0.6 0.9 1
+
 startHandsSystem :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m) => m ()
 startHandsSystem = do
-    let handColor = V4 0.6 0.6 0.9 1
-
-        makeHand whichHand = do
+    let makeHand whichHand = do
             handID <- spawnEntity $ do
                 myColor           ==> handColor
-                mySize            ==> V3 0.075 0.075 0.075
+                mySize            ==> handSize
                 myShape           ==> Cube
                 myBody            ==> Detector
                 myBodyFlags       ==> [Ungrabbable]
@@ -34,7 +38,7 @@ startHandsSystem = do
                 myCollisionBegan  ==> \_ impulse -> do
                     hapticPulse whichHand (floor $ impulse * 10000)
             -- Create a "wrist" below the hand
-            spawnChildOf handID $ do
+            spawnChildOf_ handID $ do
                 myColor           ==> handColor
                 mySize            ==> V3 0.07 0.07 0.15
                 myShape           ==> Cube

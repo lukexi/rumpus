@@ -25,8 +25,8 @@ activeDestructorOrbSize = 0.6
 destructorOrbSize :: V3 GLfloat
 destructorOrbSize = 0.05
 
-exitOrbSize :: V3 GLfloat
-exitOrbSize = 0.05
+exitKnobSize :: V3 GLfloat
+exitKnobSize = 0.05
 
 initialLibraryItemSize :: V3 GLfloat
 initialLibraryItemSize = 0.001
@@ -46,8 +46,8 @@ animDur = 0.3
 creatorOffset :: V3 GLfloat
 creatorOffset = V3 0 0 -0.3
 
-exitOrbOffset :: V3 GLfloat
-exitOrbOffset = V3 0 0 0.25
+exitKnobOffset :: V3 GLfloat
+exitKnobOffset = V3 0 0 0.25
 
 transitionTime :: Fractional a => a
 transitionTime = 0.5
@@ -102,7 +102,7 @@ openEntityLibraryForScene whichHand sceneName = do
 
     addDestructionOrb whichHand
 
-    addExitOrb whichHand
+    addExitKnob whichHand
 
 
 data ItemType = ObjectItem String FilePath
@@ -125,7 +125,7 @@ openSceneLibrary whichHand = do
 
     addDestructionOrb whichHand
 
-    addExitOrb whichHand
+    addExitKnob whichHand
 
 addEntityToOpenLibrary :: (MonadState ECS m) => WhichHand -> EntityID -> m ()
 addEntityToOpenLibrary whichHand entityID = modifySystemState sysCreator $ crtLibraryItems . ix whichHand %= (entityID:)
@@ -302,19 +302,21 @@ createStartExpr name = do
     liftIO $ writeFile entityFilePath (defaultStartCodeWithModuleName name)
     return (entityFileName, "start")
 
-addExitOrb :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
+addExitKnob :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
            => WhichHand -> m ()
-addExitOrb whichHand = do
+addExitKnob whichHand = do
 
     let otherHand = otherHandFrom whichHand
     otherHandID <- getHandID otherHand
 
+    let knobColor = colorHSL 0.2 0.35 0.5
+
     let normalPulse = do
             now <- getNow
             let brightness = (* 0.5) . (+1) . (/2) . sin $ now
-            setColor (colorHSL 0.4 0.8 brightness)
-    exitOrbID <- spawnEntity $ do
-        myColor        ==> colorHSL 0.4 0.8 0.5
+            setColor (colorHSL 0.2 0.35 brightness)
+    exitKnobID <- spawnEntity $ do
+        myColor        ==> knobColor
         myShape        ==> Sphere
         mySize         ==> initialLibraryItemSize
         myBody         ==> Detector
@@ -325,23 +327,40 @@ addExitOrb whichHand = do
             when (entityID == otherHandID) $ do
                 hapticPulse otherHand 1000
         myDragBegan ==> do
-            fadeToColor 1 transitionTime
-            -- Add the delayed action to the hand, since the exit orb will disappear
-            -- when the user releases the library button
-            inEntity otherHandID $ setDelayedAction transitionTime $ do
-                closeCreator whichHand
-                releasePolyPatches
-                closeScene
-                clearSelection
-                loadScene "Home"
-                fadeToColor 0 transitionTime
+            removeComponent myDragBegan
+            transitionToSceneWithAction "New Home" (closeCreator whichHand)
+    -- Knob shaft
+    spawnChildOf_ exitKnobID $ do
+        myColor ==> knobColor
+        mySize  ==> V3 0.02 0.02 0.1
+        myPose  ==> position $ V3 0 0 -0.05
+        myShape ==> Cube
 
     handID   <- getHandID whichHand
-    attachEntityToEntity handID exitOrbID (translateMatrix exitOrbOffset)
+    attachEntityToEntity handID exitKnobID (translateMatrix exitKnobOffset)
 
-    inEntity exitOrbID $ animateSizeTo exitOrbSize animDur
+    inEntity exitKnobID $ animateSizeTo exitKnobSize animDur
 
-    addEntityToOpenLibrary whichHand exitOrbID
+    addEntityToOpenLibrary whichHand exitKnobID
+
+transitionToScene :: (MonadIO m, MonadState ECS m) => String -> m ()
+transitionToScene sceneName = transitionToSceneWithAction sceneName (return ())
+
+transitionToSceneWithAction :: (MonadIO m, MonadState ECS m)
+                            => String -> ReaderT EntityID ECSMonad a -> m ()
+transitionToSceneWithAction sceneName action = do
+    fadeToColor 1 transitionTime
+    -- A silly hack since we don't have any other global entities:
+    -- Add the delayed action to the hand, since the exit orb will disappear
+    -- when the user releases the library button
+    leftHandID <- getLeftHandID
+    inEntity leftHandID $ setDelayedAction transitionTime $ do
+        _ <- action
+        releasePolyPatches
+        clearSelection
+        setPlayerPosition 0
+        loadScene sceneName
+        fadeToColor 0 transitionTime
 
 addDestructionOrb :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
                    => WhichHand -> m ()

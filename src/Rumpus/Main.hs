@@ -41,7 +41,7 @@ initializeECS ghc pd vrPal = do
     -- If the name of a scene is given, load it.
     -- Otherwise assume it is the name of a code file.
     listToMaybe <$> liftIO getArgs >>= \case
-        Nothing -> loadScene "Home"
+        Nothing -> loadScene "New Home"
         Just name -> do
             sceneExists <- doesSceneExist name
             if sceneExists

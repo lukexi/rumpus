@@ -43,7 +43,7 @@ start = do
         let hue = noteHue note
             fromColor = colorHSL (hue + 0.5) 0.8 0.5
             toColor   = colorHSL hue         0.8 0.5
-        animateColor 0.2 fromColor toColor
+        animateColor fromColor toColor 0.2
 
     myDragContinues ==> \_ -> updateNote
     myCodeHidden ==> True

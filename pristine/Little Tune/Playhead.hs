@@ -32,7 +32,7 @@ start = do
         myCollisionBegan ==> \hitEntityID _ ->
             when (hitEntityID /= thisID) $ do
               flashColor <- getEntityColor hitEntityID
-              animateColor 0.2 flashColor (V4 1 1 1 1)
+              animateColor flashColor (V4 1 1 1 1) 0.2
     attachEntity playHead (position (V3 0 0 0))
 
     -- track

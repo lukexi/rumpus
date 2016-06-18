@@ -1,0 +1,35 @@
+#N canvas 1319 640 553 611 10;
+#X obj 39 56 inlet;
+#X obj 39 180 list prepend send;
+#X obj 39 205 list trim;
+#X obj 39 358 netsend -u -b;
+#X obj 39 495 metro 1000;
+#X obj 118 237 loadbang;
+#X obj 39 429 == 0;
+#X text 181 232 auto-connect on disconnection;
+#X obj 291 188 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 291 162 t b;
+#X msg 151 368 disconnect;
+#X obj 66 398 print connected;
+#X text 78 433 if connected == 0 (aka connection failed \, start reconnecting)
+;
+#X floatatom 181 392 5 0 0 0 - - -, f 5;
+#X obj 39 465 pipe 0;
+#X obj 118 296 \$1;
+#X msg 117 328 connect localhost \$1;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 3 0;
+#X connect 2 0 9 0;
+#X connect 3 0 11 0;
+#X connect 3 0 6 0;
+#X connect 3 0 13 0;
+#X connect 4 0 15 0;
+#X connect 5 0 15 0;
+#X connect 6 0 14 0;
+#X connect 9 0 8 0;
+#X connect 10 0 3 0;
+#X connect 14 0 4 0;
+#X connect 15 0 16 0;
+#X connect 16 0 3 0;
