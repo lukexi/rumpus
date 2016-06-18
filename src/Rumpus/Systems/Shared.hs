@@ -115,6 +115,9 @@ removeChildren =
 spawnChild_ :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m ()
 spawnChild_ = void . spawnChild
 
+spawnChildren xs action = forM xs (spawnChild . action)
+spawnChildren_ xs = void . spawnChildren xs
+
 spawnChild :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID
 spawnChild actions = do
     thisEntityID <- ask
@@ -157,8 +160,10 @@ getPosition = getEntityPosition =<< ask
 getPose :: (MonadReader EntityID m, MonadState ECS m) => m (M44 GLfloat)
 getPose = getEntityPose =<< ask
 
+-- Defaults to 0.2 so you'll see it when spawning it initially
+-- (otherwise ends up within the code slab, which is 0.1 thick)
 getEntitySize :: MonadState ECS m => EntityID -> m (V3 GLfloat)
-getEntitySize entityID = fromMaybe 1 <$> getEntityComponent entityID mySize
+getEntitySize entityID = fromMaybe 0.2 <$> getEntityComponent entityID mySize
 
 getSize :: (MonadReader EntityID m, MonadState ECS m) => m (V3 GLfloat)
 getSize = getEntitySize =<< ask

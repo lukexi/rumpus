@@ -11,6 +11,9 @@ import Rumpus.Systems.Hands
 import Rumpus.Systems.Controls
 import qualified Data.HashMap.Strict as Map
 import Data.List (genericLength)
+
+default (Int, Float)
+
 type KnobName = String
 
 data KnobDef = KnobDef
@@ -154,7 +157,7 @@ makeKnobDef knobScale defVal action =
                 , (/ range) . (subtract low)
                 )
             Exponential low high -> let range = high - low in
-                ( (+ low) . (* range) . (^(2::Int))
+                ( (+ low) . (* range) . (^ 2)
                 , sqrt    . (/ range) . (subtract low)
                 )
             DualExponential l h ->
@@ -163,7 +166,7 @@ makeKnobDef knobScale defVal action =
 
                 in
                 ( \val01 -> -- remap to -1 to 1 and square
-                    let val2 = (val01 * 2 - 1) ^ (2::Int)
+                    let val2 = (val01 * 2 - 1) ^ 2
                     in if val01 > 0.5
                         then val2 * rangeH
                         else val2 * rangeL
