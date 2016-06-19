@@ -1,13 +1,34 @@
 module Door where
 import Rumpus
 
+dW, dH :: Num a => a
 dH = 2
 dW = 1
 dD = 0.1
 
+doorColor = colorHSL 0.1 0.1 0.09
+
+startTransitionAnimation = do
+   let cubeW = 0.1
+   let xs = floor $ fromIntegral dW / cubeW
+       ys = floor $ fromIntegral dH / cubeW
+
+   let cubePositions = [V2 x y | x <- [0..xs - 1], y <- [0..ys - 1]]
+   forM_ cubePositions $ \(V2 xI yI) -> do
+       hue <- randomRange (0,1)
+       let x = fromIntegral xI * cubeW - (dW / 2) + cubeW / 2
+           y = fromIntegral yI * cubeW - (dH / 2) + cubeW / 2
+       spawnChild $ do
+           myPose ==> position (V3 x y 0)
+           mySize ==> realToFrac cubeW
+           myShape ==> Cube
+           myColor ==> doorColor
+           myStart ==> do
+               animateColor doorColor (colorHSL hue 0.3 0.5) 0.3
+               setDelayedAction (0.3 + realToFrac hue) $ do
+                   animatePositionTo (V3 x y -500) 1
 start :: Start
 start = do
-
 
     (mSceneName, sceneHue) <- getState (Just "New Home", 0)
     let sceneName = fromMaybe "New Scene" mSceneName
@@ -19,8 +40,8 @@ start = do
     myPose ==> positionRotation
         (V3 -1 1 0)
         (axisAngle (V3 0 1 0) (pi / 2))
-    myColor ==> colorHSL 0.1 0.1 0.09
-
+    myColor ==> doorColor
+    doorID <- ask
     -- Plaque
     let plaqueH = dH * 0.3
     spawnChild $ do
@@ -42,7 +63,11 @@ start = do
         myDragOverride ==> True
         myDragBegan    ==> do
             removeComponent myDragBegan
-            transitionToScene sceneName
+            inEntity doorID $ do
+                removeComponent myShape
+                startTransitionAnimation
+                setDelayedAction 1 $
+                    transitionToSceneOverTime sceneName 1
 
     -- Knob shaft
     spawnChildOf doorKnob $ do

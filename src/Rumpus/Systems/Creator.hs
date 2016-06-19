@@ -49,8 +49,11 @@ creatorOffset = V3 0 0 -0.3
 exitKnobOffset :: V3 GLfloat
 exitKnobOffset = V3 0 0 0.22
 
-transitionTime :: Fractional a => a
-transitionTime = 0.5
+transitionTimeIn :: Fractional a => a
+transitionTimeIn = 0.5
+
+transitionTimeOut :: Fractional a => a
+transitionTimeOut = 0.5
 
 -- NOTE: this illustrates how handy it will be to have arbitrary components;
 -- rather than creating yet more maps, we can just say
@@ -327,7 +330,7 @@ addExitKnob whichHand = do
                 hapticPulse otherHand 1000
         myDragBegan ==> do
             removeComponent myDragBegan
-            transitionToSceneWithAction "New Home" (closeCreator whichHand)
+            transitionToSceneWithAction "New Home"  (closeCreator whichHand)
         mySize         ==> initialLibraryItemSize
     -- Knob shaft
     spawnChildOf_ exitKnobID $ do
@@ -344,23 +347,31 @@ addExitKnob whichHand = do
     addEntityToOpenLibrary whichHand exitKnobID
 
 transitionToScene :: (MonadIO m, MonadState ECS m) => String -> m ()
-transitionToScene sceneName = transitionToSceneWithAction sceneName (return ())
+transitionToScene sceneName =
+    transitionToSceneOverTime sceneName transitionTimeIn
 
-transitionToSceneWithAction :: (MonadIO m, MonadState ECS m)
-                            => String -> ReaderT EntityID ECSMonad a -> m ()
-transitionToSceneWithAction sceneName action = do
-    fadeToColor 1 transitionTime
+transitionToSceneOverTime sceneName timeIn =
+    transitionToSceneOverTimeWithAction sceneName timeIn (return ())
+
+transitionToSceneWithAction sceneName action =
+    transitionToSceneOverTimeWithAction sceneName transitionTimeIn action
+
+transitionToSceneOverTimeWithAction :: (MonadIO m, MonadState ECS m)
+                                    => String -> DiffTime
+                                    -> ReaderT EntityID ECSMonad a -> m ()
+transitionToSceneOverTimeWithAction sceneName timeIn action = do
+    fadeToColor 1 (realToFrac timeIn)
     -- A silly hack since we don't have any other global entities:
     -- Add the delayed action to the hand, since the exit orb will disappear
     -- when the user releases the library button
     leftHandID <- getLeftHandID
-    inEntity leftHandID $ setDelayedAction transitionTime $ do
+    inEntity leftHandID $ setDelayedAction timeIn $ do
         _ <- action
         releasePolyPatches
         clearSelection
         setPlayerPosition 0
         loadScene sceneName
-        fadeToColor 0 transitionTime
+        fadeToColor 0 transitionTimeOut
 
 addDestructionOrb :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
                    => WhichHand -> m ()
