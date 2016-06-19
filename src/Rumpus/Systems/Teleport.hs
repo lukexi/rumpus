@@ -3,6 +3,7 @@ import Rumpus.Systems.Hands
 import Rumpus.Systems.Controls
 import Rumpus.Systems.Physics
 import Rumpus.Systems.Shared
+import Rumpus.Systems.Clock
 import PreludeExtra
 
 beginBeam :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m) => WhichHand -> m ()
@@ -57,8 +58,11 @@ endBeam whichHand = traverseM_ (viewSystem sysHands (hndBeams . at whichHand)) $
     forM_ mRayResult $ \RayResult{..} -> do
         entityID <- unCollisionObjectID <$> getCollisionObjectID rrCollisionObject
         teleportable <- getIsTeleportable entityID
-        when teleportable $
-            teleportPlayerTo entityID
+        when teleportable $ do
+            fadeToColor (V4 0 0 0 1) 0.1
+            inEntity handID $ setDelayedAction 0.1 $ do
+                teleportPlayerTo entityID
+                fadeToColor 0 0.1
 
 teleportPlayerTo :: MonadState ECS m => EntityID -> m ()
 teleportPlayerTo entityID = do

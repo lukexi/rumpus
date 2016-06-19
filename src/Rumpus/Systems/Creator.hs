@@ -47,7 +47,7 @@ creatorOffset :: V3 GLfloat
 creatorOffset = V3 0 0 -0.3
 
 exitKnobOffset :: V3 GLfloat
-exitKnobOffset = V3 0 0 0.25
+exitKnobOffset = V3 0 0 0.22
 
 transitionTime :: Fractional a => a
 transitionTime = 0.5
@@ -318,7 +318,6 @@ addExitKnob whichHand = do
     exitKnobID <- spawnEntity $ do
         myColor        ==> knobColor
         myShape        ==> Sphere
-        mySize         ==> initialLibraryItemSize
         myBody         ==> Detector
         myDragOverride ==> True
         myUpdate       ==> normalPulse
@@ -329,17 +328,18 @@ addExitKnob whichHand = do
         myDragBegan ==> do
             removeComponent myDragBegan
             transitionToSceneWithAction "New Home" (closeCreator whichHand)
+        mySize         ==> initialLibraryItemSize
     -- Knob shaft
     spawnChildOf_ exitKnobID $ do
-        myColor ==> knobColor
-        mySize  ==> V3 0.02 0.02 0.1
-        myPose  ==> position $ V3 0 0 -0.05
-        myShape ==> Cube
+        myColor         ==> knobColor
+        mySize          ==> V3 0.2 0.2 1.5
+        myPose          ==> position $ V3 0 0 -1
+        myShape         ==> Cube
+        myTransformType ==> RelativeFull
+    inEntity exitKnobID $ animateSizeTo exitKnobSize animDur
 
     handID   <- getHandID whichHand
     attachEntityToEntity handID exitKnobID (translateMatrix exitKnobOffset)
-
-    inEntity exitKnobID $ animateSizeTo exitKnobSize animDur
 
     addEntityToOpenLibrary whichHand exitKnobID
 
@@ -373,7 +373,6 @@ addDestructionOrb whichHand = do
             now <- getNow
             let brightness = (* 0.5) . (+1) . (/2) . sin . (*10) $ now
             setColor (colorHSL 0.1 0.8 brightness)
-    handID   <- getHandID whichHand
     destructorID <- spawnEntity $ do
         myColor      ==> colorHSL 0.7 0.8 0
         myShape      ==> Sphere
@@ -408,6 +407,7 @@ addDestructionOrb whichHand = do
                     crtPendingDestruction . at whichHand .= Nothing
 
 
+    handID <- getHandID whichHand
     attachEntityToEntity handID destructorID (translateMatrix creatorOffset)
 
     inEntity destructorID $ animateSizeTo destructorOrbSize animDur
