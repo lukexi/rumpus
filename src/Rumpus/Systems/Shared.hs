@@ -40,15 +40,16 @@ defineComponentKeyWithType "State" [t|Dynamic|]
 
 -- | Pairs a filename along with an expression
 -- to evaluate in that filename's environment once compiled
-type CodeInFile = (FilePath, String)
+type CodeFile      = (FilePath, String)
+type SceneCodeFile = (FilePath, FilePath, String)
 -- FIXME: these should move to their companion definitions (i.e. myStart, myUpdate etc.)
 -- and those files should depend on CodeEditor and call registerCodeExprComponent.
 -- Must thus be initialized after CodeEditor.
-defineComponentKeyWithType "StartExpr"          [t|CodeInFile|]
-defineComponentKeyWithType "UpdateExpr"         [t|CodeInFile|]
+defineComponentKeyWithType "StartCodeFile"          [t|CodeFile|]
+defineComponentKeyWithType "UpdateCodeFile"         [t|CodeFile|]
 defineComponentKeyWithType "CodeHidden"         [t|Bool|]
---defineComponentKeyWithType "CollidingExpr"      [t|CodeInFile|]
---defineComponentKeyWithType "CollisionBeganExpr" [t|CodeInFile|]
+--defineComponentKeyWithType "CollidingExpr"      [t|CodeFile|]
+--defineComponentKeyWithType "CollisionBeganExpr" [t|CodeFile|]
 
 
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()

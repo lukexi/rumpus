@@ -21,11 +21,11 @@ Pose:
   - 0.0
   - -1
   - 1.8
-- - 0.0   
-  - 0.0   
+- - 0.0
+  - 0.0
   - 0.0
   - 1
-StartExpr:
+StartCodeFile:
 - scenes/shoo/Gun.hs
 - start
 PdPatchFile: scenes/shoo/gun-voice

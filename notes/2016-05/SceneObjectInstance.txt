@@ -61,7 +61,7 @@ Editing the yaml file directly might work, perhaps as a separate pane.
 Other way to do it is with a super-code file that instantiates the rooms transiently and then changes their position. I think that's the way for now!!
 
 
-For Notes, we want then to all share a Note.hs file. That can be achieved just fine by saying setStartExpr.
+For Notes, we want then to all share a Note.hs file. That can be achieved just fine by saying setStartCodeFile.
 
 So as is becoming clear, the YAML is really only for instances!
 

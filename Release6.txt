@@ -19,17 +19,22 @@ DONE
 [x] Better hand tips
 [x] Fix keyboard hanging around when returning to Home
 [x] Fix exception catching
-
+[x] Fix body updates from Animated to Physical
+    (probably Mass = 0??)
+[x] Add pitch control to sampler!
+    [x] needs bidirectional exponential knob type
+[x] Put manual into Rumpus
+    [ ] Simple Text script to
+        split on ***Name,
+        take to next ***
+        insert comment blocks
+        write to pristine/manual/Name.hs
 
 REMAINING
 
-[ ] Add pitch control to sampler!
-    [ ] needs bidirectional exponential knob type
+[ ] Scene Folder code still broken for text editors
 
-[ ] Fix body updates from Animated to Physical
-    (probably Mass = 0??)
-
-[ ] Add 10foot hand controls explanation to Home
+[u] Add 10foot hand controls explanation to Home
     "Open Object Library"
     "Press Import to copy objects from other scenes"
     "Drag and drop objects here to destroy them"
@@ -39,19 +44,11 @@ REMAINING
 [ ] Sound for
     [x] pool
     [ ] Attractor, ribbon, cubesea?
-    [ ] Use Verylogue!
+        [ ] Use Verylogue!
 
 [ ] Skywriter, draw something, it gets projected to 100 feet, hangs in the air,
     then falls onto ground
     (needed for script)
-
-
-[ ] Put manual into Rumpus
-    [ ] Simple Text script to
-        split on ***Name,
-        take to next ***
-        insert comment blocks
-        write to pristine/manual/Name.hs
 
 [ ] Add knobs to more objects
 

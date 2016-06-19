@@ -1,4 +1,4 @@
-StartExpr:
+StartCodeFile:
 - scenes/logo/Room.hs
 - start
 PlayWhenReady: true

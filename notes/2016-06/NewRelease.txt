@@ -1,5 +1,5 @@
 BUGS
-    [x] Crashes if a .yaml object has a StartExpr for a .hs file that no longer exists.
+    [x] Crashes if a .yaml object has a StartCodeFile for a .hs file that no longer exists.
     [x] Pressing down and up reloads the file ?!?
 
 KEYBOARD

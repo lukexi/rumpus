@@ -1,7 +1,7 @@
 PdPatchFile: scenes/volume/voice-analyzer
-UpdateExpr:
+UpdateCodeFile:
 - scenes/volume/RunAnalyzer.hs
 - update
-StartExpr:
+StartCodeFile:
 - scenes/volume/StartAnalyzer.hs
 - start

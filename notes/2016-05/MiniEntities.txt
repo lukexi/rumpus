@@ -4,9 +4,9 @@ Sorting out the creating-new-objects, yaml, etc. situation for release.
 
 
 
-Have Main.hs be the only thing run in a scene folder at launch. 
+Have Main.hs be the only thing run in a scene folder at launch.
 
-The rest are loaded in as definitions. Definitions are just a map from names to Start functions, which is nice; no Value-parsing when spawning! (I guess, need CodeInFile too)
+The rest are loaded in as definitions. Definitions are just a map from names to Start functions, which is nice; no Value-parsing when spawning! (I guess, need CodeFile too)
 
 Main.hs then takes care of spawning and laying out the objects (who should not define where they themselves spawn).
 

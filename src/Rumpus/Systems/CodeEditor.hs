@@ -29,8 +29,10 @@ data CodeEditor = CodeEditor
     }
 makeLenses ''CodeEditor
 
+type CodeFileInScene = (String, FilePath, FilePath)
+
 data CodeEditorSystem = CodeEditorSystem
-    { _cesCodeEditors :: !(Map CodeInFile CodeEditor)
+    { _cesCodeEditors :: !(Map CodeFileInScene CodeEditor)
     , _cesGHCChan     :: !(TChan CompilationRequest)
     }
 makeLenses ''CodeEditorSystem
@@ -87,15 +89,15 @@ initCodeEditorSystem ghcChan = do
         }
 
     registerComponent         "CodeHidden"           myCodeHidden           (newComponentInterface myCodeHidden)
-    registerCodeExprComponent "StartExpr"            myStartExpr            myStart
-    registerCodeExprComponent "UpdateExpr"           myUpdateExpr           myUpdate
+    registerCodeExprComponent "StartCodeFile"            myStartCodeFile            myStart
+    registerCodeExprComponent "UpdateCodeFile"           myUpdateCodeFile           myUpdate
     --registerCodeExprComponent "CollidingExpr"      myCollisionContinuesExpr      myCollisionContinues
     --registerCodeExprComponent "CollisionBeganExpr" myCollisionBeganExpr myCollisionBegan
 
 
 registerCodeExprComponent :: (MonadBaseControl IO m, MonadState ECS m, Typeable a)
                           => String
-                          -> Key (EntityMap CodeInFile)
+                          -> Key (EntityMap CodeFile)
                           -> Key (EntityMap a)
                           -> m ()
 registerCodeExprComponent name codeInFileKey realCodeKey =
@@ -111,7 +113,7 @@ registerCodeExprComponent name codeInFileKey realCodeKey =
         }
 
 registerWithCodeEditor :: (Typeable a, MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m)
-                       => CodeInFile
+                       => CodeFile
                        -> Key (EntityMap a)
                        -> m ()
 registerWithCodeEditor codeInFile realCodeKey = do
@@ -130,7 +132,7 @@ registerWithCodeEditor codeInFile realCodeKey = do
     addCodeEditorDependency codeInFile realCodeKey
 
 addCodeEditorDependency :: (MonadState ECS m, MonadReader EntityID m, Typeable a)
-                        => CodeInFile -> Key (EntityMap a) -> m ()
+                        => CodeFile -> Key (EntityMap a) -> m ()
 addCodeEditorDependency codeInFile realCodeKey = do
     entityID <- ask
     let updateCodeAction newValue = do
@@ -147,7 +149,7 @@ addCodeEditorDependency codeInFile realCodeKey = do
         cesCodeEditors . at codeInFile . traverse . cedDependents . at entityID ?= updateCodeAction
 
 createCodeEditor :: (MonadIO m, MonadState ECS m)
-                 => CodeInFile -> m CodeEditor
+                 => CodeFile -> m CodeEditor
 createCodeEditor (codeFile, codeExpr) = do
     ghcChan         <- getGHCChan
     font            <- getFont
@@ -170,14 +172,14 @@ createCodeEditor (codeFile, codeExpr) = do
             , _cedDependents    = mempty
             }
 
-unregisterWithCodeEditor :: (MonadReader EntityID m, MonadState ECS m) => CodeInFile -> m ()
+unregisterWithCodeEditor :: (MonadReader EntityID m, MonadState ECS m) => CodeFile -> m ()
 unregisterWithCodeEditor codeInFile = do
     entityID <- ask
     modifySystemState sysCodeEditor $ do
         unregisterEntityWithCodeEditor entityID codeInFile
 
 unregisterEntityWithCodeEditor :: (MonadState CodeEditorSystem m)
-                               => EntityID -> CodeInFile -> m ()
+                               => EntityID -> CodeFile -> m ()
 unregisterEntityWithCodeEditor entityID codeInFile =
     cesCodeEditors . ix codeInFile . cedDependents . at entityID .= Nothing
 
@@ -185,9 +187,9 @@ withCodeEditor :: MonadState ECS m => (FilePath, String) -> (CodeEditor -> m b) 
 withCodeEditor codeInFile =
     traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeInFile))
 
-recompileCodeInFile :: (MonadIO m, MonadState ECS m)
-                    => CodeInFile -> m ()
-recompileCodeInFile codeInFile@(codeFile, codeExpr) = withCodeEditor codeInFile $ \codeEditor -> do
+recompileCodeFile :: (MonadIO m, MonadState ECS m)
+                    => CodeFile -> m ()
+recompileCodeFile codeInFile@(codeFile, codeExpr) = withCodeEditor codeInFile $ \codeEditor -> do
     ghcChan <- viewSystem sysCodeEditor cesGHCChan
 
     codeFileInScene <- fileInCurrentScene codeFile
@@ -207,19 +209,19 @@ recompileCodeInFile codeInFile@(codeFile, codeExpr) = withCodeEditor codeInFile 
 
 
 -- | Allows Script system to pass runtime exceptions to the error pane,
--- assuming the given entityID has an onStartExpr.
+-- assuming the given entityID has an onStartCodeFile.
 setEntityErrorText :: (MonadIO m, MonadState ECS m) => EntityID -> String -> m ()
 setEntityErrorText entityID errorText = do
-    traverseM_ (getEntityComponent entityID myStartExpr) $ \codeInFile ->
-        setErrorTextForCodeInFile codeInFile errorText
+    traverseM_ (getEntityComponent entityID myStartCodeFile) $ \codeInFile ->
+        setErrorTextForCodeFile codeInFile errorText
 
 setErrorText :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => String -> m ()
 setErrorText errorText = do
     entityID <- ask
     setEntityErrorText entityID errorText
 
-setErrorTextForCodeInFile :: (MonadIO m, MonadState ECS m) => CodeInFile -> String -> m ()
-setErrorTextForCodeInFile codeInFile errorText = modifySystemState sysCodeEditor $
+setErrorTextForCodeFile :: (MonadIO m, MonadState ECS m) => CodeFile -> String -> m ()
+setErrorTextForCodeFile codeInFile errorText = modifySystemState sysCodeEditor $
     setTextRendererText (cesCodeEditors . ix codeInFile . cedErrorRenderer) errorText
 
 
@@ -249,17 +251,17 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
 
 moveCodeEditorFile :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => FilePath -> FilePath -> String -> m ()
 moveCodeEditorFile oldFileName newFileName codeExpr = do
-    let oldCodeInFile = (oldFileName, codeExpr)
-        newCodeInFile = (newFileName, codeExpr)
+    let oldCodeFile = (oldFileName, codeExpr)
+        newCodeFile = (newFileName, codeExpr)
     oldFilePath <- fileInCurrentScene oldFileName
     newFilePath <- fileInCurrentScene newFileName
     successful <- liftIO $ tryIOError $ renameFile oldFilePath newFilePath
     case successful of
         Left moveError -> do
-            setErrorTextForCodeInFile oldCodeInFile (show moveError)
+            setErrorTextForCodeFile oldCodeFile (show moveError)
             putStrLnIO $ "In moveCodeEditorFile: " ++ show moveError
         Right _ -> do
-            mOldCodeEditor <- viewSystem sysCodeEditor (cesCodeEditors . at oldCodeInFile)
+            mOldCodeEditor <- viewSystem sysCodeEditor (cesCodeEditors . at oldCodeFile)
             case mOldCodeEditor of
                 Just oldCodeEditor -> do
                     let oldCodeRenderer = oldCodeEditor ^. cedCodeRenderer
@@ -271,28 +273,28 @@ moveCodeEditorFile oldFileName newFileName codeExpr = do
                     let newCodeEditor = oldCodeEditor & cedRecompiler .~ newRecompiler
                                                       & cedCodeRenderer .~ newCodeRenderer
                     modifySystemState sysCodeEditor $ do
-                        cesCodeEditors . at oldCodeInFile .= Nothing
-                        cesCodeEditors . at newCodeInFile ?= newCodeEditor
+                        cesCodeEditors . at oldCodeFile .= Nothing
+                        cesCodeEditors . at newCodeFile ?= newCodeEditor
 
                     forM_ (Map.keys (oldCodeEditor ^. cedDependents)) $ \entityID -> do
-                        inEntity entityID (setStartExpr newCodeInFile)
+                        inEntity entityID (setStartCodeFile newCodeFile)
                         sceneWatcherSaveEntity entityID
                 Nothing            -> do
                     putStrLnIO $
-                        "moveCodeEditorFile couldn't find codeEditor for " ++ show oldCodeInFile
+                        "moveCodeEditorFile couldn't find codeEditor for " ++ show oldCodeFile
 
 
-setStartExpr :: (MonadIO m, MonadBaseControl IO m, MonadState ECS m, MonadReader EntityID m)
-             => CodeInFile -> m ()
-setStartExpr codeInFile = do
-    myStartExpr ==> codeInFile
+setStartCodeFile :: (MonadIO m, MonadBaseControl IO m, MonadState ECS m, MonadReader EntityID m)
+             => CodeFile -> m ()
+setStartCodeFile codeInFile = do
+    myStartCodeFile ==> codeInFile
     registerWithCodeEditor codeInFile myStart
 
 spawnChildInstance :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => FilePath -> m EntityID
 spawnChildInstance codeFileName = do
     let codePath = codeFileName <.> "hs"
     spawnChild $ do
-        myStartExpr   ==> (codePath, "start")
+        myStartCodeFile   ==> (codePath, "start")
         myCodeHidden  ==> True
 
 

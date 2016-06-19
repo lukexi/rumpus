@@ -438,7 +438,7 @@ tickKeyPadsSystem = do
     -- with the Child system (which the selected object might be using)
     -- This may become unnecessary with the proposed Deck system.
     traverseM_ getSelectedEntityID $ \selectedEntityID -> do
-        isEditable <- entityHasComponent selectedEntityID myStartExpr
+        isEditable <- entityHasComponent selectedEntityID myStartCodeFile
         when isEditable $ do
             keyPadContainerID <- getKeyPadContainerID
             selectedEntityPose <- getEntityPose selectedEntityID
@@ -565,5 +565,5 @@ selectEntity entityID = do
 
             setSelectedEntityID entityID
 
-            isEditable <- entityHasComponent entityID myStartExpr
+            isEditable <- entityHasComponent entityID myStartCodeFile
             when isEditable showKeyPads

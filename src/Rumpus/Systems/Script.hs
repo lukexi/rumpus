@@ -13,7 +13,7 @@ import qualified Data.HashMap.Strict as Map
 
 checkIfReadyToStart :: ECSMonad ()
 checkIfReadyToStart = do
-    startExprIDs <- Map.keys <$> getComponentMap myStartExpr
+    startExprIDs <- Map.keys <$> getComponentMap myStartCodeFile
     haveStart <- forM startExprIDs $ \entityID ->
         entityHasComponent entityID myStart
 
@@ -37,6 +37,15 @@ runScripts = runUserScriptsWithTimeout_ $ do
             -- Automatically remove children when start runs.
             -- This should probably be configurable but it's what
             -- I always find myself doing so I'm hardcoding it for now.
+            -- FIXME:
+            -- This has an undesirable side-effect:
+            -- Children added programmatically outside myStart
+            -- will get removed too. So we really only want to do this
+            -- when new code is received from the CodeEditor.
+            -- (e.g., when doing this:
+            -- fooID <- spawnEntity $ myStart ==> animateSizeInFrom0 0.3
+            -- inEntity barID $ setParent fooID
+            -- bar will be immediately deleted.
             removeChildren
             removeComponent myKnobDefs
 

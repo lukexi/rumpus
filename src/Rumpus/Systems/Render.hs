@@ -233,7 +233,7 @@ renderCodeEditors projViewM44  = do
     -- We also probably don't need gl discard in the shader if text is rendered with a background.
     glEnable GL_STENCIL_TEST
     planeShape <- viewSystem sysRender rdsTextPlaneShape
-    entitiesWithStart <- Map.toList <$> getComponentMap myStartExpr
+    entitiesWithStart <- Map.toList <$> getComponentMap myStartCodeFile
     selectedEntityID <- getSelectedEntityID
     forM_ entitiesWithStart $ \(entityID, codeExprKey) -> do
         wantsCodeHidden <- getEntityCodeHidden entityID

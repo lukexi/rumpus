@@ -28,7 +28,7 @@ start = do
             myColor     ==> tileColor
         spawnChild $ do
             myBody          ==> Animated
-            myStartExpr     ==> ("Door.hs", "start")
+            myStartCodeFile     ==> ("Door.hs", "start")
             myPose          ==> positionRotation
                 (V3 x 1 z)
                 (axisAngle (V3 0 1 0) r)

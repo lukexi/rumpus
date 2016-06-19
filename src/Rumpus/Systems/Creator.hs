@@ -234,8 +234,8 @@ makeEntityItem whichHand spherePosition maybeCodePath = spawnEntity $ do
                     targetFolder <- sceneFolderForScene currentSceneName
                     liftIO $ copyFile (sourceFolder </> codePath) (targetFolder </> codePath)
 
-                setStartExpr (codePath, "start")
-            Nothing       -> addNewStartExpr
+                setStartCodeFile (codePath, "start")
+            Nothing       -> addNewStartCodeFile
 
 removeFromOpenLibrary :: MonadState ECS m => WhichHand -> EntityID -> m ()
 removeFromOpenLibrary whichHand entityID =
@@ -278,24 +278,24 @@ defaultStartCodeWithModuleName moduleName = unlines
     , "    return ()"
     ]
 
-addNewStartExpr :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m)
+addNewStartCodeFile :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m)
                 => m ()
-addNewStartExpr = do
-    codeInFile <- createNewStartExpr
+addNewStartCodeFile = do
+    codeInFile <- createNewStartCodeFile
 
     -- Rumpus folder is auto-appended in CodeEditor, so we just need the filename with no path.
-    setStartExpr codeInFile
+    setStartCodeFile codeInFile
 
-createNewStartExpr :: (MonadIO m, MonadState ECS m) => m CodeInFile
-createNewStartExpr = do
+createNewStartCodeFile :: (MonadIO m, MonadState ECS m) => m CodeFile
+createNewStartCodeFile = do
     sceneFolder <- getSceneFolder
     files <- getDirectoryContentsWithExtension "hs" sceneFolder
 
     let newObjectName = findNextNumberedName "MyObject" (map takeBaseName files)
-    createStartExpr newObjectName
+    createStartCodeFile newObjectName
 
-createStartExpr :: (MonadIO m, MonadState ECS m) => String -> m CodeInFile
-createStartExpr name = do
+createStartCodeFile :: (MonadIO m, MonadState ECS m) => String -> m CodeFile
+createStartCodeFile name = do
     sceneFolder <- getSceneFolder
     let entityFileName    = name <.> "hs"
         entityFilePath    = sceneFolder </> entityFileName
@@ -422,7 +422,7 @@ addDestructionOrb whichHand = do
 {-
 forkCode :: (MonadIO m, MonadState ECS m) => EntityID -> EntityID -> m ()
 forkCode fromEntityID toEntityID = do
-    let codeFileComponentKey = myStartExpr
+    let codeFileComponentKey = myStartCodeFile
     mCodeExpr <- getEntityComponent fromEntityID codeFileComponentKey
 
     forM_ mCodeExpr $ \(fullPath, expr) -> do
@@ -435,10 +435,10 @@ forkCode fromEntityID toEntityID = do
         let newFullPath = path </> newObjectName <.> ext
         liftIO $ copyFile fullPath newFullPath
 
-        let newCodeInFile = (newFullPath, expr)
+        let newCodeFile = (newFullPath, expr)
         inEntity toEntityID $ do
             withComponent_ codeFileComponentKey unregisterWithCodeEditor
-            codeFileComponentKey ==> newCodeInFile
-            registerWithCodeEditor newCodeInFile codeFileComponentKey
+            codeFileComponentKey ==> newCodeFile
+            registerWithCodeEditor newCodeFile codeFileComponentKey
 -}
 --

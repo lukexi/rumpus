@@ -28,7 +28,7 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
 
     mSelectedEntityID <- viewSystem sysSelection selSelectedEntityID
     forM mSelectedEntityID $ \selectedEntityID ->
-        withEntityComponent selectedEntityID myStartExpr $ \codeInFile -> do
+        withEntityComponent selectedEntityID myStartCodeFile $ \codeInFile -> do
             didSave <- modifySystemState sysCodeEditor $
                 fmap or . forM events $ \case
                     GLFWEvent e -> do
@@ -45,9 +45,9 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
                 -- Disabling til I have energy to debug this
                 wasModuleNameChange <- checkForModuleNameChange codeInFile
                 unless wasModuleNameChange $
-                    recompileCodeInFile codeInFile
+                    recompileCodeFile codeInFile
 
-pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => CodeInFile -> m ()
+pauseFileWatchers :: (MonadIO m, MonadState CodeEditorSystem m) => CodeFile -> m ()
 pauseFileWatchers codeInFile = useTraverseM_ (cesCodeEditors . at codeInFile) $ \codeEditor -> do
     setIgnoreTimeNow (codeEditor ^. cedRecompiler . to recFileEventListener)
     forM_ (codeEditor ^. cedCodeRenderer . txrFileEventListener) setIgnoreTimeNow
@@ -58,7 +58,7 @@ raycastCursor handEntityID = fmap (fromMaybe False) $ runMaybeT $ do
     -- First, see if we can place a cursor into a text buffer.
     -- If not, then move onto the selection logic.
     selectedEntityID <- MaybeT $ viewSystem sysSelection selSelectedEntityID
-    codeInFile       <- MaybeT $ getEntityComponent selectedEntityID myStartExpr
+    codeInFile       <- MaybeT $ getEntityComponent selectedEntityID myStartCodeFile
     editor           <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at codeInFile)
     handPose         <- getEntityPose handEntityID
     pose             <- getEntityPose selectedEntityID
@@ -111,7 +111,7 @@ getChangedModuleName textBuffer = do
 -- to avoid introducing any extra interface for naming things.
 -- Tricky as we must handle all the file watchers associated with the file.
 checkForModuleNameChange :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m)
-                         => CodeInFile -> m Bool
+                         => CodeFile -> m Bool
 checkForModuleNameChange codeInFile = do
     mBuffer <- viewSystemP sysCodeEditor
         (cesCodeEditors . ix codeInFile . cedCodeRenderer . txrTextBuffer)
