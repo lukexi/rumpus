@@ -9,7 +9,7 @@ start :: Start
 start = do
 
 
-    (mSceneName, sceneHue) <- getState (Just "Home", 0)
+    (mSceneName, sceneHue) <- getState (Just "New Home", 0)
     let sceneName = fromMaybe "New Scene" mSceneName
 
     myCodeHidden ==> True
