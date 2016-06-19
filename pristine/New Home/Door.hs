@@ -8,25 +8,30 @@ dD = 0.1
 
 doorColor = colorHSL 0.1 0.1 0.09
 
+doorColorAnimDur = 0.3
+
 startTransitionAnimation = do
    let cubeW = 0.1
    let xs = floor $ fromIntegral dW / cubeW
        ys = floor $ fromIntegral dH / cubeW
 
    let cubePositions = [V2 x y | x <- [0..xs - 1], y <- [0..ys - 1]]
-   forM_ cubePositions $ \(V2 xI yI) -> do
-       hue <- randomRange (0,1)
+       numCubes = fromIntegral $ length cubePositions
+   forM_ (zip [0..] cubePositions) $ \(i, V2 xI yI) -> do
+       n <- randomRange (0,1)
        let x = fromIntegral xI * cubeW - (dW / 2) + cubeW / 2
            y = fromIntegral yI * cubeW - (dH / 2) + cubeW / 2
        spawnChild $ do
-           myPose ==> position (V3 x y 0)
-           mySize ==> realToFrac cubeW
+           myPose  ==> position (V3 x y 0)
+           mySize  ==> realToFrac cubeW
            myShape ==> Cube
            myColor ==> doorColor
            myStart ==> do
-               animateColor doorColor (colorHSL hue 0.3 0.5) 0.3
-               setDelayedAction (0.3 + realToFrac hue) $ do
-                   animatePositionTo (V3 x y -500) 1
+                setDelayedAction (0.5 * fromIntegral i / numCubes) $ do
+                    -- Match hue with escape delay
+                    animateColor doorColor (colorHSL n 0.3 0.5) doorColorAnimDur
+                    setDelayedAction (doorColorAnimDur + realToFrac n) $ do
+                        animatePositionTo (V3 x y -500) 1
 start :: Start
 start = do
 
@@ -44,15 +49,19 @@ start = do
     doorID <- ask
     -- Plaque
     let plaqueH = dH * 0.3
-    spawnChild $ do
+    plaqueID <- spawnChild $ do
+        mySize ==> 1
+        myPose ==> position (V3 0 plaqueH 0)
+    spawnChildOf plaqueID $ do
         myShape ==> Cube
         mySize  ==> V3 0.4 0.1 (dD + 0.01)
         myColor ==> colorHSL sceneHue 0.35 0.12
-        myPose  ==> position $ V3 0 plaqueH 0
-    spawnChild $ do
+        myTransformType ==> RelativeFull
+    spawnChildOf plaqueID $ do
         myText ==> sceneName
         mySize ==> 0.05
-        myPose ==> position $ V3 0 plaqueH ((dD + 0.02) / 2)
+        myPose ==> position $ V3 0 0 ((dD + 0.02) / 2)
+        myTransformType ==> RelativeFull
 
     let knobColor = colorHSL sceneHue 0.35 0.5
     doorKnob <- spawnChild $ do
@@ -66,6 +75,7 @@ start = do
             inEntity doorID $ do
                 removeComponent myShape
                 startTransitionAnimation
+                inEntity plaqueID $ animateSizeOutTo0 doorColorAnimDur
                 setDelayedAction 1 $
                     transitionToSceneOverTime sceneName 1
 
