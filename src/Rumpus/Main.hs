@@ -48,8 +48,8 @@ initializeECS ghc pd vrPal = do
                 then loadScene name
                 else do
                     let fileName = name <.> "hs"
-                    rumpusRoot <- getRumpusRootFolder
-                    fileExists <- liftIO $ doesFileExist (rumpusRoot </> fileName)
+                    sceneFolder <- getSceneFolder
+                    fileExists <- liftIO $ doesFileExist (sceneFolder </> fileName)
                     codeInFile <- if
                         | fileExists    -> return (fileName, "start")
                         | name == "new" -> createNewStartExpr -- create a new object for quick dev work
