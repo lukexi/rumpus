@@ -76,3 +76,9 @@ animateEntityColorTo :: (MonadIO m, MonadState ECS m)
                      => EntityID -> V4 GLfloat -> DiffTime -> m ()
 animateEntityColorTo entityID toColor time = inEntity entityID $
     animateColorTo toColor time
+
+
+animatePositionTo toPosition time = do
+    currentPosition <- getPosition
+    animation <- makeAnimation time currentPosition toPosition
+    myPositionAnimation ==> animation
