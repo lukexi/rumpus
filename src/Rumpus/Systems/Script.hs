@@ -5,7 +5,7 @@ import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Shared
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Knobs
-
+import Graphics.GL.TextBuffer
 import qualified Data.HashMap.Strict as Map
 
 
@@ -14,8 +14,17 @@ import qualified Data.HashMap.Strict as Map
 checkIfReadyToStart :: ECSMonad ()
 checkIfReadyToStart = do
     startExprIDs <- Map.keys <$> getComponentMap myStartCodeFile
-    haveStart <- forM startExprIDs $ \entityID ->
-        entityHasComponent entityID myStart
+    haveStart <- forM startExprIDs $ \entityID -> do
+        hasStart <- entityHasComponent entityID myStart
+        if hasStart
+            then return True
+            -- If the start compilation has an error, count that as "started"
+            -- anyway so we don't end up with dead scenes due to one error
+            else do
+                mCodeEditor <- inEntity entityID getStartCodeEditor
+                return $ case mCodeEditor of
+                    Just codeEditor -> codeEditor ^. cedHasResult
+                    Nothing         -> True
 
     let allReadyToStart = and haveStart
     when allReadyToStart $

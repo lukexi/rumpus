@@ -10,6 +10,8 @@ import Halive.FileListener
 import qualified Data.HashMap.Strict as Map
 import Data.ECS.Vault
 
+import Control.Monad.Trans.Maybe
+
 import Rumpus.Systems.Shared
 import Rumpus.Systems.SceneWatcher
 import Rumpus.Systems.Text
@@ -23,6 +25,7 @@ data CodeEditor = CodeEditor
     , _cedCompiledValue :: !(Maybe CompiledValue)
     , _cedCodeRenderer  :: !TextRenderer
     , _cedErrorRenderer :: !TextRenderer
+    , _cedHasResult     :: !Bool
     , _cedDependents    :: !(Map EntityID (CompiledValue -> ECSMonad ()))
     }
 makeLenses ''CodeEditor
@@ -175,6 +178,7 @@ createCodeEditor (_, codeFile, codeExpr) = do
             , _cedRecompiler    = recompiler
             , _cedCompiledValue = Nothing
             , _cedDependents    = mempty
+            , _cedHasResult     = False
             }
 
 unregisterWithCodeEditor :: (MonadReader EntityID m, MonadState ECS m) => CodeFile -> m ()
@@ -236,6 +240,12 @@ setErrorTextForCodeFile codeFile errorText = do
     modifySystemState sysCodeEditor $
         setTextRendererText (cesCodeEditors . ix sceneCodeFile . cedErrorRenderer) errorText
 
+getStartCodeEditor :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe CodeEditor)
+getStartCodeEditor = runMaybeT $ do
+    codeFile <- MaybeT $ getComponent myStartCodeFile
+    sceneCodeFile <- toSceneCodeFile codeFile
+    codeEditor <- MaybeT $ viewSystem sysCodeEditor (cesCodeEditors . at sceneCodeFile)
+    return codeEditor
 
 -- | Update the world state with the result of the editor upon successful compilations
 -- or update the error renderers for each code editor on failures
@@ -247,10 +257,12 @@ tickCodeEditorResultsSystem = modifySystemState sysCodeEditor $
         tryReadTChanIO (editor ^. cedRecompiler . to recResultTChan) >>= \case
             Nothing -> return ()
             Just (Left errors) -> do
+                cesCodeEditors . ix sceneCodeFile . cedHasResult .= True
                 let allErrors = unlines errors
                 putStrLnIO allErrors
                 setTextRendererText (cesCodeEditors . ix sceneCodeFile . cedErrorRenderer) allErrors
             Just (Right compiledValue) -> do
+                cesCodeEditors . ix sceneCodeFile . cedHasResult .= True
                 -- Clear the error renderer
                 setTextRendererText (cesCodeEditors . ix sceneCodeFile . cedErrorRenderer) ""
 
