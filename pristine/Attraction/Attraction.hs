@@ -16,10 +16,10 @@ start = do
 
     let target = V3 0 1 0
     myUpdate ==> do
-        x <- getKnobValue xKnob
-        y <- getKnobValue yKnob
-        z <- getKnobValue zKnob
-        strength <- realToFrac <$> getKnobValue strengthKnob
+        x <- readKnob xKnob
+        y <- readKnob yKnob
+        z <- readKnob zKnob
+        strength <- realToFrac <$> readKnob strengthKnob
         let target = V3 x y z
         forM_ bodies $ \body -> do
             position <- getEntityPosition body

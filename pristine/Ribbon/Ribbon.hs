@@ -12,10 +12,10 @@ start = do
         myTransformType ==> AbsolutePose
         myUpdate        ==> do
             now <- getNow
-            totSpeed  <- getKnobValue totSpeedKnob
-            rotSpeed <- getKnobValue rotSpeedKnob
-            yScale <- getKnobValue yScaleKnob
-            zScale <- getKnobValue zScaleKnob
+            totSpeed  <- readKnob totSpeedKnob
+            rotSpeed <- readKnob rotSpeedKnob
+            yScale <- readKnob yScaleKnob
+            zScale <- readKnob zScaleKnob
             let n = now * totSpeed + (i * 0.05)
                 y = yScale * sin n
                 x = cos n * 5

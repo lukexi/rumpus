@@ -29,11 +29,11 @@ start = do
             mySize          ==> V3 0 0 0
             myColor         ==> colorHSL hue 0.8 0.8
             myStart ==> do
-                initialHeight <- getKnobValue heightKnob
+                initialHeight <- readKnob heightKnob
                 -- Animate each building in
                 setDelayedAction (fromIntegral i*0.05) $ do
                     animateSizeFromTo 0 (V3 dim (abs x * initialHeight) dim) 0.5
                     -- Poll for height changes once animation has begun
                     myUpdate ==> do
-                        newHeight <- getKnobValue heightKnob
+                        newHeight <- readKnob heightKnob
                         setSize (V3 dim (abs x * newHeight) dim)

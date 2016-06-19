@@ -73,8 +73,8 @@ addKnobDef knobName knobDef = prependComponent myKnobDefs (Map.singleton knobNam
 setKnobValue01 :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> Float -> m ()
 setKnobValue01 knobName value = prependComponent myKnobValues (Map.singleton knobName value)
 
-getKnobValue01ByName :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
-getKnobValue01ByName knobName = do
+readKnob01ByName :: (MonadState ECS m, MonadReader EntityID m) => KnobName -> m Float
+readKnob01ByName knobName = do
     knobValues <- getComponentDefault mempty myKnobValues
     case Map.lookup knobName knobValues of
         Just value -> return value
@@ -85,10 +85,10 @@ getKnobValue01ByName knobName = do
                 Nothing      -> return 0
 
 getEntityKnobValue01ByName :: (MonadState ECS m) => EntityID -> KnobName -> m Float
-getEntityKnobValue01ByName entityID knobName = inEntity entityID (getKnobValue01ByName knobName)
+getEntityKnobValue01ByName entityID knobName = inEntity entityID (readKnob01ByName knobName)
 
 getEntityKnobValueByName :: (MonadState ECS m) => EntityID -> KnobName -> m Float
-getEntityKnobValueByName entityID knobName = inEntity entityID (getKnobValueByName knobName)
+getEntityKnobValueByName entityID knobName = inEntity entityID (readKnobByName knobName)
 
 getKnobLayoutScale :: (MonadState ECS m, MonadReader EntityID m) => m Float
 getKnobLayoutScale = getComponentDefault 0.5 myKnobLayoutScale
@@ -96,8 +96,8 @@ getKnobLayoutScale = getComponentDefault 0.5 myKnobLayoutScale
 getEntityKnobLayoutScale :: (MonadState ECS m) => EntityID -> m Float
 getEntityKnobLayoutScale entityID = inEntity entityID getKnobLayoutScale
 
-getKnobValue :: (MonadState ECS m) => EntityID -> m Float
-getKnobValue knobID = getEntityComponentDefault 0 knobID myKnobValueCached
+readKnob :: (MonadState ECS m) => EntityID -> m Float
+readKnob knobID = getEntityComponentDefault 0 knobID myKnobValueCached
 
 -- For cases where we only want to do something semi-expensive on knob changes
 getNewKnobValue :: (MonadState ECS m) => EntityID -> m (Maybe Float)
@@ -114,14 +114,14 @@ whenNewKnobValue knobID action = do
     mNewValue <- getNewKnobValue knobID
     forM_ mNewValue action
 
--- Faster to use getKnobValue on the knob entity itself
-getKnobValueByName :: (MonadState ECS m, MonadReader EntityID m)
+-- Faster to use readKnob on the knob entity itself
+readKnobByName :: (MonadState ECS m, MonadReader EntityID m)
                    => KnobName -> m Float
-getKnobValueByName knobName = do
+readKnobByName knobName = do
     knobDefs <- getComponentDefault mempty myKnobDefs
     case Map.lookup knobName knobDefs of
         Just knobDef -> do
-            knbVal01ToValue knobDef <$> getKnobValue01ByName knobName
+            knbVal01ToValue knobDef <$> readKnob01ByName knobName
         Nothing -> return 0
 
 addKnob :: KnobName -> KnobScale -> Float -> EntityMonad EntityID
@@ -199,7 +199,7 @@ addActiveKnobAt knobLayoutScale knobPos name knobDef@KnobDef{..} = do
     let initialRotation = value01ToKnobRotation knbDefault01
 
 
-    initialValue01 <- getKnobValue01ByName name
+    initialValue01 <- readKnob01ByName name
     let initialValue = knbVal01ToValue initialValue01
 
     knbAction initialValue

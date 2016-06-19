@@ -6,7 +6,7 @@ spawnPlanetOf parentID rateKnob radius hue orbitRadius orbitRate = spawnChildOf 
     mySize             ==> radius
     myColor            ==> colorHSL hue 0.8 0.5
     myUpdate ==> do
-        rate <- getKnobValue rateKnob
+        rate <- readKnob rateKnob
         now <- getNow
         let n = rate * orbitRate * now * 8
             x = orbitRadius * cos n

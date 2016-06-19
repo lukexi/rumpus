@@ -6,7 +6,6 @@ start = do
     let lines =
             [ "Welcome to Rumpus"
             , "A Live Coding Playground for the HTC Vive"
-            , "f"
             ]
 
     spawnChildren_ (zip [0..] (reverse lines)) $ \(i, line) -> do

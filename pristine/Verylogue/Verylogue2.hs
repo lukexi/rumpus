@@ -31,7 +31,7 @@ start = do
         let degree01 = (fromIntegral degree / 12)
             hue = degree01
 
-        brightness <- (*0.7) <$> getKnobValue01ByName "Cutoff"
+        brightness <- (*0.7) <$> readKnob01ByName "Cutoff"
         -- Spawn cubes as absolute so they hang in the air
         currentPose <- getPose
         spawnChild_ $ do

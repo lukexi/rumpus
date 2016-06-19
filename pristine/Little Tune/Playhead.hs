@@ -13,8 +13,8 @@ start = do
         myBody       ==> Detector
         mySize       ==> 0
         myUpdate     ==> do
-            duration <- succ <$> getKnobValue durationKnob
-            height <- getKnobValue heightKnob
+            duration <- succ <$> readKnob durationKnob
+            height <- readKnob heightKnob
             let size = V3 0.01 height 1
             now <- getNow
             let time = mod' now duration
@@ -39,7 +39,7 @@ start = do
     spawnChild $ do
         myShape ==> Cube
         myUpdate ==> do
-            duration <- succ <$> getKnobValue durationKnob
+            duration <- succ <$> readKnob durationKnob
             setPose (position (V3 (duration / 2) 0 0))
             setSize (V3 duration 0.01 0.01)
 

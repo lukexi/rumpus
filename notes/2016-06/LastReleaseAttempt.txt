@@ -33,7 +33,7 @@
 [ ] A real-time-tracking day-night cycle for the city world
 
 
-[ ] Knob API!
+[x] Knob API!
     scaleKnob <- makeKnob 0 100 "Scale" 50
     myUpdate ==> do
         newScale <- readKnob scaleKnob

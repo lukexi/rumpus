@@ -20,3 +20,7 @@ http://www.scs.stanford.edu/14sp-cs240h/slides/ghc-rts.pdf
 
 Implementing intellisense via GHC API
 https://mistuke.wordpress.com/category/vsx/
+
+Dynamic Loading of Haskell Modules
+Investigates loading already-compiled haskell code at runtime
+http://purelyfunctional.org/posts/2016-05-20-dynamic-loading-haskell-module.html

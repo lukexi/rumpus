@@ -71,6 +71,13 @@ MAYBE
     Could do something similar for file management;
     deleteThisCodeFile
 
+[ ] Add connections from objects like Platforms to their respective children.
+    Do this in a generalized way?
+    connectToChildren
+    myConnections ==> UVector EntityID
+    Can add and remove this upon selecting the object.
+    Could limit it to first N children if it is a performance problem
+
 
 LATER
 [ ] Brick object with xyz color knobs? Can't really handle the "too big" case
