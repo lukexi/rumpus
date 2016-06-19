@@ -132,7 +132,8 @@ setEntityBody entityID bodyType = inEntity entityID (setBody bodyType)
 
 setBody :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => BodyType -> m ()
 setBody bodyType = do
-    hadBody <- hasComponent myBody
+    -- Record if we had a body before making any change
+    --hadBody <- hasComponent myBody
     myBody ==> bodyType
 
     --if hadBody

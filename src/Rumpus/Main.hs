@@ -50,7 +50,7 @@ initializeECS ghc pd vrPal = do
                     let fileName = name <.> "hs"
                     sceneFolder <- getSceneFolder
                     fileExists <- liftIO $ doesFileExist (sceneFolder </> fileName)
-                    codeInFile <- if
+                    codeFile <- if
                         | fileExists    -> return (fileName, "start")
                         | name == "new" -> createNewStartCodeFile -- create a new object for quick dev work
                         | otherwise     -> createStartCodeFile name
@@ -59,7 +59,7 @@ initializeECS ghc pd vrPal = do
                         mySize       ==> newEntitySize
                         myBody       ==> Animated
                         myColor      ==> V4 0.1 0.1 0.1 1
-                        myStartCodeFile  ==> codeInFile
+                        myStartCodeFile  ==> codeFile
 
     --when isBeingProfiled loadTestScene
 

@@ -33,6 +33,7 @@ DONE
 REMAINING
 
 [ ] Scene Folder code still broken for text editors
+[ ] Door opening animation
 
 [u] Add 10foot hand controls explanation to Home
     "Open Object Library"

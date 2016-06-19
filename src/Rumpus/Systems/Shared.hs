@@ -45,12 +45,10 @@ type SceneCodeFile = (FilePath, FilePath, String)
 -- FIXME: these should move to their companion definitions (i.e. myStart, myUpdate etc.)
 -- and those files should depend on CodeEditor and call registerCodeExprComponent.
 -- Must thus be initialized after CodeEditor.
-defineComponentKeyWithType "StartCodeFile"          [t|CodeFile|]
-defineComponentKeyWithType "UpdateCodeFile"         [t|CodeFile|]
-defineComponentKeyWithType "CodeHidden"         [t|Bool|]
---defineComponentKeyWithType "CollidingExpr"      [t|CodeFile|]
---defineComponentKeyWithType "CollisionBeganExpr" [t|CodeFile|]
-
+defineComponentKeyWithType "StartCodeFile"  [t|CodeFile|]
+defineComponentKeyWithType "StartSceneCodeFile"  [t|SceneCodeFile|]
+defineComponentKeyWithType "UpdateCodeFile" [t|CodeFile|]
+defineComponentKeyWithType "CodeHidden"     [t|Bool|]
 
 initSharedSystem :: (MonadIO m, MonadState ECS m) => m ()
 initSharedSystem = do
@@ -116,7 +114,14 @@ removeChildren =
 spawnChild_ :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m ()
 spawnChild_ = void . spawnChild
 
+spawnChildren :: (Traversable t, MonadIO m, MonadState ECS m,
+                  MonadReader EntityID m, MonadBaseControl IO m)
+              => t a -> (a -> ReaderT EntityID m ()) -> m (t EntityID)
 spawnChildren xs action = forM xs (spawnChild . action)
+
+spawnChildren_ :: (Traversable t, MonadIO m, MonadState ECS m,
+                   MonadReader EntityID m, MonadBaseControl IO m)
+               => t a -> (a -> ReaderT EntityID m ()) -> m ()
 spawnChildren_ xs = void . spawnChildren xs
 
 spawnChild :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m) => ReaderT EntityID m () -> m EntityID

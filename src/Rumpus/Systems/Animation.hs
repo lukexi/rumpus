@@ -51,7 +51,6 @@ animateSizeTo newSize time = do
 animateSizeFromTo :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> V3 GLfloat -> DiffTime -> m ()
 animateSizeFromTo fromSize toSize time = do
     let time' = max 0.001 time
-    currentSize <- getSize
     animation <- makeAnimation time' fromSize toSize
     mySizeAnimation ==> animation
 

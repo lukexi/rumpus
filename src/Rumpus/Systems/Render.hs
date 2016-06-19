@@ -235,12 +235,13 @@ renderCodeEditors projViewM44  = do
     planeShape <- viewSystem sysRender rdsTextPlaneShape
     entitiesWithStart <- Map.toList <$> getComponentMap myStartCodeFile
     selectedEntityID <- getSelectedEntityID
-    forM_ entitiesWithStart $ \(entityID, codeExprKey) -> do
+    forM_ entitiesWithStart $ \(entityID, codeFile) -> do
         wantsCodeHidden <- getEntityCodeHidden entityID
         let shouldDrawCode = not wantsCodeHidden || isSelectedEntityID
             isSelectedEntityID = Just entityID == selectedEntityID
+        sceneCodeFile <- toSceneCodeFile codeFile
         when shouldDrawCode $ do
-            traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at codeExprKey)) $ \editor -> do
+            traverseM_ (viewSystem sysCodeEditor (cesCodeEditors . at sceneCodeFile)) $ \editor -> do
                 parentPose       <- getEntityPose entityID
                 V3 sizeX _ sizeZ <- getEntitySize entityID
 

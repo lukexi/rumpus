@@ -281,10 +281,10 @@ defaultStartCodeWithModuleName moduleName = unlines
 addNewStartCodeFile :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m, MonadReader EntityID m)
                 => m ()
 addNewStartCodeFile = do
-    codeInFile <- createNewStartCodeFile
+    codeFile <- createNewStartCodeFile
 
     -- Rumpus folder is auto-appended in CodeEditor, so we just need the filename with no path.
-    setStartCodeFile codeInFile
+    setStartCodeFile codeFile
 
 createNewStartCodeFile :: (MonadIO m, MonadState ECS m) => m CodeFile
 createNewStartCodeFile = do
