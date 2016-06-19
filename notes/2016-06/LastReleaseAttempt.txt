@@ -73,7 +73,7 @@
     [x] Headlight doesn't follow player, since head44 is untransformed. Shouldn't head44 just be transformed in vr-pal?
 
     [x] Add a ray and visual feedback for what you'll teleport to. (and haptics OBVZ)
-    [ ] Could possibly do a slide animation (or just do fadein-out via valve api)
+    [x] Could possibly do a slide animation (or just do fadein-out via valve api)
     [ ] Allow teleporting to rotated objects
         Allow teleporting to scaled objects
             (sweeney feature request, for implementing worlds-within-worlds)
@@ -98,14 +98,14 @@ LAUNCH
         Current language is the 'assembly language'
 
 
-    [ ] Create intro object
+    [x] Create intro object
             Have it be the only thing that you start out seeing (on a pedestal, with a rotating color-shifting cube), and have the other objects on other platforms?
             TRY EDITING ME
         [x] Rename cmp to my
         [x] Rename myScriptData to just myData, or myState
 
 OBJECTS
-    [ ] Add microphone-reactive object
+    [x] Add microphone-reactive object
     [x] Add sequencer platform
         - Note: only have limited voices so ditch the per-note positioning
           and just have them all report to a verylogue instance, which will
@@ -119,7 +119,7 @@ OBJECTS
     [ ] L-system trees
     [ ] Focus on basic code capabilities: defining and spawning instances of things.
         Using same set of rules to generate multiple possibilities.
-    [ ] Some sort of swarm of cubes, taking advantage of instancing
+    [x] Some sort of swarm of cubes, taking advantage of instancing
         (the most effective version of this would be using a vert-shader for rotation etc.
         as we are generally CPU bound and barely using the GPU)
 

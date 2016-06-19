@@ -8,7 +8,7 @@ KEYBOARD
         - Pass a width/height into the key construction function,
           and accumulate x and y offsets
             (add tab, select all, copy, paste buttons)
-    [ ] Knob System/API
+    [x] Knob System/API
 
 INTERACTION
     [x] Implement folder versioning
