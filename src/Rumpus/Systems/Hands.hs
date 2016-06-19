@@ -25,25 +25,26 @@ handSize = V3 0.075 0.075 0.075
 handColor :: V4 GLfloat
 handColor = V4 0.6 0.6 0.9 1
 
+makeHand whichHand = do
+    handID <- spawnEntity $ do
+        myColor           ==> handColor
+        mySize            ==> handSize
+        myShape           ==> Cube
+        myBody            ==> Detector
+        myBodyFlags       ==> [Ungrabbable]
+        myMass            ==> 0
+        myCollisionBegan  ==> \_ impulse -> do
+            hapticPulse whichHand (floor $ impulse * 10000)
+    -- Create a "wrist" below the hand
+    spawnChildOf_ handID $ do
+        myColor           ==> handColor
+        mySize            ==> V3 0.07 0.07 0.15
+        myShape           ==> Cube
+        myPose            ==> position (V3 0 0 0.1)
+    return handID
+
 startHandsSystem :: (MonadBaseControl IO m, MonadState ECS m, MonadIO m) => m ()
 startHandsSystem = do
-    let makeHand whichHand = do
-            handID <- spawnEntity $ do
-                myColor           ==> handColor
-                mySize            ==> handSize
-                myShape           ==> Cube
-                myBody            ==> Detector
-                myBodyFlags       ==> [Ungrabbable]
-                myMass            ==> 0
-                myCollisionBegan  ==> \_ impulse -> do
-                    hapticPulse whichHand (floor $ impulse * 10000)
-            -- Create a "wrist" below the hand
-            spawnChildOf_ handID $ do
-                myColor           ==> handColor
-                mySize            ==> V3 0.07 0.07 0.15
-                myShape           ==> Cube
-                myPose            ==> position (V3 0 0 0.1)
-            return handID
 
     leftHandID  <- makeHand LeftHand
     rightHandID <- makeHand RightHand
@@ -55,8 +56,6 @@ startHandsSystem = do
             }
 
     return ()
-
-
 
 getLeftHandID :: (MonadState ECS m) => m EntityID
 getLeftHandID  = viewSystem sysHands hndLeftHand

@@ -285,7 +285,7 @@ addActiveKnobAt knobLayoutScale knobPos name knobDef@KnobDef{..} = do
         myKnobValueCached    ==> initialValue
         myKnobValueCachedNew ==> True
 
-    inEntity knobLight  (setParent knob)
+    inEntity knobLight (setParent knob)
 
     attachEntity knob
         (positionRotation knobPos
