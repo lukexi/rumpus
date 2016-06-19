@@ -29,11 +29,11 @@ DONE
         take to next ***
         insert comment blocks
         write to pristine/manual/Name.hs
+[x] Scene Folder code still broken for text editors
+[x] Doors with title plaques and tiled floor for loader room
+[x] Door opening animation
 
 REMAINING
-
-[ ] Scene Folder code still broken for text editors
-[ ] Door opening animation
 
 [u] Add 10foot hand controls explanation to Home
     "Open Object Library"
@@ -58,13 +58,19 @@ REMAINING
 [ ] Weird head thing when no hand pose
 
 MAYBE
-[ ] Titled doors with tiled floor for loader room
 
-[ ] Funny ideas for hacking in interface for changing scene name:
+[ ] Obvious UI for changing scene now that we have door plaques;
+    click the plaque.
+
+[ ] Funny idea for hacking in interface for unfinished features:
     setSceneName "Foo"
     just tell users they can call this from anywhere.
+    Obviously not great since it will happen every time the object is created;
+    maybe instruct users to make their own buttons too if they're going to
+    do this : )
     Could do something similar for file management;
     deleteThisCodeFile
+
 
 LATER
 [ ] Brick object with xyz color knobs? Can't really handle the "too big" case
