@@ -6,37 +6,39 @@ dH = 2
 dW = 1
 dD = 0.1
 
-doorColor = colorHSL 0.1 0.1 0.09
+normalDoorColor = colorHSL 0.1 0.1 0.09
 
 doorColorAnimDur = 0.3
 
-startTransitionAnimation = do
-   let cubeW = 0.1
-   let xs = floor $ fromIntegral dW / cubeW
-       ys = floor $ fromIntegral dH / cubeW
+startDoorTransitionAnimation = do
+    removeComponent myShape
 
-   let cubePositions = [V2 x y | x <- [0..xs - 1], y <- [0..ys - 1]]
-       numCubes = fromIntegral $ length cubePositions
-   forM_ (zip [0..] cubePositions) $ \(i, V2 xI yI) -> do
-       n <- randomRange (0,1)
-       let x = fromIntegral xI * cubeW - (dW / 2) + cubeW / 2
-           y = fromIntegral yI * cubeW - (dH / 2) + cubeW / 2
-       spawnChild $ do
-           myPose  ==> position (V3 x y 0)
-           mySize  ==> realToFrac cubeW
-           myShape ==> Cube
-           myColor ==> doorColor
-           myStart ==> do
-                setDelayedAction (0.5 * fromIntegral i / numCubes) $ do
-                    -- Match hue with escape delay
-                    animateColor doorColor (colorHSL n 0.3 0.5) doorColorAnimDur
-                    setDelayedAction (doorColorAnimDur + realToFrac n) $ do
-                        animatePositionTo (V3 x y -500) 1
+    doorColor <- getColor
+    let cubeW = 0.1
+    let xs = floor $ fromIntegral dW / cubeW
+        ys = floor $ fromIntegral dH / cubeW
+
+    let cubePositions = [V2 x y | x <- [0..xs - 1], y <- [0..ys - 1]]
+        numCubes = fromIntegral $ length cubePositions
+    forM_ (zip [0..] cubePositions) $ \(i, V2 xI yI) -> do
+        n <- randomRange (0,1)
+        let x = fromIntegral xI * cubeW - (dW / 2) + cubeW / 2
+            y = fromIntegral yI * cubeW - (dH / 2) + cubeW / 2
+        spawnChild $ do
+            myPose  ==> position (V3 x y 0)
+            mySize  ==> realToFrac cubeW
+            myShape ==> Cube
+            myColor ==> doorColor
+            myStart ==> do
+                 setDelayedAction (0.5 * fromIntegral i / numCubes) $ do
+                     -- Match hue with escape delay
+                     animateColor doorColor (colorHSL n 0.3 0.5) doorColorAnimDur
+                     setDelayedAction (doorColorAnimDur + realToFrac n) $ do
+                         animatePositionTo (V3 x y -500) 1
 start :: Start
 start = do
 
-    (mSceneName, sceneHue) <- getState (Just "New Home", 0)
-    let sceneName = fromMaybe "New Scene" mSceneName
+    (maybeSceneName, sceneHue) <- getState (Just "New Home", 0)
 
     myCodeHidden ==> True
     setShape Cube
@@ -45,7 +47,15 @@ start = do
     myPose ==> positionRotation
         (V3 -1 1 0)
         (axisAngle (V3 0 1 0) (pi / 2))
-    myColor ==> doorColor
+    myColor ==> normalDoorColor
+
+    -- A nothing scene name means this is the "New Scene" door
+    -- so we pulse it!
+    when (isNothing maybeSceneName) $ do
+        myUpdate ==> do
+            now <- getNow
+            setColor (colorHSL now 0.3 0.8)
+
     doorID <- ask
     -- Plaque
     let plaqueH = dH * 0.3
@@ -58,7 +68,7 @@ start = do
         myColor ==> colorHSL sceneHue 0.35 0.12
         myTransformType ==> RelativeFull
     spawnChildOf plaqueID $ do
-        myText ==> sceneName
+        myText ==> fromMaybe "New Scene" maybeSceneName
         mySize ==> 0.05
         myPose ==> position $ V3 0 0 ((dD + 0.02) / 2)
         myTransformType ==> RelativeFull
@@ -71,13 +81,17 @@ start = do
         myColor        ==> knobColor
         myDragOverride ==> True
         myDragBegan    ==> do
-            removeComponent myDragBegan
-            inEntity doorID $ do
-                removeComponent myShape
-                startTransitionAnimation
-                inEntity plaqueID $ animateSizeOutTo0 doorColorAnimDur
-                setDelayedAction 1 $
-                    transitionToSceneOverTime sceneName 1
+            mSceneName <- case maybeSceneName of
+                Just sceneName -> return $ Just sceneName
+                Nothing        -> createNewScene
+            forM_ mSceneName $ \sceneName -> do
+                removeComponent myDragBegan
+                inEntity doorID $ do
+
+                    startDoorTransitionAnimation
+                    inEntity plaqueID $ animateSizeOutTo0 doorColorAnimDur
+                    setDelayedAction 1 $
+                        transitionToSceneOverTime sceneName 1
 
     -- Knob shaft
     spawnChildOf doorKnob $ do

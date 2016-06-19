@@ -18,8 +18,7 @@ start = do
 
     -- We only take half the request points to get the upper hemisphere
     let numPoints = 200 :: Int
-        --points = reverse $ drop (numPoints `div` 2) $ pointsOnSphere numPoints
-        points = reverse $ pointsOnSphere numPoints
+        points = reverse $ drop (numPoints `div` 2) $ pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip3 [0..] points hues) $ \(i, pos, hue) -> spawnChild $ do
             myTransformType ==> AbsolutePose
