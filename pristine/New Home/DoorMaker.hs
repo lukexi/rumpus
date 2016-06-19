@@ -2,8 +2,8 @@
 module DoorMaker where
 import Rumpus
 
-tW = 2
-tH = 0.1
+tileW = 2
+tileH = 0.1
 
 start :: Start
 start = do
@@ -17,8 +17,8 @@ start = do
         let hue       = fromIntegral i / numItems
             zI        = i `div` 2
             xI        = i `mod` 2
-            x         =  fromIntegral xI * 2 - tW/2
-            z         = -fromIntegral zI * 2 + tW/2
+            x         =  fromIntegral xI * 2 - tileW/2
+            z         = -fromIntegral zI * 2 + tileW/2
             r         = if xI == 0 then pi/2 else -pi/2
             platShift = if xI == 0 then -1   else 1
             tileColor = if t  == 0 then 1    else 0.15
@@ -26,8 +26,8 @@ start = do
             myBody      ==> Animated
             myBodyFlags ==> [Teleportable]
             myShape     ==> Cube
-            myPose      ==> position (V3 x (-tH / 2) z)
-            mySize      ==> V3 tW tH tW
+            myPose      ==> position (V3 x (-tileH / 2) z)
+            mySize      ==> V3 tileW tileH tileW
             myColor     ==> tileColor
         spawnChild $ do
             myBody          ==> Animated

@@ -123,7 +123,11 @@ openSceneLibrary whichHand = do
         positions = goldenSectionSpiralPoints numItems
         positionsAndSceneNames = zip3 ([0..]::[Int]) positions sceneNames
 
-    forM_ positionsAndSceneNames $ \(n, pos, sceneName) -> do
+    forM_ positionsAndSceneNames $ \(n, rawPos, sceneName) -> do
+        -- Flip z and y so sphere starts at top and
+        -- goes down/around alphabetically
+        let V3 x y z = rawPos
+            pos      = V3 x z y
         addObjectLibraryItem whichHand (fromIntegral n / fromIntegral numItems) pos (SceneItem sceneName)
 
     addDestructionOrb whichHand
