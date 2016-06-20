@@ -178,12 +178,6 @@ getEntityColor entityID = fromMaybe 1 <$> getEntityComponent entityID myColor
 getColor :: (MonadReader EntityID m, MonadState ECS m) => m (V4 GLfloat)
 getColor = getEntityColor =<< ask
 
-getEntityTransformType :: (MonadState ECS m) => EntityID -> m (Maybe TransformType)
-getEntityTransformType entityID = getEntityComponent entityID myTransformType
-
-getTransformType :: (MonadState ECS m, MonadReader EntityID m) => m (Maybe TransformType)
-getTransformType = getEntityTransformType =<< ask
-
 getEntityChildren :: (MonadState ECS m) => EntityID -> m [EntityID]
 getEntityChildren entityID = fromMaybe [] <$> getEntityComponent entityID myChildren
 

@@ -295,3 +295,16 @@ applyForceToEntity entityID aForce = do
 
 getIsTeleportable :: MonadState ECS m => EntityID -> m Bool
 getIsTeleportable = fmap (elem Teleportable) . getEntityBodyFlags
+
+getEntityTransformType :: (MonadState ECS m) => EntityID -> m TransformType
+getEntityTransformType entityID = inEntity entityID getTransformType
+
+getTransformType :: (MonadState ECS m, MonadReader EntityID m) => m TransformType
+getTransformType = do
+    hasBody <- hasComponent myBody
+    if hasBody
+        then return AbsolutePose
+        else getComponentDefault RelativePose myTransformType
+
+getScaledPose :: (MonadState ECS m, MonadReader EntityID m) => m (M44 GLfloat)
+getScaledPose = getComponentDefault identity myPoseScaled

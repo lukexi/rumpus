@@ -57,6 +57,13 @@ REMAINING
 
 [ ] Weird head thing when no hand pose
 
+[ ] WORLD TRANSFORMS:
+    World transform should just be a property on the entity!
+    It should just get updated whenever
+    pose, size, transformtype or parent are updated!
+    That way it's only calculated once, and things like
+    stars won't be continually recalculating their positions
+
 MAYBE
 
 [ ] Obvious UI for changing scene now that we have door plaques;

@@ -37,7 +37,6 @@ data RenderShape = RenderShape
 data RenderSystem = RenderSystem
     { _rdsShapes         :: ![RenderShape]
     , _rdsTextPlaneShape :: !(Shape Uniforms)
-    --, _rdsWorldMatrices  :: !(Map EntityID (M44 GLfloat)) -- would like to hold these so we can query them for physics and simulation
     }
 makeLenses ''RenderSystem
 defineSystemKey ''RenderSystem
@@ -178,13 +177,13 @@ getFinalMatrices = do
                 entityMatrixLocalNoScale = Map.lookupDefault identity entityID poseMap
                 entityMatrixLocal        = Map.lookupDefault identity entityID poseScaledMap
 
-                parentTransform          = case (inherit, mParentMatrix) of
+                applyParentTransform     = case (inherit, mParentMatrix) of
                     (RelativeFull, Just (parentMatrix, _))        -> (parentMatrix        !*!)
                     (RelativePose, Just (_, parentMatrixNoScale)) -> (parentMatrixNoScale !*!)
                     _                                            -> id
 
-                entityMatrix        = parentTransform entityMatrixLocal
-                entityMatrixNoScale = parentTransform entityMatrixLocalNoScale
+                entityMatrix        = applyParentTransform entityMatrixLocal
+                entityMatrixNoScale = applyParentTransform entityMatrixLocalNoScale
 
                 children            = Map.lookupDefault [] entityID childrenMap
             -- Pass the calculated matrix down to each child so it can calculate its own final matrix
