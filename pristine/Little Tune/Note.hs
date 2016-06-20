@@ -34,27 +34,31 @@ start = do
     updateNote
 
     myCollisionBegan ==> \hitEntityID _ -> do
-        spawnBall
-        note <- getState (0::Int)
-        acquirePolyPatch "Note.pd"
-        sendSynth "note" (fromIntegral note)
-        sendSynth "trigger" 1
+        shape <- getEntityComponentDefault Cube hitEntityID myShape
+        when (shape /= Sphere) $ do
+            --spawnBall
+            note <- getState (0::Int)
+            acquirePolyPatch "Note.pd"
+            sendSynth "note" (fromIntegral note)
+            sendSynth "trigger" 1
 
 
-        let hue = noteHue note
-            fromColor = colorHSL (hue + 0.5) 0.8 0.5
-            toColor   = colorHSL hue         0.8 0.5
-        animateColor fromColor toColor 0.2
+            let hue = noteHue note
+                fromColor = colorHSL (hue + 0.5) 0.8 0.5
+                toColor   = colorHSL hue         0.8 0.5
+            animateColor fromColor toColor 0.2
 
     myDragContinues ==> \_ -> updateNote
     myCodeHidden ==> True
 
+spawnBall :: EntityMonad ()
 spawnBall = do
     noteColor <- getColor
     notePosition <- getPosition
-    spawnChild $ do
+    spawnChild_ $ do
         myLifetime ==> 3
         myShape    ==> Sphere
         mySize     ==> 0.1
         myBody     ==> Physical
-        myPose     ==> postiion (notePosition + (V3 0 -1/24 0))
+        myColor    ==> noteColor
+        myPose     ==> position (notePosition + (V3 0 (-0.05) 0))

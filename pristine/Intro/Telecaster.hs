@@ -1,14 +1,15 @@
 module Telecaster where
 import Rumpus
 
+text = [ "Welcome to Rumpus"
+       , "A Live-Coding Environment"
+       , "For Room-Scale VR"
+       ]
+
 start :: Start
 start = do
-    let lines =
-            [ "Welcome to Rumpus"
-            , "A Live Coding Playground for the HTC Vive"
-            ]
 
-    spawnChildren_ (zip [0..] (reverse lines)) $ \(i, line) -> do
+    spawnChildren_ (zip [0..] (reverse text)) $ \(i, line) -> do
         myText ==> line
-        myPose ==> position (V3 0 (1+(fromIntegral i)) 0)
-        mySize ==> 0.1
+        myPose ==> position (V3 0 (0.5+(fromIntegral i * 0.1)) 0)
+        mySize ==> 0.05

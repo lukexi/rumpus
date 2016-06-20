@@ -16,7 +16,7 @@ start = do
     sendSynth "sample-file" (fromString sampleFileName)
 
     addActiveKnob "Speed" (DualExponential -50 50) 1 $ \val -> do
-        sendEntitySynth mainID "sample-speed" (realToFrac val)
+        sendSynth "sample-speed" (realToFrac val)
 
     -- Create the entities representing the FFT
     let numSamples = 32 -- actual generated is 256

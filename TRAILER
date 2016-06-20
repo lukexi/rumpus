@@ -1,10 +1,17 @@
 TRAILER
 
+BUGS:
+[ ] Sampler values don't restore to 1 correctly
+    (or is that because I changed the scale?)
+[ ] Knobs jump on hand grab rather than continuing
+[ ] Stepped knobs still don't send correct vals
+
+IDEAS:
 [ ] Cloud for tree
 
-[ ] Edit sky to move and twinkle
+[x] Edit sky to move and twinkle
 
-[ ] Multiple Ribbons
+[x] Multiple Ribbons
 
 [ ] Multiple Verylogues
 
@@ -13,6 +20,9 @@ TRAILER
 [ ] Pull objects out to add to the Attractor agglommeration
     Surround with huge white room
 
+
+[ ] Clock system that advances per-object according to a timestep,
+    for use in speed-changing ribbon and solar system. Can go backwards too!
 
 FINAL SCENE:
 Create New Scene,

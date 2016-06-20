@@ -76,10 +76,8 @@ initCreatorSystem = do
 checkForDestruction :: (MonadIO m, MonadState ECS m) => WhichHand -> m Bool
 checkForDestruction whichHand = do
     let otherHand = otherHandFrom whichHand
-    maybePendingDestruction <- modifySystemState sysCreator $ do
-        result <- use $ crtPendingDestruction . at otherHand
-        crtPendingDestruction . at otherHand .= Nothing
-        return result
+    maybePendingDestruction <- viewSystem sysCreator $
+        (crtPendingDestruction . at otherHand)
     forM_ maybePendingDestruction $ \destroyID -> do
         sceneWatcherRemoveEntity destroyID
     return (isJust maybePendingDestruction)
