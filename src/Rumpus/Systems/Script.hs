@@ -5,7 +5,6 @@ import Rumpus.Systems.PlayPause
 import Rumpus.Systems.Shared
 import Rumpus.Systems.CodeEditor
 import Rumpus.Systems.Knobs
-import Graphics.GL.TextBuffer
 import qualified Data.HashMap.Strict as Map
 
 

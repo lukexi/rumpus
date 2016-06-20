@@ -28,8 +28,7 @@ import Rumpus.Systems.Script as Exports
 import Rumpus.Systems.Selection as Exports
 import Rumpus.Systems.Shared as Exports
 import Rumpus.Systems.Synth as Exports
-import Rumpus.Systems.Text as Exports
 import Rumpus.Systems.Teleport as Exports
-import Rumpus.Systems.CodeEditor as Exports
+import Rumpus.Systems.Text as Exports
 import RumpusLib as Exports
 

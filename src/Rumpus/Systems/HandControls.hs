@@ -71,11 +71,13 @@ tickHandControlsSystem = runUserScriptsWithTimeout_ $ do
     withLeftHandEvents  (editSceneWithHand LeftHand leftHandID)
     withRightHandEvents (editSceneWithHand RightHand rightHandID)
 
+handBecomeEthereal :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 handBecomeEthereal handEntityID = do
     animateEntityColorTo handEntityID handColor 0.3
     animateEntitySizeTo handEntityID handSize 0.3
     setEntityBody handEntityID Detector
 
+handBecomeSolid :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 handBecomeSolid handEntityID = do
     animateEntityColorTo handEntityID (handColor * 0.9) 0.3
     animateEntitySizeTo handEntityID (handSize * 1.1) 0.3

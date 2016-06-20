@@ -12,7 +12,11 @@ import Rumpus.Systems.Controls
 import qualified Data.HashMap.Strict as Map
 import Data.List (genericLength)
 
-default (Int, Float)
+import Prelude hiding ((^))
+
+import qualified Prelude as P
+(^) :: Num a => a -> Int -> a
+(^) = (P.^)
 
 type KnobName = String
 

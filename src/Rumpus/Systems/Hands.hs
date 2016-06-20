@@ -25,6 +25,8 @@ handSize = V3 0.075 0.075 0.075
 handColor :: V4 GLfloat
 handColor = V4 0.6 0.6 0.9 1
 
+makeHand :: (MonadIO m, MonadState ECS m, MonadBaseControl IO m)
+         => WhichHand -> m EntityID
 makeHand whichHand = do
     handID <- spawnEntity $ do
         myColor           ==> handColor

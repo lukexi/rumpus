@@ -15,7 +15,7 @@ start = do
     sampleFileName <- toPdPathStyle (stateFolder </> show thisID <.> "wav")
     sendSynth "sample-file" (fromString sampleFileName)
 
-    addKnob "Speed" (DualExponential -50 50) $ \val -> do
+    addActiveKnob "Speed" (DualExponential -50 50) 1 $ \val -> do
         sendSynth "sample-speed" (realToFrac val)
 
     -- Create the entities representing the FFT

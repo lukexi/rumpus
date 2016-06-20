@@ -2,7 +2,6 @@ module Rumpus.Systems.Scene where
 import Data.ECS
 import Rumpus.Types
 import Rumpus.Systems.PlayPause
-import Rumpus.Systems.Selection
 import PreludeExtra hiding (catch)
 import RumpusLib
 import Control.Exception

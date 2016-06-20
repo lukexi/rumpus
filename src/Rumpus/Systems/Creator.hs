@@ -354,9 +354,13 @@ transitionToScene :: (MonadIO m, MonadState ECS m) => String -> m ()
 transitionToScene sceneName =
     transitionToSceneOverTime sceneName transitionTimeIn
 
+transitionToSceneOverTime :: (MonadIO m, MonadState ECS m)
+                          => String -> DiffTime -> m ()
 transitionToSceneOverTime sceneName timeIn =
     transitionToSceneOverTimeWithAction sceneName timeIn (return ())
 
+transitionToSceneWithAction :: (MonadIO m, MonadState ECS m)
+                            => String -> ReaderT EntityID ECSMonad a -> m ()
 transitionToSceneWithAction sceneName action =
     transitionToSceneOverTimeWithAction sceneName transitionTimeIn action
 
