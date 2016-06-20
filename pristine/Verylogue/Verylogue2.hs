@@ -14,14 +14,12 @@ start = do
             sendEntitySynth rootID synthTarget (realToFrac n)
 
     -- Knob backplane
-    let backW = 3.2
+    let backW = 2
     spawnChild $ do
         myShape ==> Cube
-        mySize  ==> V3 backW 1.5 0.01
-        myPose  ==> position (V3 (0.3 + 0.5*backW) 0 -0.1)
+        mySize  ==> V3 backW 0.7 0.01
+        myPose  ==> position (V3 (0.3 + 0.5*backW) 0.1 -0.03)
         myColor ==> V4 0.2 0.2 0.23 1
-
-
 
     -- Random sequencer
     setRepeatingAction 0.5 $ do
@@ -48,9 +46,9 @@ verylogueKnobs =
     [
     -- VCO1
       ( "VCO1 Octave"   , "vco1-amp"  , Stepped ["0", "1", "2", "3"], 1 )
+    , ( "VCO1 Wave"     , "vco1-wave" , Stepped ["Saw", "Sin", "Squ"], 2 )
     , ( "VCO1 Pitch"    , "vco1-pitch", Linear -1 1, 0 )
     , ( "VCO1 Shape"    , "vco1-shape", Linear 0 1, 0.5 )
-    , ( "VCO1 Wave"     , "vco1-wave" , Stepped ["Saw", "Sin", "Squ"], 2 )
 
     -- VCO2
     , ( "VCO2 Octave"   , "vco2-amp"  , Stepped ["0", "1", "2", "3"], 2 )

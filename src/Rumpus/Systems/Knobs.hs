@@ -170,7 +170,7 @@ makeKnobDef knobScale defVal action =
 
                 in
                 ( \val01 -> -- remap to -1 to 1 and square
-                    let val2 = (val01 * 2 - 1) ^ 2
+                    let val2 = (val01 * 2 - 1) ^ 4
                     in if val01 > 0.5
                         then val2 * rangeH
                         else val2 * rangeL

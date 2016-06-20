@@ -10,13 +10,13 @@ start = do
     setSynthPatch "Sampler.pd"
 
     -- Inform the Sampler of where to save & load its sample
-    thisID <- ask
+    mainID <- ask
     stateFolder <- getSceneStateFolder
-    sampleFileName <- toPdPathStyle (stateFolder </> show thisID <.> "wav")
+    sampleFileName <- toPdPathStyle (stateFolder </> show mainID <.> "wav")
     sendSynth "sample-file" (fromString sampleFileName)
 
     addActiveKnob "Speed" (DualExponential -50 50) 1 $ \val -> do
-        sendSynth "sample-speed" (realToFrac val)
+        sendEntitySynth mainID "sample-speed" (realToFrac val)
 
     -- Create the entities representing the FFT
     let numSamples = 32 -- actual generated is 256
@@ -27,7 +27,6 @@ start = do
             mySize             ==> 1
             myColor            ==> V4 0.8 0.9 0.4 1
             myPose             ==> position (V3 x 0 0)
-    mainID <- ask
 
     -- Create a button to trigger sample recording
     pose <- getPose
@@ -49,8 +48,8 @@ start = do
     myUpdate ==> do
         fftSample <- V.convert <$> readPdArray "sample-fft" 0 numSamples
         V.forM_ (V.zip children fftSample) $ \(childID, sample) -> do
-            let val = sample
+            let val = max 0 $ logBase 4 sample + 1
             inEntity childID $ do
                 setSize (0.01 & _yz .~ realToFrac val * 0.1)
-                myColor ==> colorHSL (realToFrac val) 0.8 0.4
+                myColor ==> colorHSL (realToFrac val / 3) 0.8 0.4
         return ()

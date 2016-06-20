@@ -34,6 +34,7 @@ start = do
     updateNote
 
     myCollisionBegan ==> \hitEntityID _ -> do
+        spawnBall
         note <- getState (0::Int)
         acquirePolyPatch "Note.pd"
         sendSynth "note" (fromIntegral note)
@@ -47,3 +48,13 @@ start = do
 
     myDragContinues ==> \_ -> updateNote
     myCodeHidden ==> True
+
+spawnBall = do
+    noteColor <- getColor
+    notePosition <- getPosition
+    spawnChild $ do
+        myLifetime ==> 3
+        myShape    ==> Sphere
+        mySize     ==> 0.1
+        myBody     ==> Physical
+        myPose     ==> postiion (notePosition + (V3 0 -1/24 0))
