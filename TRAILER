@@ -1,19 +1,25 @@
 TRAILER
 
+[ ] Sync music
+[ ] Add all scene paths to the Pd search path!
+
 BUGS:
-[ ] Sampler values don't restore to 1 correctly
+[x] Sampler values don't restore to 1 correctly
     (or is that because I changed the scale?)
-[ ] Knobs jump on hand grab rather than continuing
-[ ] Stepped knobs still don't send correct vals
+[x] Knobs jump on hand grab rather than continuing
+[x] Stepped knobs still don't send correct vals
 
 IDEAS:
+
+[ ] VISIBLE SYNTHESIZER
+
 [ ] Cloud for tree
 
 [x] Edit sky to move and twinkle
 
 [x] Multiple Ribbons
 
-[ ] Multiple Verylogues
+[x] Multiple Verylogues
 
 [ ] Draw a physics bowl and drop balls into it
 

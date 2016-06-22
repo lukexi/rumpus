@@ -28,8 +28,8 @@ Pose:
 Shape: Cube
 KnobValues:
   CenterY: 0.63192683
-  Strength: 3.320713e-2
-  CenterX: 0.511921
+  Strength: 0.0
+  CenterX: 6.607367e-2
   CenterZ: 0.3223361
 StartCodeFile:
 - Attraction.hs
