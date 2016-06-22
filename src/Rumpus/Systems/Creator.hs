@@ -76,7 +76,8 @@ initCreatorSystem = do
 checkForDestruction :: (MonadIO m, MonadState ECS m) => WhichHand -> m Bool
 checkForDestruction whichHand = do
     let otherHand = otherHandFrom whichHand
-    maybePendingDestruction <- viewSystem sysCreator (crtPendingDestruction . at otherHand)
+    maybePendingDestruction <- viewSystem sysCreator $
+        (crtPendingDestruction . at otherHand)
     forM_ maybePendingDestruction $ \destroyID -> do
         sceneWatcherRemoveEntity destroyID
     return (isJust maybePendingDestruction)
@@ -334,7 +335,7 @@ addExitKnob whichHand = do
                 hapticPulse otherHand 1000
         myDragBegan ==> do
             removeComponent myDragBegan
-            transitionToSceneWithAction "New Home"  (closeCreator whichHand)
+            transitionToSceneWithAction "Lobby"  (closeCreator whichHand)
         mySize         ==> initialLibraryItemSize
     -- Knob shaft
     spawnChildOf_ exitKnobID $ do

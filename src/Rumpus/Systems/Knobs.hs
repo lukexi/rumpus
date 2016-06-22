@@ -12,11 +12,9 @@ import Rumpus.Systems.Controls
 import qualified Data.HashMap.Strict as Map
 import Data.List (genericLength)
 
-import Prelude hiding ((^))
 
-import qualified Prelude as P
-(^) :: Num a => a -> Int -> a
-(^) = (P.^)
+(^|) :: Num a => a -> Int -> a
+(^|) = (^)
 
 type KnobName = String
 
@@ -161,30 +159,31 @@ makeKnobDef knobScale defVal action =
                 , (/ range) . (subtract low)
                 )
             Exponential low high -> let range = high - low in
-                ( (+ low) . (* range) . (^ 2)
+                ( (+ low) . (* range) . (^| 2)
                 , sqrt    . (/ range) . (subtract low)
                 )
             DualExponential l h ->
                 let rangeH = h
-                    rangeL = abs l
-
+                    rangeL = l
+                    e :: Num a => a
+                    e = 4
                 in
                 ( \val01 -> -- remap to -1 to 1 and square
-                    let val2 = (val01 * 2 - 1) ^ 2
+                    let val2 = (val01 * 2 - 1) ^| e
                     in if val01 > 0.5
                         then val2 * rangeH
                         else val2 * rangeL
                 , \val ->
-                    let valNeg1To1 = sqrt $ if val > 0
+                    let valNeg1To1 = (* signum val) . (** (1/e)) $ if val > 0
                             then val / rangeH
                             else val / rangeL
-                    in valNeg1To1 / 2 + 1
+                    in (valNeg1To1 + 1) / 2
                 )
             -- E.g. for [foo,bar,baz] 0-0.33 should be 0,
             -- 0.33-0.66 should be 1, 0.66-1 should be 2
             Stepped options -> let rangePlus1 = genericLength options in
-                ( min (rangePlus1 - 1) . (* rangePlus1)
-                ,                        (/ rangePlus1)
+                ( floorF . min (rangePlus1 - 1) . (* rangePlus1)
+                ,                                 (/ rangePlus1)
                 )
 
     in KnobDef
@@ -194,6 +193,9 @@ makeKnobDef knobScale defVal action =
         , knbVal01ToValue = val01ToValue
         , knbValueToVal01 = valueToVal01
         }
+
+floorF :: (Fractional c, RealFrac a) => a -> c
+floorF = realToFrac . floor
 
 addActiveKnobAt :: GLfloat -> V3 GLfloat -> KnobName -> KnobDef -> EntityMonad EntityID
 addActiveKnobAt knobLayoutScale knobPos name knobDef@KnobDef{..} = do
@@ -270,16 +272,16 @@ addActiveKnobAt knobLayoutScale knobPos name knobDef@KnobDef{..} = do
                 -- Update the knob's label
                 let newValue01     = knobRotationToValue01 newRotation
                     newValue       = knbVal01ToValue newValue01
-                inEntity valueLabel $ setText (displayValue knobDef newValue)
+                inEntity valueLabel $
+                    setText (displayValue knobDef newValue)
                 -- Update the knob's "light"
                 updateKnobLight newValue01
 
                 -- Run the action
-                knbAction newValue
-
                 -- Record the knob value in the parent so it can be persisted
-                inEntity parentID $ do
+                lift $ inEntity parentID $ do
                     setKnobValue01 name newValue01
+                    knbAction newValue
                 -- Cache the knob value in the knob entity itself so it can be grabbed quickly
                 myKnobValueCached    ==> newValue
                 myKnobValueCachedNew ==> True

@@ -33,7 +33,7 @@ initSceneSystem = do
     putStrLnIO ("Using rumpus root: " ++ rootToUse)
 
     registerSystem sysScene $ SceneSystem
-        { _scnSceneName  = "New Home"
+        { _scnSceneName  = "Lobby"
         , _scnRumpusRoot = rootToUse
         }
 
