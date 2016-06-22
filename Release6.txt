@@ -104,3 +104,5 @@ LATER
 
 [ ] Birds! Just two flapping cubes...
     Sunset over cube sea
+
+[ ] Visible delay; place series of bucket brigade sampler fft combos
