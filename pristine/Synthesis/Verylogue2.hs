@@ -1,8 +1,11 @@
 module Verylogue2 where
 import Rumpus
+import qualified Data.Vector as V
 
 --majorScale = [0,2,4,5,7,9,11,12]
 majorScale = [0,2,4,6,7,9,11,12]
+
+numScopeSamples = 64
 
 start :: Start
 start = do
@@ -41,7 +44,28 @@ start = do
             myTransformType ==> AbsolutePose
             myLifetime      ==> 1
 
-    return ()
+    waveformChildren <- createWaveformChildren
+    myUpdate ==> updateWaveform waveformChildren
+
+createWaveformChildren =
+    V.generateM numScopeSamples $ \i -> do
+        let x = fromIntegral i * 0.01 + 1
+        spawnChild $ do
+            myShape            ==> Cube
+            mySize             ==> 0.01
+            myColor            ==> V4 0.8 0.9 0.4 1
+            myPose             ==> position (V3 x 0 0)
+
+updateWaveform children = do
+    fftSample <- V.convert <$> readPdArray "scope" 0 numScopeSamples
+    V.forM_ (V.zip children fftSample) $ \(childID, sample) -> do
+        let val = sample * 2
+        inEntity childID $ do
+            V3 x _ z <-getPosition
+            setPosition (V3 x (0.6 + sample * 0.3) z)
+            myColor ==> colorHSL (realToFrac val / 3 + 0.3) 0.8
+                0.4
+                --(if abs val > 0.1 then 0.4 else 0)
 
 verylogueKnobs =
     [
