@@ -3,7 +3,7 @@
 1;
 #X obj 532 415 metro 1000;
 #X obj 592 377 hsl 128 15 0 1000 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 0 1;
+-1 -1 2300 1;
 #X obj 322 611 poly 4;
 #X obj 322 644 pack f f f;
 #X obj 322 670 s \$0note-on;
@@ -12,11 +12,11 @@
 #X obj 9 14 cnv 15 850 270 empty empty empty 20 12 0 14 -162280 -66577
 0;
 #X obj 22 45 vradio 15 1 0 4 \$0vco1-octave \$0vco1-octave-r octave
-0 -8 0 10 -262144 -1 -1 1;
+0 -8 0 10 -262144 -1 -1 0;
 #X obj 22 135 vradio 15 1 0 4 \$0vco2-octave \$0vco2-octave-r octave
-0 -8 0 10 -262144 -1 -1 2;
+0 -8 0 10 -262144 -1 -1 0;
 #X obj 72 45 vradio 15 1 0 3 \$0vco1-wave \$0vco1-wave-r wave 0 -8
-0 10 -262144 -1 -1 2;
+0 10 -262144 -1 -1 1;
 #X obj 72 135 vradio 15 1 0 3 \$0vco2-wave \$0vco2-wave-r wave 0 -8
 0 10 -262144 -1 -1 1;
 #X obj 117 47 vsl 40 50 -1 1 0 0 \$0vco1-pitch \$0vco1-pitch-r pitch
@@ -72,41 +72,32 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X obj 737 45 cnv 15 100 100 empty empty empty 20 12 0 14 -262144 -66577
 0;
 #X obj 43 326 catch~ \$0voice-out;
-#N canvas 72 100 450 300 scope 0;
+#N canvas 927 464 611 343 scope 1;
 #N canvas 0 50 450 278 (subpatch) 0;
-#X array \$0scope 441 float 0;
-#X coords 0 1 440 -1 100 100 1 0 0;
+#X array \$0scope 64 float 0;
+#X coords 0 1 63 -1 100 100 1 0 0;
 #X restore 100 100 graph;
-#X obj 250 200 tabwrite~ \$0scope;
-#X obj 250 69 inlet~;
-#X obj 259 109 loadbang;
 #N canvas 151 218 450 300 graph-refresh-workaround 0;
 #X obj 145 231 tabwrite \$0scope;
 #X obj 125 124 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
 #X msg 145 144 0;
 #X obj 145 165 t a a;
-#X obj 145 103 loadbang;
-#X obj 145 124 metro 33;
+#X obj 145 83 loadbang;
 #X text 42 61 workaround to force graph to update regularly;
 #X obj 145 197 tabread \$0scope;
-#X connect 1 0 5 0;
+#X obj 145 124 metro 11;
+#X connect 1 0 7 0;
 #X connect 2 0 3 0;
-#X connect 3 0 7 0;
-#X connect 3 1 0 1;
-#X connect 4 0 5 0;
-#X connect 5 0 2 0;
-#X connect 7 0 0 0;
-#X restore 18 25 pd graph-refresh-workaround;
-#X obj 350 111 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 259 155 metro 50;
-#X obj 314 66 r~ \$0scope;
-#X connect 2 0 1 0;
 #X connect 3 0 6 0;
-#X connect 5 0 6 0;
-#X connect 6 0 1 0;
-#X connect 7 0 1 0;
+#X connect 3 1 0 1;
+#X connect 6 0 0 0;
+#X connect 7 0 2 0;
+#X restore 18 25 pd graph-refresh-workaround;
+#X obj 402 165 tabsend~ \$0scope;
+#X obj 406 120 inlet~;
+#X obj 299 218 block~ 64;
+#X connect 3 0 2 0;
 #X coords 0 -1 1 1 100 100 1 100 100;
 #X restore 737 45 pd scope;
 #X obj 103 356 s~ \$0scope;
@@ -120,7 +111,7 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X obj 643 422 * 0.66;
 #X obj 543 459 del;
 #X obj 689 451 hsl 128 15 0 2 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 0 1;
+-1 -1 6300 1;
 #X obj 683 476 t b a;
 #X obj 532 494 array-get-random minor;
 #X obj 272 370 verylogue-voice \$0 1;
@@ -171,6 +162,8 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X obj 272 410 verylogue-voice \$0 3;
 #X obj 272 430 verylogue-voice \$0 4;
 #X obj 42 357 *~ 0.1, f 7;
+#X msg 131 391;
+#X obj 737 15 r~ \$0scope;
 #X connect 0 0 1 0;
 #X connect 1 0 50 0;
 #X connect 1 0 53 0;
@@ -211,3 +204,6 @@ pitch-eg-int 0 -9 0 10 -262144 -1 -1 0 1;
 #X connect 64 0 65 0;
 #X connect 88 0 89 0;
 #X connect 94 0 66 0;
+#X connect 94 0 87 0;
+#X connect 94 0 87 1;
+#X connect 96 0 40 0;
