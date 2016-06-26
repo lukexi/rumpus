@@ -1,8 +1,9 @@
 module Verylogue2 where
 import Rumpus
 
---majorScale = [0,2,4,5,7,9,11,12]
-majorScale = [0,2,4,6,7,9,11,12]
+--scaleDegrees = [0,2,4,5,7,9,11,12]
+scaleDegrees = [0,2,4,6,7,9,11,12]
+scaleRoot = 62
 
 start :: Start
 start = do
@@ -24,8 +25,8 @@ start = do
 
     -- Random sequencer
     setRepeatingAction 0.3 $ do
-        degree <- randomFrom majorScale
-        let note = degree + 62
+        degree <- randomFrom scaleDegrees
+        let note = degree + scaleRoot
         sendSynth "note" (List [realToFrac (note::Int), 100])
         let degree01 = (fromIntegral degree / 12)
             hue = degree01

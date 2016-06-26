@@ -27,8 +27,8 @@ Pose:
   - 1
 Shape: Cube
 KnobValues:
-  ZScale: 0.0
-  YScale: 0.6481676
+  ZScale: 0.35602662
+  YScale: 0.1506075
 StartCodeFile:
 - Ribbon.hs
 - start

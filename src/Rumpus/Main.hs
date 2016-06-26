@@ -47,19 +47,22 @@ initializeECS ghc pd vrPal = do
             if sceneExists
                 then loadScene name
                 else do
-                    let fileName = name <.> "hs"
-                    sceneFolder <- getSceneFolder
-                    fileExists <- liftIO $ doesFileExist (sceneFolder </> fileName)
-                    codeFile <- if
-                        | fileExists    -> return (fileName, "start")
-                        | name == "new" -> createNewStartCodeFile -- create a new object for quick dev work
-                        | otherwise     -> createStartCodeFile name
-                    spawnEntity_ $ do
-                        myShape      ==> Cube
-                        mySize       ==> newEntitySize
-                        myBody       ==> Animated
-                        myColor      ==> V4 0.1 0.1 0.1 1
-                        myStartCodeFile  ==> codeFile
+                    mNewSceneName <- createNewSceneNamed name
+                    forM_ mNewSceneName $ \newSceneName -> do
+                        loadScene newSceneName
+                        let fileName = name <.> "hs"
+                        sceneFolder <- getSceneFolder
+                        fileExists  <- liftIO $ doesFileExist (sceneFolder </> fileName)
+                        codeFile    <- if
+                            | fileExists    -> return (fileName, "start")
+                            | name == "new" -> createNewStartCodeFile -- create a new object for quick dev work
+                            | otherwise     -> createStartCodeFile name
+                        spawnEntity_ $ do
+                            myShape      ==> Cube
+                            mySize       ==> newEntitySize
+                            myBody       ==> Animated
+                            myColor      ==> V4 0.1 0.1 0.1 1
+                            myStartCodeFile  ==> codeFile
 
     --when isBeingProfiled loadTestScene
 

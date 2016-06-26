@@ -36,7 +36,7 @@ start = do
     myCollisionBegan ==> \hitEntityID _ -> do
         shape <- getEntityComponentDefault Cube hitEntityID myShape
         when (shape /= Sphere) $ do
-            --spawnBall
+            spawnBall
             note <- getState (0::Int)
             acquirePolyPatch "Note.pd"
             sendSynth "note" (fromIntegral note)

@@ -2,7 +2,7 @@ module Telecaster where
 import Rumpus
 
 text = [ "Welcome to Rumpus"
-       , "A Live Coding Playground"
+       , "A Live-Coding Environment"
        , "For Room-Scale VR"
        ]
 
