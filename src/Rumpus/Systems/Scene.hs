@@ -116,11 +116,14 @@ fileInRumpusRoot fileName = do
     return (rumpusRootFolder </> fileName)
 
 createNewScene :: (MonadIO m, MonadState ECS m) => m (Maybe String)
-createNewScene = do
+createNewScene = createNewSceneNamed "MyScene"
+
+createNewSceneNamed :: (MonadIO m, MonadState ECS m) => String -> m (Maybe String)
+createNewSceneNamed baseName = do
     rumpusRoot <- getRumpusRootFolder
     -- FIXME two users could create a new scene at once and we don't handle this
     scenePaths <- listScenes
-    let newSceneName = findNextNumberedName "MyScene" scenePaths
+    let newSceneName = findNextNumberedName baseName scenePaths
         newScenePath = rumpusRoot </> newSceneName
 
     -- Do nothing if we can't create the folder
