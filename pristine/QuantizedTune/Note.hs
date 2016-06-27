@@ -53,11 +53,14 @@ start = do
     -- Quantize note position on release
     myDragEnded ==> do
         V3 x y z <- getPosition
-        let quantPos = V3 (quantize x (1/4)) (quantize y (1/24)) quantize z (1/4))
-        animatePositionTo quantize 0.3
+        let quantPos = V3
+                (quantizeToF (1/4) x)
+                (quantizeToF (1/24) y)
+                (quantizeToF (1/4) z)
+        animatePositionTo quantPos 0.3
     myCodeHidden ==> True
 
-quantize n quant = undefined
+
 
 spawnBall :: EntityMonad ()
 spawnBall = do
