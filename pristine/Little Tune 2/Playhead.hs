@@ -3,8 +3,9 @@ import Rumpus
 
 start :: Start
 start = do
-    durationKnob <- addKnob "Duration" (Stepped (map show [1..10])) 3
-    heightKnob   <- addKnob "Height" (Linear 1 4) 1
+    beatsKnob    <- addKnob "Beats"    (Stepped (map show [1..64])) 16
+    tempoKnob    <- addKnob "Tempo"    (Linear 80 120) 108
+    heightKnob   <- addKnob "Height"   (Linear 1 4) 1
 
     thisID <- ask
     playHead <- spawnChild $ do
@@ -13,16 +14,19 @@ start = do
         myBody       ==> Detector
         mySize       ==> 0
         myUpdate     ==> do
-            duration <- succ <$> readKnob durationKnob
-            height <- readKnob heightKnob
-            let size = V3 0.01 height 1
-            now <- getNow
-            let time = mod' now duration
-                x = time
+            tempo    <- readKnob tempoKnob
+            -- Move playhead
+            measures <- succ <$> readKnob beatsKnob
+            height   <- readKnob heightKnob
+            now      <- getNow
+            let time = mod' now measures
+                x    = time
+                size = V3 0.01 height 1
+
             setAttachmentOffset (position (V3 x 0 0))
 
             -- Scale in/out
-            let timeR    = duration - time
+            let timeR    = measures - time
                 scaleIn  = min time  0.2 * recip 0.2
                 scaleOut = min timeR 0.2 * recip 0.2
                 scale    = min 1 $ scaleIn * scaleOut
@@ -30,6 +34,7 @@ start = do
             setSize (realToFrac scale * size)
             return ()
         myCollisionBegan ==> \hitEntityID _ ->
+            -- Ignore hitting our own code-slab
             when (hitEntityID /= thisID) $ do
               flashColor <- getEntityColor hitEntityID
               animateColor flashColor (V4 1 1 1 1) 0.2
@@ -39,8 +44,8 @@ start = do
     spawnChild $ do
         myShape ==> Cube
         myUpdate ==> do
-            duration <- succ <$> readKnob durationKnob
-            setPose (position (V3 (duration / 2) 0 0))
-            setSize (V3 duration 0.01 0.01)
+            beats <- succ <$> readKnob beatsKnob
+            setPose (position (V3 (beats / 2) 0 0))
+            setSize (V3 beats 0.01 0.01)
 
     return ()

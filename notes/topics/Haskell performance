@@ -1,0 +1,4 @@
+Haskell performance
+
+A fun experiment in embedding c-like structs to look at:
+https://github.com/ekmett/structs

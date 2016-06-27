@@ -12,7 +12,7 @@ notesPerMeter = 24
 start :: Start
 start = do
     setBody Animated
-    setSize (V3 0.2 (1/24) 0.3)
+    setSize (V3 (1/4) (1/24) (1/4))
 
     setState (0::Int)
 
@@ -49,7 +49,15 @@ start = do
             animateColor fromColor toColor 0.2
 
     myDragContinues ==> \_ -> updateNote True
+
+    -- Quantize note position on release
+    myDragEnded ==> do
+        V3 x y z <- getPosition
+        let quantPos = V3 (quantize x (1/4)) (quantize y (1/24)) quantize z (1/4))
+        animatePositionTo quantize 0.3
     myCodeHidden ==> True
+
+quantize n quant = undefined
 
 spawnBall :: EntityMonad ()
 spawnBall = do
