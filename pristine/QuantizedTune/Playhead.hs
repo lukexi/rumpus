@@ -61,8 +61,21 @@ start = do
 
     return ()
 
-quantize n quant = undefined
+quantizeToF q x =
+    let (quotient, remainder) = x `quotRemF` q
+    in quotient * q + (round (remainder / q) * q)
 
+quantizeToI q x =
+    let (quotient, remainder) = x `quotRem` q
+    in quotient * q + (round (remainder // q) * q)
+
+
+quotRemF x y = (quotient, remainder)
+    where
+        quotient  = floor (x / y)
+        remainder = x - y * fromIntegral quotient
+
+x // y = fromIntegral x / fromIntegral y
 
 -- 1 GL Unit == 4 beats
 -- 1 beat == 60/bpm seconds
