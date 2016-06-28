@@ -91,3 +91,11 @@ animatePositionTo toPosition time = do
     currentPosition <- getPosition
     animation <- makeAnimation time currentPosition toPosition
     myPositionAnimation ==> animation
+
+
+animateRotationTo :: (MonadIO m, MonadState ECS m, MonadReader EntityID m)
+                  => Quaternion GLfloat -> DiffTime -> m ()
+animateRotationTo toRotation time = do
+    currentRotation <- getRotation
+    animation <- makeAnimation time currentRotation toRotation
+    myRotationAnimation ==> animation

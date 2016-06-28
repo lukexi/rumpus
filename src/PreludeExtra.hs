@@ -42,7 +42,7 @@ import Control.Lens.Extra as Exports hiding (List, (<.>), children)
 import Linear.Extra as Exports hiding (trace)
 
 import Graphics.GL.Pal as Exports hiding (trace, getNow, ColorSpace(..)) -- using a faster getNow in Types
-import Graphics.VR.Pal as Exports hiding (getNow, Key)
+import Graphics.VR.Pal as Exports hiding (getNow, getDeltaTime, Key)
 import Animation.Pal   as Exports hiding (getNow, exhaustTChan)
 
 import Data.ECS as Exports

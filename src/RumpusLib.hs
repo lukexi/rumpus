@@ -54,3 +54,21 @@ findNextNumberedName name inList =
         existingNumbers = catMaybes $ map (readMaybe . drop (length name)) newObjects :: [Int]
         highest = if null existingNumbers then 0 else maximum existingNumbers
     in name ++ show (succ highest)
+
+
+-- Quantization
+quantizeToF q x =
+    let (quotient, remainder) = x `quotRemF` q
+    in fromIntegral quotient * q + ((fromIntegral $ round (remainder / q)) * q)
+
+quantizeToI q x =
+    let (quotient, remainder) = x `quotRem` q
+    in quotient * q + (round (remainder // q) * q)
+
+
+quotRemF x y = (quotient, remainder)
+    where
+        quotient  = floor (x / y)
+        remainder = x - y * fromIntegral quotient
+
+x // y = fromIntegral x / fromIntegral y

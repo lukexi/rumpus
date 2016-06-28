@@ -160,6 +160,15 @@ getEntityPose entityID = fromMaybe identity <$> getEntityComponent entityID myPo
 getEntityPosition :: MonadState ECS m => EntityID -> m (V3 GLfloat)
 getEntityPosition entityID = view translation <$> getEntityPose entityID
 
+getEntityRotation :: MonadState ECS m => EntityID -> m (Quaternion GLfloat)
+getEntityRotation entityID = quaternionFromMatrix <$> getEntityPose entityID
+
+getRotation :: (MonadReader EntityID m, MonadState ECS m) => m (Quaternion GLfloat)
+getRotation = getEntityRotation =<< ask
+
+getRotationEuler :: (MonadReader EntityID m, MonadState ECS m) => m (V3 GLfloat)
+getRotationEuler = quatToEuler <$> getRotation
+
 getPosition :: (MonadReader EntityID m, MonadState ECS m) => m (V3 GLfloat)
 getPosition = getEntityPosition =<< ask
 

@@ -21,6 +21,11 @@ getNow = do
     vrPal <- viewSystem sysControls ctsVRPal
     realToFrac . utctDayTime <$> VRPal.getNow vrPal
 
+getDeltaTime :: (Fractional a, MonadState ECS m, MonadIO m) => m a
+getDeltaTime = do
+    vrPal <- viewSystem sysControls ctsVRPal
+    realToFrac <$> VRPal.getDeltaTime vrPal
+
 getVRPal :: MonadState ECS m => m VRPal
 getVRPal = viewSystem sysControls ctsVRPal
 
@@ -49,7 +54,7 @@ initControlsSystem vrPal = do
         { _ctsVRPal = vrPal
         , _ctsPlayer = if gpRoomScale vrPal == RoomScale
                         then identity
-                        else mkTransformation (axisAngle (V3 0 1 0) pi) (V3 0 1 0)
+                        else mkTransformation (axisAngle (V3 0 1 0) 0) (V3 0 1 0)
         , _ctsEvents = []
         , _ctsHeadPose = identity
         , _ctsInternalEvents = internalEvents

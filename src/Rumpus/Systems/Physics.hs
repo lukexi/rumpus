@@ -119,8 +119,7 @@ updateRigidBodyWithBodyType rigidBody bodyType = do
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
     dynamicsWorld <- getDynamicsWorld
-    vrPal         <- viewSystem sysControls ctsVRPal
-    dt            <- getDeltaTime vrPal
+    dt            <- getDeltaTime
     stepSimulationSimple dynamicsWorld dt
 
 -- | Copy poses from Bullet's DynamicsWorld into our own myPose components
@@ -274,6 +273,9 @@ setRotationQ :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => Quatern
 setRotationQ rotQuat = do
     pose <- getPose
     setPose $ mkTransformation rotQuat (pose ^. translation)
+
+setRotationEuler :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
+setRotationEuler = setRotationQ . eulerToQuat
 
 getEntityBody :: (MonadState s m, HasComponents s) => EntityID -> m (Maybe BodyType)
 getEntityBody entityID = getEntityComponent entityID myBody

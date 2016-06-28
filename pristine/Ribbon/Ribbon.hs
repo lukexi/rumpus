@@ -3,7 +3,8 @@ import Rumpus
 
 start :: Start
 start = do
-    totSpeedKnob <- addKnob "Total Speed" (Linear 0 5) 1
+    parentID <- ask
+    addActiveKnob "Total Speed" (Linear -5 5) 1 setClockSpeed
     rotSpeedKnob <- addKnob "Rot Speed" (Linear 0 5) 1
     yScaleKnob   <- addKnob "YScale"   (Linear 0 10) 1
     zScaleKnob   <- addKnob "ZScale"   (Linear 0.1 10) 1
@@ -11,12 +12,11 @@ start = do
         myShape         ==> Cube
         myTransformType ==> AbsolutePose
         myUpdate        ==> do
-            now <- getNow
-            totSpeed  <- readKnob totSpeedKnob
-            rotSpeed <- readKnob rotSpeedKnob
-            yScale <- readKnob yScaleKnob
-            zScale <- readKnob zScaleKnob
-            let n = now * totSpeed + (i * 0.05)
+            now       <- getEntityClockTime parentID
+            rotSpeed  <- readKnob rotSpeedKnob
+            yScale    <- readKnob yScaleKnob
+            zScale    <- readKnob zScaleKnob
+            let n = now + (i * 0.05)
                 y = yScale * sin n
                 x = cos n * 5
             setPositionRotationSize

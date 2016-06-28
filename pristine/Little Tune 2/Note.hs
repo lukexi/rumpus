@@ -12,7 +12,7 @@ notesPerMeter = 24
 start :: Start
 start = do
     setBody Animated
-    setSize (V3 0.2 (1/24) 0.3)
+    setSize (V3 (1/4) (1/24) (1/4))
 
     setState (0::Int)
 
