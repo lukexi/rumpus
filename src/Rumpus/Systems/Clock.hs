@@ -48,6 +48,9 @@ setClockSpeed speed = do
         Just clock -> myClock ==> clock { clkSpeed = speed }
         Nothing    -> myClock ==> Clock 0 speed
 
+getEntityClockTime :: (MonadState ECS m) => EntityID -> m GLfloat
+getEntityClockTime entityID = inEntity entityID getClockTime
+
 getClockTime :: (MonadState ECS m, MonadReader EntityID m) => m GLfloat
 getClockTime = do
     mClock <- getComponent myClock

@@ -27,7 +27,7 @@ IDEAS:
     Surround with huge white room
 
 
-[ ] Clock system that advances per-object according to a timestep,
+[x] Clock system that advances per-object according to a timestep,
     for use in speed-changing ribbon and solar system. Can go backwards too!
 
 FINAL SCENE:
