@@ -58,10 +58,12 @@ start = do
                 (quantizeToF (1/4)  z)
         animatePositionTo quantPos 0.3
 
-        -- Quantize to 90-degree (45? 30?) angles
-        --rotation <- getRotation
-        --let quantRot = quantRot rotation
-        --animateRotationTo quantRot 0.3
+        V3 x y z <- getRotationEuler
+        let quantRot = eulerToQuat $ V3
+                (quantizeToF (pi/4) x)
+                (quantizeToF (pi/4) y)
+                (quantizeToF (pi/4) z)
+        animateRotationTo quantRot 0.3
 
     return ()
 

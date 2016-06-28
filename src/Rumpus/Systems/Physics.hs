@@ -274,6 +274,9 @@ setRotationQ rotQuat = do
     pose <- getPose
     setPose $ mkTransformation rotQuat (pose ^. translation)
 
+setRotationEuler :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
+setRotationEuler = setRotationQ . eulerToQuat
+
 getEntityBody :: (MonadState s m, HasComponents s) => EntityID -> m (Maybe BodyType)
 getEntityBody entityID = getEntityComponent entityID myBody
 
