@@ -119,8 +119,7 @@ updateRigidBodyWithBodyType rigidBody bodyType = do
 tickPhysicsSystem :: (MonadIO m, MonadState ECS m) => m ()
 tickPhysicsSystem = whenWorldPlaying $ do
     dynamicsWorld <- getDynamicsWorld
-    vrPal         <- viewSystem sysControls ctsVRPal
-    dt            <- getDeltaTime vrPal
+    dt            <- getDeltaTime
     stepSimulationSimple dynamicsWorld dt
 
 -- | Copy poses from Bullet's DynamicsWorld into our own myPose components

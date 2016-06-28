@@ -2,3 +2,6 @@ Haskell performance
 
 A fun experiment in embedding c-like structs to look at:
 https://github.com/ekmett/structs
+
+Using Ints as bitsets, and other fine performance tricks
+https://github.com/Gabriel439/slides/blob/master/regex/regex.md

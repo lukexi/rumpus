@@ -11,12 +11,12 @@ start = do
         myShape         ==> Cube
         myTransformType ==> AbsolutePose
         myUpdate        ==> do
-            now <- getNow
-            totSpeed  <- readKnob totSpeedKnob
-            rotSpeed <- readKnob rotSpeedKnob
-            yScale <- readKnob yScaleKnob
-            zScale <- readKnob zScaleKnob
-            let n = now * totSpeed + (i * 0.05)
+            setClockSpeed =<< readKnob totSpeedKnob
+            now <- getClockTime
+            rotSpeed  <- readKnob rotSpeedKnob
+            yScale    <- readKnob yScaleKnob
+            zScale    <- readKnob zScaleKnob
+            let n = now + (i * 0.05)
                 y = yScale * sin n
                 x = cos n * 5
             setPositionRotationSize
