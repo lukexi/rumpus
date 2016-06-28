@@ -1,6 +1,8 @@
 module Orrery where
 import Rumpus
 
+-- By roto
+
 spawnPlanetOf parentID rateKnob radius hue orbitRadius orbitRate = spawnChildOf parentID $ do
     myShape            ==> Sphere
     mySize             ==> radius

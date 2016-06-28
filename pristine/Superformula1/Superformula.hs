@@ -5,6 +5,7 @@ start :: Start
 start = do
     let n = 50
 
+    -- 2D vis
     --let aSuperformula = superformulaPolar 1 1 3 5 18 18
     --spawnChildren (floats01 n) $ \i -> do
     --    let theta = remap (-pi) pi i
@@ -14,8 +15,9 @@ start = do
     --    mySize  ==> 0.01
     --    myPose  ==> position (V3 x y -0.5)
 
-    let threeD = [(remap (-pi) pi theta, remap (-pi/2) (pi/2) phi)
-                    | theta <- floats01 n, phi <- floats01 n]
+    let threeD = [(theta, phi)
+                    | theta <- floats (-pi, pi) n
+                    , phi   <- floats (-pi/2, pi/2) n]
     spawnChildren threeD $ \(theta, phi) -> do
         let pos = sphereSuperformula theta phi
                 1 1 3 5 18 18
@@ -37,6 +39,8 @@ remap low hi n = low + range * n
     where range = (hi - low)
 
 floats01 n = [ fromIntegral i / fromIntegral n | i <- [0..n] ]
+
+floats (low, hi) n = remap low hi <$> floats01 n
 
 polarToCartesian r theta = V2 (r * cos theta) (r * sin theta)
 
