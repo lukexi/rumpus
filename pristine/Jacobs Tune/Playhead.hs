@@ -4,7 +4,7 @@ import Rumpus
 
 start :: Start
 start = do
-    beatsKnob    <- addKnob "Beats"    (Stepped (map show [1..64])) 3
+    beatsKnob    <- addKnob "Beats"    (Stepped (map show [1..64])) 4
     tempoKnob    <- addKnob "Tempo"    (Linear 80 120) 120
     heightKnob   <- addKnob "Height"   (Linear 1 4) 1
 
@@ -54,9 +54,9 @@ start = do
     myDragEnded ==> do
         V3 x y z <- getPosition
         let quantPos = V3
-                (quantizeToF (1/8)  x)
+                (quantizeToF (1/4)  x)
                 (quantizeToF (1/24) y)
-                (quantizeToF (1/8)  z)
+                (quantizeToF (1/4)  z)
         animatePositionTo quantPos 0.3
 
         V3 x y z <- getRotationEuler

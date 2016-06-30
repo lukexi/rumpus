@@ -85,6 +85,7 @@ deriveRigidBody dynamicsWorld = do
                 _        -> getComponentDefault 1 myMass
             collisionGroup <- getComponentDefault 1 myCollisionGroup
             collisionMask  <- getComponentDefault 1 myCollisionMask
+            restitution    <- getComponentDefault 0.5 myRestitution
             size <- getSize
             poseM44 <- getPose
             let pose = poseFromMatrix poseM44
@@ -95,6 +96,7 @@ deriveRigidBody dynamicsWorld = do
                                   , rbMass           = mass
                                   , rbCollisionGroup = collisionGroup
                                   , rbCollisionMask  = collisionMask
+                                  , rbRestitution    = restitution
                                   }
             shape     <- createShapeCollider shapeType size
             rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo

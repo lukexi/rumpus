@@ -1,6 +1,7 @@
 module Attraction where
 import Rumpus
 
+
 start :: Start
 start = do
 
