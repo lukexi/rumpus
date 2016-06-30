@@ -61,7 +61,7 @@ Have your friend do the same.
 Launch Rumpus, and everything you do will now be synchronized to your
 friend's computer. Creating, moving, and deleting objects, creating scenes,
 and editing code will all be synced - usually within 100ms or less. This
-should theoretically work with any number of players (provided you try not
+should work with any number of players (provided you try not
 to step on each others toes by e.g. editing the same file simultaneously),
 and since it's just a Dropbox folder, it doesn't matter if everyone
 is "online" when you're working; changes will be synced regardless and

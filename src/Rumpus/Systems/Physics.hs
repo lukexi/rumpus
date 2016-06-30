@@ -33,6 +33,7 @@ defineSystemKey ''PhysicsSystem
 
 defineComponentKeyWithType "Body"            [t|BodyType|]
 defineComponentKeyWithType "Mass"            [t|GLfloat|]
+-- Restitution is 0-1, see https://www.youtube.com/watch?v=fn_xanuLJiE
 defineComponentKeyWithType "Restitution"     [t|GLfloat|]
 defineComponentKeyWithType "Friction"        [t|GLfloat|]
 defineComponentKeyWithType "RollingFriction" [t|GLfloat|]

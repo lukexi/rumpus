@@ -35,6 +35,10 @@ DONE
 
 REMAINING
 
+[ ] Fix divide by zero in turning Playhead beats all the way down
+
+[ ] Weirdness in microphone timing; possibly due to mismatch of samplerate?
+
 [u] Add 10foot hand controls explanation to Home
     "Open Object Library"
     "Press Import to copy objects from other scenes"
