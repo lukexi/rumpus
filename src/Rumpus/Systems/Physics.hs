@@ -31,12 +31,16 @@ type BodyFlags = [BodyFlag]
 
 defineSystemKey ''PhysicsSystem
 
-defineComponentKeyWithType "Body"           [t|BodyType|]
-defineComponentKeyWithType "Mass"           [t|GLfloat|]
-defineComponentKeyWithType "Restitution"    [t|GLfloat|]
-defineComponentKeyWithType "Gravity"        [t|V3 GLfloat|]
-defineComponentKeyWithType "CollisionGroup" [t|CShort|]
-defineComponentKeyWithType "CollisionMask"  [t|CShort|]
+defineComponentKeyWithType "Body"            [t|BodyType|]
+defineComponentKeyWithType "Mass"            [t|GLfloat|]
+defineComponentKeyWithType "Restitution"     [t|GLfloat|]
+defineComponentKeyWithType "Friction"        [t|GLfloat|]
+defineComponentKeyWithType "RollingFriction" [t|GLfloat|]
+defineComponentKeyWithType "LinearDamping"   [t|GLfloat|]
+defineComponentKeyWithType "AngularDamping"  [t|GLfloat|]
+defineComponentKeyWithType "Gravity"         [t|V3 GLfloat|]
+defineComponentKeyWithType "CollisionGroup"  [t|CShort|]
+defineComponentKeyWithType "CollisionMask"   [t|CShort|]
 defineComponentKey ''RigidBody
 defineComponentKey ''SpringConstraint
 defineComponentKey ''BodyFlags
@@ -83,20 +87,28 @@ deriveRigidBody dynamicsWorld = do
             mass           <- case bodyType of
                 Animated -> return 0
                 _        -> getComponentDefault 1 myMass
-            collisionGroup <- getComponentDefault 1 myCollisionGroup
-            collisionMask  <- getComponentDefault 1 myCollisionMask
-            restitution    <- getComponentDefault 0.5 myRestitution
+            collisionGroup  <- getComponentDefault 1   myCollisionGroup
+            collisionMask   <- getComponentDefault 1   myCollisionMask
+            restitution     <- getComponentDefault 0.5 myRestitution
+            linearDamping   <- getComponentDefault 0   myLinearDamping
+            angularDamping  <- getComponentDefault 0   myAngularDamping
+            friction        <- getComponentDefault 0   myFriction
+            rollingFriction <- getComponentDefault 0   myRollingFriction
             size <- getSize
             poseM44 <- getPose
             let pose = poseFromMatrix poseM44
 
             collisionID <- CollisionObjectID <$> ask
-            let bodyInfo = mempty { rbPosition       = pose ^. posPosition
-                                  , rbRotation       = pose ^. posOrientation
-                                  , rbMass           = mass
-                                  , rbCollisionGroup = collisionGroup
-                                  , rbCollisionMask  = collisionMask
-                                  , rbRestitution    = restitution
+            let bodyInfo = mempty { rbPosition        = pose ^. posPosition
+                                  , rbRotation        = pose ^. posOrientation
+                                  , rbMass            = mass
+                                  , rbCollisionGroup  = collisionGroup
+                                  , rbCollisionMask   = collisionMask
+                                  , rbRestitution     = restitution
+                                  , rbLinearDamping   = linearDamping
+                                  , rbAngularDamping  = angularDamping
+                                  , rbFriction        = friction
+                                  , rbRollingFriction = rollingFriction
                                   }
             shape     <- createShapeCollider shapeType size
             rigidBody <- addRigidBody dynamicsWorld collisionID shape bodyInfo

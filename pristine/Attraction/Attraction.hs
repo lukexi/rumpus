@@ -5,12 +5,14 @@ import Rumpus
 start :: Start
 start = do
 
-    xKnob <- addKnob "CenterX" (Linear -10 10) 0
-    yKnob <- addKnob "CenterY" (Linear -10 10) 0
-    zKnob <- addKnob "CenterZ" (Linear -10 10) 0
+    xKnob        <- addKnob "CenterX" (Linear -10 10) 0
+    yKnob        <- addKnob "CenterY" (Linear -10 10) 0
+    zKnob        <- addKnob "CenterZ" (Linear -10 10) 0
     strengthKnob <- addKnob "Strength" (Linear 0 1) 0.1
     bodies <- forM [0..100] $ \_ -> spawnChild $ do
         myGravity ==> 0
+        myLinearDamping ==> 1
+        myAngularDamping ==> 1
         myBody ==> Physical
         myShape ==> Cube
         mySize  ==> 0.25

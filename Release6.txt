@@ -65,6 +65,12 @@ REMAINING
     stars won't be continually recalculating their positions
 
 MAYBE
+[ ] Add object that lists all possible properties and their types.
+    Look at wldComponentLibrary.
+    Can have wldComponentLibrary write the type name in too using Dynamic.
+    Should hide internal components;
+    different prefix: myInternalFoo, _myFoo, my_Foo or the like
+    (my_Foo is easy and nice!)
 
 [ ] Obvious UI for changing scene now that we have door plaques;
     click the plaque.

@@ -40,6 +40,7 @@ start = do
         myDragBegan  ==> do
             hue <- randomRange (0,1)
             setColor $ colorHSL hue 0.8 0.4
+            animateColorTo (colorHSL 1 1 1) 1
             sendEntitySynth mainID "begin-recording" Bang
 
     attachEntity button (position $ V3 0 0.5 0)
