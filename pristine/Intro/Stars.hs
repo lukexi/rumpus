@@ -29,8 +29,8 @@ start = do
         myStart         ==> do
             setDelayedAction (fromIntegral i * 0.05) $
                 setSize 5
-        --myUpdate ==> do
-        --    now <- (fromIntegral i +) <$> getNow
-        --    let offset = V3 (sin now * 50) 0 0
-        --    setColor (colorHSL (now*0.5) 0.8 0.5)
-        --    setPosition (offset + pos * 500)
+--        myUpdate ==> do
+--            now <- (fromIntegral i +) <$> getNow
+--            let offset = V3 (sin now * 50) 0 0
+--            setColor (colorHSL (now*0.5) 0.8 0.5)
+--            setPosition (offset + pos * 500)
