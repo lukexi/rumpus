@@ -1,7 +1,6 @@
 module Attraction where
 import Rumpus
 
-
 start :: Start
 start = do
 
@@ -9,13 +8,13 @@ start = do
     yKnob        <- addKnob "CenterY" (Linear -10 10) 0
     zKnob        <- addKnob "CenterZ" (Linear -10 10) 0
     strengthKnob <- addKnob "Strength" (Linear 0 1) 0.1
-    bodies <- forM [0..100] $ \_ -> spawnChild $ do
+    bodies <- forM [0..250] $ \_ -> spawnChild $ do
         myGravity ==> 0
-        myLinearDamping ==> 1
-        myAngularDamping ==> 1
+        myLinearDamping ==> 10
+        myAngularDamping ==> 10
         myBody ==> Physical
         myShape ==> Cube
-        mySize  ==> 0.25
+        mySize  ==> 0.4
 
     let target = V3 0 1 0
     myUpdate ==> do

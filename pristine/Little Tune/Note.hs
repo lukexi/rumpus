@@ -36,7 +36,7 @@ start = do
     myCollisionBegan ==> \hitEntityID _ -> do
         shape <- getEntityComponentDefault Cube hitEntityID myShape
         when (shape /= Sphere) $ do
-            --spawnBall
+--            spawnBall
             note <- getState (0::Int)
             acquirePolyPatch "Note.pd"
             sendSynth "note" (fromIntegral note)
@@ -65,6 +65,8 @@ start = do
                 (quantizeToF (pi/4) y)
                 (quantizeToF (pi/4) z)
         animateRotationTo quantRot 0.3
+        -- Save quantized position
+        setDelayedAction 0.3 (sceneWatcherSaveEntity =<< ask)
 
     myCodeHidden ==> True
 

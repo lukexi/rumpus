@@ -4,8 +4,8 @@ import Rumpus
 
 start :: Start
 start = do
-    beatsKnob    <- addKnob "Beats"    (Stepped (map show [1..64])) 3
-    tempoKnob    <- addKnob "Tempo"    (Linear 80 120) 120
+    beatsKnob    <- addKnob "Beats"    (Stepped (map show [1..64])) 7
+    tempoKnob    <- addKnob "Tempo"    (Linear 80 120) 100
     heightKnob   <- addKnob "Height"   (Linear 1 4) 1
 
     thisID <- ask
@@ -65,6 +65,8 @@ start = do
                 (quantizeToF (pi/4) y)
                 (quantizeToF (pi/4) z)
         animateRotationTo quantRot 0.3
+        -- Save quantized position
+        setDelayedAction 0.3 (sceneWatcherSaveEntity =<< ask)
 
     return ()
 

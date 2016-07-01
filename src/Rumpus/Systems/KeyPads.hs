@@ -41,6 +41,7 @@ data HandKey = HandKeyChar Char
              | HandKeyPaste
              | HandKeyMoveLineUp
              | HandKeyMoveLineDown
+             | HandKeyToggleComment
              | HandKeyIndent
              | HandKeyUnIndent
              | HandKeyUp
@@ -67,6 +68,7 @@ keyCapWidth HandKeyCopy           = 1.5
 keyCapWidth HandKeyPaste          = 1.6
 keyCapWidth HandKeyMoveLineUp     = 1.4
 keyCapWidth HandKeyMoveLineDown   = 1.4
+keyCapWidth HandKeyToggleComment  = 1.4
 keyCapWidth HandKeyIndent         = 1.6
 keyCapWidth HandKeyUnIndent       = 1.6
 keyCapWidth HandKeyUp             = 8
@@ -95,6 +97,7 @@ showKey _ HandKeyMoveLineUp             = "L^^"
 showKey _ HandKeyMoveLineDown           = "Lvv"
 showKey _ HandKeyIndent                 = "L>>"
 showKey _ HandKeyUnIndent               = "L<<"
+showKey _ HandKeyToggleComment          = "--"
 showKey _ HandKeyUp                     = "^"
 showKey _ HandKeyDown                   = "v"
 showKey _ HandKeyLeft                   = "<"
@@ -112,6 +115,7 @@ keyToEvent shift HandKeyLeft               = Just (toPressedKey shift False Key'
 keyToEvent shift HandKeyRight              = Just (toPressedKey shift False Key'Right)
 keyToEvent shift HandKeyIndent             = Just (toPressedKey shift True  Key'RightBracket)
 keyToEvent shift HandKeyUnIndent           = Just (toPressedKey shift True  Key'LeftBracket)
+keyToEvent shift HandKeyToggleComment      = Just (toPressedKey shift True  Key'Slash)
 keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True  True  Key'Up)
 keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True  True  Key'Down)
 keyToEvent _     HandKeyCut                = Just (toPressedKey False True  Key'X)
@@ -155,7 +159,7 @@ leftHandKeys =
 rightHandKeys :: [[HandKey]]
 rightHandKeys =
     [ [HandKeyUp]
-    , [HandKeyMoveLineUp, HandKeyMoveLineDown, HandKeyCut, HandKeyCopy, HandKeyPaste]
+    , [HandKeyToggleComment, HandKeyCut, HandKeyCopy, HandKeyPaste]
     , cs "7890-="   ++ [HandKeyBackspace]
     , cs "yuiop[]\\"
     , cs "hjkl;'"   ++ [HandKeyEnter]

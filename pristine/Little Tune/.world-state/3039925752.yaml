@@ -1,0 +1,33 @@
+Size:
+- 0.4
+- 0.4
+- 0.1
+Color:
+- 0.1
+- 0.1
+- 0.1
+- 1
+Body: Animated
+Pose:
+- - -1
+  - 0.0
+  - 0.0
+  - -4.75
+- - 0.0
+  - 1
+  - 0.0
+  - 2.5000002
+- - 0.0
+  - 0.0
+  - -1
+  - 9.875
+- - 0.0
+  - 0.0
+  - 0.0
+  - 1
+Shape: Cube
+KnobValues:
+  Height: 0.25229707
+StartCodeFile:
+- Playhead.hs
+- start

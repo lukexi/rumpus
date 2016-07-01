@@ -4,7 +4,7 @@ import Rumpus
 
 start :: Start
 start = do
-    let n = 50
+    let n = 15
 
     -- 2D vis
     --let aSuperformula = superformulaPolar 1 1 3 5 18 18
@@ -22,13 +22,20 @@ start = do
     spawnChildren threeD $ \(theta, phi) -> do
         let pos = sphereSuperformula theta phi
                 1 1 3 5 18 18
-                1 2 2.53 0.8 18 13
+                1 1 3 5 18 18
         --printIO pos
-        myShape ==> Cube
-
-        mySize  ==> 0.05
-        myPose  ==> position (pos *0.1+ V3 0 1 0)
+        myShape ==> Sphere
+        myTransformType ==> AbsolutePose
+        mySize  ==> 0.1
+        myPose  ==> position (pos * 0.2 + V3 0 5 0)
         myColor ==> colorHSL (phi+theta) 0.5 0.5
+        myUpdate ==> do
+            now <- getNow
+            setColor (colorHSL (phi*now + theta * now) 0.5 0.5)
+            setPosition $ (+ (V3 0 0 0)) . (*5) $ 
+                sphereSuperformula (theta+now) (phi * now)
+                1 1 3 5 18 18
+                1 1 3 5 18 18
 
     return ()
 

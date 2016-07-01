@@ -1,9 +1,9 @@
 module Telecaster where
 import Rumpus
 
-text = [ "Welcome to Rumpus"
-       , "A Live-Coding Environment"
-       , "For Room-Scale VR"
+text = [ ""
+       , ""
+       , ""
        ]
 
 start :: Start

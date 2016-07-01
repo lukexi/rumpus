@@ -13,7 +13,7 @@ start = do
     myDragContinues ==> \_ -> withState $ \(lastPosition, blots) -> do
         newPose <- getPose
         let newPosition = newPose ^. translation
-        when (distance lastPosition newPosition > 0.05) $ do
+        when (distance lastPosition newPosition > 0.1) $ do
             let (newBlots, oldBlots) = Seq.splitAt maxBlots blots
             forM_ oldBlots removeEntity
 

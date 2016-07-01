@@ -19,9 +19,8 @@ start = do
 
     -- Platforms
     platform (V3 0     0  0)     (V3 w d w) 0.1
-    platform (V3 (-5') 0  0)     (V3 w d w) 0.1
+    platform (V3 (-10) 0  0)     (V3 w d w) 0.1
     platform (V3 (10)  0  0)     (V3 w d w) 0.1
     platform (V3 0     0  (-10)) (V3 w d w) 0.1
     platform (V3 0     0  (10))  (V3 w d w) 0.1
     platform (V3 0     10 (-20)) (V3 w d w) 0.5
-
