@@ -8,4 +8,5 @@ Steam Release:
 http://store.steampowered.com/app/458200
 
 [Getting Started](GettingStarted.md)
+
 [Rumpus Programming Guide](RumpusProgrammingGuide.md)
