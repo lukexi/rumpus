@@ -1,5 +1,7 @@
 # RUMPUS PROGRAMMING GUIDE
 
+### Intro
+
 Rumpus is a game engine, a code editor and a compiler
 (with bindings to _Bullet Physics_ for physics, and _Pure Data_ for DSP).
 In this initial alpha, objects are programmed using pure Haskell
@@ -10,7 +12,6 @@ and is in no way a good piece of design in the snapshot you're using.
 And again with the counter-caveats: you can do a lot with it
 regardless - just be ready to rewrite some or all of it as Rumpus evolves : ).
 
-***
 ### Creating your first object
 Hold the "App Button" on your Vive controller (just above the touchpad)
 to bring out the **Object Bouquet**. Look for the light-colored slab that
@@ -37,12 +38,11 @@ of VR and edit Rumpus code in your favorite text editor - you'll still get all
 the convenience of Rumpus's live-reloading system every time you save the file.
 Or, try a hybrid using SteamVR's Desktop mode!
 You'll find the file you're editing in
-`My Documents/Rumpus/0.#.#/MyScene/MyObjectX.hs`.
+`My Documents/Rumpus/#.#.#/MyScene/MyObjectX.hs`.
 
 > Change the name at the top of the file (after module) to rename the object
 and its associated .hs file.
 
-***
 ### Start
 
 The `start` function is called once whenever a new instance of your
@@ -73,8 +73,7 @@ performing tasks like Rendering, Physics, and Sound.
 In the current version, Systems are "behind the scenes",
 but you'll eventually be able to modify and build them too.
 
-***
-# Creating Entities
+### Creating Entities
 
 You can create entities in two ways: by grabbing them out of
 the Object Bouquet, or by creating them programmatically.
@@ -101,8 +100,7 @@ changed `start` function can take their place - usually so quickly
 that you won't notice.
 By default, child objects will be positioned relative to their parents.
 
-***
-# GIVING LIFE
+### Giving Life
 
 You can give life to our entity in a variety of ways.
 The swiss-army knife of vivification is the `myUpdate` component;
@@ -123,7 +121,7 @@ start = do
 `myUpdate` is called each frame (90hz in the Vive) and can thus
 be used to animate your object in whatever way you want.
 
-***
+### Multiple Children
 
 You can call spawnChild as many times as you like.
 Let's create a field of dreams:
@@ -145,9 +143,7 @@ start = do
                 setColor (colorHSL (sin (t2/2)) 0.7 0.7)
 ```
 
-***
-
-### ADDING KNOBS
+### Adding Knobs
 You can parameterize your object by adding Knobs.
 To create a simple knob, call `createKnob` with a name and a range of values.
 Knobs will appear along the sides of the code slab.
@@ -179,9 +175,7 @@ start = do
 Knobs are cool because their values are saved as persistent state,
 which means they are also sent across in multiplayer.
 
-***
-
-### INTERACTION AND PHYSICS
+### Interaction and Physics
 To create your own interactive objects, your object must have
 a myBody component.
 
@@ -217,7 +211,7 @@ There are 3 kinds of physics body you can request in `myBody`:
     objects are intersecting it but passes through them like a ghost.
     This corresponds to "NoContactResponse" in Bullet Physics.
 
-***
+### Collisions
 
 To react when the object hits another object (including your hands),
 use the myCollisionBegan, myCollisionContinues, and myCollisionEnded
@@ -239,9 +233,8 @@ start = do
 Adding a physics body also makes myPose refer to absolute rather than
 relative coordinates.
 
-***
 
-### ATTACHMENT
+### Attachment
 You can attach physics bodies to one another with attachEntity like so:
 ```
 start :: Start
@@ -260,9 +253,7 @@ start = do
 The second argument to `attachEntity` is the pose offset at which
 the entity should be attached.
 
-***
-
-### DRAGGING
+### Dragging
 Entities with myBody set will receive myDragBegan, myDragContinues,
 and myDragEnded events when dragged by the hand controllers.
 You can use this to implement interactive objects.
@@ -285,9 +276,8 @@ start = do
             setColor (colorHSL x 0.8 0.8)
     attachEntity childID (position (V3 0 0.5 0))
 ```
-***
 
-### TELEPORTATION
+### Teleportation
 You can mark any physics object as "Teleportable" to
 allow yourself to teleport on top of it using the Grip (side)
 buttons on the Vive controller.
@@ -302,9 +292,7 @@ start = do
         myBodyFlags  ==> [Teleportable]
 ```
 
-***
-
-### SYNTHESIS
+### Synthesis
 Every entity in Rumpus can have a synthesizer attached to it.
 The sound will radiate from that entity's position in the world.
 
@@ -326,7 +314,7 @@ start = do
 The code slab will now play a random note from the major scale
 each time it is touched.
 
-***
+### Polyphonic Synth Patches
 
 This works well for long-running synthesis patches, but is inefficient
 for objects with many transient instances or sounds
@@ -348,15 +336,13 @@ start = do
 This will create a bank of 8 Note.pd instances,
 and assign them on demand to the most recent entity to call acquirePolyPatch.
 
-***
+### Animations
+Coming soon
 
-### ANIMATIONS
+### State
+Coming Soon
 
-### STATE
-You can keep local state of any type in your entity using the `myState`
-component.
-
-### ENTITYIDS, CONTEXTS, SETTERS, GETTERS
+### Entity IDs, Contexts, Setters, Getters
 
 Every `spawnEntity`/`spawnChild`/`spawnChildOf` call returns an `EntityID`.
 
@@ -383,10 +369,10 @@ when defining an object (i.e., within a spawnChild block),
 and `setFoo Bar` is used to modify an already existing
 object (e.g. in a `myUpdate` function).
 For cases where no side effects are needed (or wanted),
-==> can still be used.
+`==>` can still be used.
 
 This is a historical accident and will be fixed in a future version.
-(The reason they both exist: ==> is "side-effect free" and simply sets
+(The reason they both exist: `==>` is "side-effect free" and simply sets
 a component value directly, which is desirable when
 an object is being constructed, whereas the `set` functions trigger
 necessary side effects on existing objects,
