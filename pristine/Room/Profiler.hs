@@ -36,9 +36,6 @@ start = do
             myPose             ==> position (V3 0 y (-fromIntegral z*0.1))
         return (name, childIDs))
 
-    --removeComponent myUpdate
-    --setRepeatingAction (0.1) $ do
-    removeComponent myClockAction
     myUpdate ==> do
         sampleHistory <- getSampleHistory
         forM_ (Map.toList sampleHistory) $ \(name, toList -> values) -> do
