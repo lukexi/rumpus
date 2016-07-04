@@ -128,48 +128,49 @@ Let's create a field of dreams:
 ```
 start :: Start
 start = do
-    forM_ [0..100] $ \i -> do
-        let x = i `mod` 10
-            z = i `div` 10
+    forM_ [0..99] $ \i -> do
+        let x = (fromIntegral (i `mod` 10) - 5) * 0.1
+            z = (fromIntegral (i `div` 10) - 5) * 0.1
         spawnChild $ do
             myColor      ==> colorHSL 0.5 0.7 0.7
             myShape      ==> Sphere
             myPose       ==> position (V3 0 1 0)
-            mySize       ==> 0.1
+            mySize       ==> 0.05
             myUpdate     ==> do
                 t <- getNow
-                let t2 = t + i
-                setPosition (V3 x (sin t2) z)
+                let t2 = t + fromIntegral i
+                setPosition (V3 x (sin t2 * 0.05 + 0.5) (z - 0.5))
                 setColor (colorHSL (sin (t2/2)) 0.7 0.7)
 ```
 
 ### Adding Knobs
 You can parameterize your object by adding Knobs.
-To create a simple knob, call `createKnob` with a name and a range of values.
+To create a simple knob, call `addKnob` with a name, a range of values and an
+initial value.
 Knobs will appear along the sides of the code slab.
 You can read the value of the knob in your myUpdate function using readKnob.
 Change your start function to add speed and height knobs:
 ```
 start :: Start
 start = do
-    speedKnob  <- createKnob "Speed"  (0.1, 10)
-    heightKnob <- createKnob "Height" (0.1, 10)
+    hueKnob    <- addKnob "Hues"   (Linear 0.1 1) 1
+    heightKnob <- addKnob "Height" (Linear 0.1 10) 2
 
-    forM_ [0..100] $ \i -> do
-        let x = i `mod` 10
-            z = i `div` 10
+    forM_ [0..99] $ \i -> do
+        let x = (fromIntegral (i `mod` 10) - 5) * 0.1
+            z = (fromIntegral (i `div` 10) - 5) * 0.1
         spawnChild $ do
             myColor      ==> colorHSL 0.5 0.7 0.7
             myShape      ==> Sphere
             myPose       ==> position (V3 0 1 0)
-            mySize       ==> 0.1
+            mySize       ==> 0.05
             myUpdate     ==> do
-                speed  <- readKnob speedKnob
+                hues   <- readKnob hueKnob
                 height <- readKnob heightKnob
                 t <- getNow
-                let t2 = t * speed + i
-                setPosition (V3 x (sin t2 * height) z)
-                setColor (colorHSL (sin (t2/2)) 0.7 0.7)
+                let t2 = t + fromIntegral i
+                setPosition (V3 x (sin t2 * 0.05 * height + 0.5) (z - 0.5))
+                setColor (colorHSL (sin (t2/2) * hues) 0.7 0.7)
 ```
 
 Knobs are cool because their values are saved as persistent state,
