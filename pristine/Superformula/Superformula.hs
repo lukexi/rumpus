@@ -5,15 +5,10 @@ import Rumpus
 start :: Start
 start = do
     let n = 10
-    -- 2D vis
-    --let aSuperformula = superformulaPolar 1 1 3 5 18 18
-    --spawnChildren (floats01 n) $ \i -> do
-    --    let theta = remap (-pi) pi i
-    --        r     = aSuperformula theta
-    --        V2 x y = polarToCartesian (r*0.3) theta
-    --    myShape ==> Cube
-    --    mySize  ==> 0.01
-    --    myPose  ==> position (V3 x y -0.5)
+
+    -- Show the 2D superformula
+    -- visualize2D n
+
     let threeD = [(theta, phi)
                     | theta <- floats (-pi, pi) n
                     , phi   <- floats (-pi/2, pi/2) n]
@@ -38,19 +33,17 @@ start = do
 
     return ()
 
-
--- Build a morphing tunnel with this
+visualize2D n = do
+    let aSuperformula = superformulaPolar 1 1 3 5 18 18
+    spawnChildren (floats01 n) $ \i -> do
+        let theta = remap (-pi) pi i
+            r     = aSuperformula theta
+            V2 x y = polarToCartesian (r*0.3) theta
+        myShape ==> Cube
+        mySize  ==> 0.01
+        myPose  ==> position (V3 x y -0.5)
 
 -- https://en.wikipedia.org/wiki/Superformula
-
-remap low hi n = low + range * n
-    where range = (hi - low)
-
-floats01 n = [ fromIntegral i / fromIntegral n | i <- [0..n] ]
-
-floats (low, hi) n = remap low hi <$> floats01 n
-
-polarToCartesian r theta = V2 (r * cos theta) (r * sin theta)
 
 superformulaPolar a b m n1 n2 n3 phi =
     ( abs (cos (m * phi / 4) / a) ** n2

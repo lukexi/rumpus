@@ -12,7 +12,7 @@ start = do
         myColor      ==> colorHSL 0.5 0.7 0.7
         myShape      ==> Sphere
         myPose       ==> position (V3 0 1 0)
-        mySize       ==> 0.1
+        mySize       ==> 0.05
         myUpdate     ==> do
             t <- getNow
             setPosition (V3 0 (sin t * 0.1 + 0.5) 0)

@@ -27,12 +27,12 @@ Pose:
   - 1
 Shape: Cube
 KnobValues:
-  ZScale: 4.3327283e-2
+  ZScale: 8.058021e-2
   Total Speed: 0.51943356
-  Rot Speed: 0.79444474
+  Rot Speed: 0.7171185
   YScale: 0.117722146
   Speed: 3.2471407e-2
-  XScale: 0.54246134
+  XScale: 1.0755168e-2
   Bar: 0.75413084
 StartCodeFile:
 - Ribbon.hs

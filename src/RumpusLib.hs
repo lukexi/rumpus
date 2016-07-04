@@ -57,18 +57,34 @@ findNextNumberedName name inList =
 
 
 -- Quantization
+-- | Quantizes a float to the nearest multiple of q
 quantizeToF q x =
     let (quotient, remainder) = x `quotRemF` q
     in fromIntegral quotient * q + ((fromIntegral $ round (remainder / q)) * q)
 
+-- | Quantizes an integer to the nearest multiple of q
 quantizeToI q x =
     let (quotient, remainder) = x `quotRem` q
     in quotient * q + (round (remainder // q) * q)
 
-
+-- | A version of quotRem that works on Floats rather than Ints
 quotRemF x y = (quotient, remainder)
     where
         quotient  = floor (x / y)
         remainder = x - y * fromIntegral quotient
 
+-- | Divide two Integrals to get a Floating
 x // y = fromIntegral x / fromIntegral y
+
+-- | Remap a 0-1 n to the range low,high
+remap low hi n = low + range * n
+    where range = (hi - low)
+
+-- | Generate a linear progression of floats between 0.0-1.0
+floats01 n = [ fromIntegral i / fromIntegral n | i <- [0..n] ]
+
+-- | Generate a linear progression of floats between low and hi
+floats (low, hi) n = remap low hi <$> floats01 n
+
+-- | Converts polar to cartesian coordinates
+polarToCartesian r theta = V2 (r * cos theta) (r * sin theta)

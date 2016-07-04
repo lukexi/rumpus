@@ -27,7 +27,7 @@ Pose:
   - 1
 Shape: Cube
 KnobValues:
-  Orbit Rate: 0.10642457
+  Orbit Rate: 7.6524734e-2
 StartCodeFile:
 - Orrery.hs
 - start

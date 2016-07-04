@@ -1,4 +1,4 @@
-module Paint where
+module PersistentPaint where
 import Rumpus
 import qualified Data.Sequence as Seq
 

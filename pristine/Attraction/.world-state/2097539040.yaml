@@ -28,7 +28,7 @@ Pose:
 Shape: Cube
 KnobValues:
   CenterY: 0.5641976
-  Strength: 5.754225e-3
+  Strength: 5.1983673e-2
   CenterX: 0.49926183
   CenterZ: 0.19515261
 StartCodeFile:

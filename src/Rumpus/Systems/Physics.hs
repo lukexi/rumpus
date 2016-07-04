@@ -91,10 +91,10 @@ deriveRigidBody dynamicsWorld = do
             collisionGroup  <- getComponentDefault 1   myCollisionGroup
             collisionMask   <- getComponentDefault 1   myCollisionMask
             restitution     <- getComponentDefault 0.5 myRestitution
+            friction        <- getComponentDefault 0.5 myFriction
+            rollingFriction <- getComponentDefault 0   myRollingFriction
             linearDamping   <- getComponentDefault 0   myLinearDamping
             angularDamping  <- getComponentDefault 0   myAngularDamping
-            friction        <- getComponentDefault 0   myFriction
-            rollingFriction <- getComponentDefault 0   myRollingFriction
             size <- getSize
             poseM44 <- getPose
             let pose = poseFromMatrix poseM44

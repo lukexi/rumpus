@@ -27,7 +27,7 @@ Pose:
   - 1
 Shape: Cube
 KnobValues:
-  Base Hue: 0.93348944
+  Base Hue: 0.5375828
 StartCodeFile:
 - CubeSea.hs
 - start

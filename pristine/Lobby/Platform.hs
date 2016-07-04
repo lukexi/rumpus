@@ -9,7 +9,7 @@ d = 0.5
 start :: Start
 start = do
 
-    
+
     spawnChild_ $ do
         myPose       ==> position (V3 0 (-d/2 + 3) 10)
         myShape      ==> Cube
