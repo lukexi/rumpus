@@ -4,6 +4,7 @@ import Rumpus
 
 start :: Start
 start = do
+    
     beatsKnob    <- addKnob "Beats"    (Stepped (map show [1..64])) 7
     tempoKnob    <- addKnob "Tempo"    (Linear 80 120) 100
     heightKnob   <- addKnob "Height"   (Linear 1 4) 1
@@ -20,7 +21,7 @@ start = do
             beats    <- readKnob beatsKnob
             height   <- readKnob heightKnob
             now      <- (* (tempo/60)) <$> getNow
-            let time = mod' now beats
+            let time = mod' now (max 1 beats)
                 x    = time / 4
                 size = V3 0.01 height 1
 
