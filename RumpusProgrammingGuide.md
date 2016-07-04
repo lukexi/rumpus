@@ -360,7 +360,7 @@ start = do
     -- Or this:
     inEntity childID $ do
         setColor (colorHSL 0.5 0.5 0.2)
-
+```
 You'll notice two ways to set values:
 The `myFoo ==> Bar` syntax and the setFoo Bar functions.
 
