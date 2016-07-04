@@ -58,33 +58,41 @@ findNextNumberedName name inList =
 
 -- Quantization
 -- | Quantizes a float to the nearest multiple of q
+quantizeToF :: RealFrac a => a -> a -> a
 quantizeToF q x =
     let (quotient, remainder) = x `quotRemF` q
     in fromIntegral quotient * q + ((fromIntegral $ round (remainder / q)) * q)
 
 -- | Quantizes an integer to the nearest multiple of q
+quantizeToI :: Integral a => a -> a -> a
 quantizeToI q x =
     let (quotient, remainder) = x `quotRem` q
-    in quotient * q + (round (remainder // q) * q)
+    in quotient * q + (round (remainder /// q) * q)
 
 -- | A version of quotRem that works on Floats rather than Ints
+quotRemF :: (RealFrac a, Integral b) => a -> a -> (b, a)
 quotRemF x y = (quotient, remainder)
     where
         quotient  = floor (x / y)
         remainder = x - y * fromIntegral quotient
 
 -- | Divide two Integrals to get a Floating
-x // y = fromIntegral x / fromIntegral y
+(///) :: (Fractional a, Integral i1, Integral i2) => i1 -> i2 -> a
+x /// y = fromIntegral x / fromIntegral y
 
 -- | Remap a 0-1 n to the range low,high
+remap :: forall a. Num a => a -> a -> a -> a
 remap low hi n = low + range * n
     where range = (hi - low)
 
 -- | Generate a linear progression of floats between 0.0-1.0
+floats01 :: (Fractional t, Integral a) => a -> [t]
 floats01 n = [ fromIntegral i / fromIntegral n | i <- [0..n] ]
 
 -- | Generate a linear progression of floats between low and hi
+floats :: (Fractional b, Integral a) => (b, b) -> a -> [b]
 floats (low, hi) n = remap low hi <$> floats01 n
 
 -- | Converts polar to cartesian coordinates
-polarToCartesian r theta = V2 (r * cos theta) (r * sin theta)
+polarToCartesian :: Floating a => V2 a -> V2 a
+polarToCartesian (V2 r theta) = V2 (r * cos theta) (r * sin theta)

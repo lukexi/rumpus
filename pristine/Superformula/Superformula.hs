@@ -61,9 +61,9 @@ start = do
 visualize2D n = do
     let aSuperformula = superformulaPolar 1 1 3 5 18 18
     spawnChildren (floats01 n) $ \i -> do
-        let theta = remap (-pi) pi i
-            r     = aSuperformula theta
-            V2 x y = polarToCartesian (r*0.3) theta
+        let theta  = remap (-pi) pi i
+            r      = aSuperformula theta
+            V2 x y = polarToCartesian (V2 (r*0.3) theta)
         myShape ==> Cube
         mySize  ==> 0.01
         myPose  ==> position (V3 x y -0.5)

@@ -104,8 +104,8 @@ checkIfShouldIgnoreDueToStatus Writing _
     = True
 checkIfShouldIgnoreDueToStatus Deleted _
     = True
-checkIfShouldIgnoreDueToStatus (WrittenAt writeTime) eventTime
-    = eventTime `diffUTCTime` writeTime < 0.01
+checkIfShouldIgnoreDueToStatus (WrittenAt writeTime) evTime
+    = evTime `diffUTCTime` writeTime < 0.01
 
 sceneWatcherRemoveEntity :: (MonadIO m, MonadState ECS m) => EntityID -> m ()
 sceneWatcherRemoveEntity entityID = do

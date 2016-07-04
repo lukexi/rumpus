@@ -1,5 +1,5 @@
 module GameOfLife where
-import Rumpus hiding (Array, array, (//))
+import Rumpus hiding (Array, array)
 import Data.Array.Unboxed
 import qualified Data.Sequence as Seq
 import Data.Word
