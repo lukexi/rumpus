@@ -1,5 +1,0 @@
-New object should basically just be a persistent floating code slab.
-If you want it to be a localized object like fountain etc., you are free to do that
-by working directly with the code slab's object and setting it to be non-kinematic.
-(maybe just have a toggle button on the code slab itself??)
-
