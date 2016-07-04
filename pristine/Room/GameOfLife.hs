@@ -1,5 +1,5 @@
-module GOL where
-import Rumpus hiding (Array, array)
+module GameOfLife where
+import Rumpus hiding (Array, array, (//))
 import Data.Array.Unboxed
 import qualified Data.Sequence as Seq
 import Data.Word
@@ -60,4 +60,3 @@ start = do
                     myColor       ==> colorHSL
                         (fromIntegral e/2) 0.7 (fromIntegral e)
             setState (tickGOL grid)
-

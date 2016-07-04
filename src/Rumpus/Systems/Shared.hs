@@ -139,10 +139,10 @@ spawnChildOf entityID actions =
         actions
 
 setEntityColor :: (MonadState ECS m) => EntityID -> V4 GLfloat -> m ()
-setEntityColor entityID newColor = setEntityComponent myColor newColor entityID
+setEntityColor entityID !newColor = setEntityComponent myColor newColor entityID
 
 setColor :: (MonadReader EntityID m, MonadState ECS m) => V4 GLfloat -> m ()
-setColor newColor = setComponent myColor newColor
+setColor !newColor = setComponent myColor newColor
 
 
 getEntityIDsWithName :: MonadState ECS m => String -> m [EntityID]

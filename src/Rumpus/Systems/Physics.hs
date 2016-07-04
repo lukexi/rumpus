@@ -276,7 +276,7 @@ cacheScaledPose entityID poseM44 size = do
     setEntityComponent myPoseScaled (poseM44 !*! scaleMatrix size) entityID
 
 setPosition :: (MonadIO m, MonadState ECS m, MonadReader EntityID m) => V3 GLfloat -> m ()
-setPosition position = do
+setPosition !position = do
     pose <- getPose
     setPose $ (pose & translation .~ position)
 
