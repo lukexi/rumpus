@@ -50,6 +50,7 @@ sharedGHCSessionConfig = defaultGHCSessionConfig
     { gscFixDebounce = DebounceFix
     , gscStartupFile = Just ("resources"</>"Loader.hs", "start")
     , gscLanguageExtensions = rumpusLanguageExtensions
+    --, gscVerbosity = 3
     --, gscCompilationMode = Compiled
     }
 

@@ -5,11 +5,6 @@ import Rumpus
 import Halive.Recompiler
 --import Rumpus.TestScene
 
-{-
-fft wraparound that excites sine bank with decay
-do things to orient to hands to demonstrate symbiosis
--}
-
 initializeECS :: TChan CompilationRequest -> PureData -> VRPal -> ECSMonad ()
 initializeECS ghc pd vrPal = do
     initAnimationSystem
