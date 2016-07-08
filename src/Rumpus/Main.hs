@@ -66,6 +66,8 @@ rumpusMain :: IO ()
 rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
     vrPal <- initVRPal "Rumpus"
 
+    forkIO $ threadDelay 5000000 >> setWindowShouldClose (gpWindow vrPal) True
+
     --singleThreadedLoop ghc pd vrPal
     multiThreadedLoop ghc pd vrPal
 

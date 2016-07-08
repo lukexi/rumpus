@@ -1,17 +1,22 @@
-resolver: nightly-2016-02-02
 packages:
 - '.'
 - ../gl-pal
 - ../bullet-mini
 - ../vr-pal
 - ../glfw-pal
-- ../halive
+- ../halive-ghc8
 - ../animation-pal
 - ../linear-extra
 - ../lens-extra
 - ../openvr-hs
 - ../pd-hs
-- ../bindings-GLFW
+# - ../bindings-GLFW
 - ../freetype-gl-mini
 - ../text-gl
 - ../extensible-ecs
+resolver: nightly-2016-07-07
+allow-newer: true
+extra-deps:
+- GLFW-b-1.4.8.0
+- inline-c-cpp-0.1.0.0
+- bindings-GLFW-3.1.2.0

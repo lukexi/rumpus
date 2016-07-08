@@ -54,18 +54,19 @@ sharedGHCSessionConfig = defaultGHCSessionConfig
     --, gscCompilationMode = Compiled
     }
 
-rumpusLanguageExtensions :: [ExtensionFlag]
+rumpusLanguageExtensions :: [Extension]
 rumpusLanguageExtensions =
-    [ Opt_FlexibleContexts
-    , Opt_RecordWildCards
-    , Opt_ViewPatterns
-    , Opt_LambdaCase
-    , Opt_MultiWayIf
-    , Opt_BangPatterns
-    , Opt_NegativeLiterals
-    , Opt_TemplateHaskell
-    , Opt_ScopedTypeVariables
+    [ FlexibleContexts
+    , RecordWildCards
+    , ViewPatterns
+    , LambdaCase
+    , MultiWayIf
+    , BangPatterns
+    , NegativeLiterals
+    , TemplateHaskell
+    , ScopedTypeVariables
     ]
+
 
 withRumpusGHC :: MonadIO m => (TChan CompilationRequest -> m a) -> m a
 withRumpusGHC action = do
