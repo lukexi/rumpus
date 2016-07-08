@@ -1,0 +1,3 @@
+#!/bin/bash
+
+while true ; do gdb -ex run `stack exec which rumpus` -ex quit ; done

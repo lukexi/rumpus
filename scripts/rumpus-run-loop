@@ -1,0 +1,2 @@
+#!/bin/bash
+while stack-run rumpus; do :; done
