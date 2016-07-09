@@ -70,6 +70,9 @@ cp `which libgcc_s_seh-1.dll` .release
 cp `which libglib-2.0-0.dll` .release
 cp `which libintl-8.dll` .release
 cp `which libiconv-2.dll` .release
+# See https://phabricator.haskell.org/D1805#69313
+cp /mingw64/x86_64-w64-mingw32/lib/libmingw32.a .release
+cp /mingw64/x86_64-w64-mingw32/lib/libmingwex.a .release
 
 echo "Applying icon..."
 rcedit .release/rumpus.exe --set-icon scripts/RumpusIcon.ico

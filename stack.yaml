@@ -4,13 +4,12 @@ packages:
 - ../bullet-mini
 - ../vr-pal
 - ../glfw-pal
-- ../halive-ghc8
+- ../halive
 - ../animation-pal
 - ../linear-extra
 - ../lens-extra
 - ../openvr-hs
 - ../pd-hs
-# - ../bindings-GLFW
 - ../freetype-gl-mini
 - ../text-gl
 - ../extensible-ecs
