@@ -1,8 +1,9 @@
-# Rumpus Multiplayer (extra experimental)
-This is currently a hack with many caveats. You shouldn't do this with
+# Rumpus Multiplayer (experimental++)
+This is a hack with caveats: you shouldn't do this with
 anyone you don't know, as you're going to be running arbitrary code that
-can do absolutely anything. Better things are in the pipeline. But again,
-it's extremely fun anyway and you should totally try it if you have
+can do absolutely anything. A fluid, effortless multiplayer experience is 
+in the pipeline! 
+But it's extremely fun anyway and you should totally try it if you have
 friends you can trust.
 
 How it's done:
