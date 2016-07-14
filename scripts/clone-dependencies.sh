@@ -18,4 +18,9 @@ cd ..
 for i in $packages; do
     git clone --recursive git@github.com:lukexi/$i
 done
+
 cd rumpus
+
+# Copy necessary DLLs to /usr/local/bin
+(cd ../openvr-hs && ./copyLibWin.sh)
+(cd ../pd-hs && ./copyLibWin.sh)
