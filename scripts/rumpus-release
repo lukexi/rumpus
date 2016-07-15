@@ -44,6 +44,10 @@ ghc-pkg \
 
 # in local, replace all mentions of the absolute local pkg dir with ${pkgroot}
 find .release/packages/local -name "*.conf" | xargs sed -i -e 's|'$local_libs'|${pkgroot}|g'
+# Also replace references to c:\msys64\usr\local\bin and c:\msys64\mingw64\bin
+# since they cause an RTS error in 8.0.1 that then hangs the app.
+find .release/packages/local -name "*.conf" | xargs sed -i -e 's|c:\\msys64\\usr\\local\\bin||g'
+find .release/packages/local -name "*.conf" | xargs sed -i -e 's|c:\\msys64\\mingw64\\bin||g'
 ghc-pkg \
    --package-db .release/packages/ghc/lib/package.conf.d \
    --package-db .release/packages/snapshot/pkgdb \
