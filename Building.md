@@ -21,8 +21,4 @@ stack build && stack exec rumpus
 
 If not, please get in touch at luke@rumpus.land : )
 
-(Note: if you get an error regarding `strdup` when building `freetype-gl-mini`, do
-```
-(cd ../freetype-gl-mini && git apply freetype-gl-strdup-fix.patch)
-```
 Better fix forthcoming!)
