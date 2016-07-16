@@ -21,6 +21,9 @@ done
 
 cd rumpus
 
+# Checkout bindings-GLFW workaround (no longer necessary on GHC 8.0.2)
+(cd ../bindings-GLFW && git checkout win-halive-fix)
+
 # Copy necessary DLLs to /usr/local/bin
 (cd ../openvr-hs && ./copyLibWin.sh)
 (cd ../pd-hs && ./copyLibWin.sh)
