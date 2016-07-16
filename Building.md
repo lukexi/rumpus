@@ -20,5 +20,3 @@ stack build && stack exec rumpus
 ```
 
 If not, please get in touch at luke@rumpus.land : )
-
-Better fix forthcoming!)
