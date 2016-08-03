@@ -14,8 +14,8 @@ import Data.Foldable as Exports
 import Control.Arrow as Exports
 import Control.Concurrent as Exports
 import Control.Concurrent.STM as Exports hiding (atomically)
-import Safe
-import Control.Monad.Trans.Maybe
+import Safe as Exports
+import Control.Monad.Trans.Maybe as Exports
 
 import Data.Char as Exports
 import Text.Read as Exports (readMaybe)
