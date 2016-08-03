@@ -37,27 +37,23 @@ initializeECS ghc pd vrPal = do
     -- Otherwise assume it is the name of a code file.
     listToMaybe <$> liftIO getArgs >>= \case
         Nothing -> loadScene "Lobby"
-        Just name -> do
-            sceneExists <- doesSceneExist name
-            if sceneExists
-                then loadScene name
-                else do
-                    mNewSceneName <- createNewSceneNamed name
-                    forM_ mNewSceneName $ \newSceneName -> do
-                        loadScene newSceneName
-                        let fileName = name <.> "hs"
-                        sceneFolder <- getSceneFolder
-                        fileExists  <- liftIO $ doesFileExist (sceneFolder </> fileName)
-                        codeFile    <- if
-                            | fileExists    -> return (fileName, "start")
-                            | name == "new" -> createNewStartCodeFile -- create a new object for quick dev work
-                            | otherwise     -> createStartCodeFile name
-                        spawnEntity_ $ do
-                            myShape      ==> Cube
-                            mySize       ==> newEntitySize
-                            myBody       ==> Animated
-                            myColor      ==> V4 0.1 0.1 0.1 1
-                            myStartCodeFile  ==> codeFile
+        Just name -> doesSceneExist name >>= \case
+            True -> loadScene name
+            False -> traverseM_ (createNewSceneNamed name) $ \newSceneName -> do
+                loadScene newSceneName
+                let fileName = name <.> "hs"
+                sceneFolder <- getSceneFolder
+                fileExists  <- liftIO $ doesFileExist (sceneFolder </> fileName)
+                codeFile    <- if
+                    | fileExists    -> return (fileName, "start")
+                    | name == "new" -> createNewStartCodeFile -- create a new object for quick dev work
+                    | otherwise     -> createStartCodeFile name
+                spawnEntity_ $ do
+                    myShape      ==> Cube
+                    mySize       ==> newEntitySize
+                    myBody       ==> Animated
+                    myColor      ==> V4 0.1 0.1 0.1 1
+                    myStartCodeFile  ==> codeFile
 
     --when isBeingProfiled loadTestScene
 
