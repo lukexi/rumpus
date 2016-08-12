@@ -15,8 +15,9 @@ text-gl
 extensible-ecs"
 
 cd ..
+
 for i in $packages; do
-    git clone --recursive git@github.com:lukexi/$i
+    git clone --recursive https://github.com/lukexi/$i.git
 done
 
 cd rumpus
