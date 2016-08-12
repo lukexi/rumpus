@@ -64,7 +64,7 @@ initializeECS ghc pd vrPal = do
 
 rumpusMain :: IO ()
 rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
-    vrPal <- initVRPal "Rumpus" [UseOpenVR]
+    vrPal <- initVRPal "Rumpus"
 
     --singleThreadedLoop ghc pd vrPal
     multiThreadedLoop ghc pd vrPal

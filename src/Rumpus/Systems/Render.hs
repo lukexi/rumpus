@@ -102,7 +102,7 @@ tickRenderSystem headM44 = do
 
     -- Render the scene
     vrPal  <- viewSystem sysControls ctsVRPal
-    renderWith vrPal headM44 $ \projM44 viewM44 -> do
+    renderWith vrPal headM44 $ \projM44 viewM44 _projRaw _viewport -> do
         glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT)
         let projViewM44 = projM44 !*! viewM44
         renderEntities     projViewM44 shapeCounts
