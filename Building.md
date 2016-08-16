@@ -19,4 +19,4 @@ Now you should be able to run
 stack build && stack exec rumpus
 ```
 
-If not, please get in touch at luke@rumpus.land : )
+If not, please [open an issue](https://github.com/lukexi/rumpus/issues) or get in touch at luke@rumpus.land : )
