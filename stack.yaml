@@ -13,9 +13,4 @@ packages:
 - ../freetype-gl-mini
 - ../text-gl
 - ../extensible-ecs
-resolver: nightly-2016-07-07
-allow-newer: true
-extra-deps:
-- GLFW-b-1.4.8.0
-- inline-c-cpp-0.1.0.0
-- bindings-GLFW-3.1.2.0
+resolver: nightly-2016-08-17
