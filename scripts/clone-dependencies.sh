@@ -24,8 +24,6 @@ cd rumpus
 
 # Checkout bindings-GLFW workaround (no longer necessary on GHC 8.0.2)
 (cd ../bindings-GLFW && git checkout win-halive-fix)
-# Apply needed patch for MSYS2 support to freetype mainline
-(cd ../freetype-gl-mini && git apply freetype-gl-strdup-fix.patch)
 
 # Copy necessary DLLs to /usr/local/bin
 (cd ../openvr-hs && ./copyLibWin.sh)
