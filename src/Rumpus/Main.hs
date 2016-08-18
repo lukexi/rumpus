@@ -71,9 +71,9 @@ singleThreadedLoop :: TChan CompilationRequest -> PureData -> VRPal -> IO ()
 singleThreadedLoop ghc pd vrPal = do
     void . flip runStateT newECS $ do
         initializeECS ghc pd vrPal
-        whileWindow (gpWindow vrPal) $ do
+        whileWindow (vrpWindow vrPal) $ \windowEvents -> do
             playerM44 <- viewSystem sysControls ctsPlayer
-            (headM44, events) <- tickVR vrPal playerM44
+            (headM44, events) <- tickVR vrPal playerM44 windowEvents
             profile "Controls"  $ tickControlEventsSystem headM44 events
             profile "Rendering" $ tickRenderSystem headM44
 
@@ -112,7 +112,7 @@ multiThreadedLoop ghc pd vrPal = do
 
     -- LOGIC LOOP (BG THREAD)
     _ <- liftIO . forkOS $ do
-        makeContextCurrent (Just (gpThreadWindow vrPal))
+        --makeContextCurrent (Just (gpThreadWindow vrPal))
         void . flip runStateT startingECS . forever $ do
             (headM44, events) <- atomically $ do
                 readTVar backgroundBox >>= \case
@@ -129,11 +129,11 @@ multiThreadedLoop ghc pd vrPal = do
                 writeTVar mainThreadBox $! latestECS
 
     -- RENDER LOOP (MAIN THREAD)
-    whileWindow (gpWindow vrPal) $ do
+    whileWindow (vrpWindow vrPal) $ \windowEvents -> do
         latestECS         <- liftIO . atomically $ readTVar mainThreadBox
         (headM44, events) <- flip evalStateT latestECS (do
             playerM44         <- viewSystem sysControls ctsPlayer
-            (headM44, events) <- tickVR vrPal playerM44
+            (headM44, events) <- tickVR vrPal playerM44 windowEvents
             -- FIXME: transforms should be calculated on background thread!
             tickRenderSystem headM44
             glFlush -- as per recommendation in openvr.h

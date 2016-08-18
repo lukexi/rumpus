@@ -81,7 +81,7 @@ withRumpusGHC action = do
             else sharedGHCSessionConfig
     withGHC config action
 
-initCodeEditorSystem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m)
+initCodeEditorSystem :: (MonadBaseControl IO m, MonadState ECS m)
                      => TChan CompilationRequest -> m ()
 initCodeEditorSystem ghcChan = do
 
@@ -98,7 +98,7 @@ initCodeEditorSystem ghcChan = do
         "StartCodeFile" myStartCodeFile
         myStart
 
-registerCodeExprComponent :: (MonadBaseControl IO m, MonadState ECS m, Typeable a)
+registerCodeExprComponent :: (MonadState ECS m, Typeable a)
                           => String
                           -> Key (EntityMap CodeFile)
                           -> Key (EntityMap a)

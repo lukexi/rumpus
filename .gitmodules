@@ -1,45 +1,45 @@
 [submodule "submodules/animation-pal"]
 	path = submodules/animation-pal
-	url = https://github.com/lukexi/animation-pal
+	url = git@github.com:lukexi/animation-pal
 [submodule "submodules/gl-pal"]
 	path = submodules/gl-pal
-	url = https://github.com/lukexi/gl-pal.git
+	url = git@github.com:lukexi/gl-pal.git
 [submodule "submodules/bullet-mini"]
 	path = submodules/bullet-mini
-	url = https://github.com/lukexi/bullet-mini.git
+	url = git@github.com:lukexi/bullet-mini.git
 [submodule "submodules/vr-pal"]
 	path = submodules/vr-pal
-	url = https://github.com/lukexi/vr-pal.git
+	url = git@github.com:lukexi/vr-pal.git
 [submodule "submodules/glfw-pal"]
 	path = submodules/glfw-pal
-	url = https://github.com/lukexi/glfw-pal.git
+	url = git@github.com:lukexi/glfw-pal.git
 [submodule "submodules/halive"]
 	path = submodules/halive
-	url = https://github.com/lukexi/halive.git
+	url = git@github.com:lukexi/halive.git
 [submodule "submodules/linear-extra"]
 	path = submodules/linear-extra
-	url = https://github.com/lukexi/linear-extra.git
+	url = git@github.com:lukexi/linear-extra.git
 [submodule "submodules/lens-extra"]
 	path = submodules/lens-extra
-	url = https://github.com/lukexi/lens-extra.git
+	url = git@github.com:lukexi/lens-extra.git
 [submodule "submodules/openvr-hs"]
 	path = submodules/openvr-hs
-	url = https://github.com/lukexi/openvr-hs.git
+	url = git@github.com:lukexi/openvr-hs.git
 [submodule "submodules/pd-hs"]
 	path = submodules/pd-hs
-	url = https://github.com/lukexi/pd-hs.git
+	url = git@github.com:lukexi/pd-hs.git
 [submodule "submodules/bindings-GLFW"]
 	path = submodules/bindings-GLFW
-	url = https://github.com/lukexi/bindings-GLFW.git
+	url = git@github.com:lukexi/bindings-GLFW.git
 [submodule "submodules/freetype-gl-mini"]
 	path = submodules/freetype-gl-mini
-	url = https://github.com/lukexi/freetype-gl-mini.git
+	url = git@github.com:lukexi/freetype-gl-mini.git
 [submodule "submodules/text-gl"]
 	path = submodules/text-gl
-	url = https://github.com/lukexi/text-gl.git
+	url = git@github.com:lukexi/text-gl.git
 [submodule "submodules/extensible-ecs"]
 	path = submodules/extensible-ecs
-	url = https://github.com/lukexi/extensible-ecs.git
+	url = git@github.com:lukexi/extensible-ecs.git
 [submodule "submodules/udp-pal"]
 	path = submodules/udp-pal
-	url = https://github.com/lukexi/udp-pal.git
+	url = git@github.com:lukexi/udp-pal.git

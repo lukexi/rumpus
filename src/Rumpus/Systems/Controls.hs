@@ -52,7 +52,7 @@ initControlsSystem vrPal = do
     internalEvents <- liftIO newTChanIO
     registerSystem sysControls $ ControlsSystem
         { _ctsVRPal = vrPal
-        , _ctsPlayer = if gpRoomScale vrPal == RoomScale
+        , _ctsPlayer = if vrpRoomScale vrPal == RoomScale
                         then identity
                         else mkTransformation (axisAngle (V3 0 1 0) 0) (V3 0 1 0)
         , _ctsEvents = []
@@ -80,10 +80,10 @@ tickControlEventsSystem headM44 events = modifySystemState sysControls $ do
     ctsEvents <>= internalEvents
 
     -- Apply non-roomscale controls if applicable
-    when (gpRoomScale /= RoomScale) $ do
+    when (vrpRoomScale /= RoomScale) $ do
         hasSelection <- isJust <$> lift getSelectedEntityID
         unless hasSelection $
-            applyWASD gpWindow (ctsPlayer . iso poseFromMatrix transformationFromPose)
+            applyWASD (ctsPlayer . iso poseFromMatrix transformationFromPose)
 
 
 setPlayerPosition :: MonadState ECS m => V3 GLfloat -> m ()
