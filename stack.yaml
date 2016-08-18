@@ -1,4 +1,3 @@
-resolver: nightly-2016-02-02
 packages:
 - '.'
 - ../gl-pal
@@ -11,7 +10,7 @@ packages:
 - ../lens-extra
 - ../openvr-hs
 - ../pd-hs
-- ../bindings-GLFW
 - ../freetype-gl-mini
 - ../text-gl
 - ../extensible-ecs
+resolver: nightly-2016-08-17

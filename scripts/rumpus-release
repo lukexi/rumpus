@@ -44,6 +44,10 @@ ghc-pkg \
 
 # in local, replace all mentions of the absolute local pkg dir with ${pkgroot}
 find .release/packages/local -name "*.conf" | xargs sed -i -e 's|'$local_libs'|${pkgroot}|g'
+# Also replace references to c:\msys64\usr\local\bin and c:\msys64\mingw64\bin
+# since they cause an RTS error in 8.0.1 that then hangs the app.
+find .release/packages/local -name "*.conf" | xargs sed -i -e 's|c:\\msys64\\usr\\local\\bin||g'
+find .release/packages/local -name "*.conf" | xargs sed -i -e 's|c:\\msys64\\mingw64\\bin||g'
 ghc-pkg \
    --package-db .release/packages/ghc/lib/package.conf.d \
    --package-db .release/packages/snapshot/pkgdb \
@@ -70,6 +74,9 @@ cp `which libgcc_s_seh-1.dll` .release
 cp `which libglib-2.0-0.dll` .release
 cp `which libintl-8.dll` .release
 cp `which libiconv-2.dll` .release
+# See https://phabricator.haskell.org/D1805#69313
+cp /mingw64/x86_64-w64-mingw32/lib/libmingw32.a .release
+cp /mingw64/x86_64-w64-mingw32/lib/libmingwex.a .release
 
 echo "Applying icon..."
 rcedit .release/rumpus.exe --set-icon scripts/RumpusIcon.ico
