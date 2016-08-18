@@ -12,3 +12,5 @@ http://store.steampowered.com/app/458200
 [Rumpus Programming Guide](RumpusProgrammingGuide.md)
 
 [How to Build Rumpus](Building.md)
+
+Note: clone this repo with `--recursive`
