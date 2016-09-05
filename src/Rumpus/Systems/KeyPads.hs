@@ -11,8 +11,9 @@ import Rumpus.Systems.Selection
 import Rumpus.Systems.Animation
 import Rumpus.Systems.Clock
 
-import qualified Graphics.UI.GLFW.Pal as GLFW
+import SDL
 import qualified Data.HashMap.Strict as Map
+import qualified Data.Text as Text
 
 data KeyPad = KeyPad
     { _kpdKeyPadID    :: EntityID
@@ -106,32 +107,30 @@ showKey _ HandKeyBlank                  = ""
 
 keyToEvent :: Bool -> HandKey -> Maybe Event
 --         shift                                                shift ctrl
-keyToEvent shift HandKeyEnter              = Just (toPressedKey shift False Key'Enter)
-keyToEvent shift HandKeyBackspace          = Just (toPressedKey shift False Key'Backspace)
-keyToEvent shift HandKeyTab                = Just (toPressedKey shift False Key'Tab)
-keyToEvent shift HandKeyUp                 = Just (toPressedKey shift False Key'Up)
-keyToEvent shift HandKeyDown               = Just (toPressedKey shift False Key'Down)
-keyToEvent shift HandKeyLeft               = Just (toPressedKey shift False Key'Left)
-keyToEvent shift HandKeyRight              = Just (toPressedKey shift False Key'Right)
-keyToEvent shift HandKeyIndent             = Just (toPressedKey shift True  Key'RightBracket)
-keyToEvent shift HandKeyUnIndent           = Just (toPressedKey shift True  Key'LeftBracket)
-keyToEvent shift HandKeyToggleComment      = Just (toPressedKey shift True  Key'Slash)
-keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True  True  Key'Up)
-keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True  True  Key'Down)
-keyToEvent _     HandKeyCut                = Just (toPressedKey False True  Key'X)
-keyToEvent _     HandKeyCopy               = Just (toPressedKey False True  Key'C)
-keyToEvent _     HandKeyPaste              = Just (toPressedKey False True  Key'V)
-keyToEvent False (HandKeyChar unshifted)   = Just (Character unshifted)
-keyToEvent True  (HandKeyChar unshifted)   = Just (Character (Map.lookupDefault ' ' unshifted shiftMap))
+keyToEvent shift HandKeyEnter              = Just (toPressedKey shift False KeycodeReturn)
+keyToEvent shift HandKeyBackspace          = Just (toPressedKey shift False KeycodeBackspace)
+keyToEvent shift HandKeyTab                = Just (toPressedKey shift False KeycodeTab)
+keyToEvent shift HandKeyUp                 = Just (toPressedKey shift False KeycodeUp)
+keyToEvent shift HandKeyDown               = Just (toPressedKey shift False KeycodeDown)
+keyToEvent shift HandKeyLeft               = Just (toPressedKey shift False KeycodeLeft)
+keyToEvent shift HandKeyRight              = Just (toPressedKey shift False KeycodeRight)
+keyToEvent shift HandKeyIndent             = Just (toPressedKey shift True  KeycodeRightBracket)
+keyToEvent shift HandKeyUnIndent           = Just (toPressedKey shift True  KeycodeLeftBracket)
+keyToEvent shift HandKeyToggleComment      = Just (toPressedKey shift True  KeycodeSlash)
+keyToEvent _     HandKeyMoveLineUp         = Just (toPressedKey True  True  KeycodeUp)
+keyToEvent _     HandKeyMoveLineDown       = Just (toPressedKey True  True  KeycodeDown)
+keyToEvent _     HandKeyCut                = Just (toPressedKey False True  KeycodeX)
+keyToEvent _     HandKeyCopy               = Just (toPressedKey False True  KeycodeC)
+keyToEvent _     HandKeyPaste              = Just (toPressedKey False True  KeycodeV)
+keyToEvent False (HandKeyChar unshifted)   = Just (fakeTextInputEventFromChar unshifted)
+keyToEvent True  (HandKeyChar unshifted)   = Just (fakeTextInputEventFromChar (Map.lookupDefault ' ' unshifted shiftMap))
 keyToEvent _ _                             = Nothing
 
-toPressedKey :: Bool -> Bool -> GLFW.Key -> Event
-toPressedKey shift control key = KeyboardKey key noKeyCode KeyState'Pressed modifierKeys
+toPressedKey :: Bool -> Bool -> Keycode -> Event
+toPressedKey shift control key = fakeKeycodePressedEvent key modifierKeys
     where
-        -- (FIXME: we don't use keycodes anywhere, remove from API for now)
-        noKeyCode = 0
-        modifierKeys = GLFW.ModifierKeys shift control alt super
-        (alt, super) = (False, False)
+        modifierKeys = concat [[ ModKeyShift | shift ], [ ModKeyControl | control ] ]
+
 
 lowerChars, upperChars :: [Char]
 upperChars = "~!@#$%^&*()_+" ++ "QWERTYUIOP{}|"  ++ "ASDFGHJKL:\"" ++ "ZXCVBNM<>?" ++ " "
@@ -430,12 +429,14 @@ tickKeyPadsSystem = do
     charKeys <- viewSystem sysKeyPads kpsCharKeys
     events <- getEvents
     forM_ events $ \case
-        GLFWEvent (Character c) -> do
-            forM_ (Map.lookup (toLower c) charKeys) $ \key -> do
-                inEntity (key ^. kpkKeyBackID) $ do
-                    randomHue <- randomRange (0,1)
-                    let randomColor = colorHSL randomHue 0.7 0.7
-                    animateColor randomColor keyColorOff keyPadAnimDur
+        WindowEvent (Event {eventPayload = TextInputEvent
+          (TextInputEventData { textInputEventText = text }) }) -> do
+            forM_ (Text.unpack text) $ \c ->
+                forM_ (Map.lookup (toLower c) charKeys) $ \key -> do
+                    inEntity (key ^. kpkKeyBackID) $ do
+                        randomHue <- randomRange (0,1)
+                        let randomColor = colorHSL randomHue 0.7 0.7
+                        animateColor randomColor keyColorOff keyPadAnimDur
         _ -> return ()
 
     -- Sync the keys to the selected object manually to avoid interacting
@@ -504,14 +505,14 @@ tickKeyPadsSystem = do
                         else do
                             isShiftDown <- isEitherShiftDown
                             forM_ (keyToEvent isShiftDown currentKey) $ \event -> do
-                                sendInternalEvent (GLFWEvent event)
+                                sendInternalEvent (WindowEvent event)
 
                                 -- Add a repeating key action
                                 repeaterID <- spawnEntity $ return ()
                                 inEntity repeaterID $
                                     setDelayedAction 0.25 $ do
                                         setRepeatingAction 0.025 $ do
-                                            sendInternalEvent (GLFWEvent event)
+                                            sendInternalEvent (WindowEvent event)
                                 modifySystemState sysKeyPads $
                                     kpsKeyPads . ix whichHand . kpdKeyRepeater ?= repeaterID
 
@@ -537,7 +538,7 @@ tickKeyPadsSystem = do
                     mCurrentKey <- getCurrentKey whichHand
                     forM_ mCurrentKey $ \currentKey ->
                         forM_ (keyToEvent True currentKey) $ \event -> do
-                            sendInternalEvent (GLFWEvent event)
+                            sendInternalEvent (WindowEvent event)
 
             _ -> return ()
 

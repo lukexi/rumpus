@@ -14,7 +14,7 @@ data ProfilerSystem = ProfilerSystem
 makeLenses ''ProfilerSystem
 defineSystemKey ''ProfilerSystem
 
-initProfilerSystem :: (MonadIO m, MonadState ECS m) => m ()
+initProfilerSystem :: (MonadState ECS m) => m ()
 initProfilerSystem = do
     registerSystem sysProfiler (ProfilerSystem mempty)
 

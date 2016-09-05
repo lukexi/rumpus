@@ -19,7 +19,6 @@ import qualified Data.Sequence as Seq
 tickCodeEditorInputSystem :: (MonadBaseControl IO m, MonadIO m, MonadState ECS m) => m ()
 tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
     let events = _ctsEvents
-        window = gpWindow _ctsVRPal
 
     modifySystemState sysCodeEditor $
         traverseM_ (Map.keys <$> use cesCodeEditors) $ \codeFile -> do
@@ -33,12 +32,12 @@ tickCodeEditorInputSystem = withSystem_ sysControls $ \ControlsSystem{..} -> do
             sceneCodeFile <- toSceneCodeFile codeFile
             didSave <- modifySystemState sysCodeEditor $
                 fmap or . forM events $ \case
-                    GLFWEvent e -> do
+                    WindowEvent e -> do
                         -- Make sure our events don't trigger reloading/recompilation
                         let causesSave = eventWillSaveTextBuffer e
                         when causesSave $
                             pauseFileWatchers sceneCodeFile
-                        handleTextBufferEvent window e
+                        handleTextBufferEvent e
                             (cesCodeEditors . ix sceneCodeFile . cedCodeRenderer)
                         return causesSave
                     _ -> return False
