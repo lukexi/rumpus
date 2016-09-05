@@ -11,12 +11,12 @@ If you have trouble running Rumpus after building,
 please use this preview build of GHC 8.0.2 which resolves a linker issue.
 https://github.com/lukexi/ghc/releases/download/8.0.1.1/ghc-8.0.1-x86_64-unknown-mingw32.tar.xz
 
-I build Rumpus in an MSYS 2 environment. Here's a description of my setup:
+I build Rumpus in an MSYS2 environment. Here's a description of my setup:
 https://gist.github.com/lukexi/e634067f1d7e3a629988
 
-In particular you'll need FreeType and GLEW which `pacman` can install:
+In particular you'll need SDL2, pkg-config, FreeType and GLEW which `pacman` can install:
 ```
-pacman -S mingw64/mingw-w64-x86_64-freetype mingw64/mingw-w64-x86_64-glew
+pacman -S mingw64/mingw-w64-x86_64-SDL2 mingw-w64-x86_64-pkg-config mingw64/mingw-w64-x86_64-freetype mingw64/mingw-w64-x86_64-glew
 ```
 
 Now you should be able to run
