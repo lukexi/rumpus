@@ -13,4 +13,5 @@ packages:
 - submodules/freetype-gl-mini
 - submodules/text-gl
 - submodules/extensible-ecs
+- submodules/udp-pal
 resolver: nightly-2016-08-17

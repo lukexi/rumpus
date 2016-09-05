@@ -73,17 +73,7 @@ rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
     --singleThreadedLoop ghc pd vrPal
     multiThreadedLoop ghc pd vrPal
 
-singleThreadedLoop :: TChan CompilationRequest -> PureData -> VRPal -> IO ()
-singleThreadedLoop ghc pd vrPal = do
-    void . flip runStateT newECS $ do
-        initializeECS ghc pd vrPal
-        whileWindow (vrpWindow vrPal) $ \windowEvents -> do
-            playerM44 <- viewSystem sysControls ctsPlayer
-            (headM44, events) <- tickVR vrPal playerM44 windowEvents
-            profile "Controls"  $ tickControlEventsSystem headM44 events
-            profile "Rendering" $ tickRenderSystem headM44
 
-            tickLogic
 
 tickLogic :: ECSMonad ()
 tickLogic = do
@@ -150,3 +140,15 @@ multiThreadedLoop ghc pd vrPal = do
                 Nothing                 -> return []
             writeTVar backgroundBox (Just (headM44, pendingEvents ++ events))
         return ()
+
+singleThreadedLoop :: TChan CompilationRequest -> PureData -> VRPal -> IO ()
+singleThreadedLoop ghc pd vrPal = do
+    void . flip runStateT newECS $ do
+        initializeECS ghc pd vrPal
+        whileWindow (vrpWindow vrPal) $ \windowEvents -> do
+            playerM44 <- viewSystem sysControls ctsPlayer
+            (headM44, events) <- tickVR vrPal playerM44 windowEvents
+            profile "Controls"  $ tickControlEventsSystem headM44 events
+            profile "Rendering" $ tickRenderSystem headM44
+
+            tickLogic
