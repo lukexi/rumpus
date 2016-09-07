@@ -4,14 +4,15 @@ import Rumpus
 -- Golden Section Spiral (via http://www.softimageblog.com/archives/115)
 pointsOnSphere :: Int -> [V3 GLfloat]
 pointsOnSphere (fromIntegral -> n) =
-    map (\k ->
-        let y = k * off - 1 + (off / 2)
-            r = sqrt (1 - y*y)
+    let inc = pi * (3 - sqrt 5)
+        off = 2 / n
+        halfOff = off / 2
+    in for [0..n] $ \k ->
+        let y   = k * off - 1 + halfOff
+            r   = sqrt (1 - y*y)
             phi = k * inc
         in V3 (cos phi * r) y (sin phi * r)
-        ) [0..n]
-    where inc = pi * (3 - sqrt 5)
-          off = 2 / n
+
 
 start :: Start
 start = do

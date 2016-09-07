@@ -23,7 +23,7 @@ loadTestScene = do
     --forM_ [room] $ \onStart -> do
         spawnEntity $ do
             myStart ==> onStart
-            mySize ==> 0.3
+            mySize  ==> 0.3
             myShape ==> Cube
 
     setWorldPlaying True
@@ -103,7 +103,7 @@ createBuildings = do
         when (x /= 0 && z /= 0) $ spawnEntity_ $ do
             myParent               ==> rootEntityID
             myPose                 ==> position (V3 x y z)
-            myShape            ==> Cube
+            myShape                ==> Cube
             --myUpdate ==> do
             --    now <- getNow
             --    let newHeight = ((sin (now+_i) + 1) + 1) * height
@@ -119,11 +119,11 @@ createStars = do
         sphere = pointsOnSphere numPoints
         hues = map ((/ fromIntegral numPoints) . fromIntegral) [0..numPoints]
     forM_ (zip sphere hues) $ \(pos, hue) -> spawnEntity_ $ do
-        myParent               ==> rootEntityID
-        myPose                 ==> position (pos * 1000)
+        myParent           ==> rootEntityID
+        myPose             ==> position (pos * 1000)
         myShape            ==> Sphere
-        mySize                 ==> 5
-        myColor                ==> colorHSL hue 0.8 0.8
+        mySize             ==> 5
+        myColor            ==> colorHSL hue 0.8 0.8
 
 -------------------------
 -- Fountain

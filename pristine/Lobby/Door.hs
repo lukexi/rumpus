@@ -30,11 +30,12 @@ startDoorTransitionAnimation = do
             myShape ==> Cube
             myColor ==> doorColor
             myStart ==> do
-                 setDelayedAction (0.5 * fromIntegral i / numCubes) $ do
-                     -- Match hue with escape delay
-                     animateColor doorColor (colorHSL n 0.3 0.5) doorColorAnimDur
-                     setDelayedAction (doorColorAnimDur + realToFrac n) $ do
-                         animatePositionTo (V3 x y -500) 1
+                setDelayedAction (0.5 * fromIntegral i / numCubes) $ do
+                    -- Match hue with escape delay
+                    animateColor doorColor (colorHSL n 0.3 0.5) doorColorAnimDur
+                    setDelayedAction (doorColorAnimDur + realToFrac n) $ do
+                        animatePositionTo (V3 x y -500) 1
+
 start :: Start
 start = do
 
@@ -73,6 +74,7 @@ start = do
         myPose ==> position $ V3 0 0 ((dD + 0.02) / 2)
         myTransformType ==> RelativeFull
 
+    -- Knob
     let knobColor = colorHSL sceneHue 0.35 0.5
     doorKnob <- spawnChild $ do
         myShape        ==> Sphere
@@ -103,22 +105,23 @@ start = do
     attachEntity doorKnob
         (position $ V3 (dW * 0.33) 0 (dD + 0.03))
 
+    -- Door frame
     let fW = 0.1
         frameColor = colorHSL sceneHue 0.5 0.5
     spawnChild_ $ do
        myShape ==> Cube
-       mySize ==> V3 fW dH dD
-       myPose ==> position (V3 (dW / 2 + fW / 2) 0 0)
+       mySize  ==> V3 fW dH dD
+       myPose  ==> position (V3 (dW / 2 + fW / 2) 0 0)
        myColor ==> frameColor
 
     spawnChild_ $ do
        myShape ==> Cube
-       mySize ==> V3 fW dH dD
-       myPose ==> position (V3 (-dW / 2 - fW / 2) 0 0)
+       mySize  ==> V3 fW dH dD
+       myPose  ==> position (V3 (-dW / 2 - fW / 2) 0 0)
        myColor ==> frameColor
 
     spawnChild_ $ do
-       mySize ==> V3 (dW + fW * 2) fW dD
-       myPose ==> position (V3 0 (dH/2 + fW / 2) 0)
+       mySize  ==> V3 (dW + fW * 2) fW dD
+       myPose  ==> position (V3 0 (dH/2 + fW / 2) 0)
        myColor ==> frameColor
        myShape ==> Cube

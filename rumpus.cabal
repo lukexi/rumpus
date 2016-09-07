@@ -80,7 +80,6 @@ library
                      , bullet-mini
                      , gl-pal
                      , vr-pal
-                     , glfw-pal
                      , random
                      , mtl
                      , lens-extra
@@ -140,7 +139,7 @@ executable rumpus
   -- -T collects runtime stats for use with GHC.Stats
   -- ghc-prof-options:    -O2 -Wall -threaded -rtsopts -prof -fprof-auto "-with-rtsopts=-N -T -p -S -H512M -A4M -L100"
 
-  build-depends:       base, rumpus, glfw-pal
+  build-depends:       base, rumpus
   default-language:    Haskell2010
 
   -- -dynamic on OS X fixes an "unknown ___dso_handle symbol" error

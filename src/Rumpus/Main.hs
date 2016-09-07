@@ -33,27 +33,32 @@ initializeECS ghc pd vrPal = do
     startKeyPadsSystem
     startSceneWatcherSystem
 
-    -- If the name of a scene is given, load it.
-    -- Otherwise assume it is the name of a code file.
-    listToMaybe <$> liftIO getArgs >>= \case
-        Nothing -> loadScene "Lobby"
-        Just name -> doesSceneExist name >>= \case
-            True -> loadScene name
-            False -> traverseM_ (createNewSceneNamed name) $ \newSceneName -> do
-                loadScene newSceneName
-                let fileName = name <.> "hs"
-                sceneFolder <- getSceneFolder
-                fileExists  <- liftIO $ doesFileExist (sceneFolder </> fileName)
-                codeFile    <- if
-                    | fileExists    -> return (fileName, "start")
-                    | name == "new" -> createNewStartCodeFile -- create a new object for quick dev work
-                    | otherwise     -> createStartCodeFile name
-                spawnEntity_ $ do
-                    myShape      ==> Cube
-                    mySize       ==> newEntitySize
-                    myBody       ==> Animated
-                    myColor      ==> V4 0.1 0.1 0.1 1
-                    myStartCodeFile  ==> codeFile
+    loadInitialScene
+
+loadInitialScene = (listToMaybe <$> liftIO getArgs) >>= \case
+    -- Rumpus can be called like:
+    -- "rumpus" which loads the Lobby,
+    Nothing -> loadScene "Lobby"
+    -- "rumpus Attraction" to jump straight to an existing scene,
+    -- "rumpus Foo" to create a scene (when Foo is not an existing a scene)
+    -- and an initial object named Foo
+    Just name -> doesSceneExist name >>= \case
+        True -> loadScene name
+        False -> traverseM_ (createNewSceneNamed name) $ \newSceneName -> do
+            loadScene newSceneName
+            let fileName = name <.> "hs"
+            sceneFolder <- getSceneFolder
+            fileExists  <- liftIO $ doesFileExist (sceneFolder </> fileName)
+            codeFile    <- if
+                | fileExists    -> return (fileName, "start")
+                | name == "new" -> createNewStartCodeFile -- create a new object for quick dev work
+                | otherwise     -> createStartCodeFile name
+            spawnEntity_ $ do
+                myShape      ==> Cube
+                mySize       ==> newEntitySize
+                myBody       ==> Animated
+                myColor      ==> V4 0.1 0.1 0.1 1
+                myStartCodeFile  ==> codeFile
 
     --when isBeingProfiled loadTestScene
 
@@ -62,7 +67,8 @@ rumpusMain :: IO ()
 rumpusMain = withRumpusGHC $ \ghc -> withPd $ \pd -> do
     vrPal <- initVRPal "Rumpus"
 
-    --forkIO $ threadDelay 5000000 >> setWindowShouldClose (gpWindow vrPal) True
+    -- Used for stress testing launch:
+    --forkIO $ threadDelay 5000000 >> setWindowShouldClose (vrpWindow vrPal) True
 
     --singleThreadedLoop ghc pd vrPal
     multiThreadedLoop ghc pd vrPal

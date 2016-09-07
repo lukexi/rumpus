@@ -65,7 +65,7 @@ traverseM_ f x = f >>= traverse_ x
 useTraverseM_ :: (MonadState s m, Foldable t) => Lens' s (t a) -> (a -> m b) -> m ()
 useTraverseM_ aLens f = traverseM_ (use aLens) f
 
-
+for = flip map
 
 exhaustTChan :: TChan a -> STM [a]
 exhaustTChan chan = tryReadTChan chan >>= \case
