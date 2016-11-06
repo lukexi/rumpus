@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- Restricting exports to help GHC optimizer
 module Rumpus.Systems.Render
     ( initRenderSystem
@@ -18,6 +19,10 @@ import Graphics.GL.TextBuffer
 
 import qualified Data.Vector.Unboxed as V
 
+#if defined(darwin_HOST_OS)
+import qualified Data.Vector.Storable.Mutable as VM
+#endif
+
 data Uniforms = Uniforms
     { uProjectionView :: UniformLocation (M44 GLfloat)
     , uCamera         :: UniformLocation (V3  GLfloat)
@@ -28,10 +33,15 @@ data Uniforms = Uniforms
 data RenderShape = RenderShape
     { rshShapeType                 :: ShapeType
     , rshShape                     :: Shape Uniforms
+#if defined(darwin_HOST_OS)
+    , rshInstanceColorsVector      :: VM.IOVector (V4 GLfloat)
+    , rshInstanceModelM44sVector   :: VM.IOVector (M44 GLfloat)
+#else
     , rshStreamingArrayBuffer      :: StreamingArrayBuffer
+    , rshResetShapeInstanceBuffers :: IO ()
+#endif
     , rshInstanceColorsBuffer      :: ArrayBuffer (V4 GLfloat)
     , rshInstanceModelM44sBuffer   :: ArrayBuffer (M44 GLfloat)
-    , rshResetShapeInstanceBuffers :: IO ()
     }
 
 data RenderSystem = RenderSystem
@@ -66,11 +76,32 @@ initRenderSystem = do
 
     shapesWithBuffers <- forM shapes $ \(shapeType, shape) -> do
         withShape shape $ do
+
+#if defined(darwin_HOST_OS)
+            modelM44sVector  <- liftIO $ VM.replicate maxInstances (identity :: M44 GLfloat)
+            colorsVector     <- liftIO $ VM.replicate maxInstances (V4 0 0 0 0 :: V4 GLfloat)
+            modelM44sBuffer  <- bufferDataV GL_DYNAMIC_DRAW modelM44sVector
+            colorsBuffer     <- bufferDataV GL_DYNAMIC_DRAW colorsVector
+            withShape shape $ do
+                shader <- asks sProgram
+                withArrayBuffer modelM44sBuffer $ do
+                    assignMatrixAttributeInstanced shader "aInstanceTransform" GL_FLOAT
+                withArrayBuffer colorsBuffer $ do
+                    assignFloatAttributeInstanced  shader "aInstanceColor" GL_FLOAT 4
+
+            return RenderShape
+                { rshShapeType                 = shapeType
+                , rshShape                     = shape
+                , rshInstanceColorsVector      = colorsVector
+                , rshInstanceModelM44sVector   = modelM44sVector
+                , rshInstanceColorsBuffer      = colorsBuffer
+                , rshInstanceModelM44sBuffer   = modelM44sBuffer
+                }
+#else
             let streamingBufferCapacity = maxInstances * 64
             sab              <- makeSAB streamingBufferCapacity
             modelM44sBuffer  <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (M44 GLfloat))
             colorsBuffer     <- bufferDataEmpty GL_STREAM_DRAW streamingBufferCapacity (Proxy :: Proxy (V4  GLfloat))
-
             --let resetShapeInstanceBuffers = profileMS "reset" 0 $ withShape shape $ do
             let resetShapeInstanceBuffers = withShape shape $ do
                     shader <- asks sProgram
@@ -91,6 +122,7 @@ initRenderSystem = do
                 , rshInstanceModelM44sBuffer   = modelM44sBuffer
                 , rshResetShapeInstanceBuffers = resetShapeInstanceBuffers
                 }
+#endif
 
     registerSystem sysRender (RenderSystem shapesWithBuffers textPlaneShape)
 
@@ -112,17 +144,31 @@ tickRenderSystem headM44 = do
 
 fillShapeBuffers :: (MonadIO m, MonadState ECS m)
                  => Map EntityID (M44 GLfloat)
-                 -> m [(Shape Uniforms, StreamingArrayBuffer, Int)]
+                 -> m [(RenderShape, Int)]
 fillShapeBuffers finalMatricesByEntityID = do
     colorsMap   <- getComponentMap myColor
 
     -- Batch by entities sharing the same shape type
 
     shapes      <- viewSystem sysRender rdsShapes
-    shapeCounts <- forM shapes $ \RenderShape{..} -> withShape rshShape $ do
+    shapeCounts <- forM shapes $ \renderShape@RenderShape{..} -> withShape rshShape $ do
         --let shapeName = show rshShapeType ++ " "
         entityIDsForShape <- getEntityIDsForShapeType rshShapeType
         let count = V.length entityIDsForShape
+
+#if defined(darwin_HOST_OS)
+        loopM (fromIntegral count) $ \i -> do
+            let entityID = entityIDsForShape V.! i
+                color    = Map.lookupDefault 1 entityID colorsMap
+            liftIO $ VM.write rshInstanceColorsVector i color
+        loopM (fromIntegral count) $ \i -> do
+            let entityID = entityIDsForShape V.! i
+                modelM44 = Map.lookupDefault identity entityID finalMatricesByEntityID
+            liftIO $ VM.write rshInstanceModelM44sVector i modelM44
+
+        bufferSubDataV rshInstanceModelM44sBuffer rshInstanceModelM44sVector
+        bufferSubDataV rshInstanceColorsBuffer    rshInstanceColorsVector
+#else
         writeSAB rshStreamingArrayBuffer (fromIntegral count) rshResetShapeInstanceBuffers $ do
             fillSABBuffer rshInstanceColorsBuffer $ \i -> do
                 let entityID = entityIDsForShape V.! i
@@ -132,23 +178,27 @@ fillShapeBuffers finalMatricesByEntityID = do
                 let entityID = entityIDsForShape V.! i
                     modelM44 = Map.lookupDefault identity entityID finalMatricesByEntityID
                 return modelM44
-
-        return (rshShape, rshStreamingArrayBuffer, count)
+#endif
+        return (renderShape, count)
     return shapeCounts
 
 renderEntities :: (MonadIO m, MonadState ECS m)
-               => M44 GLfloat -> [(Shape Uniforms, StreamingArrayBuffer, Int)] -> m ()
+               => M44 GLfloat -> [(RenderShape, Int)] -> m ()
 renderEntities projViewM44 shapes = do
 
     headM44 <- getHeadPose
 
-    forM_ shapes $ \(shape, sab, shapeCount) -> withShape shape $ do
+    forM_ shapes $ \(RenderShape{..}, shapeCount) -> withShape rshShape $ do
 
         Uniforms{..} <- asks sUniforms
         uniformV3  uCamera (headM44 ^. translation)
         uniformM44 uProjectionView projViewM44
 
-        drawSAB sab (fromIntegral shapeCount)
+#if defined(darwin_HOST_OS)
+        drawShapeInstanced (fromIntegral shapeCount)
+#else
+        drawSAB rshStreamingArrayBuffer (fromIntegral shapeCount)
+#endif
 
 
 -- Perform a breadth-first traversal of entities with no parents,
