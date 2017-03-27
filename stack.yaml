@@ -13,4 +13,6 @@ packages:
 - submodules/freetype-gl-mini
 - submodules/text-gl
 - submodules/extensible-ecs
-resolver: nightly-2016-08-17
+resolver: lts-8.5
+extra-deps:
+- gl-0.8.0
