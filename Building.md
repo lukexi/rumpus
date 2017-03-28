@@ -25,3 +25,8 @@ stack build && stack exec rumpus
 ```
 
 If not, please [open an issue](https://github.com/lukexi/rumpus/issues) or get in touch at luke@rumpus.land : )
+
+# Building on Linux
+Checkout the `linux` branch in openvr-hs
+Run `scripts/copyLibsLinux.sh`
+Run `sudo apt install libfreetype6-dev libsdl2-dev`
