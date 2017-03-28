@@ -42,7 +42,7 @@ import Control.Lens.Extra as Exports hiding (List, (<.>), children)
 import Linear.Extra as Exports hiding (trace)
 
 import Graphics.GL.Pal as Exports hiding (trace, getNow, ColorSpace(..)) -- using a faster getNow in Types
-import Graphics.VR.Pal as Exports hiding (getNow, getDeltaTime, Key)
+import Graphics.VR.Pal as Exports hiding (getNow, getDeltaTime)
 import Animation.Pal   as Exports hiding (getNow, exhaustTChan)
 
 import Data.ECS as Exports
@@ -65,6 +65,7 @@ traverseM_ f x = f >>= traverse_ x
 useTraverseM_ :: (MonadState s m, Foldable t) => Lens' s (t a) -> (a -> m b) -> m ()
 useTraverseM_ aLens f = traverseM_ (use aLens) f
 
+for :: [a] -> (a -> b) -> [b]
 for = flip map
 
 exhaustTChan :: TChan a -> STM [a]
