@@ -30,5 +30,6 @@ If not, please [open an issue](https://github.com/lukexi/rumpus/issues) or get i
 ```
 (cd submodules/openvr-hs && git checkout linux)
 sudo apt install libfreetype6-dev libsdl2-dev
-scripts/copyLibsLinux.sh
+sudo scripts/copyLibsLinux.sh
+sudo ldconfig
 ```
