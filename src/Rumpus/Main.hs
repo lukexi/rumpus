@@ -121,11 +121,9 @@ multiThreadedLoop ghc pd vrPal = do
         --makeContextCurrent (Just (gpThreadWindow vrPal))
         void . flip runStateT startingECS . forever $ do
             (headM44, events) <- atomically $ do
-                readTVar backgroundBox >>= \case
-                    Just something -> do
-                        writeTVar backgroundBox Nothing
-                        return something
-                    Nothing -> retry
++                something <- fmap (fromJustNote "asum . repeat") $ asum $ repeat $ readTVar backgroundBox
++                writeTVar backgroundBox Nothing
++                return something
 
             profile "Controls" $ tickControlEventsSystem headM44 events
             tickLogic
