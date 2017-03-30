@@ -49,12 +49,7 @@ rotationQ q = mkTransformation q 0
 -- finds the successor name of the highest name.
 -- Example list would return NewObject18.
 findNextNumberedName :: String -> [String] -> String
-findNextNumberedName name inList =
-    let newObjects = filter (isPrefixOf name) inList
-        existingNumbers = catMaybes $ map (readMaybe . drop (length name)) newObjects :: [Int]
-        highest = if null existingNumbers then 0 else maximum existingNumbers
-    in name ++ show (succ highest)
-
+findNextNumberedName name = (++) name . show . succ . maximumDef (0 :: Int) . mapMaybe (readMaybe <=< stripPrefix name)
 
 -- Quantization
 -- | Quantizes a float to the nearest multiple of q
